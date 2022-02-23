@@ -1,0 +1,7 @@
+[020F9BCE] -- compressed SHTDXS files get loaded from here
+[02222120] -- compressed map (?) files get loaded from here
+[02234120] -- compressed dat & evt files get loaded from here
+
+0200E3C4 -- file loading subroutine
+    0200E2A0 -- file block loading subroutine
+        020076CC -- 

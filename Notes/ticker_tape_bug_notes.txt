@@ -1,0 +1,13 @@
+[0216A3A0..0216A3BF]? -- Initial ticker tape text in memory (original ROM)
+020703C8 -- ticker tape routine??
+[02198924..02198925] -- timer (countdown to ticker starting moving)
+[0219892C..0219892F] -- string's total byte count
+[02198930..0219895D]! -- writes to the char array for screen-loaded ticker message
+[02198966..02198967]? -- timer for slide in animation
+0202F850 -- ticker tape management routine?
+
+hack attempt
+02070394 -- increment 2E to 3E (incrementing to 36 works!)
+020703AC -- increment 3C to 4C
+020703EC -- increment 3C to 4C
+0206D7F8 -- increment 220 to 230

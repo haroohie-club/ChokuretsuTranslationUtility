@@ -1,0 +1,29 @@
+[021C4280..021C9BD0]?
+[021C4280..021C7667]?
+[021C7740..021C9BD0]?
+
+[02168580..0216858F]!?
+
+02174510 - topic reference for 324
+[02174512..02174536]?
+[02172E30..02180540]? == entire file
+
+0205135C
+020513D8, r1=020534C8
+
+--------------------------------------
+
+Freezing notes (hacked rom)
+subroutine: 0205AE4C
+[0223B23C]?!
+[02178FC8]?!
+[027E01CC]?!
+[027E079C..027E079D]!!?
+
+[021791C8]? - Poster Misprint
+[0223B3FC]!!? - Poster Misrpint 2
+[027E01C8]!? - Poster Misprint 3
+
+0205BA3C - the magic function
+
+[021A5A34..021A5B34]!?

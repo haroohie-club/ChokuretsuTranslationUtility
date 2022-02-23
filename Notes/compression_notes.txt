@@ -1,0 +1,62 @@
+0x2026190 -- decompression subroutine
+
+021C46FC -- where the first line of haruhi dialogue gets written
+
+r0 = z
+r1 = a
+r2 = b
+r3 = c
+r4 = d
+r5 = e
+r6 = f
+r7 = g
+r8 = h
+r9 = i
+r10 = j
+r11 = k
+r12 = l
+r13 = m
+r14 = n
+
+r0 = [data]
+r1 = r2 = [output]
+
+Lxx_2026198
+c = data[z++]           // ldrb     r3,[r0],1h
+if (c == 0h)            // cmp      r3,0h
+    goto Lxx_20262A0    // beq      Lxx_20262A0h
+if (c & 0x80 == 0)      // tst      r3,80h
+    goto Lxx_2026224    // beq      Lxx_2026224h
+l = data[z++]           // ldrb     r12,[r0],1h
+n = c & 0x60            // and      r14,r3,60h
+c <<= 0x1B              // mov      r3,r3,lsl 1Bh
+n >>= 0x05              // mov      r14,r14,asr 5h
+c = l | (r3 >> 0x13)    // orr      r3,r12,r3,lsr 13h
+l = n + 0x04            // add      r12,r14,4h
+n = a - c               // sub      r14,r1,r3
+Lxx_20261C8
+while (l > 0)           // cmp      r12,0h
+    c = output[n++]     // ldrb     r3,[r14],1h
+    l--                 // sub      r12,r12,1h
+
+
+
+Lxx_2026224
+if (c & 0x40 == 0)      // tst      r3,40h
+    goto Lxx_2026268    // beq      Lxx_2026268h
+
+
+Lxx_2026268
+if (c & 0x20 == 0)      // tst      r3,20h
+    l = c & 0x1F        // andeq    r12,r3,1Fh
+    goto Lxx_2026280    // beq      Lxx_2026280h
+
+Lxx_2026280
+if  (l <= 0)            // cmp      r12,0h
+    goto Lxx_2026198    // ble      Lxx_2026198h
+while (l > 0)           // bgt      Lxx_2026288h (self)
+    c = data[z++]       // ldrb     r3,[r0],1h
+    l--                 // sub      r12,r12,1h
+    output[a++]         // strb     r3,[r1],1h
+goto Lxx_2026198h
+    

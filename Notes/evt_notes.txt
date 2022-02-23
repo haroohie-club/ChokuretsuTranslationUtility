@@ -1,0 +1,51 @@
+020F7700 -- evt file start in memory
+[020F7700..020F9B3A]?
+0x02033A70
+
+[20F8050..20F89A0]? -- secondary section of integers
+
+[020C19C8..020C19CB]? -- where evt.bin @ 0x18 is stored
+[020C1A14..020C1A17]? -- where start of confusing evt.bin section (0x1280) is stored
+[027E3AD4..027E3AD7]? -- where ((evt.bin @ 0x10) & magic pointer number) * (evt.bin @ 0x08) is stored
+[020F8050..020F9B39]? -- the weird evt.bin section
+
+pointer: from 0x1C in evt.bin
+a = [0x1C + (index << 2)]
+b = 0x11 (evt.bin @ 0x0C)
+c = 0x800 (evt.bin @ 0x04)
+d = a >> b
+pointer = d * c
+
+pointer = ((data[0x1C + (index << 2)]) >> 0x11) * 0x800
+(pointer / 0x800) << 0x11
+
+[021C4284..021C4287]?
+02033ED4
+
+0x2033FC4
+0x2033FCC --- use breakpoint
+First int read -> check if less than 0
+Read 0x0C (pointers)
+Loop first int times, incrementing by 8 bytes each time, checking 0x0C from that byte, replace with pointer
+
+0x2051870
+[021C46FC..021C4E30]?
+
+0xBB4 in ev1_000 read by routine 0205132C
+
+
+ev1_001 (in modded rom)
+021C18D0 (start of file)
+[021C1C00..021C1D0F]?
+020073E8
+020208AC
+0202E2E8
+
+0202E594
+0202E1C8
+[02198CE8..02198CEB]!
+0202E1C8
+
+
+$10 determines text speed
+#W20 is a wait command, causes the text to pause before continuing

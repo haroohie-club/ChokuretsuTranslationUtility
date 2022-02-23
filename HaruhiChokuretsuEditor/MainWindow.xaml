@@ -1,0 +1,145 @@
+﻿<Window x:Class="HaruhiChokuretsuEditor.MainWindow"
+        x:Name="mainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HaruhiChokuretsuEditor"
+        mc:Ignorable="d"
+        Title="Suzumiya Haruhi no Chokuretsu Editor" Height="452" Width="867">
+    <Grid>
+        <TabControl x:Name="mainTabControl">
+            <TabItem Header="Events">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="99*"/>
+                        <ColumnDefinition Width="695*"/>
+                    </Grid.ColumnDefinitions>
+                    <ToolBar x:Name="eventsToolBar" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="1043" Grid.ColumnSpan="2">
+                        <Button x:Name="openEventsFileButton" Content="Open" HorizontalAlignment="Left" Click="OpenEventsFileButton_Click" />
+                        <Button x:Name="openEventsDatFileButton" Content="Open DAT" HorizontalAlignment="Left" Click="OpenEventsDatFileButton_Click" />
+                        <Button x:Name="saveEventsFileButton" Content="Save" HorizontalAlignment="Left" Click="SaveEventsFileButton_Click" />
+                        <Button x:Name="exportEventsFileButton" Content="Export" HorizontalAlignment="Left" Click="ExportEventsFileButton_Click" />
+                        <Button x:Name="importEventsFileButton" Content="Import" HorizontalAlignment="Left" Click="ImportEventsFileButton_Click" />
+                        <Button x:Name="exportStringsEventsFileButton" Content="Export Strings" HorizontalAlignment="Left" Click="ExportStringsEventsFileButton_Click" />
+                        <Button x:Name="importStringsEventsFileButton" Content="Import Strings" HorizontalAlignment="Left" Click="ImportStringsEventsFileButton_Click" />
+                        <Button x:Name="exportAllStringsEventsFileButton" Content="Export All Strings" HorizontalAlignment="Left" Click="ExportAllStringsEventsFileButton_Click" />
+                        <Button x:Name="importAllStringsEventsFileButton" Content="Import All Strings" HorizontalAlignment="Left" Click="ImportAllStringsEventsFileButton_Click" />
+                        <Button x:Name="exportTopicsEventsFileButton" Content="Export Topics" HorizontalAlignment="Left" Click="ExportTopicsEventsFileButton_Click" />
+                        <TextBox x:Name="dialogueSearchBox" Width="150" HorizontalAlignment="Left" TextChanged="DialogueSearchBox_TextChanged" />
+                        <Button x:Name="dialogueNextSearchButton" Content="Next" HorizontalAlignment="Left" Click="DialogueNextSearchButton_Click" />
+                    </ToolBar>
+                    <ListBox x:Name="eventsListBox" Margin="0,30,579,0" SelectionChanged="EventsListBox_SelectionChanged" Grid.ColumnSpan="2" />
+                    <StackPanel Grid.Column="1" Margin="175,30,0,0">
+                        <TabControl>
+                            <TabItem Header="Dialogue">
+                                <ScrollViewer x:Name="eventEditScrollViewer"  Grid.Column="1" Height="350" >
+                                    <DockPanel>
+                                        <StackPanel x:Name="editStackPanel"/>
+                                    </DockPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="Topics">
+                                <ScrollViewer x:Name="eventTopicsScrollViewer"  Grid.Column="1" Height="350" >
+                                    <DockPanel>
+                                        <StackPanel x:Name="eventsTopicsStackPanel"/>
+                                    </DockPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="Front Pointers">
+                                <ScrollViewer Grid.Column="1" Height="350" >
+                                    <DockPanel>
+                                        <StackPanel x:Name="frontPointersStackPanel"/>
+                                    </DockPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="End Pointers">
+                                <ScrollViewer Grid.Column="1" Height="350" >
+                                    <DockPanel>
+                                        <StackPanel x:Name="endPointersStackPanel"/>
+                                    </DockPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                        </TabControl>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Graphics">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="99*"/>
+                        <ColumnDefinition Width="695*"/>
+                    </Grid.ColumnDefinitions>
+                    <ToolBar x:Name="graphicsToolBar" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="1043" Grid.ColumnSpan="2">
+                        <Button x:Name="openGraphicsFileButton" Content="Open" HorizontalAlignment="Left" Click="OpenGraphicsFileButton_Click" />
+                        <Button x:Name="saveGraphicsFileButton" Content="Save" HorizontalAlignment="Left" Click="SaveGraphicsFileButton_Click" />
+                        <Button x:Name="exportGraphicsFileButton" Content="Export" HorizontalAlignment="Left" Click="ExportGraphicsFileButton_Click" />
+                        <Button x:Name="importGraphicsFileButton" Content="Import" HorizontalAlignment="Left" Click="ImportGraphicsFileButton_Click" />
+                        <Separator />
+                        <Button x:Name="exportGraphicsImageFileButton" Content="Export Image" HorizontalAlignment="Left" Click="ExportGraphicsImageFileButton_Click" />
+                        <Button x:Name="importGraphicsImageFileButton" Content="Import Image" HorizontalAlignment="Left" Click="ImportGraphicsImageFileButton_Click" />
+                        <Button x:Name="importGraphicsImageWithPaletteFileButton" Content="Import Image with Palette" HorizontalAlignment="Left" Click="ImportGraphicsImageWithPaletteFileButton_Click" />
+                        <Button x:Name="addGraphicsImaageFileButton" Content="Add Image" HorizontalAlignment="Left" Click="AddGraphicsImaageFileButton_Click" />
+                    </ToolBar>
+                    <ListBox x:Name="graphicsListBox" Margin="0,30,521,0" SelectionChanged="GraphicsListBox_SelectionChanged" Grid.ColumnSpan="2" />
+                    <StackPanel Grid.Column="1" Margin="175,30,0,0">
+                        <TabControl>
+                            <TabItem Header="Tiles">
+                                <ScrollViewer Grid.Column="1" Height="350" >
+                                    <DockPanel>
+                                        <StackPanel x:Name="tilesEditStackPanel"/>
+                                    </DockPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="Statistics">
+                                <ScrollViewer Grid.Column="1" Height="350" >
+                                    <DockPanel>
+                                        <StackPanel x:Name="graphicsStatsStackPanel"/>
+                                    </DockPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                        </TabControl>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Data">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="99*"/>
+                        <ColumnDefinition Width="695*"/>
+                    </Grid.ColumnDefinitions>
+                    <ToolBar x:Name="dataToolBar" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="1043" Grid.ColumnSpan="2">
+                        <Button x:Name="openDataFileButton" Content="Open" HorizontalAlignment="Left" Click="OpenDataFileButton_Click" />
+                        <Button x:Name="saveDataFileButton" Content="Save" HorizontalAlignment="Left" Click="SaveDataFileButton_Click" />
+                        <Button x:Name="exportDataFileButton" Content="Export" HorizontalAlignment="Left" Click="ExportDataFileButton_Click" />
+                        <Button x:Name="importDataFileButton" Content="Import" HorizontalAlignment="Left" Click="ImportDataFileButton_Click" />
+                    </ToolBar>
+                    <ListBox x:Name="dataListBox" Margin="0,30,521,0" SelectionChanged="DataListBox_SelectionChanged"  Grid.ColumnSpan="2" />
+                    <StackPanel Grid.Column="1" Margin="175,30,0,0">
+                        <TabControl>
+                            <TabItem Header="Data">
+                                <ScrollViewer Grid.Column="1" Height="350" >
+                                    <DockPanel>
+                                        <StackPanel x:Name="dataEditStackPanel"/>
+                                    </DockPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                        </TabControl>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Compression">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="99*"/>
+                        <ColumnDefinition Width="695*"/>
+                    </Grid.ColumnDefinitions>
+                    <ToolBar x:Name="compressionToolBar" HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="1043" Grid.ColumnSpan="2">
+                        <Button x:Name="compressFileButton" Content="Compress File" HorizontalAlignment="Left" Click="CompressFileButton_Click" />
+                        <Button x:Name="decompressFileButton" Content="Decompress File" HorizontalAlignment="Left" Click="DecompressFileButton_Click"/>
+                    </ToolBar>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
