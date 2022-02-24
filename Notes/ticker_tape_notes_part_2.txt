@@ -1,0 +1,7 @@
+[027E00FC]!
+[027E020C]?
+[027E0208]!
+[027E01C8]! -- render text
+[027E3A20]! -- render text reference
+
+2011CA0 - printf method

@@ -24,22 +24,24 @@ namespace HaruhiChokuretsuCLI
             REPLACE,
             IMPORT_RESX,
             PATCH_OVERLAYS,
+            HEX_SEARCH,
         }
 
         public static void Main(string[] args)
         {
             Mode mode = Mode.UNPACK;
             int imageWidth = 0;
-            string inPath = "", outPath = "", replacementFolder = "", langCode = "", fontMapPath = "", romInfoPath = "";
+            string inPath = "", outPath = "", replacementFolder = "", langCode = "", fontMapPath = "", romInfoPath = "", searchString = "";
 
             OptionSet options = new()
             {
-                "Usage: HaruhiChokuretsuCLI [-u|-x|-r|--import-resx] -i INPUT_FILE -o OUTPUT_FILE [OPTIONS]+",
+                "Usage: HaruhiChokuretsuCLI [-u|-x|-r|-p|-s|--import-resx] -i INPUT_FILE -o OUTPUT_FILE [OPTIONS]+",
                 { "u|unpack", m => mode = Mode.UNPACK },
                 { "x|extract", e => mode = Mode.EXTRACT },
                 { "r|replace", r => mode = Mode.REPLACE },
                 { "import-resx", r => mode = Mode.IMPORT_RESX },
                 { "p|patch-overlays", r => mode = Mode.PATCH_OVERLAYS },
+                { "s|hex-search", s => mode = Mode.HEX_SEARCH },
                 { "i|input=", i => inPath = i},
                 { "o|output=", o => outPath = o },
                 { "f|folder=", f => replacementFolder = f },
@@ -47,6 +49,7 @@ namespace HaruhiChokuretsuCLI
                 { "l|lang-code=", l => langCode = l },
                 { "font-map=", f => fontMapPath = f },
                 { "rom-info=", r => romInfoPath = r },
+                { "hex-string=", x => searchString = x }
             };
 
             try
@@ -73,6 +76,10 @@ namespace HaruhiChokuretsuCLI
                 {
                     ExtractSingle(inPath, outPath);
                 }
+            }
+            else if (mode == Mode.HEX_SEARCH)
+            {
+                HexSearch(inPath, searchString);
             }
             else if (mode == Mode.REPLACE && !string.IsNullOrEmpty(replacementFolder))
             {
@@ -364,6 +371,50 @@ namespace HaruhiChokuretsuCLI
             foreach (Overlay overlay in overlays)
             {
                 overlay.Save(Path.Combine(outputFolder, $"{overlay.Name}.bin"));
+            }
+        }
+
+        private static void HexSearch(string archiveFile, string hexSearch)
+        {
+            List<byte> searchBytes = new();
+            for (int i = 0; i < hexSearch.Length; i += 2)
+            {
+                searchBytes.Add(byte.Parse(hexSearch.Substring(i, 2), NumberStyles.HexNumber));
+            }
+            ArchiveFile<FileInArchive> archive = ArchiveFile<FileInArchive>.FromFile(archiveFile);
+
+            Dictionary<int, List<int>> matches = new();
+            foreach (FileInArchive file in archive.Files)
+            {
+                byte[] decompressedData = new byte[5];
+                try
+                {
+                    decompressedData = Helpers.DecompressData(file.CompressedData);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    continue;
+                }
+                for (int i = 0; i < decompressedData.Length - searchBytes.Count; i++)
+                {
+                    if (decompressedData.Skip(i).Take(searchBytes.Count).SequenceEqual(searchBytes))
+                    {
+                        if (!matches.ContainsKey(file.Index))
+                        {
+                            matches.Add(file.Index, new());
+                        }
+                        matches[file.Index].Add(i);
+                    }
+                }
+            }
+
+            foreach (int file in matches.Keys)
+            {
+                Console.WriteLine($"Match(es) found in file #{file:X3}:");
+                foreach (int index in matches[file])
+                {
+                    Console.WriteLine($"\tAt offset 0x{index:X8}");
+                }
             }
         }
     }
