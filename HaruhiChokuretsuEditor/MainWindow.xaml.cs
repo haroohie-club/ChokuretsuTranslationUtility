@@ -382,19 +382,19 @@ namespace HaruhiChokuretsuEditor
 
                 // Gather stats on the header values for research purposes
                 Dictionary<int, Dictionary<ushort, int>> statsDictionaries = new();
-                for (int i = 0x06; i < 0x14; i += 2)
+                for (int i = 0x04; i < 0x14; i += 2)
                 {
                     statsDictionaries.Add(i, new Dictionary<ushort, int>());
                 }
 
                 foreach (GraphicsFile file in _grpFile.Files)
                 {
-                    if (file.Data is null || Encoding.ASCII.GetString(file.Data.Take(6).ToArray()) != "SHTXDS")
+                    if (file.Data is null || Encoding.ASCII.GetString(file.Data.Take(4).ToArray()) != "SHTX")
                     {
                         continue;
                     }
 
-                    for (int i = 0x06; i < 0x14; i += 2)
+                    for (int i = 0x04; i < 0x14; i += 2)
                     {
                         ushort value = BitConverter.ToUInt16(file.Data.Skip(i).Take(2).ToArray());
                         if (statsDictionaries[i].ContainsKey(value))
@@ -412,12 +412,25 @@ namespace HaruhiChokuretsuEditor
                 {
                     graphicsStatsStackPanel.Children.Add(new TextBlock { Text = $"0x{offset:X2}", FontSize = 16 });
 
-                    foreach (ushort value in statsDictionaries[offset].Keys)
+                    if (offset == 4)
                     {
-                        StackPanel statStackPanel = new StackPanel { Orientation = Orientation.Horizontal };
-                        statStackPanel.Children.Add(new TextBlock { Text = string.Concat(BitConverter.GetBytes(value).Select(b => $"{b:X2} ")) });
-                        statStackPanel.Children.Add(new TextBlock { Text = $"{statsDictionaries[offset][value]}" });
-                        graphicsStatsStackPanel.Children.Add(statStackPanel);
+                        foreach (ushort value in statsDictionaries[offset].Keys)
+                        {
+                            StackPanel statStackPanel = new StackPanel { Orientation = Orientation.Horizontal };
+                            statStackPanel.Children.Add(new TextBlock { Text = Encoding.ASCII.GetString(BitConverter.GetBytes(value)) });
+                            statStackPanel.Children.Add(new TextBlock { Text = $" {statsDictionaries[offset][value]}" });
+                            graphicsStatsStackPanel.Children.Add(statStackPanel);
+                        }
+                    }
+                    else
+                    {
+                        foreach (ushort value in statsDictionaries[offset].Keys)
+                        {
+                            StackPanel statStackPanel = new StackPanel { Orientation = Orientation.Horizontal };
+                            statStackPanel.Children.Add(new TextBlock { Text = string.Concat(BitConverter.GetBytes(value).Select(b => $"{b:X2} ")) });
+                            statStackPanel.Children.Add(new TextBlock { Text = $"{statsDictionaries[offset][value]}" });
+                            graphicsStatsStackPanel.Children.Add(statStackPanel);
+                        }
                     }
 
                     graphicsStatsStackPanel.Children.Add(new Separator());
@@ -459,7 +472,9 @@ namespace HaruhiChokuretsuEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 GraphicsFile newGraphicsFile = new();
-                newGraphicsFile.Initialize(File.ReadAllBytes(openFileDialog.FileName), _grpFile.Files[graphicsListBox.SelectedIndex].Offset);
+                byte[] compressedData = File.ReadAllBytes(openFileDialog.FileName);
+                newGraphicsFile.CompressedData = compressedData;
+                newGraphicsFile.Initialize(compressedData, _grpFile.Files[graphicsListBox.SelectedIndex].Offset);
                 newGraphicsFile.Index = _grpFile.Files[graphicsListBox.SelectedIndex].Index;
                 _grpFile.Files[graphicsListBox.SelectedIndex] = newGraphicsFile;
                 _grpFile.Files[graphicsListBox.SelectedIndex].Edited = true;
@@ -542,23 +557,79 @@ namespace HaruhiChokuretsuEditor
             if (graphicsListBox.SelectedIndex >= 0)
             {
                 GraphicsFile selectedFile = (GraphicsFile)graphicsListBox.SelectedItem;
-                tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{selectedFile.Data?.Count ?? 0} bytes" });
+                tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{selectedFile.Determinant ?? ""} {selectedFile.Data?.Count ?? 0} bytes" });
                 tilesEditStackPanel.Children.Add(new TextBlock { Text = $"Actual compressed length: {selectedFile.CompressedData.Length:X}; Calculated length: {selectedFile.Length:X}" });
                 if (selectedFile.PixelData is not null)
                 {
-                    ShtxdsWidthBox graphicsWidthBox = new ShtxdsWidthBox { Shtxds = selectedFile, Text = "256" };
+                    ShtxWidthBox graphicsWidthBox = new() { Shtxds = selectedFile, Text = $"{selectedFile.Width}" };
                     graphicsWidthBox.TextChanged += GraphicsWidthBox_TextChanged;
                     tilesEditStackPanel.Children.Add(graphicsWidthBox);
-                    tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetImage()), MaxWidth = 256 });
+                    tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetImage()), MaxWidth = selectedFile.Width });
                     _currentImageWidth = 256;
                 }
+                else if (selectedFile.FileFunction == GraphicsFile.Function.LAYOUT)
+                {
+                    TextBox startTextBox = new() { Width = 40 };
+                    TextBox lengthTextBox = new() { Width = 40 };
+                    GraphicsLayoutCreationButton graphicsLayoutCreationButton = new() { StartTextBox = startTextBox, LengthTextBox = lengthTextBox, Content = "Preview Layout" };
+                    graphicsLayoutCreationButton.Click += GraphicsLayoutCreationButton_Click;
+                    StackPanel layoutControlsPanel = new() { Orientation = Orientation.Horizontal };
+                    layoutControlsPanel.Children.Add(new TextBlock { Text = "Start: " });
+                    layoutControlsPanel.Children.Add(startTextBox);
+                    layoutControlsPanel.Children.Add(new TextBlock { Text = "Length: " });
+                    layoutControlsPanel.Children.Add(lengthTextBox);
+                    layoutControlsPanel.Children.Add(graphicsLayoutCreationButton);
+                    layoutControlsPanel.Children.Add(new TextBlock { Text = $" (Total Entries: {selectedFile.LayoutEntries.Count})" });
+                    tilesEditStackPanel.Children.Add(layoutControlsPanel);
+                }
             }
+        }
+
+        private void GraphicsLayoutCreationButton_Click(object sender, RoutedEventArgs e)
+        {
+            GraphicsLayoutCreationButton graphicsLayoutCreationButton = (GraphicsLayoutCreationButton)sender;
+            if (graphicsLayoutCreationButton.CreatedLayout)
+            {
+                tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 1);
+                tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 1);
+                tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 1);
+                tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 1);
+            }
+            else
+            {
+                graphicsLayoutCreationButton.CreatedLayout = true;
+            }
+            int startIndex = int.Parse(graphicsLayoutCreationButton.StartTextBox.Text);
+            int length = int.Parse(graphicsLayoutCreationButton.LengthTextBox.Text);
+            (System.Drawing.Bitmap bitmap, List<LayoutEntry> entries) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, startIndex, length);
+            tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bitmap), MaxWidth = 640 });
+            StackPanel layoutEntriesStackPanel = new();
+            int i = startIndex;
+            foreach (LayoutEntry entry in entries)
+            {
+                LayoutEntryStackPanel layoutEntryStackPanel = new(entry, i);
+                layoutEntriesStackPanel.Children.Add(layoutEntryStackPanel);
+                i++;
+            }
+            tilesEditStackPanel.Children.Add(layoutEntriesStackPanel);
+            GraphicsLayoutRegenerateButton regenerateButton = new() { Content = "Regenerate Layout", LayoutEntries = entries };
+            regenerateButton.Click += RegenerateButton_Click;
+            tilesEditStackPanel.Children.Add(regenerateButton);
+            tilesEditStackPanel.Children.Add(new StackPanel() { Height = 50 });
+        }
+
+        private void RegenerateButton_Click(object sender, RoutedEventArgs e)
+        {
+            GraphicsLayoutRegenerateButton button = (GraphicsLayoutRegenerateButton)sender;
+            tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 4);
+            (System.Drawing.Bitmap bitmap, List<LayoutEntry> _) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, button.LayoutEntries);
+            tilesEditStackPanel.Children.Insert(tilesEditStackPanel.Children.Count - 3, new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bitmap), MaxWidth = 640 });
         }
 
         private void GraphicsWidthBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 1);
-            ShtxdsWidthBox widthBox = (ShtxdsWidthBox)sender;
+            ShtxWidthBox widthBox = (ShtxWidthBox)sender;
             bool successfulParse = int.TryParse(widthBox.Text, out int width);
             if (!successfulParse)
             {

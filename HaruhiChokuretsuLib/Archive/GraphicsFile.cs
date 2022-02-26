@@ -14,11 +14,15 @@ namespace HaruhiChokuretsuLib.Archive
         public List<byte> PaletteData { get; set; }
         public List<Color> Palette { get; set; } = new();
         public List<byte> PixelData { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public List<LayoutEntry> LayoutEntries { get; set; } = new();
+        public Function FileFunction { get; set; }
         public TileForm ImageTileForm { get; set; }
         public Form ImageForm { get; set; }
-        public bool Shtxds { get; set; } = false;
+        public string Determinant { get; set; }
 
-        private readonly static int[] VALID_WIDTHS = new int[] { 8, 16, 32, 64, 128, 256, 512 };
+        private readonly static int[] VALID_WIDTHS = new int[] { 8, 16, 32, 64, 128, 256, 512, 1024 };
 
         public enum TileForm
         {
@@ -27,21 +31,32 @@ namespace HaruhiChokuretsuLib.Archive
             GBA_8BPP = 0x100,
         }
 
+        public enum Function
+        {
+            UNKNOWN,
+            SHTX,
+            LAYOUT,
+        }
+
         public enum Form
         {
             UNKNOWN,
             TEXTURE,
-            TILE
+            TILE,
         }
 
         public override void Initialize(byte[] decompressedData, int offset)
         {
             Offset = offset;
             Data = decompressedData.ToList();
-            if (Encoding.ASCII.GetString(Data.Take(6).ToArray()) == "SHTXDS")
+            byte[] magicBytes = Data.Take(4).ToArray();
+            if (Encoding.ASCII.GetString(magicBytes) == "SHTX")
             {
-                Shtxds = true;
+                FileFunction = Function.SHTX;
+                Determinant = Encoding.ASCII.GetString(Data.Skip(4).Take(2).ToArray());
                 ImageTileForm = (TileForm)BitConverter.ToInt16(decompressedData.Skip(0x06).Take(2).ToArray());
+                Width = (int)Math.Pow(2, Data.Skip(0x0E).First());
+                Height = (int)Math.Pow(2, Data.Skip(0x0F).First());
 
                 int paletteLength = 0x200;
                 if (ImageTileForm == TileForm.GBA_4BPP)
@@ -63,6 +78,18 @@ namespace HaruhiChokuretsuLib.Archive
 
                 PixelData = Data.Skip(paletteLength + 0x14).ToList();
             }
+            else if (magicBytes.SequenceEqual(new byte[] { 0x00, 0x01, 0xC0, 0x00 }))
+            {
+                FileFunction = Function.LAYOUT;
+                for (int i = 0x08; i < Data.Count - 0x1C; i += 0x1C)
+                {
+                    LayoutEntries.Add(new(Data.Skip(i).Take(0x1C)));
+                }
+            }
+            else
+            {
+                FileFunction = Function.UNKNOWN;
+            }
         }
 
         public override void NewFile(string filename)
@@ -82,7 +109,7 @@ namespace HaruhiChokuretsuLib.Archive
                 _ => throw new ArgumentException($"Image {filename} does not have its image form (third argument should be 'texture' or 'tile')")
             };
             Data = new();
-            Shtxds = true;
+            FileFunction = Function.SHTX;
             int transparentIndex = -1;
             Match transparentIndexMatch = Regex.Match(filename, @"tidx(?<transparentIndex>\d+)");
             if (transparentIndexMatch.Success)
@@ -155,7 +182,7 @@ namespace HaruhiChokuretsuLib.Archive
                 && Index != 0x3AF && Index != 0x3FE
                 && (Index < 0x41B || Index > 0x42C)
                 && (Index < 0x8B4 || Index > 0x8B7)
-                && (Index < 0xB61 || Index > 0xB6E)
+                && (Index < 0xB61 || Index > 0xB6F)
                 && (Index < 0xBC9 || Index > 0xC1B)
                 && (Index < 0xC70 || Index > 0xC78)
                 && (Index < 0xCA3 || Index > 0xCA8)
@@ -171,12 +198,23 @@ namespace HaruhiChokuretsuLib.Archive
 
         public override byte[] GetBytes()
         {
-            if (Shtxds)
+            if (FileFunction == Function.SHTX)
             {
                 List<byte> data = new();
                 data.AddRange(Data.Take(0x14)); // get header
                 data.AddRange(PaletteData);
                 data.AddRange(PixelData);
+
+                return data.ToArray();
+            }
+            else if (FileFunction == Function.LAYOUT)
+            {
+                List<byte> data = new();
+                data.AddRange(Data.Take(0x08)); // get header
+                foreach (LayoutEntry entry in LayoutEntries)
+                {
+                    data.AddRange(entry.GetBytes());
+                }
 
                 return data.ToArray();
             }
@@ -192,10 +230,10 @@ namespace HaruhiChokuretsuLib.Archive
 
         public override string ToString()
         {
-            return $"{Index:X3} {Index:D4} 0x{Offset:X8}";
+            return $"{Index:X3} {Index:D4} 0x{Offset:X8} ({FileFunction})";
         }
 
-        public Bitmap GetImage(int width = 256, int transparentIndex = -1)
+        public Bitmap GetImage(int width = -1, int transparentIndex = -1)
         {
             if (IsTexture())
             {
@@ -207,19 +245,29 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        public Bitmap GetTiles(int width = 256, int transparentIndex = -1)
+        public Bitmap GetTiles(int width = -1, int transparentIndex = -1)
         {
+
             Color originalColor = Color.Black;
             if (transparentIndex >= 0)
             {
                 originalColor = Palette[transparentIndex];
                 Palette[transparentIndex] = Color.White;
             }
-            if (!VALID_WIDTHS.Contains(width))
+            int height;
+            if (width == -1)
             {
-                width = 256;
+                width = Width;
+                height = Height;
             }
-            int height = PixelData.Count / (width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
+            else
+            {
+                if (!VALID_WIDTHS.Contains(width))
+                {
+                    width = 256;
+                }
+                height = PixelData.Count / (width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
+            }
             var bitmap = new Bitmap(width, height);
             int pixelIndex = 0;
             for (int row = 0; row < height / 8 && pixelIndex < PixelData.Count; row++)
@@ -258,25 +306,39 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap;
         }
 
-        public Bitmap GetTexture(int width, int transparentIndex = -1)
+        public Bitmap GetTexture(int width = -1, int transparentIndex = -1)
         {
-            if (!VALID_WIDTHS.Contains(width))
+            int height;
+            if (width == -1)
             {
-                width = 256;
+                width = Width;
+                height = Height;
             }
-            if (PixelData.Count < width)
+            else
             {
-                width = VALID_WIDTHS.Last(w => w < PixelData.Count);
+                if (!VALID_WIDTHS.Contains(width))
+                {
+                    width = 256;
+                }
+                height = PixelData.Count / (width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
             }
-            int height = PixelData.Count / width;
             int i = 0;
 
             Bitmap bmp = new Bitmap(width, height);
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < height && i < PixelData.Count; y++)
             {
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < width && i < PixelData.Count; x++)
                 {
-                    Color color = Palette[PixelData[i++]];
+                    Color color;
+                    if (PixelData[i] == transparentIndex)
+                    {
+                        color = Color.Transparent;
+                        i++;
+                    }
+                    else
+                    {
+                        color = Palette[PixelData[i++]];
+                    }
                     bmp.SetPixel(x, y, color);
                 }
             }
@@ -410,6 +472,162 @@ namespace HaruhiChokuretsuLib.Archive
             }
             PixelData = pixelData;
             return bitmap.Width;
+        }
+
+        public (Bitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries)
+        {
+            return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList());
+        }
+
+        public (Bitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, List<LayoutEntry> layoutEntries)
+        {
+            Bitmap layoutBitmap = new(640, 480);
+            foreach (LayoutEntry currentEntry in layoutEntries)
+            {
+                if (currentEntry.RelativeShtxIndex < 0)
+                {
+                    continue;
+                }
+                using Graphics graphics = Graphics.FromImage(layoutBitmap);
+                int grpIndex = Index + 1;
+                for (int i = 0; i <= currentEntry.RelativeShtxIndex; grpIndex++)
+                {
+                    if (grpFiles.First(g => g.Index == grpIndex).FileFunction == Function.SHTX)
+                    {
+                        i++;
+                    }
+                }
+                GraphicsFile grpFile = grpFiles.First(g => g.Index == grpIndex - 1);
+
+                Rectangle boundingBox = new Rectangle
+                {
+                    X = currentEntry.TextureX,
+                    Y = currentEntry.TextureY,
+                    Width = currentEntry.TextureW,
+                    Height = currentEntry.TextureH,
+                };
+
+                Bitmap texture = grpFile.GetImage(transparentIndex: 0);
+                Bitmap tile;
+                try
+                {
+                    tile = texture.Clone(boundingBox, System.Drawing.Imaging.PixelFormat.DontCare);
+                }
+                catch (OutOfMemoryException)
+                {
+                    continue;
+                }
+
+                for (int x = 0; x < tile.Width; x++)
+                {
+                    for (int y = 0; y < tile.Height; y++)
+                    {
+                        Color color = tile.GetPixel(x, y);
+                        Color newColor = Color.FromArgb(
+                            (byte)(color.A * currentEntry.Tint.A / 256.0),
+                            (byte)(color.R * currentEntry.Tint.R / 256.0),
+                            (byte)(color.G * currentEntry.Tint.G / 256.0),
+                            (byte)(color.B * currentEntry.Tint.B / 256.0));
+                        tile.SetPixel(x, y, newColor);
+                    }
+                }
+
+                if (currentEntry.FlipX)
+                {
+                    tile.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                }
+                if (currentEntry.FlipY)
+                {
+                    tile.RotateFlip(RotateFlipType.RotateNoneFlipY);
+                }
+
+                graphics.DrawImage(tile, new Rectangle
+                {
+                    X = currentEntry.ScreenX,
+                    Y = currentEntry.ScreenY,
+                    Width = currentEntry.ScreenW,
+                    Height = currentEntry.ScreenH,
+                });
+            }
+
+            return (layoutBitmap, layoutEntries);
+        }
+    }
+
+    public class LayoutEntry
+    {
+        public short UnknownShort1 { get; set; }
+        public short RelativeShtxIndex { get; set; }
+        public short UnknownShort2 { get; set; }
+        public short ScreenX { get; set; }
+        public short ScreenY { get; set; }
+        public short TextureW { get; set; }
+        public short TextureH { get; set; }
+        public short TextureX { get; set; }
+        public short TextureY { get; set; }
+        public short ScreenW { get; set; }
+        public short ScreenH { get; set; }
+        public short UnknownShort3 { get; set; }
+        public Color Tint { get; set; }
+
+        public bool FlipX { get; set; }
+        public bool FlipY { get; set; }
+
+        public LayoutEntry(IEnumerable<byte> data)
+        {
+            if (data.Count() != 0x1C)
+            {
+                throw new ArgumentException($"Layout entry must be of width 0x1C (was {data.Count()}");
+            }
+
+            UnknownShort1 = BitConverter.ToInt16(data.Take(2).ToArray());
+            RelativeShtxIndex = BitConverter.ToInt16(data.Skip(0x02).Take(2).ToArray());
+            UnknownShort2 = BitConverter.ToInt16(data.Skip(0x04).Take(2).ToArray());
+            ScreenX = BitConverter.ToInt16(data.Skip(0x06).Take(2).ToArray());
+            ScreenY = BitConverter.ToInt16(data.Skip(0x08).Take(2).ToArray());
+            TextureW = BitConverter.ToInt16(data.Skip(0x0A).Take(2).ToArray());
+            TextureH = BitConverter.ToInt16(data.Skip(0x0C).Take(2).ToArray());
+            TextureX = BitConverter.ToInt16(data.Skip(0x0E).Take(2).ToArray());
+            TextureY = BitConverter.ToInt16(data.Skip(0x10).Take(2).ToArray());
+            ScreenW = BitConverter.ToInt16(data.Skip(0x12).Take(2).ToArray());
+            ScreenH = BitConverter.ToInt16(data.Skip(0x14).Take(2).ToArray());
+            UnknownShort3 = BitConverter.ToInt16(data.Skip(0x16).Take(2).ToArray());
+            Tint = Color.FromArgb(BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray()));
+
+            if (ScreenW < 0)
+            {
+                FlipX = true;
+                ScreenW *= -1;
+            }
+            if (ScreenH < 0)
+            {
+                FlipY = true;
+                ScreenH *= -1;
+            }
+        }
+
+        public byte[] GetBytes()
+        {
+            List<byte> data = new();
+            data.AddRange(BitConverter.GetBytes(UnknownShort1));
+            data.AddRange(BitConverter.GetBytes(RelativeShtxIndex));
+            data.AddRange(BitConverter.GetBytes(UnknownShort2));
+            data.AddRange(BitConverter.GetBytes(ScreenX));
+            data.AddRange(BitConverter.GetBytes(ScreenY));
+            data.AddRange(BitConverter.GetBytes(TextureW));
+            data.AddRange(BitConverter.GetBytes(TextureH));
+            data.AddRange(BitConverter.GetBytes(TextureX));
+            data.AddRange(BitConverter.GetBytes(TextureY));
+            data.AddRange(BitConverter.GetBytes(FlipX ? -1 * ScreenW : ScreenW));
+            data.AddRange(BitConverter.GetBytes(FlipY ? -1 * ScreenH : ScreenH));
+            data.AddRange(BitConverter.GetBytes(UnknownShort3));
+            data.AddRange(BitConverter.GetBytes(Tint.ToArgb()));
+            return data.ToArray();
+        }
+
+        public override string ToString()
+        {
+            return $"Index: {RelativeShtxIndex}; TX: {TextureX} {TextureY} {TextureX + TextureW} {TextureY + TextureH}, SC: {ScreenX} {ScreenY} {ScreenX + ScreenW} {ScreenY + ScreenH}";
         }
     }
 }

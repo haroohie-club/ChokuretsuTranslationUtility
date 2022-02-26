@@ -176,7 +176,7 @@ namespace HaruhiChokuretsuCLI
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Cannot extract file from {inputName} #{index:X3}");
+                Console.WriteLine($"Cannot extract file from {inputName} #{index:X3} (Exception: {e.Message})");
             }
         }
 

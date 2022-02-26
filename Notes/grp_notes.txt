@@ -5,3 +5,27 @@ FONT FILE: E50 in grp.bin, 2125D60 in memory
 [2125D60..216AD60]?
 [2127E60..2127EE0]? -- just the S
 [2125D60..212E160]? -- alphabet and kana
+
+Animdata stuff
+[0216F9AC..0216F9BF]? -- dat 9B entry for accident grp
+[02339740..0233D97F]? -- pixel data for accident texture
+[021ACB00..021ACE9F]? -- dat 8F in memory
+[021ACEA0..021AF884]? -- GRP AF0 in memory
+[021B18A0..021B3C90]? -- GRP C45 in memory
+[021AF8C0..021AFCD7]? -- GRP C68 in memory
+
+GRP map
+Series of shorts
+0x00: unknown
+0x02: relative index of texture (based only on other textures)?
+0x04: unknown
+0x06: horizontal screen position
+0x08: vertical screen position
+0x0A: texture width
+0x0C: texture height
+0x0E: texture X
+0x10: texture Y
+0x12: screen width
+0x14: screen height
+0x16: unknown
+0x18-0x1B: ARGB tint (little endian)
