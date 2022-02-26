@@ -78,7 +78,7 @@ namespace HaruhiChokuretsuLib.Archive
 
                 PixelData = Data.Skip(paletteLength + 0x14).ToList();
             }
-            else if (magicBytes.SequenceEqual(new byte[] { 0x00, 0x01, 0xC0, 0x00 }))
+            else if (magicBytes.SequenceEqual(new byte[] { 0x00, 0x01, 0xC0, 0x00 }) || magicBytes.SequenceEqual(new byte[] { 0x10, 0x04, 0x88, 0x02 }))
             {
                 FileFunction = Function.LAYOUT;
                 for (int i = 0x08; i < Data.Count - 0x1C; i += 0x1C)
@@ -490,7 +490,7 @@ namespace HaruhiChokuretsuLib.Archive
                 }
                 using Graphics graphics = Graphics.FromImage(layoutBitmap);
                 int grpIndex = Index + 1;
-                for (int i = 0; i <= currentEntry.RelativeShtxIndex; grpIndex++)
+                for (int i = 0; i <= currentEntry.RelativeShtxIndex && grpIndex < grpFiles.Count; grpIndex++)
                 {
                     if (grpFiles.First(g => g.Index == grpIndex).FileFunction == Function.SHTX)
                     {
