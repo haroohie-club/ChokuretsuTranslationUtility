@@ -628,8 +628,8 @@ namespace HaruhiChokuretsuLib.Archive
             data.AddRange(BitConverter.GetBytes(TextureH));
             data.AddRange(BitConverter.GetBytes(TextureX));
             data.AddRange(BitConverter.GetBytes(TextureY));
-            data.AddRange(BitConverter.GetBytes(FlipX ? -1 * ScreenW : ScreenW));
-            data.AddRange(BitConverter.GetBytes(FlipY ? -1 * ScreenH : ScreenH));
+            data.AddRange(BitConverter.GetBytes(FlipX ? (short)(-1 * ScreenW) : ScreenW));
+            data.AddRange(BitConverter.GetBytes(FlipY ? (short)(-1 * ScreenH) : ScreenH));
             data.AddRange(BitConverter.GetBytes(UnknownShort3));
             data.AddRange(BitConverter.GetBytes(Tint.ToArgb()));
             return data.ToArray();
