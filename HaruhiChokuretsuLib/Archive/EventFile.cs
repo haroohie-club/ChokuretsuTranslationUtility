@@ -256,9 +256,13 @@ namespace HaruhiChokuretsuLib.Archive
                     }
                     else if (dialogueText[i] == '#')
                     {
-                        if (dialogueText[(i + 1)..(i + 3)] == "DP" || dialogueText[(i + 1)..(i + 3)] == "SE")
+                        if (dialogueText[(i + 1)..(i + 3)] == "DP" || dialogueText[(i + 1)..(i + 3)] == "SE" || dialogueText[(i + 1)..(i + 3)] == "SK" || dialogueText[(i + 1)..(i + 3)] == "sk")
                         {
                             i += 2;
+                        }
+                        else if (dialogueText[(i + 1)..(i + 4)] == "SSE")
+                        {
+                            i += 3;
                         }
                         else
                         {

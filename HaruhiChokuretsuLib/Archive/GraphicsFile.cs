@@ -165,6 +165,8 @@ namespace HaruhiChokuretsuLib.Archive
                 Color.FromArgb(0xFF, 0xFF, 0xFF),
             };
             PixelData = Data;
+            Width = 16;
+            Height = PixelData.Count / 32;
         }
 
         // Hardcoding these until we figure out how the game knows what to do lol
