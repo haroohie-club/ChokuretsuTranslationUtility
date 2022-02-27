@@ -474,14 +474,24 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap.Width;
         }
 
-        public (Bitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries)
+        public (Bitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries, bool darkMode)
         {
-            return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList());
+            return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList(), darkMode);
         }
 
-        public (Bitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, List<LayoutEntry> layoutEntries)
+        public (Bitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, List<LayoutEntry> layoutEntries, bool darkMode)
         {
             Bitmap layoutBitmap = new(640, 480);
+            if (darkMode)
+            {
+                for (int x = 0; x < layoutBitmap.Width; x++)
+                {
+                    for (int y = 0; y < layoutBitmap.Height; y++)
+                    {
+                        layoutBitmap.SetPixel(x, y, Color.Black);
+                    }
+                }
+            }
             foreach (LayoutEntry currentEntry in layoutEntries)
             {
                 if (currentEntry.RelativeShtxIndex < 0)

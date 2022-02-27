@@ -35,6 +35,8 @@ namespace HaruhiChokuretsuEditor
         private int _currentImageWidth = 256;
         private int _currentSearchIndex = 0;
 
+        private bool _layoutDarkMode = false;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -573,12 +575,17 @@ namespace HaruhiChokuretsuEditor
                     TextBox lengthTextBox = new() { Width = 40 };
                     GraphicsLayoutCreationButton graphicsLayoutCreationButton = new() { StartTextBox = startTextBox, LengthTextBox = lengthTextBox, Content = "Preview Layout" };
                     graphicsLayoutCreationButton.Click += GraphicsLayoutCreationButton_Click;
+                    CheckBox darkModeCheckBox = new() { IsChecked = _layoutDarkMode };
+                    darkModeCheckBox.Checked += DarkModeCheckBox_Checked;
+                    darkModeCheckBox.Unchecked += DarkModeCheckBox_Unchecked;
                     StackPanel layoutControlsPanel = new() { Orientation = Orientation.Horizontal };
                     layoutControlsPanel.Children.Add(new TextBlock { Text = "Start: " });
                     layoutControlsPanel.Children.Add(startTextBox);
                     layoutControlsPanel.Children.Add(new TextBlock { Text = "Length: " });
                     layoutControlsPanel.Children.Add(lengthTextBox);
                     layoutControlsPanel.Children.Add(graphicsLayoutCreationButton);
+                    layoutControlsPanel.Children.Add(darkModeCheckBox);
+                    layoutControlsPanel.Children.Add(new TextBlock() { Text = "Dark Mode " });
                     layoutControlsPanel.Children.Add(new TextBlock { Text = $" (Total Entries: {selectedFile.LayoutEntries.Count})" });
                     tilesEditStackPanel.Children.Add(layoutControlsPanel);
                 }
@@ -601,7 +608,7 @@ namespace HaruhiChokuretsuEditor
             }
             int startIndex = int.Parse(graphicsLayoutCreationButton.StartTextBox.Text);
             int length = int.Parse(graphicsLayoutCreationButton.LengthTextBox.Text);
-            (System.Drawing.Bitmap bitmap, List<LayoutEntry> entries) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, startIndex, length);
+            (System.Drawing.Bitmap bitmap, List<LayoutEntry> entries) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, startIndex, length, _layoutDarkMode);
             tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bitmap), MaxWidth = 640 });
             StackPanel layoutEntriesStackPanel = new();
             int i = startIndex;
@@ -622,8 +629,18 @@ namespace HaruhiChokuretsuEditor
         {
             GraphicsLayoutRegenerateButton button = (GraphicsLayoutRegenerateButton)sender;
             tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 4);
-            (System.Drawing.Bitmap bitmap, List<LayoutEntry> _) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, button.LayoutEntries);
+            (System.Drawing.Bitmap bitmap, List<LayoutEntry> _) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, button.LayoutEntries, _layoutDarkMode);
             tilesEditStackPanel.Children.Insert(tilesEditStackPanel.Children.Count - 3, new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bitmap), MaxWidth = 640 });
+        }
+
+        private void DarkModeCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            _layoutDarkMode = true;
+        }
+
+        private void DarkModeCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _layoutDarkMode = false;
         }
 
         private void GraphicsWidthBox_TextChanged(object sender, TextChangedEventArgs e)
