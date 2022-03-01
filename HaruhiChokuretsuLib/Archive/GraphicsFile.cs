@@ -272,7 +272,7 @@ namespace HaruhiChokuretsuLib.Archive
                 }
                 height = PixelData.Count / (width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
             }
-            var bitmap = new Bitmap(width, height);
+            Bitmap bitmap = new(width, height);
             int pixelIndex = 0;
             for (int row = 0; row < height / 8 && pixelIndex < PixelData.Count; row++)
             {
@@ -287,7 +287,7 @@ namespace HaruhiChokuretsuLib.Archive
                                 for (int xypix = 0; xypix < 2 && pixelIndex < PixelData.Count; xypix++)
                                 {
                                     bitmap.SetPixel((col * 8) + (xpix * 2) + xypix, (row * 8) + ypix,
-                                        Palette[PixelData[pixelIndex] >> (xypix * 4) & 0xF]);
+                                        Palette[(PixelData[pixelIndex] >> (xypix * 4)) & 0xF]);
                                 }
                                 pixelIndex++;
                             }
