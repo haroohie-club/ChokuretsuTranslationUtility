@@ -13,7 +13,7 @@ namespace HaruhiChokuretsuLib
     {
 
         // redmean color distance formula with alpha term
-        public static double ColorDistance(Color color1, Color color2)
+        private static double ColorDistance(Color color1, Color color2)
         {
             double redmean = (color1.R + color2.R) / 2.0;
 
@@ -32,7 +32,7 @@ namespace HaruhiChokuretsuLib
 
         public static bool AddWillCauseCarry(int x, int y)
         {
-            return (((x & 0xFFFFFFFFfL) + (y & 0xFFFFFFFFL)) & 0x1000000000) > 0;
+            return (((x & 0xFFFFFFFFFL) + (y & 0xFFFFFFFFL)) & 0x1000000000) > 0;
         }
 
         public static bool BytesInARowLessThan(this IEnumerable<byte> sequence, int numBytesInARowLessThan, byte targetByte)

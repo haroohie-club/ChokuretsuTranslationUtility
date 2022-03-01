@@ -28,14 +28,14 @@ namespace HaruhiChokuretsuCLI
                 { "o|output-archive=", "Location to save modified archive", o => _outputArchive = o },
                 { "r|replacement=", "File or directory to replace with/from; images must be .PNG files and other files must be .BIN files. " +
                                     "File names must follow a specific format: " +
-                                    "\n\t\"{hex|new}[_newpal[_tidx{num}]][_{comments}].{ext}\"\n\t{hex} is a hex number representing the index " +
+                                    "\n\t\"(hex)|new[_newpal[_tidx(num)]][_(comments)].(ext)\"\n\t(hex) is a hex number representing the index " +
                                     "of the file to replace. You can alternatively specify \"new\" to add a file to the archive instead. New graphics " +
                                     "files must additionally specify whether they are 4bpp or 8bpp and tiles or textures as well." +
                                     "\n\tnewpal is an optional component for graphics files to specify that a new palette should be created for the" +
                                     "replaced image." +
-                                    "\n\ttidx{num} is an optional component for graphics files to specify the transparent index (typically 0) " +
+                                    "\n\ttidx(num) is an optional component for graphics files to specify the transparent index (typically 0) " +
                                     "for a new palette." +
-                                    "\n\t{comments} are any comments on the contents of the image. These will be ignored during file replacement." +
+                                    "\n\t(comments) are any comments on the contents of the image. These will be ignored during file replacement." +
                                     "\n\tFinally, a file containing the term \"ignore\" will be ignored by the replacement process.",
                     r => _replacement = r },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
