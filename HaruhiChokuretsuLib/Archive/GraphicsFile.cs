@@ -133,7 +133,9 @@ namespace HaruhiChokuretsuLib.Archive
             }
             Data.AddRange(Encoding.ASCII.GetBytes("SHTXDS"));
             Data.AddRange(BitConverter.GetBytes((short)ImageTileForm));
-            Data.AddRange(new byte[] { 0x01, 0x00, 0x00, 0x01, 0xC0, 0x00, 0x08, 0x08, 0x00, 0xC0, 0x00, 0x00 }); // mode for each short
+            byte encodedWidth = (byte)Math.Log2(bitmap.Width);
+            byte encodedHeight = (byte)Math.Log2(bitmap.Height);
+            Data.AddRange(new byte[] { 0x01, 0x00, 0x00, 0x01, 0xC0, 0x00, encodedWidth, encodedHeight, 0x00, 0xC0, 0x00, 0x00 });
             Data.AddRange(PaletteData);
             Data.AddRange(PixelData);
 

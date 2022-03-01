@@ -18,6 +18,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         public virtual void Initialize(byte[] decompressedData, int offset)
         {
+            Data = decompressedData.ToList();
         }
         public virtual byte[] GetBytes()
         {
