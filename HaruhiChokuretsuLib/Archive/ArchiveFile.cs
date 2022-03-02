@@ -57,7 +57,7 @@ namespace HaruhiChokuretsuLib.Archive
             MagicIntegerLsbAnd = BitConverter.ToInt32(archiveBytes.Skip(0x10).Take(4).ToArray());
             MagicIntegerMsbShift = BitConverter.ToInt32(archiveBytes.Skip(0x0C).Take(4).ToArray());
 
-            for (int i = 0; i<= MagicIntegerLsbAnd; i++)
+            for (int i = 0; i <= MagicIntegerLsbAnd; i++)
             {
                 int length = GetFileLength((uint)i);
                 if (!LengthToMagicIntegerMap.ContainsKey(length))
@@ -66,7 +66,7 @@ namespace HaruhiChokuretsuLib.Archive
                 }
             }
 
-            HeaderLength = BitConverter.ToInt32(archiveBytes.Skip(0x1C).Take(4).ToArray()) + (NumItems * 2 + 8) * 4;
+            HeaderLength = BitConverter.ToInt32(archiveBytes.Skip(0x1C).Take(4).ToArray()) + (((NumItems * 2) + 8) * 4);
             for (int i = FirstHeaderPointerOffset; i < (NumItems * 4) + 0x20; i += 4)
             {
                 HeaderPointers.Add(BitConverter.ToUInt32(archiveBytes.Skip(i).Take(4).ToArray()));
