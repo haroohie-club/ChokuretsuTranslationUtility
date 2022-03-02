@@ -53,7 +53,7 @@ namespace HaruhiChokuretsuEditor
                 _evtFile = ArchiveFile<EventFile>.FromFile(openFileDialog.FileName);
                 _evtFile.Files.First(f => f.Index == 580).InitializeDialogueForSpecialFiles();
                 _evtFile.Files.First(f => f.Index == 581).InitializeTopicFile();
-                _evtFile.Files.Where(f => f.Index is >= 358 and <= 531).ToList().ForEach(f => f.AddEventFileTopics(_evtFile.Files.First(f => f.Index == 581).TopicStructs));
+                _evtFile.Files.Where(f => f.Index is >= 358 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.Files.First(f => f.Index == 581).TopicStructs));
                 FontReplacementDictionary fontReplacementDictionary = new();
                 fontReplacementDictionary.AddRange(JsonSerializer.Deserialize<List<FontReplacement>>(File.ReadAllText("Font/font_replacement.json")));
                 _evtFile.Files.ForEach(e => e.FontReplacementMap = fontReplacementDictionary);
@@ -150,7 +150,7 @@ namespace HaruhiChokuretsuEditor
                 foreach (TopicStruct topic in selectedFile.TopicStructs)
                 {
                     StackPanel topicStackPanel = new() { Orientation = Orientation.Horizontal };
-                    topicStackPanel.Children.Add(new TextBlock { Text = $"0x{topic.Index:X4} {topic.TopicDialogueIndex} {topic.DialogueLine}:\t" });
+                    topicStackPanel.Children.Add(new TextBlock { Text = $"0x{topic.Id:X4} {topic.TopicDialogueIndex} {topic.Title}:\t" });
                     topicStackPanel.Children.Add(new TextBlock { Text = $"{topic.EventIndex} (0x{topic.EventIndex:X3})" });
                     eventsTopicsStackPanel.Children.Add(topicStackPanel);
                 }

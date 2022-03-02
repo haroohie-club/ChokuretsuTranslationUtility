@@ -1,9 +1,13 @@
 # HaruhiChokuretsuLib
 The HaruhiChokuretsuLib project is the primary library which the rest of the solution depends on. It contains a Helpers
-class with various helper methods as well as three primary parts.
+class with various helper methods as well as three namespaces.
+
+Before reading this documentation, it is recommended you familiarize yourself with the [reverse engineering documentation](./ReverseEngineering.md)
+as it will provide context for what is being described here.
 
 ## Helpers
 The following helper methods are available:
+
 * `DecompressData()` and `CompressData()` &ndash; Implementations of the Shade compresssion algorithm that accept and return byte arrays.
 * `GetPaletteFromImage()` &ndash; A simplified implementation of [this](https://github.com/antigones/palette_extraction) palette extraction
     routine. Creates an arbitarily sized palette of colors used in an image. Used for changing palette data in Shade texture files.
@@ -20,6 +24,7 @@ The classes it contains are:
 This is the top level class which abstracts the `.bin` file itself. It's a generic class which can be instantiated to contain a list of files of
 any of the other classes in this namespace. It contains methods for instantiating all of the files in a given archive and keeping track of their
 offsets and file sizes.
+
 * The standard way to instantiate an `ArchiveFile` is with the `ArchiveFile<T>.FromFile()` method.
 * Since file indices do not necessarily match up with the position in `Archive.Files`, the proper way to access a file by index is:
     ```csharp
@@ -38,10 +43,11 @@ offsets and file sizes.
     newGraphicsFile.Edited = true;
     grpArchive.Files[grpArchive.Files.IndexOf(currentFile)] = newGraphicsFile;
     ```
-* To add a file to a repo, simply instatiate a new file and use `archive.AddFile()`.
+* To add a file to an archive, simply instatiate a new file and use `archive.AddFile()`.
 
 ### `FileInArchive`
 This is the base class for all other file types. All `FileInArchive` types have the following properties:
+
 * `uint MagicInteger` &ndash; The "magic integer" in the archive header that contains the file's offset and compressed length.
 * `int Index` &ndash; The index of the file in the archive (not the same as its absolute position).
 * `int Offset` &ndash; The offset of the file in the archive. Contained in the MagicInteger.
@@ -55,11 +61,63 @@ Additionally, `FileInArchive` types have the following methods:
 * `Initialize()` &ndash; Initializes the file given decompressed data and an offset.
 * `GetBytes()` &ndash; Constructs the decompressed binary data of the file.
 * `NewFile()` &ndash; Creates a new file from scratch.
-    
-The standard way of instantiating a `FileInArchive` type from compressed data is using `FileManager<T>.FromCompressedData()`.
 
 ### `DataFile` 
 This is a basic implementation of archive files whose types are not fully understood. It simply is a container for their binary data.
 
 ### `EventFile` 
-This is an implementation of the files found in `evt.bin` (and a few in `dat.bin`). These file are mostly composed of pointers and Shift-JIS encoded strings.
+This is an implementation of the event files found in `evt.bin`. These file are mostly composed of pointers and Shift-JIS encoded strings.
+While it's designed to represent event files, the `EventFile` class can also be used to represent special string files.
+In addition to the properties it inherits from `FileInArchive`, `EventFile`s contain the following properties:
+
+* `List<int> FrontPointers` &ndash; A list containing all of the pointers that appear at the beginning of the file.
+* `int PointerToEndPointerSection` &ndash; The pointer to the end pointers section.
+* `List<int> EndPointers` &ndash; A list containing all of the pointers that appear at the end of the file.
+* `List<int> EndPointerPointers` &ndash; A list containing all of the pointers that the end pointers point to.
+* `string Title` &ndash; If one exists, the title of the event file (e.g., EV1_001).
+* `Dictionary<int, string> DramatisPersonae` &ndash; A dictionary containing the offsets and names of the characters denoted in the dramatis personae section.
+* `int DialogueSectionPointer` &ndash; A pointer to the dialogue section.
+* `List<DialogueLine> DialogueLines` &ndash; The dialogue lines contained in this event.
+* `List<TopicStruct> TopicStructs` &ndash; In #0x245 (the Topic file), this represents all of the topic structs in the file. In main event files,
+    this represents the obtainable topics in that event.
+* `FontReplacementDictionary FontReplacementMap` &ndash; The font replacement (charset) map.
+
+It also has the following methods:
+* `InitializeDialogueForSpecialFiles()` &ndash; This initializes files that are not standard event files but still have strings (the string files in `dat.bin`
+    and files #0x244 and #0x245 in `evt.bin` are the primary examples).
+* `InitializeTopicFile()` &ndash; An initialization routine that is called specifically for #0x245 in `evt.bin` after `InitializeDialougeForSpecialFiles` is called.
+* `IdentifyEventFileTopics()` &ndash; Identify the topics from the Control Section of main event files.
+* `ShiftPointers()` &ndash; Shifts all pointers in the file based on a location in the file and an amount to shift. Every pointer that points to something after the specified
+    location has its value shifted by the specified amount.
+* `EditDialogueLine()` &ndash; Edits a line of dialogue, including calling `ShiftPointers()` after editing.
+* `WriteResxFile()` &ndash; Writes all dialogue lines to a .NET Resource (RESX) file.
+* `ImportResxFile()` &ndash; Reads all dialogue lines from a .NET Resource (RESX) file and replaces the dialogue in the file with those lines. The following changes are made
+    to strings in the file:
+    - Three dots (`...`) are replaced by an ellipsis character (`…`)
+    - Two hyphens (`--`) are replaced by an em-dash character (`—`)
+    - Replaces Windows linebreaks (`\r\n`) with Unix-style ones (`\n`)
+    - Replaces text according to the `FontReplacementMap`.
+    - Automatically introduces line breaks past to prevent text from going off the screen (in non-dat files)
+
+The following sub-classes are used by the `EventFile` class:
+
+#### `DialogueLine`
+The `DialogueLine` class abstracts the structs in the Dialogue Section of the event file. It has the following properties:
+
+* `int Pointer` &ndash; The pointer to the dialogue text; corresponds to the third int in the struct.
+* `byte[] Data` &ndash; The binary data of the dialogue text string.
+* `int NumPaddingZeroes` &ndash; The number of zeroes added to pad the string to four-byte alignment.
+* `string Text` &ndash; An string abstraction of the `Data` property.
+* `int Length` &ndash; The length of the `Data` property.
+* `int SpeakerPointer` &ndash; The pointer to the Dramatis Personae section speaker name, corresponds to the second int of the struct.
+* `Speaker Speaker` &ndash; An enum value representing the speaker of the dialogue line. Corresponds to the first int of the struct.
+* `string SpeakerName` &ndash; The string value found at the `SpeakerPointer` position.
+
+#### `TopicStruct`
+The `TopicStruct` class abstracts the structs found in the Topics file #0x245. It has the following properties:
+
+* `int ToipcDialogueIndex` &ndash; An index representing which `DialogueLine` this Topic corresponds to.
+* `string Title` &ndash; The title of the Topic (equivalent to the text of the dialogue line).
+* `short Id` &ndash; The ID of the topic, corresponding to the first short of the struct.
+* `short EventIndex` &ndash; The event this topic triggers during the puzzle phase, corresponding to the second short of the struct.
+* `short[] UnknownShorts` &ndash; The following 16 unknown shorts in the struct (0x20 bytes).

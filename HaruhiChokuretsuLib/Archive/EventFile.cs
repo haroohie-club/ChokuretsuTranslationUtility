@@ -13,7 +13,7 @@ namespace HaruhiChokuretsuLib.Archive
     public class EventFile : FileInArchive
     {
         public List<int> FrontPointers { get; set; } = new();
-        public int PointerToNumEndPointers { get; set; }
+        public int PointerToEndPointerSection { get; set; }
         public List<int> EndPointers { get; set; } = new();
         public List<int> EndPointerPointers { get; set; } = new();
         public string Title { get; set; }
@@ -72,11 +72,11 @@ namespace HaruhiChokuretsuLib.Archive
                 DialogueLines.Add(new DialogueLine((Speaker)character, speakerName, speakerPointer, dialoguePointer, Data.ToArray()));
             }
 
-            PointerToNumEndPointers = BitConverter.ToInt32(decompressedData.Skip(4).Take(4).ToArray());
-            int numEndPointers = BitConverter.ToInt32(decompressedData.Skip(PointerToNumEndPointers).Take(4).ToArray());
+            PointerToEndPointerSection = BitConverter.ToInt32(decompressedData.Skip(4).Take(4).ToArray());
+            int numEndPointers = BitConverter.ToInt32(decompressedData.Skip(PointerToEndPointerSection).Take(4).ToArray());
             for (int i = 0; i < numEndPointers; i++)
             {
-                EndPointers.Add(BitConverter.ToInt32(decompressedData.Skip(PointerToNumEndPointers + (0x04 * (i + 1))).Take(4).ToArray()));
+                EndPointers.Add(BitConverter.ToInt32(decompressedData.Skip(PointerToEndPointerSection + (0x04 * (i + 1))).Take(4).ToArray()));
             }
 
             EndPointerPointers = EndPointers.Select(p => { int x = offset; return BitConverter.ToInt32(decompressedData.Skip(p).Take(4).ToArray()); }).ToList();
@@ -93,16 +93,16 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        public void AddEventFileTopics(List<TopicStruct> availableTopics)
+        public void IdentifyEventFileTopics(List<TopicStruct> availableTopics)
         {
             int topicsSectionPointer = FrontPointers.Where(f => f > DialogueLines.Last(d => d.SpeakerName != "CHOICE").Pointer).ToArray()[3]; // third pointer after dialogue section
-            for (int i = topicsSectionPointer; i < PointerToNumEndPointers; i += 0x24)
+            for (int i = topicsSectionPointer; i < PointerToEndPointerSection; i += 0x24)
             {
                 int controlSwitch = BitConverter.ToInt32(Data.Skip(i).Take(4).ToArray());
                 if (controlSwitch == 0x0E)
                 {
                     int topicId = BitConverter.ToInt32(Data.Skip(i + 4).Take(4).ToArray());
-                    TopicStruct topic = availableTopics.FirstOrDefault(t => t.Index == topicId);
+                    TopicStruct topic = availableTopics.FirstOrDefault(t => t.Id == topicId);
                     if (topic is not null)
                     {
                         TopicStructs.Add(topic);
@@ -163,19 +163,19 @@ namespace HaruhiChokuretsuLib.Archive
                     Data.InsertRange(0x0C + (0x08 * i), BitConverter.GetBytes(FrontPointers[i]));
                 }
             }
-            if (PointerToNumEndPointers > shiftLocation)
+            if (PointerToEndPointerSection > shiftLocation)
             {
-                PointerToNumEndPointers += shiftAmount;
+                PointerToEndPointerSection += shiftAmount;
                 Data.RemoveRange(0x04, 4);
-                Data.InsertRange(0x04, BitConverter.GetBytes(PointerToNumEndPointers));
+                Data.InsertRange(0x04, BitConverter.GetBytes(PointerToEndPointerSection));
             }
             for (int i = 0; i < EndPointers.Count; i++)
             {
                 if (EndPointers[i] > shiftLocation)
                 {
                     EndPointers[i] += shiftAmount;
-                    Data.RemoveRange(PointerToNumEndPointers + 0x04 * (i + 1), 4);
-                    Data.InsertRange(PointerToNumEndPointers + 0x04 * (i + 1), BitConverter.GetBytes(EndPointers[i]));
+                    Data.RemoveRange(PointerToEndPointerSection + 0x04 * (i + 1), 4);
+                    Data.InsertRange(PointerToEndPointerSection + 0x04 * (i + 1), BitConverter.GetBytes(EndPointers[i]));
                 }
             }
             for (int i = 0; i < EndPointerPointers.Count; i++)
@@ -362,9 +362,9 @@ namespace HaruhiChokuretsuLib.Archive
     public class TopicStruct
     {
         public int TopicDialogueIndex { get; set; }
-        public string DialogueLine { get; set; }
+        public string Title { get; set; }
 
-        public short Index { get; set; }
+        public short Id { get; set; }
         public short EventIndex { get; set; }
         public short[] UnknownShorts = new short[16];
 
@@ -376,8 +376,8 @@ namespace HaruhiChokuretsuLib.Archive
             }
 
             TopicDialogueIndex = dialogueIndex;
-            DialogueLine = dialogueLine;
-            Index = BitConverter.ToInt16(data.Take(2).ToArray());
+            Title = dialogueLine;
+            Id = BitConverter.ToInt16(data.Take(2).ToArray());
             EventIndex = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
             for (int i = 0; i < UnknownShorts.Length; i++)
             {
@@ -387,12 +387,12 @@ namespace HaruhiChokuretsuLib.Archive
 
         public override string ToString()
         {
-            return $"0x{Index:X4} '{DialogueLine}'";
+            return $"0x{Id:X4} '{Title}'";
         }
 
         public string ToCsvLine()
         {
-            return $"{TopicDialogueIndex},{DialogueLine},{Index:X4},{EventIndex}";
+            return $"{TopicDialogueIndex},{Title},{Id:X4},{EventIndex}";
         }
     }
 

@@ -31,7 +31,7 @@ The Chokuretsu ROM contains the following files:
     - #0x244 &ndash; The companion selection text file. Does not have the typical file format of an event file (initialized manually using end pointers only).
     - #0x245 &ndash; The Topics file. Contains the names of all topics and mappings to the event files that selecting that topic during the Puzzle Phase triggers.
         The Topics file contains an 0x18 byte header followed by an array of 0x24 byte topic structs and then by the end pointers. The topic structs are structured as follows:
-        - **0x00-0x01**: A short (16-bit integer) index that is the magical "topic index" of this topic.
+        - **0x00-0x01**: A short (16-bit integer) index that is the magical "topic ID" of this topic.
         - **0x02-0x03**: A short (16-bit integer) index to the event file triggered by selecting this topic in the Puzzle Phase.
         - **0x18-0x19**: A short (16-bit integer) pointer to the Shift-JIS encoded text of the topic.
         - **0x1A-0x1B**: A short (16-bit integer) pointer to the Shift-JIS encoded text of the ticker tape text that appears when selecting the topic.
@@ -59,7 +59,7 @@ The Shade archive files are arcane and honestly very ugly; however, they are fai
     ```csharp
         MagicLengthInteger = 0x7FF + (MagicInteger & A) * MLSB;
     ```
-    and then uses that MagicLengthInteger in an absolutely unhinged routine to calculate the file length. An implementation of the routin can be found
+    and then uses that MagicLengthInteger in an absolutely unhinged routine to calculate the file length. An implementation of the routine can be found
     in the `GetFileLength()` method in [`ArchiveFile.cs`](../HaruhiChokuretsuLib/Archive/ArchiveFile.cs).
 
     Encoded file lengths and offsets are all multiples of 0x800.
@@ -75,16 +75,40 @@ Event files control all of the scenes ("events") in the game and are all contain
     to other things in the file, most of which are currently not understood. Some important things that are known include:
     - Dramatis Personae &ndash; The set of characters who appear in the event.
     - Dialogue Section Pointer &ndash; This is a pointer that immediately follows the Dramatis Personae and directly points to section where dialogue is defined.
+    - Control Section Pointer &ndash; In the main story event files (#0x166 through #0x213), the third pointer after the Dialogue Section Pointer points to the Control Section.
 * **0x04-0x07**: The pointer to the End Pointers section.
 * **0x08-0x0B**: For files that have a title (e.g., EV1_001), this is the pointer to that title.
 * **Dialogue Section**: Location defined by the Dialogue Section Pointer. The dialogue section is composed of an array of structs containing three integers:
     - **0x00-0x03** &ndash; An integer representing the character speaking the dialogue line. The full set of these references can be found in `enum Speaker` in [`EventFile.cs`](../HaruhiChokuretsuLib/Archive/EventFile.cs).
     - **0x04-0x07** &ndash; A pointer to the Dramatis Personae section containing the name of the character speaking the dialogue line. (This does not seem to be used in-game.)
     - **0x08-0x0B** &ndash; A pointer to a Shift-JIS encoded string of the dialogue line being spoken. This string is always zero-padded to four-byte alignment.
+* **Control Section**: In the main story event files (#0x166 through #0x213), this section contains a series of 0x24 byte structs which seem to control various elements of the
+    event. Of note is the presence of Topic Obtained events. These structs are mostly unstudied, but what is known of their structure is as follows:
+    - **0x00-0x03** &ndash; The control code. Topics are denoted by `0x0E`.
+    - **0x04-0x07** &ndash; For topics, the topic ID.
 * **End Pointers Section**: Location determined by the End Pointers Section pointer. This contains an array of integer pointers to other pointers throughout the file.
     The `EndPointerPointers` include all of the dialogue section pointers. Additionally, they contain:
     - **Choices**: The dialogue tree choices appear prior to the Dramatis Personae section and are Shift-JIS encoded strings referenced by some of the `EndPointerPointers`. The way their position is
         determined as of now is to search look for the first byte to be a Shift-JIS control character which seems to work reliably enough.
+
+### Dialogue Section Notes
+The game uses a static-width font that can fit 16 characters per line over two lines in a text box. Dialogue is all Shift-JIS encoded. In addition to standard text,
+there are a few scripting control-codes that are ASCII-encoded.
+
+* `${num}` &ndash; Text speed controller &ndash; controls how fast the text is unrolled on the screen. Used only in voiced sections to sync dialogue with voiced lines.
+* `#W{num}` &ndash; **W**aits a certain amount of time before proceeding with text unrolling. Used in voiced sections to sync dialogue with voiced lines as well as in unvoiced sections for dramatic effect.
+* `#P{num}` &ndash; Don't know what the P stands for, but this adjusts text color. `{num}` is always two digits. The values are as follows:
+    - `#P00` &ndash; standard white text
+    - `#P01` &ndash; yellow, used for Kyon's monologue
+    - `#P02` &ndash; slightly off-white version of the standard
+    - `#P03` &ndash; gray-ish
+    - `#P04` &ndash; lavendar, used for Information text
+    - `#P05` &ndash; red, used for mentioning Topics in dialogue
+    - `#P06` &ndash; faded gray
+    - `#P07` &ndash; black
+* `#DP` &ndash; Always seen on its own, this likely stands for "**D**ialogue **P**laceholder." It seems to allow other actions to take place (likely stuff in the Control Section).
+* `#SE{num}` &ndash; Plays a **S**ound **E**ffect from `snd.bin`. Something else is responsible for loading sound effects from the appropriate sound banks. `{num}` is always three digits.
+* `#SK0` &ndash; Text **S**ha**k**e effect. Used primarily when Mikuru is afraid. Terminated with `#sk`.
 
 ## SHTX Shade Texture Files
 Shade texture files (SHTX) are standard graphics files that are all contained within `grp.bin`. The structure of these files is as follows:
