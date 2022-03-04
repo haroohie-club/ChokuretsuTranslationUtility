@@ -350,6 +350,27 @@ namespace HaruhiChokuretsuLib.Archive
             return bmp;
         }
 
+        public Bitmap GetPalette()
+        {
+            Bitmap palette = new(256, Palette.Count);
+
+            for (int row = 0; row < palette.Height / 16; row++)
+            {
+                for (int col = 0; col < palette.Width / 16; col++)
+                {
+                    for (int x = 16 * row; x < 16 * row + 16; x++)
+                    {
+                        for (int y = 16 * col; y < 16 * col + 16; y++)
+                        {
+                            palette.SetPixel(x, y, Palette[16 * row + col]);
+                        }
+                    }
+                }
+            }
+
+            return palette;
+        }
+
         /// <summary>
         /// Replaces the current pixel data with a bitmap image on disk
         /// </summary>

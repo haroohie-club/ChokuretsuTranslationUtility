@@ -556,6 +556,7 @@ namespace HaruhiChokuretsuEditor
         private void GraphicsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             tilesEditStackPanel.Children.Clear();
+            paletteEditStackPanel.Children.Clear();
             if (graphicsListBox.SelectedIndex >= 0)
             {
                 GraphicsFile selectedFile = (GraphicsFile)graphicsListBox.SelectedItem;
@@ -568,6 +569,8 @@ namespace HaruhiChokuretsuEditor
                     tilesEditStackPanel.Children.Add(graphicsWidthBox);
                     tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetImage()), MaxWidth = selectedFile.Width });
                     _currentImageWidth = 256;
+
+                    paletteEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetPalette()), MaxWidth = 256 });
                 }
                 else if (selectedFile.FileFunction == GraphicsFile.Function.LAYOUT)
                 {

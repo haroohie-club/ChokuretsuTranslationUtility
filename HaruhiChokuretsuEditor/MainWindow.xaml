@@ -81,13 +81,20 @@
                         <Button x:Name="importGraphicsImageWithPaletteFileButton" Content="Import Image with Palette" HorizontalAlignment="Left" Click="ImportGraphicsImageWithPaletteFileButton_Click" />
                         <Button x:Name="addGraphicsImaageFileButton" Content="Add Image" HorizontalAlignment="Left" Click="AddGraphicsImaageFileButton_Click" />
                     </ToolBar>
-                    <ListBox x:Name="graphicsListBox" Margin="0,30,521,0" SelectionChanged="GraphicsListBox_SelectionChanged" Grid.ColumnSpan="2" />
+                    <ListBox x:Name="graphicsListBox" Margin="0,30,579,0" SelectionChanged="GraphicsListBox_SelectionChanged" Grid.ColumnSpan="2" />
                     <StackPanel Grid.Column="1" Margin="175,30,0,0">
                         <TabControl>
                             <TabItem Header="Tiles">
                                 <ScrollViewer Grid.Column="1" Height="350" >
                                     <DockPanel>
                                         <StackPanel x:Name="tilesEditStackPanel"/>
+                                    </DockPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="Palette">
+                                <ScrollViewer Grid.Column="1" Height="350" >
+                                    <DockPanel>
+                                        <StackPanel x:Name="paletteEditStackPanel"/>
                                     </DockPanel>
                                 </ScrollViewer>
                             </TabItem>
