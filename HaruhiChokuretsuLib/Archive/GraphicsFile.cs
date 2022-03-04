@@ -371,6 +371,24 @@ namespace HaruhiChokuretsuLib.Archive
             return palette;
         }
 
+        public void SetPalette(List<Color> palette, int transparentIndex = -1)
+        {
+            Palette = palette;
+            if (transparentIndex >= 0)
+            {
+                Palette.Insert(transparentIndex, Color.Transparent);
+            }
+
+            PaletteData = new();
+            Console.Write($"Using provided palette for #{Index:X3}... ");
+
+            for (int i = 0; i < Palette.Count; i++)
+            {
+                byte[] color = BitConverter.GetBytes((short)((Palette[i].R / 8) | ((Palette[i].G / 8) << 5) | ((Palette[i].B / 8) << 10)));
+                PaletteData.AddRange(color);
+            }
+        }
+
         /// <summary>
         /// Replaces the current pixel data with a bitmap image on disk
         /// </summary>

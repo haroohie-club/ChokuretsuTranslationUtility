@@ -70,6 +70,24 @@ namespace HaruhiChokuretsuLib
             return s;
         }
 
+        public static List<Color> GetPaletteFromImages(List<Bitmap> bitmaps, int numberOfColors)
+        {
+            List<Color> firstBin = new();
+
+            foreach (Bitmap bitmap in bitmaps)
+            {
+                for (int x = 0; x < bitmap.Width; x++)
+                {
+                    for (int y = 0; y < bitmap.Height; y++)
+                    {
+                        firstBin.Add(bitmap.GetPixel(x, y));
+                    }
+                }
+            }
+
+            return GetPalette(firstBin, numberOfColors);
+        }
+
         public static List<Color> GetPaletteFromImage(Bitmap bitmap, int numberOfColors)
         {
             // Adapted from https://github.com/antigones/palette_extraction
@@ -86,6 +104,11 @@ namespace HaruhiChokuretsuLib
                 }
             }
 
+            return GetPalette(firstBin, numberOfColors);
+        }
+
+        private static List<Color> GetPalette(List<Color> firstBin, int numberOfColors)
+        {
             List<List<Color>> bins = new();
             bins.Add(firstBin);
             bins = ProcessBins(0, bins, numberOfColors);

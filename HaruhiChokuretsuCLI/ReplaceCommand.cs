@@ -3,6 +3,7 @@ using HaruhiChokuretsuLib.Archive;
 using Mono.Options;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace HaruhiChokuretsuCLI
     {
         string _inputArchive, _outputArchive, _replacement;
         private bool _showHelp;
+        private Dictionary<int, List<Color>> _palettes = new();
 
         public ReplaceCommand() : base("replace", "Replaces a file or set of files in an archive")
         {
@@ -89,6 +91,31 @@ namespace HaruhiChokuretsuCLI
             {
                 var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
 
+                Dictionary<int, List<string>> filesWithSharedPalettes = new();
+                for (int i = 0; i < filePaths.Count; i++)
+                {
+                    Match match = Regex.Match(filePaths[i], @"sharedpal(?<index>\d+)", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        int index = int.Parse(match.Groups["index"].Value);
+                        if (!_palettes.ContainsKey(index))
+                        {
+                            if (!filesWithSharedPalettes.ContainsKey(index))
+                            {
+                                filesWithSharedPalettes.Add(index, new List<string>());
+                            }
+                            filesWithSharedPalettes[index].Add(filePaths[i]);
+                        }
+                    }
+                }
+
+                foreach (int key in filesWithSharedPalettes.Keys)
+                {
+                    CommandSet.Out.WriteLine($"Generating shared palette for set {key}...");
+                    List<Bitmap> images = filesWithSharedPalettes[key].Select(f => new Bitmap(f)).ToList();
+                    _palettes.Add(key, Helpers.GetPaletteFromImages(images, 256));
+                }
+
                 foreach (string filePath in filePaths)
                 {
                     int? index = GetIndexByFileName(filePath);
@@ -111,7 +138,7 @@ namespace HaruhiChokuretsuCLI
                             }
                             else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
                             {
-                                ReplaceSingleGraphicsFile(archive, filePath, index.Value);
+                                ReplaceSingleGraphicsFile(archive, filePath, index.Value, _palettes);
                             }
                             else if (Path.GetExtension(filePath).Equals(".bin", StringComparison.OrdinalIgnoreCase))
                             {
@@ -186,7 +213,7 @@ namespace HaruhiChokuretsuCLI
         /// <param name="archive"></param>
         /// <param name="filePath"></param>
         /// <param name="index"></param>
-        private static void ReplaceSingleGraphicsFile(ArchiveFile<FileInArchive> archive, string filePath, int index)
+        private static void ReplaceSingleGraphicsFile(ArchiveFile<FileInArchive> archive, string filePath, int index, Dictionary<int, List<Color>> palettes)
         {
             FileInArchive file = archive.Files.FirstOrDefault(f => f.Index == index);
 
@@ -204,6 +231,11 @@ namespace HaruhiChokuretsuCLI
             if (transparentIndexMatch.Success)
             {
                 transparentIndex = int.Parse(transparentIndexMatch.Groups["transparentIndex"].Value);
+            }
+            Match sharedPaletteMatch = Regex.Match(filePath, @"sharedpal(?<index>\d+)", RegexOptions.IgnoreCase);
+            if (sharedPaletteMatch.Success)
+            {
+                grpFile.SetPalette(palettes[int.Parse(sharedPaletteMatch.Groups["index"].Value)]);
             }
 
             grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex);
