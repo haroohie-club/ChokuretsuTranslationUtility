@@ -108,12 +108,11 @@ namespace HaruhiChokuretsuLib
                     .OrderByDescending(r => r.componentValues.Max() - r.componentValues.Min())
                     .ToList();
 
-                int medianValue = (int)componentRangesCollapsed[0].componentValues.Average(v => (double)v);
                 int indexToSplitAt = componentRangesCollapsed[0].index;
 
                 List<Color> bin = bins[indexToSplitAt];
                 bins.RemoveAt(indexToSplitAt);
-                bins.InsertRange(indexToSplitAt, SplitPixels(bin, medianValue, componentRangesCollapsed[0].component));
+                bins.InsertRange(indexToSplitAt, SplitPixels(bin, componentRangesCollapsed[0].component));
 
                 return ProcessBins(i + 1, bins, maxNumberBins);
             }
@@ -123,50 +122,26 @@ namespace HaruhiChokuretsuLib
             }
         }
 
-        private static List<List<Color>> SplitPixels(List<Color> colors, int medianValue, ColorComponent component)
+        private static List<List<Color>> SplitPixels(List<Color> colors, ColorComponent component)
         {
             List<List<Color>> bins = new() { new(), new() };
 
             switch (component)
             {
                 case ColorComponent.R:
-                    foreach (Color color in colors)
-                    {
-                        if (color.R <= medianValue)
-                        {
-                            bins[0].Add(color);
-                        }
-                        else
-                        {
-                            bins[1].Add(color);
-                        }
-                    }
+                    IOrderedEnumerable<Color> orderedColorsR = colors.OrderBy(c => c.R);
+                    bins[0].AddRange(orderedColorsR.Take(orderedColorsR.Count() / 2));
+                    bins[1].AddRange(orderedColorsR.Skip(orderedColorsR.Count() / 2));
                     break;
                 case ColorComponent.G:
-                    foreach (Color color in colors)
-                    {
-                        if (color.G <= medianValue)
-                        {
-                            bins[0].Add(color);
-                        }
-                        else
-                        {
-                            bins[1].Add(color);
-                        }
-                    }
+                    IOrderedEnumerable<Color> orderedColorsG = colors.OrderBy(c => c.G);
+                    bins[0].AddRange(orderedColorsG.Take(orderedColorsG.Count() / 2));
+                    bins[1].AddRange(orderedColorsG.Skip(orderedColorsG.Count() / 2));
                     break;
                 case ColorComponent.B:
-                    foreach (Color color in colors)
-                    {
-                        if (color.B <= medianValue)
-                        {
-                            bins[0].Add(color);
-                        }
-                        else
-                        {
-                            bins[1].Add(color);
-                        }
-                    }
+                    IOrderedEnumerable<Color> orderedColorsB = colors.OrderBy(c => c.B);
+                    bins[0].AddRange(orderedColorsB.Take(orderedColorsB.Count() / 2));
+                    bins[1].AddRange(orderedColorsB.Skip(orderedColorsB.Count() / 2));
                     break;
             }
 

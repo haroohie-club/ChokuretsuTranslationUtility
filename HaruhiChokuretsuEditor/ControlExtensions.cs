@@ -55,6 +55,7 @@ namespace HaruhiChokuretsuEditor
             ScreenH.Text = $"{(layoutEntry.FlipY ? -1 * layoutEntry.ScreenH : layoutEntry.ScreenH)}";
             Tint.Text = $"{layoutEntry.Tint.ToArgb():X8}";
 
+            RelativeShtxIndex.TextChanged += RelativeShtxIndex_TextChanged;
             TextureX.TextChanged += TextureX_TextChanged;
             TextureY.TextChanged += TextureY_TextChanged;
             TextureW.TextChanged += TextureW_TextChanged;
@@ -76,6 +77,14 @@ namespace HaruhiChokuretsuEditor
             Children.Add(ScreenW);
             Children.Add(ScreenH);
             Children.Add(Tint);
+        }
+
+        private void RelativeShtxIndex_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (short.TryParse(RelativeShtxIndex.Text, out short relativeShtxIndex))
+            {
+                LayoutEntry.RelativeShtxIndex = relativeShtxIndex;
+            }
         }
 
         private void Tint_TextChanged(object sender, TextChangedEventArgs e)

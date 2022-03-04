@@ -99,6 +99,8 @@ It also has the following methods:
     - Replaces text according to the `FontReplacementMap`.
     - Automatically introduces line breaks past to prevent text from going off the screen (in non-dat files)
 
+`NewFile()` is not implemented for `EventFile`s.
+
 The following sub-classes are used by the `EventFile` class:
 
 #### `DialogueLine`
@@ -121,3 +123,30 @@ The `TopicStruct` class abstracts the structs found in the Topics file #0x245. I
 * `short Id` &ndash; The ID of the topic, corresponding to the first short of the struct.
 * `short EventIndex` &ndash; The event this topic triggers during the puzzle phase, corresponding to the second short of the struct.
 * `short[] UnknownShorts` &ndash; The following 16 unknown shorts in the struct (0x20 bytes).
+
+### `GraphicsFile`
+The `GraphicsFile` class is designed to implement the files found in `grp.bin`; however, while most of the files are understood and can be parsed, there are still
+some that remain unknown.
+
+The property that determines what time of graphic a give file is is the `FileFunction` property which uses the `Function` enum. The options are `SHTX`, `LAYOUT`, and `UNKNOWN`.
+
+#### `SHTX`
+When `FileFunction` is set to `Function.SHTX` (which happens if the first four bytes of the file are `SHTX`), the file implements a Shade Texture file. The following properties
+become relevant:
+
+* `List<byte> PaletteData` &ndash; Contains the binary palette data of the image.
+* `List<Color> Palette` &ndash; Contains the colors of the image's palette.
+* `List<byte> PixelData` &ndash; Contains the image's binary pixel data.
+* `int Width` &ndash; The image's width.
+* `int Height` &ndash; The image's height.
+* `TileForm ImageTileForm` &ndash; Whether the image is a 16-color/4BPP image or a 256-color/8BPP image.
+* `Form ImageForm` &ndash; Whether the image is a texture, a tile image, or unknown.
+* `public string Determinant` &ndash; The two bits following `SHTX` (either `DS` or `D5`).
+
+Furthermore, the following methods are relevant:
+
+* `NewFile()` &ndash; Only implemented for SHTX files.
+* `InitializeFontFile()` &ndash; Initializes the font file (#0xE50) which is a special file only containing pixel data.
+* `IsTexture()` &ndash; Manually determines whether a file is of `Form` `TILE` or `TEXTURE`. Since there isn't a known way to determine this from file data, this is manually constructed
+    based on position within the archive.
+* `GetImage()` &ndash; Returns a bitmap image of the SHTX file.

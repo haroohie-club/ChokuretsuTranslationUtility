@@ -249,7 +249,7 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        public Bitmap GetTiles(int width = -1, int transparentIndex = -1)
+        private Bitmap GetTiles(int width = -1, int transparentIndex = -1)
         {
 
             Color originalColor = Color.Black;
@@ -310,7 +310,7 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap;
         }
 
-        public Bitmap GetTexture(int width = -1, int transparentIndex = -1)
+        private Bitmap GetTexture(int width = -1, int transparentIndex = -1)
         {
             int height;
             if (width == -1)
@@ -383,7 +383,7 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        public void SetPaletteFromImage(Bitmap bitmap, int transparentIndex = -1)
+        private void SetPaletteFromImage(Bitmap bitmap, int transparentIndex = -1)
         {
             int numColors = Palette.Count;
             if (transparentIndex >= 0)
@@ -410,7 +410,7 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        public int SetTexture(Bitmap bitmap)
+        private int SetTexture(Bitmap bitmap)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -434,7 +434,7 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap.Width;
         }
 
-        public int SetTiles(Bitmap bitmap)
+        private int SetTiles(Bitmap bitmap)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
