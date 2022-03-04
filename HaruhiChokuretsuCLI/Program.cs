@@ -30,6 +30,7 @@ namespace HaruhiChokuretsuCLI
                 new ImportResxCommand(),
                 new PatchOverlaysCommand(),
                 new HexSearchCommand(),
+                new VersionScreenCommand(),
             };
 
             return commands.Run(args);
