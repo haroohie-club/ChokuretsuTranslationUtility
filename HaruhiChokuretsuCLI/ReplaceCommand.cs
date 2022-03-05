@@ -213,7 +213,7 @@ namespace HaruhiChokuretsuCLI
         /// <param name="archive"></param>
         /// <param name="filePath"></param>
         /// <param name="index"></param>
-        private static void ReplaceSingleGraphicsFile(ArchiveFile<FileInArchive> archive, string filePath, int index, Dictionary<int, List<Color>> palettes)
+        private static void ReplaceSingleGraphicsFile(ArchiveFile<FileInArchive> archive, string filePath, int index, Dictionary<int, List<Color>> sharedPalettes)
         {
             FileInArchive file = archive.Files.FirstOrDefault(f => f.Index == index);
 
@@ -235,7 +235,7 @@ namespace HaruhiChokuretsuCLI
             Match sharedPaletteMatch = Regex.Match(filePath, @"sharedpal(?<index>\d+)", RegexOptions.IgnoreCase);
             if (sharedPaletteMatch.Success)
             {
-                grpFile.SetPalette(palettes[int.Parse(sharedPaletteMatch.Groups["index"].Value)]);
+                grpFile.SetPalette(sharedPalettes[int.Parse(sharedPaletteMatch.Groups["index"].Value)]);
             }
 
             grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex);
