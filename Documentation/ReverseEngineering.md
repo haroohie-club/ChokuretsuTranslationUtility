@@ -58,7 +58,7 @@ The Shade archive files are arcane and honestly very ugly; however, they are fai
 The files in `dat.bin` largely each have their own class or struct that they serialize and thus are difficult to generalize. However, some of these files
 have been reverse-engineered, so their structures will be noted in this section.
 
-## DAT #0x076:
+### DAT #0x076:
 This is the dialogue settings file and contains a standard header followed by (at **0x14**) a list of structs (the number of which is stored in **0x10-0x13**) containing
 information on each character's dialogue settings. The 8-byte structs are structured as follows:
 * **0x00-0x01** &ndash; short containing the index of the speaker whose settings are being defined. This maps exactly to the index used in the Dialogue Section of event files
@@ -66,7 +66,7 @@ information on each character's dialogue settings. The 8-byte structs are struct
 * **0x02-0x03** &ndash; short containing the index of the sound font used by this character (for unvoiced lines).
 * **0x04-0x07** &ndash; integer containing the text timer/inverse text speed for the character. The higher this number is, the slower they speak.
 
-## DAT #0x09B:
+### DAT #0x09B:
 This file contains references to several graphics files used throughout the game. The file is structured as follows:
 * **0x04-0x07**: Integer file length
 * **0x0C-0x0F**: Pointer to start of structs section
@@ -78,7 +78,7 @@ This file contains references to several graphics files used throughout the game
     in game code. As an example, overlay_0001 loops over the pointers from 0x2A64 to 0x2A69 to display the logo splash screens on startup (we actually modified this code and
     #0x09B in order to insert our own splash screens).
 
-## EVT #0x245:
+### EVT #0x245:
 This is the Topics file, which is actually in `evt.bin` (not `dat.bin`) but is considered a data file nonetheless.
 The Topics file contains an 0x18 byte header followed by an array of 0x24 byte topic structs and then by the end pointers. The topic structs are structured as follows:
 - **0x00-0x01**: A short (16-bit integer) index that is the magical "topic ID" of this topic.
