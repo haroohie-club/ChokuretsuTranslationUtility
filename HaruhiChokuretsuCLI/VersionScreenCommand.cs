@@ -1,7 +1,6 @@
 ﻿using Mono.Options;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Text;
+using SkiaSharp;
 using System.IO;
 using System.Linq;
 
@@ -35,16 +34,15 @@ namespace HaruhiChokuretsuCLI
                 _version = $"{semVers[0]}.{semVers[1]}.\n{semVers[2]}.\n{semVers[3]}";
             }
 
-            Bitmap splashScreenVersionless = new(_splashScreenPath);
-            PrivateFontCollection pfc = new();
-            pfc.AddFontFile(_fontFile);
+            SKBitmap splashScreenVersionless = SKBitmap.Decode(_splashScreenPath);
 
-            Graphics g = Graphics.FromImage(splashScreenVersionless);
-            int height = semVers.Length <= 2 ? 556 : 526;
-            Point point = new(0, height);
-            g.DrawString(_version, new Font(pfc.Families.FirstOrDefault(f => f.Name == Path.GetFileNameWithoutExtension(_fontFile).Replace('-', ' ')), 6.0f), Brushes.Black, point);
+            using SKCanvas canvas = new(splashScreenVersionless);
+            int height = semVers.Length <= 3 ? 556 : 526;
+            SKPoint point = new(0, height);
+            canvas.DrawText(_version, point, new SKPaint(new SKFont(SKTypeface.FromFile(_fontFile))));
 
-            splashScreenVersionless.Save(_outputPath);
+            using FileStream fileStream = new(_outputPath, FileMode.Create);
+            splashScreenVersionless.Encode(fileStream, SKEncodedImageFormat.Png, HaruhiChokuretsuLib.Archive.GraphicsFile.PNG_QUALITY);
 
             CommandSet.Out.WriteLine($"Generated new splash screen with version '{_version}'.");
             return 0;

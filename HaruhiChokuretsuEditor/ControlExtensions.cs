@@ -1,4 +1,5 @@
 ﻿using HaruhiChokuretsuLib.Archive;
+using SkiaSharp;
 using System.Collections.Generic;
 using System.Windows.Controls;
 
@@ -51,9 +52,9 @@ namespace HaruhiChokuretsuEditor
             TextureH.Text = $"{layoutEntry.TextureH}";
             ScreenX.Text = $"{layoutEntry.ScreenX}";
             ScreenY.Text = $"{layoutEntry.ScreenY}";
-            ScreenW.Text = $"{(layoutEntry.FlipX ? -1 * layoutEntry.ScreenW : layoutEntry.ScreenW)}";
-            ScreenH.Text = $"{(layoutEntry.FlipY ? -1 * layoutEntry.ScreenH : layoutEntry.ScreenH)}";
-            Tint.Text = $"{layoutEntry.Tint.ToArgb():X8}";
+            ScreenW.Text = $"{layoutEntry.ScreenW}";
+            ScreenH.Text = $"{layoutEntry.ScreenH}";
+            Tint.Text = $"{(uint)layoutEntry.Tint:X8}";
 
             RelativeShtxIndex.TextChanged += RelativeShtxIndex_TextChanged;
             TextureX.TextChanged += TextureX_TextChanged;
@@ -89,9 +90,9 @@ namespace HaruhiChokuretsuEditor
 
         private void Tint_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (int.TryParse(Tint.Text, System.Globalization.NumberStyles.HexNumber, new System.Globalization.CultureInfo("en-US"), out int tint))
+            if (uint.TryParse(Tint.Text, System.Globalization.NumberStyles.HexNumber, new System.Globalization.CultureInfo("en-US"), out uint tint))
             {
-                LayoutEntry.Tint = System.Drawing.Color.FromArgb(tint);
+                LayoutEntry.Tint = new(tint);
             }
         }
 
@@ -99,11 +100,6 @@ namespace HaruhiChokuretsuEditor
         {
             if (short.TryParse(ScreenH.Text, out short screenH))
             {
-                if (screenH < 0)
-                {
-                    LayoutEntry.FlipY = true;
-                    screenH *= -1;
-                }
                 LayoutEntry.ScreenH = screenH;
             }
         }
@@ -112,11 +108,6 @@ namespace HaruhiChokuretsuEditor
         {
             if (short.TryParse(ScreenW.Text, out short screenW))
             {
-                if (screenW < 0)
-                {
-                    LayoutEntry.FlipX = true;
-                    screenW *= -1;
-                }
                 LayoutEntry.ScreenW = screenW;
             }
         }

@@ -135,7 +135,7 @@ When `FileFunction` is set to `Function.SHTX` (which happens if the first four b
 become relevant:
 
 * `List<byte> PaletteData` &ndash; Contains the binary palette data of the image.
-* `List<Color> Palette` &ndash; Contains the colors of the image's palette.
+* `List<SKColor> Palette` &ndash; Contains the colors of the image's palette.
 * `List<byte> PixelData` &ndash; Contains the image's binary pixel data.
 * `int Width` &ndash; The image's width.
 * `int Height` &ndash; The image's height.
@@ -152,7 +152,7 @@ Furthermore, the following methods are relevant:
 * `GetImage()` &ndash; Returns a bitmap image of the SHTX file. Optionally allows specifying a transparent index, an index into the palette that will be made transparent (in reality almost always 0).
 * `SetImage()` &ndash; Sets the pixel data to that of a bitmap in memory or bitmap file provided. Optionally, can set a flag to create a new palette from the image, and can set a transparent index.
 * `GetPalette()` &ndash; Gets a bitmap image representing the palette data of the image.
-* `SetPalette()` &ndash; Accepts a `List<Color>` to set as the palette for the image.
+* `SetPalette()` &ndash; Accepts a `List<SKColor>` to set as the palette for the image.
 
 #### Layout
 When `FileFunction` is set to `Function.LAYOUT` (which happens if the first four bytes are either 0x0001C000 or 0x10048802), the class implements a layout file. The only
@@ -160,14 +160,7 @@ relevant property for layouts is `List<LayoutEntry> LayoutEntries`, which abstra
 
 The only relevant method is `GetLayout()`, which returns a bitmap representation of the given layout entries as well as those layout entries.
 
-The `LayoutEntry` class, however, is immediately relevant. Most of its properties are self-explanatory and line up exactly with those described in the [reverse engineering documentation](ReverseEngineering.md).
-However, a few properties are more abstracted:
-
-* `Color Tint` &ndash; The color associated with the ARGB tint value in the struct
-* `bool FlipX` &ndash; If the `ScreenX` value in the struct is negative, `FlipX` is set to true and the absolute value of `ScreenX` is used. This indicates that the layout entry should be flipped horizontally
-    when displayed.
-* `bool FlipY` &ndash; If the `ScreenY` value in the struct is negative, `FlipY` is set to true and the absolute value of `ScreenY` is used. This indicates that the layout entry should be flipped vertically
-    when displayed.
+The `LayoutEntry` class, however, is immediately relevant. All of its properties are self-explanatory and line up exactly with those described in the [reverse engineering documentation](ReverseEngineering.md).
 
 ## HaruhiChokuretsuLib.Font
 The Font namespace is composed of two classes and simply provides the logic for interacting with the font-width ASM hack we have implemented. The first class, the `FontReplacement` class,

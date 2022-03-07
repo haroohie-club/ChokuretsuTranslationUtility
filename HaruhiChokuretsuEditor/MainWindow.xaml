@@ -121,7 +121,16 @@
                         <Button x:Name="exportDataFileButton" Content="Export" HorizontalAlignment="Left" Click="ExportDataFileButton_Click" />
                         <Button x:Name="importDataFileButton" Content="Import" HorizontalAlignment="Left" Click="ImportDataFileButton_Click" />
                     </ToolBar>
-                    <ListBox x:Name="dataListBox" Margin="0,30,521,0" SelectionChanged="DataListBox_SelectionChanged"  Grid.ColumnSpan="2" />
+                    <ListBox x:Name="dataListBox" Margin="0,30,580,0" SelectionChanged="DataListBox_SelectionChanged"  Grid.ColumnSpan="2" d:ItemsSource="{d:SampleData ItemCount=5}" RenderTransformOrigin="0.5,0.5" >
+                        <ListBox.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform AngleY="-0.253"/>
+                                <RotateTransform/>
+                                <TranslateTransform Y="-0.749"/>
+                            </TransformGroup>
+                        </ListBox.RenderTransform>
+                    </ListBox>
                     <StackPanel Grid.Column="1" Margin="175,30,0,0">
                         <TabControl>
                             <TabItem Header="Data">

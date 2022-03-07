@@ -1,7 +1,6 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,17 +12,17 @@ namespace HaruhiChokuretsuLib
     {
 
         // redmean color distance formula with alpha term
-        private static double ColorDistance(Color color1, Color color2)
+        private static double ColorDistance(SKColor color1, SKColor color2)
         {
-            double redmean = (color1.R + color2.R) / 2.0;
+            double redmean = (color1.Red + color2.Red) / 2.0;
 
-            return Math.Sqrt((2 + redmean / 256) * Math.Pow(color1.R - color2.R, 2)
-                + 4 * Math.Pow(color1.G - color2.G, 2)
-                + (2 + (255 - redmean) / 256) * Math.Pow(color1.B - color2.B, 2)
-                + Math.Pow(color1.A - color2.A, 2));
+            return Math.Sqrt((2 + redmean / 256) * Math.Pow(color1.Red - color2.Red, 2)
+                + 4 * Math.Pow(color1.Green - color2.Green, 2)
+                + (2 + (255 - redmean) / 256) * Math.Pow(color1.Blue - color2.Blue, 2)
+                + Math.Pow(color1.Alpha - color2.Alpha, 2));
         }
 
-        public static int ClosestColorIndex(List<Color> colors, Color color)
+        public static int ClosestColorIndex(List<SKColor> colors, SKColor color)
         {
             var colorDistances = colors.Select(c => ColorDistance(c, color)).ToList();
 
@@ -70,12 +69,12 @@ namespace HaruhiChokuretsuLib
             return s;
         }
 
-        public static List<Color> GetPaletteFromImages(List<Bitmap> bitmaps, int numberOfColors)
+        public static List<SKColor> GetPaletteFromImages(List<SKBitmap> bitmaps, int numberOfColors)
         {
-            List<Color> firstBin = new();
+            List<SKColor> firstBin = new();
 
             // Concatenate pixel data from all bitmaps into a single bin
-            foreach (Bitmap bitmap in bitmaps)
+            foreach (SKBitmap bitmap in bitmaps)
             {
                 for (int x = 0; x < bitmap.Width; x++)
                 {
@@ -89,13 +88,13 @@ namespace HaruhiChokuretsuLib
             return GetPalette(firstBin, numberOfColors);
         }
 
-        public static List<Color> GetPaletteFromImage(Bitmap bitmap, int numberOfColors)
+        public static List<SKColor> GetPaletteFromImage(SKBitmap bitmap, int numberOfColors)
         {
             // Adapted from https://github.com/antigones/palette_extraction
 
-            List<Color> palette = new();
+            List<SKColor> palette = new();
 
-            List<Color> firstBin = new();
+            List<SKColor> firstBin = new();
 
             for (int x = 0; x < bitmap.Width; x++)
             {
@@ -108,25 +107,25 @@ namespace HaruhiChokuretsuLib
             return GetPalette(firstBin, numberOfColors);
         }
 
-        private static List<Color> GetPalette(List<Color> firstBin, int numberOfColors)
+        private static List<SKColor> GetPalette(List<SKColor> firstBin, int numberOfColors)
         {
-            List<List<Color>> bins = new();
+            List<List<SKColor>> bins = new();
             bins.Add(firstBin);
             bins = ProcessBins(0, bins, numberOfColors);
 
-            return bins.Select(b => Color.FromArgb((int)b.Average(c => c.R), (int)b.Average(c => c.G), (int)b.Average(c => c.B))).ToList();
+            return bins.Select(b => new SKColor((byte)b.Average(c => c.Red), (byte)b.Average(c => c.Green), (byte)b.Average(c => c.Blue))).ToList();
         }
 
-        private static List<List<Color>> ProcessBins(int i, List<List<Color>> bins, int maxNumberBins)
+        private static List<List<SKColor>> ProcessBins(int i, List<List<SKColor>> bins, int maxNumberBins)
         {
             if (i < maxNumberBins - 1)
             {
                 // Create a list of three tuples by RGB component, sorting all the colors by the value of that component
                 List<(ColorComponent component, List<(List<byte> componentValues, int index)> valueRanges)> componentRanges = new()
                 {
-                    (ColorComponent.R, bins.Select(b => (b.Select(c => c.R).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
-                    (ColorComponent.G, bins.Select(b => (b.Select(c => c.G).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
-                    (ColorComponent.B, bins.Select(b => (b.Select(c => c.B).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
+                    (ColorComponent.R, bins.Select(b => (b.Select(c => c.Red).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
+                    (ColorComponent.G, bins.Select(b => (b.Select(c => c.Green).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
+                    (ColorComponent.B, bins.Select(b => (b.Select(c => c.Blue).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
                 };
                 List<(ColorComponent component, List<byte> componentValues, int index)> componentRangesCollapsed =
                     componentRanges.SelectMany(r => r.valueRanges.Select(v => (r.component, v.componentValues, v.index))) // collapse above listinto a single list of three-part tuples
@@ -135,7 +134,7 @@ namespace HaruhiChokuretsuLib
 
                 int indexToSplitAt = componentRangesCollapsed[0].index; // because the max difference is now the first in the list, we can just take the first value's index
 
-                List<Color> bin = bins[indexToSplitAt];
+                List<SKColor> bin = bins[indexToSplitAt];
                 bins.RemoveAt(indexToSplitAt);
                 bins.InsertRange(indexToSplitAt, SplitPixels(bin, componentRangesCollapsed[0].component));
 
@@ -147,24 +146,24 @@ namespace HaruhiChokuretsuLib
             }
         }
 
-        private static List<List<Color>> SplitPixels(List<Color> colors, ColorComponent component)
+        private static List<List<SKColor>> SplitPixels(List<SKColor> colors, ColorComponent component)
         {
-            List<List<Color>> bins = new() { new(), new() };
+            List<List<SKColor>> bins = new() { new(), new() };
 
             switch (component)
             {
                 case ColorComponent.R:
-                    IOrderedEnumerable<Color> orderedColorsR = colors.OrderBy(c => c.R); // sort all colors in the bin by their red component
+                    IOrderedEnumerable<SKColor> orderedColorsR = colors.OrderBy(c => c.Red); // sort all colors in the bin by their red component
                     bins[0].AddRange(orderedColorsR.Take(orderedColorsR.Count() / 2)); // we can now take the middle value as the split point
                     bins[1].AddRange(orderedColorsR.Skip(orderedColorsR.Count() / 2)); // since that will be the median value
                     break;
                 case ColorComponent.G:
-                    IOrderedEnumerable<Color> orderedColorsG = colors.OrderBy(c => c.G);
+                    IOrderedEnumerable<SKColor> orderedColorsG = colors.OrderBy(c => c.Green);
                     bins[0].AddRange(orderedColorsG.Take(orderedColorsG.Count() / 2));
                     bins[1].AddRange(orderedColorsG.Skip(orderedColorsG.Count() / 2));
                     break;
                 case ColorComponent.B:
-                    IOrderedEnumerable<Color> orderedColorsB = colors.OrderBy(c => c.B);
+                    IOrderedEnumerable<SKColor> orderedColorsB = colors.OrderBy(c => c.Blue);
                     bins[0].AddRange(orderedColorsB.Take(orderedColorsB.Count() / 2));
                     bins[1].AddRange(orderedColorsB.Skip(orderedColorsB.Count() / 2));
                     break;

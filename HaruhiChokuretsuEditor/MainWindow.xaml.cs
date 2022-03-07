@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -488,8 +489,9 @@ namespace HaruhiChokuretsuEditor
                 };
                 if (saveFileDialog.ShowDialog() == true)
                 {
-                    System.Drawing.Bitmap bitmap = selectedFile.GetImage(_currentImageWidth);
-                    bitmap.Save(saveFileDialog.FileName, System.Drawing.Imaging.ImageFormat.Png);
+                    SKBitmap bitmap = selectedFile.GetImage(_currentImageWidth);
+                    using FileStream fileStream = new(saveFileDialog.FileName, FileMode.Create);
+                    bitmap.Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
                 }
             }
         }
@@ -603,7 +605,7 @@ namespace HaruhiChokuretsuEditor
             }
             int startIndex = int.Parse(graphicsLayoutCreationButton.StartTextBox.Text);
             int length = int.Parse(graphicsLayoutCreationButton.LengthTextBox.Text);
-            (System.Drawing.Bitmap bitmap, List<LayoutEntry> entries) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, startIndex, length, _layoutDarkMode);
+            (SKBitmap bitmap, List<LayoutEntry> entries) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, startIndex, length, _layoutDarkMode);
             tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bitmap), MaxWidth = 640 });
             StackPanel layoutEntriesStackPanel = new();
             int i = startIndex;
@@ -624,7 +626,7 @@ namespace HaruhiChokuretsuEditor
         {
             GraphicsLayoutRegenerateButton button = (GraphicsLayoutRegenerateButton)sender;
             tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 4);
-            (System.Drawing.Bitmap bitmap, List<LayoutEntry> _) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, button.LayoutEntries, _layoutDarkMode);
+            (SKBitmap bitmap, List<LayoutEntry> _) = ((GraphicsFile)graphicsListBox.SelectedItem).GetLayout(_grpFile.Files, button.LayoutEntries, _layoutDarkMode);
             tilesEditStackPanel.Children.Insert(tilesEditStackPanel.Children.Count - 3, new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bitmap), MaxWidth = 640 });
         }
 

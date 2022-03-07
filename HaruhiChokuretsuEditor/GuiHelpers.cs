@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Drawing.Imaging;
+﻿using SkiaSharp;
 using System.IO;
 using System.Windows.Media.Imaging;
 
@@ -7,12 +6,12 @@ namespace HaruhiChokuretsuEditor
 {
     public static class GuiHelpers
     {
-        public static BitmapImage GetBitmapImageFromBitmap(Bitmap bitmap)
+        public static BitmapImage GetBitmapImageFromBitmap(SKBitmap bitmap)
         {
-            BitmapImage bitmapImage = new BitmapImage();
-            using (MemoryStream memoryStream = new MemoryStream())
+            BitmapImage bitmapImage = new();
+            using (MemoryStream memoryStream = new())
             {
-                bitmap.Save(memoryStream, ImageFormat.Png);
+                bitmap.Encode(memoryStream, SKEncodedImageFormat.Png, HaruhiChokuretsuLib.Archive.GraphicsFile.PNG_QUALITY);
                 memoryStream.Position = 0;
                 bitmapImage.BeginInit();
                 bitmapImage.StreamSource = memoryStream;

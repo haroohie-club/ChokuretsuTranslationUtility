@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,7 +11,7 @@ namespace HaruhiChokuretsuLib.Archive
     public class GraphicsFile : FileInArchive
     {
         public List<byte> PaletteData { get; set; }
-        public List<Color> Palette { get; set; } = new();
+        public List<SKColor> Palette { get; set; } = new();
         public List<byte> PixelData { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -20,6 +20,8 @@ namespace HaruhiChokuretsuLib.Archive
         public TileForm ImageTileForm { get; set; }
         public Form ImageForm { get; set; }
         public string Determinant { get; set; }
+
+        public static int PNG_QUALITY = 300;
 
         private readonly static int[] VALID_WIDTHS = new int[] { 8, 16, 32, 64, 128, 256, 512, 1024 };
 
@@ -67,12 +69,12 @@ namespace HaruhiChokuretsuLib.Archive
                 for (int i = 0; i < PaletteData.Count; i += 2)
                 {
                     short color = BitConverter.ToInt16(PaletteData.Skip(i).Take(2).ToArray());
-                    Palette.Add(Color.FromArgb((color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3));
+                    Palette.Add(new SKColor((byte)((color & 0x1F) << 3), (byte)(((color >> 5) & 0x1F) << 3), (byte)(((color >> 10) & 0x1F) << 3)));
                 }
 
                 while (Palette.Count < 256)
                 {
-                    Palette.Add(Color.FromArgb(0, 0, 0));
+                    Palette.Add(new SKColor(0, 0, 0));
                 }
 
                 PixelData = Data.Skip(paletteLength + 0x14).ToList();
@@ -93,7 +95,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         public override void NewFile(string filename)
         {
-            Bitmap bitmap = new Bitmap(filename);
+            SKBitmap bitmap = SKBitmap.Decode(filename);
             string[] fileComponents = Path.GetFileNameWithoutExtension(filename).Split('_');
             ImageTileForm = fileComponents[1].ToLower() switch
             {
@@ -120,13 +122,13 @@ namespace HaruhiChokuretsuLib.Archive
             PixelData = new();
             if (ImageTileForm == TileForm.GBA_4BPP)
             {
-                Palette.AddRange(new Color[16]);
+                Palette.AddRange(new SKColor[16]);
                 PaletteData.AddRange(new byte[0x60]);
                 PixelData.AddRange(new byte[bitmap.Width * bitmap.Height / 2]);
             }
             else
             {
-                Palette.AddRange(new Color[256]);
+                Palette.AddRange(new SKColor[256]);
                 PaletteData.AddRange(new byte[512]);
                 PixelData.AddRange(new byte[bitmap.Width * bitmap.Height]);
             }
@@ -147,23 +149,23 @@ namespace HaruhiChokuretsuLib.Archive
             // grayscale palette
             Palette = new()
             {
-                Color.FromArgb(0x00, 0x00, 0x00),
-                Color.FromArgb(0x0F, 0x0F, 0x0F),
-                Color.FromArgb(0x2F, 0x2F, 0x2F),
-                Color.FromArgb(0x3F, 0x3F, 0x3F),
-                Color.FromArgb(0x4F, 0x4F, 0x4F),
-                Color.FromArgb(0x4F, 0x4F, 0x4F),
-                Color.FromArgb(0x5F, 0x5F, 0x5F),
-                Color.FromArgb(0x6F, 0x6F, 0x6F),
-                Color.FromArgb(0x7F, 0x7F, 0x7F),
-                Color.FromArgb(0x8F, 0x8F, 0x8F),
-                Color.FromArgb(0x9F, 0x9F, 0x9F),
-                Color.FromArgb(0xAF, 0xAF, 0xAF),
-                Color.FromArgb(0xBF, 0xBF, 0xBF),
-                Color.FromArgb(0xCF, 0xCF, 0xCF),
-                Color.FromArgb(0xDF, 0xDF, 0xDF),
-                Color.FromArgb(0xEF, 0xEF, 0xEF),
-                Color.FromArgb(0xFF, 0xFF, 0xFF),
+                new SKColor(0x00, 0x00, 0x00),
+                new SKColor(0x0F, 0x0F, 0x0F),
+                new SKColor(0x2F, 0x2F, 0x2F),
+                new SKColor(0x3F, 0x3F, 0x3F),
+                new SKColor(0x4F, 0x4F, 0x4F),
+                new SKColor(0x4F, 0x4F, 0x4F),
+                new SKColor(0x5F, 0x5F, 0x5F),
+                new SKColor(0x6F, 0x6F, 0x6F),
+                new SKColor(0x7F, 0x7F, 0x7F),
+                new SKColor(0x8F, 0x8F, 0x8F),
+                new SKColor(0x9F, 0x9F, 0x9F),
+                new SKColor(0xAF, 0xAF, 0xAF),
+                new SKColor(0xBF, 0xBF, 0xBF),
+                new SKColor(0xCF, 0xCF, 0xCF),
+                new SKColor(0xDF, 0xDF, 0xDF),
+                new SKColor(0xEF, 0xEF, 0xEF),
+                new SKColor(0xFF, 0xFF, 0xFF),
             };
             PixelData = Data;
             Width = 16;
@@ -236,7 +238,7 @@ namespace HaruhiChokuretsuLib.Archive
             return $"{Index:X3} {Index:D4} 0x{Offset:X8} ({FileFunction})";
         }
 
-        public Bitmap GetImage(int width = -1, int transparentIndex = -1)
+        public SKBitmap GetImage(int width = -1, int transparentIndex = -1)
         {
             if (IsTexture())
             {
@@ -248,14 +250,14 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        private Bitmap GetTiles(int width = -1, int transparentIndex = -1)
+        private SKBitmap GetTiles(int width = -1, int transparentIndex = -1)
         {
 
-            Color originalColor = Color.Black;
+            SKColor originalColor = SKColors.Black;
             if (transparentIndex >= 0)
             {
                 originalColor = Palette[transparentIndex];
-                Palette[transparentIndex] = Color.White;
+                Palette[transparentIndex] = SKColors.White;
             }
             int height;
             if (width == -1)
@@ -271,7 +273,7 @@ namespace HaruhiChokuretsuLib.Archive
                 }
                 height = PixelData.Count / (width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
             }
-            Bitmap bitmap = new(width, height);
+            SKBitmap bitmap = new(width, height);
             int pixelIndex = 0;
             for (int row = 0; row < height / 8 && pixelIndex < PixelData.Count; row++)
             {
@@ -309,7 +311,7 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap;
         }
 
-        private Bitmap GetTexture(int width = -1, int transparentIndex = -1)
+        private SKBitmap GetTexture(int width = -1, int transparentIndex = -1)
         {
             int height;
             if (width == -1)
@@ -327,15 +329,15 @@ namespace HaruhiChokuretsuLib.Archive
             }
             int i = 0;
 
-            Bitmap bmp = new Bitmap(width, height);
+            SKBitmap bmp = new SKBitmap(width, height);
             for (int y = 0; y < height && i < PixelData.Count; y++)
             {
                 for (int x = 0; x < width && i < PixelData.Count; x++)
                 {
-                    Color color;
+                    SKColor color;
                     if (PixelData[i] == transparentIndex)
                     {
-                        color = Color.Transparent;
+                        color = SKColors.Transparent;
                         i++;
                     }
                     else
@@ -349,33 +351,28 @@ namespace HaruhiChokuretsuLib.Archive
             return bmp;
         }
 
-        public Bitmap GetPalette()
+        public SKBitmap GetPalette()
         {
-            Bitmap palette = new(256, Palette.Count);
+            SKBitmap palette = new(256, Palette.Count);
+            using SKCanvas canvas = new(palette);
 
             for (int row = 0; row < palette.Height / 16; row++)
             {
                 for (int col = 0; col < palette.Width / 16; col++)
                 {
-                    for (int x = 16 * row; x < 16 * row + 16; x++)
-                    {
-                        for (int y = 16 * col; y < 16 * col + 16; y++)
-                        {
-                            palette.SetPixel(x, y, Palette[16 * row + col]);
-                        }
-                    }
+                    canvas.DrawRect(col * 16, row * 16, 16, 16, new() { Color = Palette[16 * row + col]});
                 }
             }
 
             return palette;
         }
 
-        public void SetPalette(List<Color> palette, int transparentIndex = -1)
+        public void SetPalette(List<SKColor> palette, int transparentIndex = -1)
         {
             Palette = palette;
             if (transparentIndex >= 0)
             {
-                Palette.Insert(transparentIndex, Color.Transparent);
+                Palette.Insert(transparentIndex, SKColors.Transparent);
             }
 
             PaletteData = new();
@@ -383,7 +380,7 @@ namespace HaruhiChokuretsuLib.Archive
 
             for (int i = 0; i < Palette.Count; i++)
             {
-                byte[] color = BitConverter.GetBytes((short)((Palette[i].R / 8) | ((Palette[i].G / 8) << 5) | ((Palette[i].B / 8) << 10)));
+                byte[] color = BitConverter.GetBytes((short)((Palette[i].Red / 8) | ((Palette[i].Green / 8) << 5) | ((Palette[i].Blue / 8) << 10)));
                 PaletteData.AddRange(color);
             }
         }
@@ -396,7 +393,7 @@ namespace HaruhiChokuretsuLib.Archive
         public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1)
         {
             Edited = true;
-            return SetImage(new Bitmap(bitmapFile), setPalette, transparentIndex);
+            return SetImage(SKBitmap.Decode(bitmapFile), setPalette, transparentIndex);
         }
 
         /// <summary>
@@ -404,7 +401,7 @@ namespace HaruhiChokuretsuLib.Archive
         /// </summary>
         /// <param name="bitmap">Bitmap image in memory</param>
         /// <returns>Width of new bitmap image</returns>
-        public int SetImage(Bitmap bitmap, bool setPalette = false, int transparentIndex = -1)
+        public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1)
         {
             if (setPalette)
             {
@@ -421,7 +418,7 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        private void SetPaletteFromImage(Bitmap bitmap, int transparentIndex = -1)
+        private void SetPaletteFromImage(SKBitmap bitmap, int transparentIndex = -1)
         {
             int numColors = Palette.Count;
             if (transparentIndex >= 0)
@@ -431,11 +428,11 @@ namespace HaruhiChokuretsuLib.Archive
             Palette = Helpers.GetPaletteFromImage(bitmap, numColors);
             for (int i = Palette.Count; i < numColors; i++)
             {
-                Palette.Add(Color.Black);
+                Palette.Add(SKColors.Black);
             }
             if (transparentIndex >= 0)
             {
-                Palette.Insert(transparentIndex, Color.Transparent);
+                Palette.Insert(transparentIndex, SKColors.Transparent);
             }
 
             PaletteData = new();
@@ -443,12 +440,12 @@ namespace HaruhiChokuretsuLib.Archive
 
             for (int i = 0; i < Palette.Count; i++)
             {
-                byte[] color = BitConverter.GetBytes((short)((Palette[i].R / 8) | ((Palette[i].G / 8) << 5) | ((Palette[i].B / 8) << 10)));
+                byte[] color = BitConverter.GetBytes((short)((Palette[i].Red / 8) | ((Palette[i].Green / 8) << 5) | ((Palette[i].Blue / 8) << 10)));
                 PaletteData.AddRange(color);
             }
         }
 
-        private int SetTexture(Bitmap bitmap)
+        private int SetTexture(SKBitmap bitmap)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -472,7 +469,7 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap.Width;
         }
 
-        private int SetTiles(Bitmap bitmap)
+        private int SetTiles(SKBitmap bitmap)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -516,21 +513,22 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap.Width;
         }
 
-        public (Bitmap bitmap, List<LayoutEntry> layoutEntries) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries, bool darkMode)
+        public (SKBitmap bitmap, List<LayoutEntry> layoutEntries) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries, bool darkMode)
         {
             return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList(), darkMode);
         }
 
-        public (Bitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, List<LayoutEntry> layoutEntries, bool darkMode)
+        public (SKBitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, List<LayoutEntry> layoutEntries, bool darkMode)
         {
-            Bitmap layoutBitmap = new(640, 480);
+            SKBitmap layoutBitmap = new(640, 480);
+            using SKCanvas canvas = new(layoutBitmap);
             if (darkMode)
             {
                 for (int x = 0; x < layoutBitmap.Width; x++)
                 {
                     for (int y = 0; y < layoutBitmap.Height; y++)
                     {
-                        layoutBitmap.SetPixel(x, y, Color.Black);
+                        layoutBitmap.SetPixel(x, y, SKColors.Black);
                     }
                 }
             }
@@ -540,7 +538,6 @@ namespace HaruhiChokuretsuLib.Archive
                 {
                     continue;
                 }
-                using Graphics graphics = Graphics.FromImage(layoutBitmap);
                 int grpIndex = Index + 1;
                 for (int i = 0; i <= currentEntry.RelativeShtxIndex && grpIndex < grpFiles.Count; grpIndex++)
                 {
@@ -551,55 +548,36 @@ namespace HaruhiChokuretsuLib.Archive
                 }
                 GraphicsFile grpFile = grpFiles.First(g => g.Index == grpIndex - 1);
 
-                Rectangle boundingBox = new Rectangle
+                SKRect boundingBox = new()
                 {
-                    X = currentEntry.TextureX,
-                    Y = currentEntry.TextureY,
-                    Width = currentEntry.TextureW,
-                    Height = currentEntry.TextureH,
+                    Left = currentEntry.TextureX,
+                    Top = currentEntry.TextureY,
+                    Right = currentEntry.TextureX + currentEntry.TextureW,
+                    Bottom = currentEntry.TextureY + currentEntry.TextureH,
+                };
+                SKRect destination = new()
+                {
+                    Left = currentEntry.ScreenX,
+                    Top = currentEntry.ScreenY,
+                    Right = currentEntry.ScreenX + currentEntry.TextureW,
+                    Bottom = currentEntry.ScreenY + currentEntry.TextureH,
                 };
 
-                Bitmap texture = grpFile.GetImage(transparentIndex: 0);
-                Bitmap tile;
-                try
-                {
-                    tile = texture.Clone(boundingBox, System.Drawing.Imaging.PixelFormat.DontCare);
-                }
-                catch (OutOfMemoryException)
-                {
-                    continue;
-                }
+                SKBitmap texture = grpFile.GetImage(transparentIndex: 0);
+                SKBitmap tile = new((int)Math.Abs(boundingBox.Right - boundingBox.Left), (int)Math.Abs(boundingBox.Bottom - boundingBox.Top));
+                SKCanvas transformCanvas = new(tile);
 
-                for (int x = 0; x < tile.Width; x++)
+                if (currentEntry.ScreenW < 0)
                 {
-                    for (int y = 0; y < tile.Height; y++)
-                    {
-                        Color color = tile.GetPixel(x, y);
-                        Color newColor = Color.FromArgb(
-                            (byte)(color.A * currentEntry.Tint.A / 256.0),
-                            (byte)(color.R * currentEntry.Tint.R / 256.0),
-                            (byte)(color.G * currentEntry.Tint.G / 256.0),
-                            (byte)(color.B * currentEntry.Tint.B / 256.0));
-                        tile.SetPixel(x, y, newColor);
-                    }
+                    transformCanvas.Scale(-1, 1, tile.Width / 2.0f, 0);
                 }
+                if (currentEntry.ScreenH < 0)
+                {
+                    transformCanvas.Scale(1, -1, 0, tile.Height / 2.0f);
+                }
+                transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, tile.Width, tile.Height));
 
-                if (currentEntry.FlipX)
-                {
-                    tile.RotateFlip(RotateFlipType.RotateNoneFlipX);
-                }
-                if (currentEntry.FlipY)
-                {
-                    tile.RotateFlip(RotateFlipType.RotateNoneFlipY);
-                }
-
-                graphics.DrawImage(tile, new Rectangle
-                {
-                    X = currentEntry.ScreenX,
-                    Y = currentEntry.ScreenY,
-                    Width = currentEntry.ScreenW,
-                    Height = currentEntry.ScreenH,
-                });
+                canvas.DrawBitmap(tile, destination);
             }
 
             return (layoutBitmap, layoutEntries);
@@ -620,10 +598,7 @@ namespace HaruhiChokuretsuLib.Archive
         public short ScreenW { get; set; }
         public short ScreenH { get; set; }
         public short UnknownShort3 { get; set; }
-        public Color Tint { get; set; }
-
-        public bool FlipX { get; set; }
-        public bool FlipY { get; set; }
+        public SKColor Tint { get; set; }
 
         public LayoutEntry(IEnumerable<byte> data)
         {
@@ -644,18 +619,7 @@ namespace HaruhiChokuretsuLib.Archive
             ScreenW = BitConverter.ToInt16(data.Skip(0x12).Take(2).ToArray());
             ScreenH = BitConverter.ToInt16(data.Skip(0x14).Take(2).ToArray());
             UnknownShort3 = BitConverter.ToInt16(data.Skip(0x16).Take(2).ToArray());
-            Tint = Color.FromArgb(BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray()));
-
-            if (ScreenW < 0)
-            {
-                FlipX = true;
-                ScreenW *= -1;
-            }
-            if (ScreenH < 0)
-            {
-                FlipY = true;
-                ScreenH *= -1;
-            }
+            Tint = new((uint)BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray()));
         }
 
         public byte[] GetBytes()
@@ -670,10 +634,10 @@ namespace HaruhiChokuretsuLib.Archive
             data.AddRange(BitConverter.GetBytes(TextureH));
             data.AddRange(BitConverter.GetBytes(TextureX));
             data.AddRange(BitConverter.GetBytes(TextureY));
-            data.AddRange(BitConverter.GetBytes(FlipX ? (short)(-1 * ScreenW) : ScreenW));
-            data.AddRange(BitConverter.GetBytes(FlipY ? (short)(-1 * ScreenH) : ScreenH));
+            data.AddRange(BitConverter.GetBytes(ScreenW));
+            data.AddRange(BitConverter.GetBytes(ScreenH));
             data.AddRange(BitConverter.GetBytes(UnknownShort3));
-            data.AddRange(BitConverter.GetBytes(Tint.ToArgb()));
+            data.AddRange(BitConverter.GetBytes((uint)Tint));
             return data.ToArray();
         }
 

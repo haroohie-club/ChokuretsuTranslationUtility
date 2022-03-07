@@ -1,9 +1,9 @@
 ﻿using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
 using Mono.Options;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace HaruhiChokuretsuCLI
     {
         string _inputArchive, _outputArchive, _replacement;
         private bool _showHelp;
-        private Dictionary<int, List<Color>> _palettes = new();
+        private Dictionary<int, List<SKColor>> _palettes = new();
 
         public ReplaceCommand() : base("replace", "Replaces a file or set of files in an archive")
         {
@@ -113,7 +113,7 @@ namespace HaruhiChokuretsuCLI
                 foreach (int key in filesWithSharedPalettes.Keys)
                 {
                     CommandSet.Out.WriteLine($"Generating shared palette for set {key}...");
-                    List<Bitmap> images = filesWithSharedPalettes[key].Select(f => new Bitmap(f)).ToList();
+                    List<SKBitmap> images = filesWithSharedPalettes[key].Select(f => SKBitmap.Decode(f)).ToList();
                     _palettes.Add(key, Helpers.GetPaletteFromImages(images, 256));
                 }
 
@@ -215,7 +215,7 @@ namespace HaruhiChokuretsuCLI
         /// <param name="archive"></param>
         /// <param name="filePath"></param>
         /// <param name="index"></param>
-        private static void ReplaceSingleGraphicsFile(ArchiveFile<FileInArchive> archive, string filePath, int index, Dictionary<int, List<Color>> sharedPalettes)
+        private static void ReplaceSingleGraphicsFile(ArchiveFile<FileInArchive> archive, string filePath, int index, Dictionary<int, List<SKColor>> sharedPalettes)
         {
             FileInArchive file = archive.Files.FirstOrDefault(f => f.Index == index);
 

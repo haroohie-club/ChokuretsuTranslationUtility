@@ -4,8 +4,9 @@ It's composed of a library containing the methods and classes necessary for inte
 and a command-line interface and graphical editor that use that library.
 
 ## Dependencies & Building
-The utility is built ontop of the .NET 5.0 runtime and that's a requirement to use it. To build the solution,
-you will need to install the .NET 5.0 SDK. Currently, the utility only runs on Windows, but there are plans to make
+The utility is built ontop of the .NET 6.0 runtime and that's a requirement to use it. To build the solution,
+you will need to install the .NET 6.0 runtime. The CLI and library are fully cross-platform, working on Windows,
+macOS, and Linux. However, currently the editor only runs on Windows, but there are plans to make
 it cross-platform in the future (likely with the advent of .NET 7.0 and MAUI).
 
 There are two ways of building the solution:

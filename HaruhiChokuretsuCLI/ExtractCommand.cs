@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using Mono.Options;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -77,7 +78,8 @@ namespace HaruhiChokuretsuCLI
                     }
 
                     CommandSet.Out.Write($"Extracting file #{grpFile.Index:X3} as image from archive {grpArchive.FileName}... ");
-                    grpFile.GetImage(_imageWidth).Save(_outputFile, System.Drawing.Imaging.ImageFormat.Png);
+                    using FileStream fileStream = new(_outputFile, FileMode.Create);
+                    grpFile.GetImage(_imageWidth).Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
                     CommandSet.Out.WriteLine("OK");
                 }
                 else if (Path.GetExtension(_outputFile).Equals(".resx", StringComparison.OrdinalIgnoreCase))
