@@ -1,0 +1,1 @@
+# Haruhi Chokuretsu Editor

@@ -39,7 +39,7 @@ offsets and file sizes.
 
     GraphicsFile currentFile = grpArchive.Files.FirstOrDefault(f => f.Index == replacementIndex);
     GraphicsFile newGraphicsFile = new();
-    newGraphicsFile.Initialize(File.ReadAllBytes(decompressedFilePath, currentFile.Offset));
+    newGraphicsFile.Initialize(File.ReadAllBytes(decompressedFilePath), currentFile.Offset);
     newGraphicsFile.Edited = true;
     grpArchive.Files[grpArchive.Files.IndexOf(currentFile)] = newGraphicsFile;
     ```
