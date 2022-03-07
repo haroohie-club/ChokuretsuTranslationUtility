@@ -13,7 +13,7 @@ There are two ways of building the solution:
 2. Run `dotnet build` from the command line in the repo root.
 
 ## Usage and Reverse Engineering Documentation
-* For documentation on how to use the graphical editor, go [here](Documentation/HaruhiChokuretsuEditor.md).
-* For documentation on how to use the command-line interface, go [here](Documentation/HaruhiChokuretsuCLI.md).
-* For documentation on how to use HaruhiChokuretsuLib in your own code, go [here](Documentation/HaruhiChokuretsuLib.md).
-* For documentation on the structure and composition of Suzumiya Haruhi no Chokuretsu, see the [reverse engineering document](Documentation/ReverseEngineering.md).
+* For documentation on how to use the graphical editor, go [here](HaruhiChokuretsuEditor/README.md).
+* For documentation on how to use the command-line interface, go [here](HaruhiChokuretsuCLI/README.md).
+* For documentation on how to use HaruhiChokuretsuLib in your own code, go [here](HaruhiChokuretsuLib/README.md).
+* For documentation on the structure and composition of Suzumiya Haruhi no Chokuretsu, see the [reverse engineering document](ReverseEngineering.md).
