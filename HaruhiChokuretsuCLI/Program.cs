@@ -1,17 +1,4 @@
-﻿using HaruhiChokuretsuLib;
-using HaruhiChokuretsuLib.Archive;
-using HaruhiChokuretsuLib.Font;
-using HaruhiChokuretsuLib.Overlay;
-using Mono.Options;
-using System;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Xml.Serialization;
+﻿using Mono.Options;
 
 namespace HaruhiChokuretsuCLI
 {

@@ -131,7 +131,7 @@ some that remain unknown.
 The property that determines what time of graphic a give file is is the `FileFunction` property which uses the `Function` enum. The options are `SHTX`, `LAYOUT`, and `UNKNOWN`.
 
 #### `SHTX`
-When `FileFunction` is set to `Function.SHTX` (which happens if the first four bytes of the file are `SHTX`), the file implements a Shade Texture file. The following properties
+When `FileFunction` is set to `Function.SHTX` (which happens if the first four bytes of the file are `SHTX`), the class implements a Shade Texture file. The following properties
 become relevant:
 
 * `List<byte> PaletteData` &ndash; Contains the binary palette data of the image.
@@ -149,4 +149,49 @@ Furthermore, the following methods are relevant:
 * `InitializeFontFile()` &ndash; Initializes the font file (#0xE50) which is a special file only containing pixel data.
 * `IsTexture()` &ndash; Manually determines whether a file is of `Form` `TILE` or `TEXTURE`. Since there isn't a known way to determine this from file data, this is manually constructed
     based on position within the archive.
-* `GetImage()` &ndash; Returns a bitmap image of the SHTX file.
+* `GetImage()` &ndash; Returns a bitmap image of the SHTX file. Optionally allows specifying a transparent index, an index into the palette that will be made transparent (in reality almost always 0).
+* `SetImage()` &ndash; Sets the pixel data to that of a bitmap in memory or bitmap file provided. Optionally, can set a flag to create a new palette from the image, and can set a transparent index.
+* `GetPalette()` &ndash; Gets a bitmap image representing the palette data of the image.
+* `SetPalette()` &ndash; Accepts a `List<Color>` to set as the palette for the image.
+
+#### Layout
+When `FileFunction` is set to `Function.LAYOUT` (which happens if the first four bytes are either 0x0001C000 or 0x10048802), the class implements a layout file. The only
+relevant property for layouts is `List<LayoutEntry> LayoutEntries`, which abstracts the layout entry struct.
+
+The only relevant method is `GetLayout()`, which returns a bitmap representation of the given layout entries as well as those layout entries.
+
+The `LayoutEntry` class, however, is immediately relevant. Most of its properties are self-explanatory and line up exactly with those described in the [reverse engineering documentation](ReverseEngineering.md).
+However, a few properties are more abstracted:
+
+* `Color Tint` &ndash; The color associated with the ARGB tint value in the struct
+* `bool FlipX` &ndash; If the `ScreenX` value in the struct is negative, `FlipX` is set to true and the absolute value of `ScreenX` is used. This indicates that the layout entry should be flipped horizontally
+    when displayed.
+* `bool FlipY` &ndash; If the `ScreenY` value in the struct is negative, `FlipY` is set to true and the absolute value of `ScreenY` is used. This indicates that the layout entry should be flipped vertically
+    when displayed.
+
+## HaruhiChokuretsuLib.Font
+The Font namespace is composed of two classes and simply provides the logic for interacting with the font-width ASM hack we have implemented. The first class, the `FontReplacement` class,
+is an abstraction of the font replacement JSON and contains information on the `OriginalCharacter` in the script, the character we replace it with (`ReplacedCharacter`), the Shift-JIS
+`CodePoint` where the replacement occurs, and the amount the character is `Offset`. This then feeds into a `FontReplacementDictionary`, a class which implements `IDictionary` and allows for
+easy lookup into a `List<FontReplacement>`.
+
+## HaruhiChokuretsuLib.Overlay
+This namespace contains the methods to aid in interacting with the game's overlays.
+
+### `Overlay`
+The `Overlay` class is an abstraction of an overlay. It contains the following properties:
+
+* `string Name` &ndash; The name of the overlay (e.g., main_0001).
+* `int Id` &ndash; The overlay's ID (e.g., 1). This is determined by parsing the last four characters of the overlay's name as a hex number.
+* `List<byte> Data` &ndash; The binary assembled instructions of the overlay.
+
+It also contains the following methods:
+
+* `Overlay(string file)` &ndash; The constructor takes a file and uses its name as the `Name` and its contents as the `Data`.
+* `Save()` &ndash; Writes the contents of `Data` to a given file.
+* `Patch()` &ndash; Replaces binary data at a particular point with provided patch adata.
+* `Append()` &ndash; Takes data to append and the path to an NDS project file that contains an XML representation of the overlay table. This method appends the data to the end of the array and then
+    modifies the overlay table to reflect the updated size of the overlay.
+
+### `OverlayPatchDocument`
+This class simply serializes the Riivolution-style overlay patch documents.

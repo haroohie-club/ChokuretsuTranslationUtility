@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib.Archive
 {
@@ -517,7 +516,7 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap.Width;
         }
 
-        public (Bitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries, bool darkMode)
+        public (Bitmap bitmap, List<LayoutEntry> layoutEntries) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries, bool darkMode)
         {
             return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList(), darkMode);
         }

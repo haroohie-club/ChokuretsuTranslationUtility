@@ -74,6 +74,7 @@ namespace HaruhiChokuretsuLib
         {
             List<Color> firstBin = new();
 
+            // Concatenate pixel data from all bitmaps into a single bin
             foreach (Bitmap bitmap in bitmaps)
             {
                 for (int x = 0; x < bitmap.Width; x++)
@@ -120,6 +121,7 @@ namespace HaruhiChokuretsuLib
         {
             if (i < maxNumberBins - 1)
             {
+                // Create a list of three tuples by RGB component, sorting all the colors by the value of that component
                 List<(ColorComponent component, List<(List<byte> componentValues, int index)> valueRanges)> componentRanges = new()
                 {
                     (ColorComponent.R, bins.Select(b => (b.Select(c => c.R).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
@@ -127,11 +129,11 @@ namespace HaruhiChokuretsuLib
                     (ColorComponent.B, bins.Select(b => (b.Select(c => c.B).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
                 };
                 List<(ColorComponent component, List<byte> componentValues, int index)> componentRangesCollapsed =
-                    componentRanges.SelectMany(r => r.valueRanges.Select(v => (r.component, v.componentValues, v.index)))
-                    .OrderByDescending(r => r.componentValues.Max() - r.componentValues.Min())
+                    componentRanges.SelectMany(r => r.valueRanges.Select(v => (r.component, v.componentValues, v.index))) // collapse above listinto a single list of three-part tuples
+                    .OrderByDescending(r => r.componentValues.Max() - r.componentValues.Min()) // put the tuple with the highest difference in value on a particular component first
                     .ToList();
 
-                int indexToSplitAt = componentRangesCollapsed[0].index;
+                int indexToSplitAt = componentRangesCollapsed[0].index; // because the max difference is now the first in the list, we can just take the first value's index
 
                 List<Color> bin = bins[indexToSplitAt];
                 bins.RemoveAt(indexToSplitAt);
@@ -152,9 +154,9 @@ namespace HaruhiChokuretsuLib
             switch (component)
             {
                 case ColorComponent.R:
-                    IOrderedEnumerable<Color> orderedColorsR = colors.OrderBy(c => c.R);
-                    bins[0].AddRange(orderedColorsR.Take(orderedColorsR.Count() / 2));
-                    bins[1].AddRange(orderedColorsR.Skip(orderedColorsR.Count() / 2));
+                    IOrderedEnumerable<Color> orderedColorsR = colors.OrderBy(c => c.R); // sort all colors in the bin by their red component
+                    bins[0].AddRange(orderedColorsR.Take(orderedColorsR.Count() / 2)); // we can now take the middle value as the split point
+                    bins[1].AddRange(orderedColorsR.Skip(orderedColorsR.Count() / 2)); // since that will be the median value
                     break;
                 case ColorComponent.G:
                     IOrderedEnumerable<Color> orderedColorsG = colors.OrderBy(c => c.G);

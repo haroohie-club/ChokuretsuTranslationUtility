@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Resources.NetStandard;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib.Archive
 {
