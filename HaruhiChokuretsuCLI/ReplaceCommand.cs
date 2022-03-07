@@ -88,6 +88,7 @@ namespace HaruhiChokuretsuCLI
             try
             {
                 var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
+                CommandSet.Out.WriteLine($"Beginning file replacement in {archive.FileName}...");
 
                 Dictionary<int, List<string>> filesWithSharedPalettes = new();
                 for (int i = 0; i < filePaths.Count; i++)
@@ -164,6 +165,7 @@ namespace HaruhiChokuretsuCLI
                 return 1;
             }
 
+            CommandSet.Out.WriteLine("Done.");
             return 0;
         }
 
