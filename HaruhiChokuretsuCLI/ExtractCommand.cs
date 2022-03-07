@@ -23,7 +23,7 @@ namespace HaruhiChokuretsuCLI
                 "",
                 { "i|input-archive=", "Archive to extract file from", i => _inputArchive = i },
                 { "n|index=", "Index of file to extract (prefix with 0x to use hex number); this can be omitted if output file is named as a hex integer",
-                    n => _fileIndex = n.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? int.Parse(n, NumberStyles.HexNumber) : int.Parse(n) },
+                    n => _fileIndex = n.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? int.Parse(n[2..], NumberStyles.HexNumber) : int.Parse(n) },
                 { "o|output-file=", "File name of extracted file (if ends in PNG or RESX, will extract to those formats; otherwise extracts raw binary data)", o => _outputFile = o},
                 { "w|image-width=", "Width of an image to extract (defaults to the image's encoded width)", w => _imageWidth = int.Parse(w) },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
@@ -51,7 +51,7 @@ namespace HaruhiChokuretsuCLI
                 return returnValue;
             }
 
-            if (_fileIndex == -1 && !int.TryParse(Path.GetFileNameWithoutExtension(_outputFile), out _fileIndex))
+            if (_fileIndex == -1 && !int.TryParse(Path.GetFileNameWithoutExtension(_outputFile), NumberStyles.HexNumber, new CultureInfo("en-US"), out _fileIndex))
             {
                 CommandSet.Out.WriteLine("Either file index (-n or --index) must be set or output file name (-o or --output-file) must be a hex integer.");
                 Options.WriteOptionDescriptions(CommandSet.Out);

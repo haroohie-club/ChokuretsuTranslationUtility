@@ -30,7 +30,7 @@ namespace HaruhiChokuretsuCLI
             Options.Parse(arguments);
 
             string[] semVers = _version.Split('.');
-            if (semVers.Length > 2)
+            if (semVers.Length > 3)
             {
                 _version = $"{semVers[0]}.{semVers[1]}.\n{semVers[2]}.\n{semVers[3]}";
             }
