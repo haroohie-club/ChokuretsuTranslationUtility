@@ -54,4 +54,52 @@ in that archive. On the right is the editor pane, which itself is composed of th
 ### Tabs
 
 #### Tiles/Texture
-The _Preview_ tab displays the currently selected Shade Texture file 
+The _Preview_ tab displays an image representing the currently selected file. For Shade Texture files, it will display the texture or tiles represented by the file. For Layouts, it will display several
+controls allowing you to create a layout preview and then edit that layout. The controls are as follows:
+
+* _Start_ &ndash; The starting index of the layout (which layout entry will be the first to be drawn)
+* _Length_ &ndash; The number of layout entries to draw after that starting entry.
+* _Preview Layout_ &ndash; Pressing this button will render the layout.
+* _Dark Mode_ &ndash; Ticking this box before rendering will cause the background to be black, allowing for easy viewing of white/transparent tiles.
+* _Total Entries_ &ndash; The total number of layout entries.
+
+After this, the layout preview will be displayed. Below it will be a series of controls for the layout entries. They are as follows:
+
+1. (Non-editable) The layout entry number
+2. The relative SHTX index
+3. The texture X
+4. The texture Y
+5. The texture width
+6. The texture height
+7. The screen X
+8. The screen Y
+9. The screen width
+10. The screen height
+11. The tint color
+
+Editing these values will change the values in the layout. These can then be saved or exported to preserve these changes.
+
+#### Palette
+The _Palette_ tab allows you to view the palette of a selected Shade Texture file. The palette data is show left to right, top to bottom.
+
+#### Statistics
+The _Statistics_ tab is independent of the listbox selection and shows stats on the presence of certain byte combinations in the headers of Shade Texture files.
+
+### Buttons
+| Button | Function |
+|:------:|----------|
+| Open | Opens `grp.bin`. |
+| Save | Saves the currently open archive. |
+| Export | Exports the selected file as uncompressed binary data. |
+| Import | Imports an uncompressed binary file from disk and replaces the selected file with it. |
+| Export Image | Exports currently selected image as a PNG file. |
+| Import Image | Imports a PNG file and sets the contents of the currently selected file to match it. |
+| Import Image with Palette | Same as Import Image but additionally generates a palette from the PNG file and replaces the palette data with it. |
+| Add Image | Adds an image to the archive.
+
+## Data
+The **Data** tab is intended for viewing content files in `dat.bin`. Currently, it can only open and save `dat.bin` and import and export data files.
+The editor view only displays the file length.
+
+## Compression
+The **Compression** tab simply has two buttons which will compress or decompress files on disk using the Shade compression algorithm.
