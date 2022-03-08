@@ -524,13 +524,7 @@ namespace HaruhiChokuretsuLib.Archive
             using SKCanvas canvas = new(layoutBitmap);
             if (darkMode)
             {
-                for (int x = 0; x < layoutBitmap.Width; x++)
-                {
-                    for (int y = 0; y < layoutBitmap.Height; y++)
-                    {
-                        layoutBitmap.SetPixel(x, y, SKColors.Black);
-                    }
-                }
+                canvas.DrawRect(0, 0, layoutBitmap.Width, layoutBitmap.Height, new() { Color = SKColors.Black });
             }
             foreach (LayoutEntry currentEntry in layoutEntries)
             {
@@ -559,8 +553,8 @@ namespace HaruhiChokuretsuLib.Archive
                 {
                     Left = currentEntry.ScreenX,
                     Top = currentEntry.ScreenY,
-                    Right = currentEntry.ScreenX + currentEntry.TextureW,
-                    Bottom = currentEntry.ScreenY + currentEntry.TextureH,
+                    Right = currentEntry.ScreenX + currentEntry.ScreenW,
+                    Bottom = currentEntry.ScreenY + currentEntry.ScreenH,
                 };
 
                 SKBitmap texture = grpFile.GetImage(transparentIndex: 0);
@@ -576,6 +570,22 @@ namespace HaruhiChokuretsuLib.Archive
                     transformCanvas.Scale(1, -1, 0, tile.Height / 2.0f);
                 }
                 transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, tile.Width, tile.Height));
+
+                for (int x = 0; x < tile.Width; x++)
+                {
+                    for (int y = 0; y < tile.Height; y++)
+                    {
+                        if (currentEntry.Tint.Red != 0xFF)
+                        {
+                            Console.WriteLine("Here");
+                        }
+                        SKColor pixelColor = tile.GetPixel(x, y);
+                        tile.SetPixel(x, y, new((byte)(pixelColor.Red * currentEntry.Tint.Red / 255),
+                            (byte)(pixelColor.Green * currentEntry.Tint.Green / 255),
+                            (byte)(pixelColor.Blue * currentEntry.Tint.Blue / 255),
+                            (byte)(pixelColor.Alpha * currentEntry.Tint.Alpha / 255)));
+                    }
+                }
 
                 canvas.DrawBitmap(tile, destination);
             }

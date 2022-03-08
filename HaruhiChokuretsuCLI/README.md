@@ -1,6 +1,6 @@
 # HaruhiChokuretsuCLI
 The HaruhiChokuretsuCLI is a command-line interface that can be used to directly interact with an unpacked Suzumiya Haruhi no Chokuretsu ROM. To unpack the ROM,
-you will need to use something like NDS Lazy or NitroPacker.
+you will need to use a utility such as NDS Lazy or NitroPacker.
 
 All commands are self-documented with `-h` or `--help`, e.g. `HaruhiChokuretsuCLI unpack --help` will print help for the `unpack` command.
 

@@ -84,7 +84,7 @@
                     <ListBox x:Name="graphicsListBox" Margin="0,30,579,0" SelectionChanged="GraphicsListBox_SelectionChanged" Grid.ColumnSpan="2" />
                     <StackPanel Grid.Column="1" Margin="175,30,0,0">
                         <TabControl>
-                            <TabItem Header="Tiles">
+                            <TabItem Header="Preview">
                                 <ScrollViewer Grid.Column="1" Height="350" >
                                     <DockPanel>
                                         <StackPanel x:Name="tilesEditStackPanel"/>
