@@ -1,6 +1,7 @@
 ﻿using Mono.Options;
 using System.Collections.Generic;
 using SkiaSharp;
+using SkiaTextRenderer;
 using System.IO;
 using System.Linq;
 
@@ -31,15 +32,16 @@ namespace HaruhiChokuretsuCLI
             string[] semVers = _version.Split('.');
             if (semVers.Length > 3)
             {
-                _version = $"{semVers[0]}.{semVers[1]}.\r\n{semVers[2]}.\r\n{semVers[3]}";
+                _version = $"{semVers[0]}.{semVers[1]}.\n{semVers[2]}.\n{semVers[3]}";
             }
 
             SKBitmap splashScreenVersionless = SKBitmap.Decode(_splashScreenPath);
 
             using SKCanvas canvas = new(splashScreenVersionless);
-            int height = semVers.Length <= 3 ? 556 : 526;
-            SKPoint point = new(10, height);
-            canvas.DrawText(_version, point, new SKPaint(new SKFont(SKTypeface.FromFile(_fontFile))));
+            int y = semVers.Length <= 3 ? 556 : 526;
+            int height = semVers.Length <= 3 ? 16 : 48;
+            SKRect bounds = new(10, y, 64, y + height);
+            TextRendererSk.DrawText(canvas, _version, new Font(SKTypeface.FromFile(_fontFile), 16.0f), bounds, SKColors.Black, TextFormatFlags.Left);
 
             using FileStream fileStream = new(_outputPath, FileMode.Create);
             splashScreenVersionless.Encode(fileStream, SKEncodedImageFormat.Png, HaruhiChokuretsuLib.Archive.GraphicsFile.PNG_QUALITY);

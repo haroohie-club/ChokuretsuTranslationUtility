@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
+    <PackageReference Include="SkiaTextRenderer" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
