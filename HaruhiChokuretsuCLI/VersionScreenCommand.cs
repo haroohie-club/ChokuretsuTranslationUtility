@@ -31,14 +31,14 @@ namespace HaruhiChokuretsuCLI
             string[] semVers = _version.Split('.');
             if (semVers.Length > 3)
             {
-                _version = $"{semVers[0]}.{semVers[1]}.\n{semVers[2]}.\n{semVers[3]}";
+                _version = $"{semVers[0]}.{semVers[1]}.\r\n{semVers[2]}.\r\n{semVers[3]}";
             }
 
             SKBitmap splashScreenVersionless = SKBitmap.Decode(_splashScreenPath);
 
             using SKCanvas canvas = new(splashScreenVersionless);
             int height = semVers.Length <= 3 ? 556 : 526;
-            SKPoint point = new(0, height);
+            SKPoint point = new(10, height);
             canvas.DrawText(_version, point, new SKPaint(new SKFont(SKTypeface.FromFile(_fontFile))));
 
             using FileStream fileStream = new(_outputPath, FileMode.Create);
