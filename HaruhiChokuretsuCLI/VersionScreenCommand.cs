@@ -39,9 +39,9 @@ namespace HaruhiChokuretsuCLI
 
             using SKCanvas canvas = new(splashScreenVersionless);
             int y = semVers.Length <= 3 ? 556 : 526;
-            int height = semVers.Length <= 3 ? 16 : 48;
-            SKRect bounds = new(10, y, 64, y + height);
-            TextRendererSk.DrawText(canvas, _version, new Font(SKTypeface.FromFile(_fontFile), 16.0f), bounds, SKColors.Black, TextFormatFlags.Left);
+            int height = semVers.Length <= 3 ? 9 : 27;
+            SKRect bounds = new(0, y, 64, y + height);
+            TextRendererSk.DrawText(canvas, _version, new Font(SKTypeface.FromFile(_fontFile), 11.0f), bounds, SKColors.Black, TextFormatFlags.Left);
 
             using FileStream fileStream = new(_outputPath, FileMode.Create);
             splashScreenVersionless.Encode(fileStream, SKEncodedImageFormat.Png, HaruhiChokuretsuLib.Archive.GraphicsFile.PNG_QUALITY);
