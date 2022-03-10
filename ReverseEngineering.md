@@ -47,7 +47,7 @@ The Shade archive files are arcane and honestly very ugly; however, they are fai
         MagicLengthInteger = 0x7FF + (MagicInteger & A) * MLSB;
     ```
     and then uses that MagicLengthInteger in an absolutely unhinged routine to calculate the file length. An implementation of the routine can be found
-    in the `GetFileLength()` method in [`ArchiveFile.cs`](../HaruhiChokuretsuLib/Archive/ArchiveFile.cs).
+    in the `GetFileLength()` method in [`ArchiveFile.cs`](/HaruhiChokuretsuLib/Archive/ArchiveFile.cs).
 
     Encoded file lengths and offsets are all multiples of 0x800.
 * **Secondary Intger Section** &ndash; Starting at (0x1C + 4 * NumItems) and ending at (0x1C + 8 * NumItems - 1), this section's function remains unknown.
@@ -98,7 +98,7 @@ Event files control all of the scenes ("events") in the game and are all contain
 * **0x04-0x07**: The pointer to the End Pointers section.
 * **0x08-0x0B**: For files that have a title (e.g., EV1_001), this is the pointer to that title.
 * **Dialogue Section**: Location defined by the Dialogue Section Pointer. The dialogue section is composed of an array of structs containing three integers:
-    - **0x00-0x03** &ndash; An integer representing the character speaking the dialogue line. The full set of these references can be found in `enum Speaker` in [`EventFile.cs`](../HaruhiChokuretsuLib/Archive/EventFile.cs).
+    - **0x00-0x03** &ndash; An integer representing the character speaking the dialogue line. The full set of these references can be found in `enum Speaker` in [`EventFile.cs`](/HaruhiChokuretsuLib/Archive/EventFile.cs).
     - **0x04-0x07** &ndash; A pointer to the Dramatis Personae section containing the name of the character speaking the dialogue line. (This does not seem to be used in-game.)
     - **0x08-0x0B** &ndash; A pointer to a Shift-JIS encoded string of the dialogue line being spoken. This string is always zero-padded to four-byte alignment.
 * **Control Section**: In the main story event files (#0x166 through #0x213), this section contains a series of 0x24 byte structs which seem to control various elements of the

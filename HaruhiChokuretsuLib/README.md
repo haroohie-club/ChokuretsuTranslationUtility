@@ -20,7 +20,7 @@ The following helper methods are available:
 This namespace contains the logic for interacting with the `.bin` archives in the game (`dat.bin`, `evt.bin`, `grp.bin`, and `scn.bin`).
 The classes it contains are:
 
-### `ArchiveFile`
+### [`ArchiveFile`](Archive/ArchiveFile.cs)
 This is the top level class which abstracts the `.bin` file itself. It's a generic class which can be instantiated to contain a list of files of
 any of the other classes in this namespace. It contains methods for instantiating all of the files in a given archive and keeping track of their
 offsets and file sizes.
@@ -45,7 +45,7 @@ offsets and file sizes.
     ```
 * To add a file to an archive, simply instatiate a new file and use `archive.AddFile()`.
 
-### `FileInArchive`
+### [`FileInArchive`](Archive/FileInArchive.cs)
 This is the base class for all other file types. All `FileInArchive` types have the following properties:
 
 * `uint MagicInteger` &ndash; The "magic integer" in the archive header that contains the file's offset and compressed length.
@@ -62,10 +62,10 @@ Additionally, `FileInArchive` types have the following methods:
 * `GetBytes()` &ndash; Constructs the decompressed binary data of the file.
 * `NewFile()` &ndash; Creates a new file from scratch.
 
-### `DataFile` 
+### [`DataFile`](Archive/DataFile.cs) 
 This is a basic implementation of archive files whose types are not fully understood. It simply is a container for their binary data.
 
-### `EventFile` 
+### [`EventFile`](Archive/EventFile.cs) 
 This is an implementation of the event files found in `evt.bin`. These file are mostly composed of pointers and Shift-JIS encoded strings.
 While it's designed to represent event files, the `EventFile` class can also be used to represent special string files.
 In addition to the properties it inherits from `FileInArchive`, `EventFile`s contain the following properties:
@@ -124,7 +124,7 @@ The `TopicStruct` class abstracts the structs found in the Topics file #0x245. I
 * `short EventIndex` &ndash; The event this topic triggers during the puzzle phase, corresponding to the second short of the struct.
 * `short[] UnknownShorts` &ndash; The following 16 unknown shorts in the struct (0x20 bytes).
 
-### `GraphicsFile`
+### [`GraphicsFile`](Archive/GraphicsFile.cs)
 The `GraphicsFile` class is designed to implement the files found in `grp.bin`; however, while most of the files are understood and can be parsed, there are still
 some that remain unknown.
 
@@ -163,7 +163,7 @@ The only relevant method is `GetLayout()`, which returns a bitmap representation
 The `LayoutEntry` class, however, is immediately relevant. All of its properties are self-explanatory and line up exactly with those described in the [reverse engineering documentation](ReverseEngineering.md).
 
 ## HaruhiChokuretsuLib.Font
-The Font namespace is composed of two classes and simply provides the logic for interacting with the font-width ASM hack we have implemented. The first class, the `FontReplacement` class,
+The Font namespace is composed of two classes and simply provides the logic for interacting with the font-width ASM hack we have implemented. The first class, the [`FontReplacement`](Font/FontReplacement.cs) class,
 is an abstraction of the font replacement JSON and contains information on the `OriginalCharacter` in the script, the character we replace it with (`ReplacedCharacter`), the Shift-JIS
 `CodePoint` where the replacement occurs, and the amount the character is `Offset`. This then feeds into a `FontReplacementDictionary`, a class which implements `IDictionary` and allows for
 easy lookup into a `List<FontReplacement>`.
@@ -171,7 +171,7 @@ easy lookup into a `List<FontReplacement>`.
 ## HaruhiChokuretsuLib.Overlay
 This namespace contains the methods to aid in interacting with the game's overlays.
 
-### `Overlay`
+### [`Overlay`](Overlay/Overlay.cs)
 The `Overlay` class is an abstraction of an overlay. It contains the following properties:
 
 * `string Name` &ndash; The name of the overlay (e.g., main_0001).
@@ -186,5 +186,5 @@ It also contains the following methods:
 * `Append()` &ndash; Takes data to append and the path to an NDS project file that contains an XML representation of the overlay table. This method appends the data to the end of the array and then
     modifies the overlay table to reflect the updated size of the overlay.
 
-### `OverlayPatchDocument`
+### [`OverlayPatchDocument`](Overlay/OverlayPatchDocument.cs)
 This class simply serializes the Riivolution-style overlay patch documents.
