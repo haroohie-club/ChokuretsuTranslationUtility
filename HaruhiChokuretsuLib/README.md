@@ -1,5 +1,5 @@
 # HaruhiChokuretsuLib
-The HaruhiChokuretsuLib project is the primary library which the rest of the solution depends on. It contains a Helpers
+The HaruhiChokuretsuLib project is the primary library on which the rest of the solution depends. It contains a Helpers
 class with various helper methods as well as three namespaces.
 
 Before reading this documentation, it is recommended you familiarize yourself with the [reverse engineering documentation](./ReverseEngineering.md)
@@ -8,9 +8,9 @@ as it will provide context for what is being described here.
 ## Helpers
 The following helper methods are available:
 
-* `DecompressData()` and `CompressData()` &ndash; Implementations of the Shade compresssion algorithm that accept and return byte arrays.
+* `DecompressData()` and `CompressData()` &ndash; Implementations of the Shade compression algorithm that accept and return byte arrays.
 * `GetPaletteFromImage()` &ndash; A simplified implementation of [this](https://github.com/antigones/palette_extraction) palette extraction
-    routine. Creates an arbitarily sized palette of colors used in an image. Used for changing palette data in Shade texture files.
+    routine. Creates an arbitrarily sized palette of colors used in an image. Used for changing palette data in Shade texture files.
 * `ByteArrayFromString()` and `StringFromByteArray()` &ndash; This pair of methods converts to and from hexadecimal strings and byte arrays.
 * `BytesInARowLessThan()` &ndash; Returns true if a specific byte is repeated less than a certain number of times in a row in a given sequence.
 * `AddWillCauseCarry()` &ndash; Returns true if an addition operation will cause a carry (used in the unhinged file length routine).
@@ -21,7 +21,7 @@ This namespace contains the logic for interacting with the `.bin` archives in th
 The classes it contains are:
 
 ### [`ArchiveFile`](Archive/ArchiveFile.cs)
-This is the top level class which abstracts the `.bin` file itself. It's a generic class which can be instantiated to contain a list of files of
+This is the top-level class which abstracts the `.bin` file itself. It's a generic class which can be instantiated to contain a list of files of
 any of the other classes in this namespace. It contains methods for instantiating all of the files in a given archive and keeping track of their
 offsets and file sizes.
 
@@ -66,7 +66,7 @@ Additionally, `FileInArchive` types have the following methods:
 This is a basic implementation of archive files whose types are not fully understood. It simply is a container for their binary data.
 
 ### [`EventFile`](Archive/EventFile.cs) 
-This is an implementation of the event files found in `evt.bin`. These file are mostly composed of pointers and Shift-JIS encoded strings.
+This is an implementation of the event files found in `evt.bin`. These files are mostly composed of pointers and Shift-JIS encoded strings.
 While it's designed to represent event files, the `EventFile` class can also be used to represent special string files.
 In addition to the properties it inherits from `FileInArchive`, `EventFile`s contain the following properties:
 
@@ -128,7 +128,7 @@ The `TopicStruct` class abstracts the structs found in the Topics file #0x245. I
 The `GraphicsFile` class is designed to implement the files found in `grp.bin`; however, while most of the files are understood and can be parsed, there are still
 some that remain unknown.
 
-The property that determines what time of graphic a give file is is the `FileFunction` property which uses the `Function` enum. The options are `SHTX`, `LAYOUT`, and `UNKNOWN`.
+The property that determines what type of graphic a given file is is the `FileFunction` property which uses the `Function` enum. The options are `SHTX`, `LAYOUT`, and `UNKNOWN`.
 
 #### `SHTX`
 When `FileFunction` is set to `Function.SHTX` (which happens if the first four bytes of the file are `SHTX`), the class implements a Shade Texture file. The following properties
@@ -182,7 +182,7 @@ It also contains the following methods:
 
 * `Overlay(string file)` &ndash; The constructor takes a file and uses its name as the `Name` and its contents as the `Data`.
 * `Save()` &ndash; Writes the contents of `Data` to a given file.
-* `Patch()` &ndash; Replaces binary data at a particular point with provided patch adata.
+* `Patch()` &ndash; Replaces binary data at a particular point with provided patch data.
 * `Append()` &ndash; Takes data to append and the path to an NDS project file that contains an XML representation of the overlay table. This method appends the data to the end of the array and then
     modifies the overlay table to reflect the updated size of the overlay.
 

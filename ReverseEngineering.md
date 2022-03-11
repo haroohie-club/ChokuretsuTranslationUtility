@@ -6,11 +6,11 @@ The Chokuretsu ROM contains the following files:
 
 * `bgm/` &ndash; A directory containing background music
     - `BGM001.bin` through `BGM034.bin` &ndash; Music files (unknown format)
-* `movie/` &ndash; A directory containing movie files using MODS format (Mobiclip DS encoding; partially implemented decoder [here](https://github.com/Gericom/MobiclipDecoder))
+* `movie/` &ndash; A directory containing movie files using MODS format (Mobiclip DS encoding &ndash; decoder [here](https://github.com/Gericom/MobiclipDecoder); however, it doesn't properly extract audio for this game)
     - `MOVIE00.mods` &ndash; The OP video
     - `MOVIE01.mods` &ndash; The ED/credits video
 * `vce/` &ndash; A directory containing voice files
-    - Various `.bin` voice files &ndash; All stored in Sega's AHX format (used as far back as the Dreamcast). Tool to decode is ahx2wav, found [here](https://github.com/LemonHaze420/ahx2wav).
+    - Various `.bin` voice files &ndash; All stored in Sega's AHX format (used as far back as the Dreamcast). The tool to decode them is ahx2wav, found [here](https://github.com/LemonHaze420/ahx2wav).
 * `dat.bin` &ndash; Data file container. Files of note include:
     - String Files: #0x001, #0x005, #0x06F, #0x075, #0x077, #0x09E. #0x075 is of particular note, as it contains the bulk of the UI text.
     - #0x070 &ndash; Contains references to the Sparkle (SPKL) files in grp.bin. The function of the Sparkle files is unknown at this time.
@@ -18,7 +18,7 @@ The Chokuretsu ROM contains the following files:
     - #0x076 &ndash; The dialogue settings file; contains structs determining how each character in the game speaks.
     - #0x09A &ndash; The first file loaded into the game. Contains file mappings for the BGM and voice files. Function unknown at this time.
     - #0x09B &ndash; This file contains references to several graphics files used throughout the game.
-* `evt.bin` &ndash; Event file container. Most of these are standard event files containing scene dialogue. A couple special files include:
+* `evt.bin` &ndash; Event file container. Most of these are standard event files containing scene dialogue. A couple of special files include:
     - #0x219 &ndash; Seems to contain a list of file names for the other EVT files. The mapping between these and the indices is unknown at this time.
     - #0x244 &ndash; The companion selection text file. Does not have the typical file format of an event file (initialized manually using end pointers only).
     - #0x245 &ndash; The Topics file. Contains the names of all topics and mappings to the event files that selecting that topic during the Puzzle Phase triggers.
@@ -37,12 +37,12 @@ The Shade archive files are arcane and honestly very ugly; however, they are fai
 * **0x08-0x0B** &ndash; The "magic integer least-significant bits multiplier" (MLSB), used in the calculation of the "magic integer."
 * **0x0C-0x0F** &ndash; The "magic integer most-significant bits shift" (S), used in the calculation of the "magic integer."
 * **0x10-0x13** &ndash; The "magic integer least-significant bits bitwise-and" (A), used in the calculation of the "magic integer."
-* **Magic Integer Section** &ndash; Starting at 0x1C and ending at (0x1C + 4 * NumItems - 1), this section comprises of the "magic integers" which contain
+* **Magic Integer Section** &ndash; Starting at 0x1C and ending at (0x1C + 4 * NumItems - 1), this section comprises the "magic integers" which contain
     the offsets and compressed lengths of the files in the archive. The offset is calculated from this number by the following formula:
     ```csharp
         Offset = (MagicInteger >> S) * MMSB;
     ```
-    The compressed length, meanwhile starts with:
+    The compressed length meanwhile starts with:
     ```csharp
         MagicLengthInteger = 0x7FF + (MagicInteger & A) * MLSB;
     ```
@@ -50,7 +50,7 @@ The Shade archive files are arcane and honestly very ugly; however, they are fai
     in the `GetFileLength()` method in [`ArchiveFile.cs`](/HaruhiChokuretsuLib/Archive/ArchiveFile.cs).
 
     Encoded file lengths and offsets are all multiples of 0x800.
-* **Secondary Intger Section** &ndash; Starting at (0x1C + 4 * NumItems) and ending at (0x1C + 8 * NumItems - 1), this section's function remains unknown.
+* **Secondary Integer Section** &ndash; Starting at (0x1C + 4 * NumItems) and ending at (0x1C + 8 * NumItems - 1), this section's function remains unknown.
 * **Final Header Section** &ndash; Starting at (0x1C + 8 * NumItems), this section is not understood at all. It does not seem to be used in-game.
 * **Files** &ndash; The files in the archives are compressed using a custom run-length encoding algorithm (referred to as Shade compression). 
 
@@ -75,7 +75,7 @@ This file contains references to several graphics files used throughout the game
 * **Structs Section**: 0x2C length structs containing the following components (most components unknown):
     - **0x04-0x07**: Integer reference to archive file index
 * **End Pointers Section**: At the end of the file, there are a set of short (16-bit integer) pointers to the struct entries. These pointers have hardcoded references to them
-    in game code. As an example, overlay_0001 loops over the pointers from 0x2A64 to 0x2A69 to display the logo splash screens on startup (we actually modified this code and
+    in-game code. As an example, overlay_0001 loops over the pointers from 0x2A64 to 0x2A69 to display the logo splash screens on startup (we actually modified this code and
     #0x09B in order to insert our own splash screens).
 
 ### EVT #0x245:
@@ -87,13 +87,13 @@ The Topics file contains an 0x18 byte header followed by an array of 0x24 byte t
 - **0x1A-0x1B**: A short (16-bit integer) pointer to the Shift-JIS encoded text of the ticker tape text that appears when selecting the topic.
 
 ## Event Files
-Event files control all of the scenes ("events") in the game and are all contained with in `evt.bin`. The structure of the event files is as follows:
+Event files control all of the scenes ("events") in the game and are all contained within `evt.bin`. The structure of the event files is as follows:
 
 * **0x00-0x03**: The number of pointers that will be resolved at the beginning of the file. The pointers start at **0x0C** and are spaced out every
     0x08 bytes (every other integer is a pointer). The front pointers contain references
     to other things in the file, most of which are currently not understood. Some important things that are known include:
     - Dramatis Personae &ndash; The set of characters who appear in the event.
-    - Dialogue Section Pointer &ndash; This is a pointer that immediately follows the Dramatis Personae and directly points to section where dialogue is defined.
+    - Dialogue Section Pointer &ndash; This is a pointer that immediately follows the Dramatis Personae and directly points to the section where dialogue is defined.
     - Control Section Pointer &ndash; In the main story event files (#0x166 through #0x213), the third pointer after the Dialogue Section Pointer points to the Control Section.
 * **0x04-0x07**: The pointer to the End Pointers section.
 * **0x08-0x0B**: For files that have a title (e.g., EV1_001), this is the pointer to that title.
@@ -112,16 +112,16 @@ Event files control all of the scenes ("events") in the game and are all contain
 
 ### Dialogue Section Notes
 The game uses a static-width font that can fit 16 characters per line over two lines in a text box. Dialogue is all Shift-JIS encoded. In addition to standard text,
-there are a few scripting control-codes that are ASCII-encoded.
+there are a few scripting control codes that are ASCII-encoded.
 
-* `${num}` &ndash; Text speed controller &ndash; controls how fast the text is unrolled on the screen. Used only in voiced sections to sync dialogue with voiced lines.
-* `#W{num}` &ndash; **W**aits a certain amount of time before proceeding with text unrolling. Used in voiced sections to sync dialogue with voiced lines as well as in unvoiced sections for dramatic effect.
+* `${num}` &ndash; Text speed controller &ndash; controls how fast the text is unrolled on the screen. Used only in voiced sections to sync the dialogue with voiced lines.
+* `#W{num}` &ndash; **W**aits a certain amount of time before proceeding with text unrolling. Used in voiced sections to sync the dialogue with voiced lines as well as in unvoiced sections for dramatic effect.
 * `#P{num}` &ndash; Don't know what the P stands for, but this adjusts text color. `{num}` is always two digits. The values are as follows:
     - `#P00` &ndash; standard white text
     - `#P01` &ndash; yellow, used for Kyon's monologue
     - `#P02` &ndash; slightly off-white version of the standard
     - `#P03` &ndash; gray-ish
-    - `#P04` &ndash; lavendar, used for Information text
+    - `#P04` &ndash; lavender, used for Information text
     - `#P05` &ndash; red, used for mentioning Topics in dialogue
     - `#P06` &ndash; faded gray
     - `#P07` &ndash; black

@@ -22,7 +22,7 @@ file (RESX) for string files. Its arguments are:
 
 * `-i` or `--input-archive` &ndash; The archive to extract a file from.
 * `-n` or `--index` &ndash; The index of the file to extract; this doesn't need to be specified if the output file is a hex integer.
-* `-o` or `--output-file` &ndash; File name of the extracted file. If the file extension is `.png` or `.resx`, the utility will attempt to extract the file as that format.
+* `-o` or `--output-file` &ndash; Filename of the extracted file. If the file extension is `.png` or `.resx`, the utility will attempt to extract the file in that format.
 * `-w` or `--image-width` &ndash; If extracting an image file, this specifies the width of the image. Defaults to the encoded width of the image.
 
 | Example | Function |

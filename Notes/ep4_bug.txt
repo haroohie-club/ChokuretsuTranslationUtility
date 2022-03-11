@@ -1,0 +1,4 @@
+original rom
+[20F9BCE]!!
+200E1FC
+200E6B8
