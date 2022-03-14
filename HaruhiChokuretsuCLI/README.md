@@ -149,7 +149,7 @@ The `hex-search` command searches an archive for a given hex string. Its argumen
 
 | Example | Function |
 |---------|----------|
-| `HaruhiChokuretsuCLI hex-search -a "rom/grp.bin" -s "0102030405060708090A0B0C0D0E0F"` | Searches `grp.bin` for the sequence `0102030405060708090A0B0C0D0E0F` and returns and matches.
+| `HaruhiChokuretsuCLI hex-search -a "rom/grp.bin" -s "0102030405060708090A0B0C0D0E0F"` | Searches `grp.bin` for the sequence `0102030405060708090A0B0C0D0E0F` and returns and matches. |
 
 ## Create a _versioned splash screen_
 The `version-screen` command accepts an unversioned splash screen image and writes a given version number to it. Its arguments are:
@@ -162,3 +162,55 @@ The `version-screen` command accepts an unversioned splash screen image and writ
 | Example | Function |
 |---------|----------|
 | `HaruhiChokuretsuCLI version-screen -v 0.2 -s "path/to/splash-screen.png" -f "path/to/font.ttf" -o "out/8b7_newpal_tidx0_splash_screen.png"` | Writes version `0.2` using `font.ttf` to `splash-screen.png` and outputs the result to `out/8b7_newpal_tidx0_splash_screen.png`. |
+
+## _Assemble overlay code_
+Eventually, I got sick of assembling overlay code by hand, so I made the `assemble-overlay-code` command. This command takes a folder of source files and generates the XML patch
+files that will be consumed by the `patch-overlays` command. It uses the [Keystone Engine](https://www.keystone-engine.org/) to handle the assembly.
+
+The command's arguments are as follows:
+
+* `-s` or `--source` &ndash; The directory containing the assembly source files.
+* `-l` or `--overlays` &ndash; The directory containing unpatched overlays.
+* `-o` or `--output` &ndash; The path to which the XML patch should be output.
+
+| Example | Function |
+|---------|----------|
+| `HaruhiChokuretsuCLI assemble-overlay-code -s "source/" -l "overlays/" -o "overlay.xml"` | Assembles source files in `source/` given overlays in `overlays` and outputs resulting patch to `overlay.xml`. |
+
+The source files should be for the most part standard ARM assembly files with the following notes:
+
+* To replace a line of assembly in an overlay in-place, use `arepl_8DIGITHEXLOCATION:` as the routine name.
+* To replace a line of assembly with a branch link to a routine, use `ahook_8DIGITHEXLOCATION:` as the routine name.
+* To append variables to the end of the overlay that can be used throughout the file, use `aappend_00000000:` as the routine name.
+    - In the append section, to reference the location of another appended variable, declare the variable such as `variableLoc: [variable]`.
+
+Example ASM files:
+
+```arm
+ahook_020C77FC:
+    push {r6}
+    ldr r6, =0x04000130 @ button presses address
+    ldrb r6, [r6]
+    cmp r6, #0xFF
+    bne skip
+    sub r0, r2, r0
+    b done
+    skip:
+        mov r0, #0
+    done:
+        pop {r6}
+        bx lr
+
+arepl_020C9FA0:
+    ldr r0, =speechBubbleLoc
+
+arepl_020C9FB8:
+    ldr r0, =speechBubbleLoc
+
+arepl_020C9FD4:
+    ldr r0, =speechBubbleLoc
+
+aappend_00000000:
+    speechBubbleLoc: .word [speechBubble]
+    speechBubble: .skip 256
+```
