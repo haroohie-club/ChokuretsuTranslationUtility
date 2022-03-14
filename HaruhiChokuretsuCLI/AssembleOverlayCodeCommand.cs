@@ -212,20 +212,7 @@ namespace HaruhiChokuretsuCLI
                 }
                 else
                 {
-                    StringBuilder sb = new();
-                    sb.AppendLine($"{appendedVariable.Name}Loc: .word 0x{appendedVariable.Location:X8}");
-                    foreach (string line in Assembly.Replace("\r\n", "\n").Split("\n"))
-                    {
-                        string regex = $@"={appendedVariable.Name}(?=\s)";
-                        if (Regex.IsMatch(line, regex))
-                        {
-                            // very weak methodology here, assumes you aren't dealing with the link register already
-                            sb.AppendLine("push {lr}");
-                            sb.AppendLine($"ldr lr, ={appendedVariable.Name}Loc");
-                            sb.AppendLine(Regex.Replace(line, regex, $"[lr]"));
-                            sb.AppendLine("pop {lr}");
-                        }
-                    }
+                    Assembly = Regex.Replace(Assembly, $@"={appendedVariable.Name}(?=\s)", $"=0x{appendedVariable.Location:X8}");
                 }
             }
             Data = Assembler.Assemble(Assembly);

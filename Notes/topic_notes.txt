@@ -33,4 +33,5 @@ subroutine: 0205AE4C
 extras room topic notes
 
 [02175940] - new starting loc for topics file
+[0217A5B0]? - The new Memory Card location
 [0217A618]? - The new poster misprint location
