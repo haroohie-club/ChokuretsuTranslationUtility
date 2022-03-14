@@ -78,10 +78,10 @@ namespace HaruhiChokuretsuCLI
 
             foreach (int file in matches.Keys)
             {
-                Console.WriteLine($"Match(es) found in file #{file:X3}:");
+                CommandSet.Out.WriteLine($"Match(es) found in file #{file:X3}:");
                 foreach (int index in matches[file])
                 {
-                    Console.WriteLine($"\tAt offset 0x{index:X8}");
+                    CommandSet.Out.WriteLine($"\tAt offset 0x{index:X8}");
                 }
             }
 

@@ -92,7 +92,7 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        public void IdentifyEventFileTopics(List<TopicStruct> availableTopics)
+        public void IdentifyEventFileTopics(IList<TopicStruct> availableTopics)
         {
             int topicsSectionPointer = FrontPointers.Where(f => f > DialogueLines.Last(d => d.SpeakerName != "CHOICE").Pointer).ToArray()[3]; // third pointer after dialogue section
             for (int i = topicsSectionPointer; i < PointerToEndPointerSection; i += 0x24)

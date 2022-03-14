@@ -22,7 +22,7 @@ namespace HaruhiChokuretsuLib
                 + Math.Pow(color1.Alpha - color2.Alpha, 2));
         }
 
-        public static int ClosestColorIndex(List<SKColor> colors, SKColor color)
+        public static int ClosestColorIndex(IList<SKColor> colors, SKColor color)
         {
             var colorDistances = colors.Select(c => ColorDistance(c, color)).ToList();
 
@@ -69,7 +69,7 @@ namespace HaruhiChokuretsuLib
             return s;
         }
 
-        public static List<SKColor> GetPaletteFromImages(List<SKBitmap> bitmaps, int numberOfColors)
+        public static List<SKColor> GetPaletteFromImages(IList<SKBitmap> bitmaps, int numberOfColors)
         {
             List<SKColor> firstBin = new();
 
