@@ -27,3 +27,10 @@ subroutine: 0205AE4C
 0205BA3C - the magic function
 
 [021A5A34..021A5B34]!?
+
+--------------------------------------
+
+extras room topic notes
+
+[02175940] - new starting loc for topics file
+[0217A618]? - The new poster misprint location

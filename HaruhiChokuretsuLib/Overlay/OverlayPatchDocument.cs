@@ -21,6 +21,7 @@ namespace HaruhiChokuretsuLib.Overlay
         public uint Start { get => uint.Parse(start, System.Globalization.NumberStyles.HexNumber); set => start = $"{value:X8}"; }
         [XmlArray("patches")]
         public OverlayPatchXml[] Patches { get; set; }
+        [XmlIgnore]
         public byte[] AppendFunction { get => Helpers.ByteArrayFromString(appendFunction); set => appendFunction = Helpers.StringFromByteArray(value); }
     }
 

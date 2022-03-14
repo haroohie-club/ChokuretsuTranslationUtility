@@ -18,6 +18,7 @@ namespace HaruhiChokuretsuCLI
                 new PatchOverlaysCommand(),
                 new HexSearchCommand(),
                 new VersionScreenCommand(),
+                new AssembleOverlayCodeCommand(),
             };
 
             return commands.Run(args);
