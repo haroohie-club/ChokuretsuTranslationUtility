@@ -182,7 +182,7 @@ The source files should be for the most part standard ARM assembly files with th
 * To replace a line of assembly in an overlay in-place, use `arepl_8DIGITHEXLOCATION:` as the routine name.
 * To replace a line of assembly with a branch link to a routine, use `ahook_8DIGITHEXLOCATION:` as the routine name.
 * To append variables to the end of the overlay that can be used throughout the file, use `aappend_00000000:` as the routine name.
-    - In the append section, to reference the location of another appended variable, declare the variable such as `variableLoc: [variable]`.
+    - In the append section, to reference the location of another appended variable, declare the variable such as `variableLoc: .word [variable]`.
 
 Example ASM files:
 

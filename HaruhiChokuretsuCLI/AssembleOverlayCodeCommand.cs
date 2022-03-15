@@ -149,8 +149,22 @@ namespace HaruhiChokuretsuCLI
             Engine keystone = new(Architecture.ARM, Mode.LITTLE_ENDIAN);
             keystone.ThrowOnError = true;
             EncodedData data = keystone.Assemble(asm, 0);
+            if (keystone.GetLastKeystoneError() != KeystoneError.KS_ERR_OK)
+            {
+                throw new TrueKeystoneException($"Keystone error occurred: ${keystone.GetLastKeystoneError()}. ASM:\n{asm}");
+            }
 
             return data.Buffer;
+        }
+    }
+
+    public class TrueKeystoneException : Exception
+    {
+        public TrueKeystoneException() : base()
+        {
+        }
+        public TrueKeystoneException(string message) : base(message)
+        {
         }
     }
 
@@ -209,6 +223,10 @@ namespace HaruhiChokuretsuCLI
                 if (RoutineMode == Mode.REPL)
                 {
                     Assembly = Regex.Replace(Assembly, $@"={appendedVariable.Name}(?=\s)", $"[pc, #0x{appendedVariable.Location - insertionPoint - 8:X3}]"); // this assumes all replacements will be exactly one instruction
+                    if (Regex.IsMatch(Assembly, @"\[pc, #0x[\w\d]{4,}\]"))
+                    {
+                        throw new TrueKeystoneException($"Error in instruction at 0x{insertionPoint:X8}: referenced variable {appendedVariable.Name} is too far away; use a branch link method instead");
+                    }
                 }
                 else
                 {

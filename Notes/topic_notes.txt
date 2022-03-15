@@ -35,3 +35,7 @@ extras room topic notes
 [02175940] - new starting loc for topics file
 [0217A5B0]? - The new Memory Card location
 [0217A618]? - The new poster misprint location
+
+[027E077C..027E077D]!? - struct where individual letters of topic are written
+0219FE7C
+[0219FEAC..0219FEAF]!? - possible location of animation timers
