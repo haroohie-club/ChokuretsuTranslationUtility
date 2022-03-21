@@ -289,7 +289,7 @@ namespace HaruhiChokuretsuLib.Archive
                         lineLength = 0;
                     }
 
-                    if (!datFile && lineLength > DIALOGUE_LINE_LENGTH)
+                    if (!datFile && (dialogueText[i] != '　' && lineLength > DIALOGUE_LINE_LENGTH))
                     {
                         int indexOfMostRecentSpace = dialogueText[0..i].LastIndexOf('　'); // full-width space bc it's been replaced already
                         dialogueText = dialogueText.Remove(indexOfMostRecentSpace, 1);
