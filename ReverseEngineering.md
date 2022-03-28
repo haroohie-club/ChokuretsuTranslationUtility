@@ -5,13 +5,13 @@ Suzumiya Haruhi no Chokuretsu was developed by Shade and published by SEGA. Thus
 The Chokuretsu ROM contains the following files:
 
 * `bgm/` &ndash; A directory containing background music
-    - `BGM001.bin` through `BGM034.bin` &ndash; Music files (unknown format)
+    - `BGM001.bin` through `BGM034.bin` &ndash; Music files in ADX format. Can be decoded with [adx2wav](https://github.com/K0lb3/adx2wav).
 * `movie/` &ndash; A directory containing movie files using MODS format (Mobiclip DS encoding &ndash; decoder [here](https://github.com/Gericom/MobiclipDecoder); however, it doesn't properly extract audio for this game)
     - `MOVIE00.mods` &ndash; The OP video
     - `MOVIE01.mods` &ndash; The ED/credits video
 * `vce/` &ndash; A directory containing voice files
-    - Various `.bin` voice files &ndash; All stored in Sega's ADX and AHX formats (used as far back as the Dreamcast). The tools to decode them are adx2wav (found [here](https://github.com/K0lb3/adx2wav)) and ahx2wav
-    (found [here](https://github.com/LemonHaze420/ahx2wav)).
+    - Various `.bin` voice files &ndash; All stored in Sega's ADX and AHX formats (used as far back as the Dreamcast). The tools to decode them are [adx2wav](https://github.com/K0lb3/adx2wav) and [ahx2wav](https://github.com/LemonHaze420/ahx2wav).
+    - If you have both tools downloaded, you can point the HaruhiChokuretsuCLI at the directory to have it convert all of the files at once.
 * `dat.bin` &ndash; Data file container. Files of note include:
     - String Files: #0x001, #0x005, #0x06F, #0x075, #0x077, #0x09E. #0x075 is of particular note, as it contains the bulk of the UI text.
     - #0x070 &ndash; Contains references to the Sparkle (SPKL) files in grp.bin. The function of the Sparkle files is unknown at this time.

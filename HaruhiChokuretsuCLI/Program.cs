@@ -19,6 +19,7 @@ namespace HaruhiChokuretsuCLI
                 new HexSearchCommand(),
                 new VersionScreenCommand(),
                 new AssembleOverlayCodeCommand(),
+                new ConvertAudioCommand(),
             };
 
             return commands.Run(args);
