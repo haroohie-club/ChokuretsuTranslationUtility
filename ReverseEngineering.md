@@ -10,7 +10,7 @@ The Chokuretsu ROM contains the following files:
     - `MOVIE00.mods` &ndash; The OP video
     - `MOVIE01.mods` &ndash; The ED/credits video
 * `vce/` &ndash; A directory containing voice files
-    - Various `.bin` voice files &ndash; All stored in Sega's AHX format (used as far back as the Dreamcast). The tool to decode them is ahx2wav, found [here](https://github.com/LemonHaze420/ahx2wav).
+    - Various `.bin` voice files &ndash; All stored in Sega's ADX format (used as far back as the Dreamcast). The tool to decode them is adx2wav, found [here](https://github.com/K0lb3/adx2wav).
 * `dat.bin` &ndash; Data file container. Files of note include:
     - String Files: #0x001, #0x005, #0x06F, #0x075, #0x077, #0x09E. #0x075 is of particular note, as it contains the bulk of the UI text.
     - #0x070 &ndash; Contains references to the Sparkle (SPKL) files in grp.bin. The function of the Sparkle files is unknown at this time.
