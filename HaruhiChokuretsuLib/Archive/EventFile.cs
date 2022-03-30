@@ -541,8 +541,11 @@ namespace HaruhiChokuretsuLib.Archive
                     case "BELOW_TOP":
                         y = 40;
                         break;
-                    case "BOTTOM":
+                    case "ABOVE_BOTTOM":
                         y = 160;
+                        break;
+                    case "BOTTOM":
+                        y = 180;
                         break;
                 }
 
@@ -554,7 +557,7 @@ namespace HaruhiChokuretsuLib.Archive
                     SubtitlePointer = dialogueLinePointers[i] + DialogueLinesPointer,
                     X = CenterSubtitle(lineLength),
                     Y = y,
-                    FontSize = 130,
+                    FontSize = 100,
                     Timer = ushort.Parse(fields[3]),
                 };
 
