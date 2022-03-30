@@ -552,7 +552,7 @@ namespace HaruhiChokuretsuLib.Archive
                 {
                     VoiceFileNamePointer = filenamePointers[i] + filenameSectionStart,
                     SubtitlePointer = dialogueLinePointers[i] + DialogueLinesPointer,
-                    X = (short)((256 - lineLength) / 2),
+                    X = CenterSubtitle(lineLength),
                     Y = y,
                     FontSize = 130,
                     Timer = ushort.Parse(fields[3]),
@@ -578,8 +578,9 @@ namespace HaruhiChokuretsuLib.Archive
 
             base.EditDialogueLine(index, newText);
 
-            int lineLength = newText.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
-            VoiceMapStructs[index].X = (short)((256 - lineLength) / 2);
+            string actualText = newText[4..];
+            int lineLength = actualText.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
+            VoiceMapStructs[index].X = CenterSubtitle(lineLength);
             Data.RemoveRange(VoiceMapStructSectionOffset + 16 * index + 8, 2); // Replace X in Data
             Data.InsertRange(VoiceMapStructSectionOffset + 16 * index + 8, BitConverter.GetBytes(VoiceMapStructs[index].X));
         }
@@ -608,6 +609,11 @@ namespace HaruhiChokuretsuLib.Archive
                     vmStruct.SubtitlePointer += shiftAmount;
                 }
             }
+        }
+
+        private static short CenterSubtitle(int lineLength)
+        {
+            return (short)((256 - lineLength) / 2);
         }
 
         private static Dictionary<string, Speaker> SpeakerCodeMap = new()
