@@ -153,6 +153,10 @@ namespace HaruhiChokuretsuLib.Archive
             Data.RemoveRange(DialogueLines[index].Pointer, oldLength);
             Data.InsertRange(DialogueLines[index].Pointer, toWrite);
 
+            if (Index == 589)
+            {
+                Console.WriteLine("Here");
+            }
             ShiftPointers(DialogueLines[index].Pointer, lengthDifference);
         }
 
@@ -314,6 +318,11 @@ namespace HaruhiChokuretsuLib.Archive
                 }
 
                 EditDialogueLine(dialogueIndex, dialogueText);
+            }
+            if (Index == 589)
+            {
+                Console.WriteLine("Writing temp.bin");
+                File.WriteAllBytes("temp.bin", Data.ToArray());
             }
         }
 
@@ -503,8 +512,10 @@ namespace HaruhiChokuretsuLib.Archive
             {
                 Data.AddRange(BitConverter.GetBytes((int)SpeakerCodeMap[filenames[i].Split('_')[0]]));
                 EndPointers.Add(Data.Count); // add this next pointer to the end pointers so it gets resolved
+                EndPointerPointers.Add(filenamePointers[i] + filenameSectionStart);
                 Data.AddRange(BitConverter.GetBytes(filenamePointers[i] + filenameSectionStart));
                 EndPointers.Add(Data.Count); // add this next pointer to the end pointers so it gets resolved
+                EndPointerPointers.Add(dialogueLinePointers[i] + dialogueLinesStart);
                 Data.AddRange(BitConverter.GetBytes(dialogueLinePointers[i] + dialogueLinesStart));
             }
             Data.AddRange(new byte[12]);
@@ -543,6 +554,7 @@ namespace HaruhiChokuretsuLib.Archive
                 }
 
                 EndPointers.AddRange(new int[] { Data.Count, Data.Count + 4 }); // Add the next two pointers to end pointers
+                EndPointerPointers.AddRange(new int[] { filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + dialogueLinesStart });
                 VoiceMapStruct vmStruct = new()
                 {
                     VoiceFileNamePointer = filenamePointers[i] + filenameSectionStart,
