@@ -23,4 +23,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="inputs\589.en.resx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

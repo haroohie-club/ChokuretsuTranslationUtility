@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="0000 (589.ja) GIRL (ANZ_ANZWIT00)" xml:space="preserve">
+    <value>早く</value>
+  </data>
+  <data name="0001 (589.ja) GIRL (ANZ_ANZWIT01)" xml:space="preserve">
+    <value>待って</value>
+  </data>
+  <data name="0002 (589.ja) GIRL (ANZ_ANZWIT02)" xml:space="preserve">
+    <value>ずっと一緒に</value>
+  </data>
+  <data name="0003 (589.ja) GIRL (ANZ_CLR800)" xml:space="preserve">
+    <value>そんな、我々が…</value>
+  </data>
+  <data name="0004 (589.ja) GIRL (ANZ_GO00)" xml:space="preserve">
+    <value>ゴー</value>
+  </data>
+  <data name="0005 (589.ja) HARUHI (HRH_HRHWIT00)" xml:space="preserve">
+    <value>ほら、さっさと行くわよ</value>
+  </data>
+  <data name="0006 (589.ja) HARUHI (HRH_HRHWIT01)" xml:space="preserve">
+    <value>何してるの？</value>
+  </data>
+  <data name="0007 (589.ja) HARUHI (HRH_HRHWIT02)" xml:space="preserve">
+    <value>ぐずぐずしない</value>
+  </data>
+  <data name="0008 (589.ja) HARUHI (HRH_HRHWIT03)" xml:space="preserve">
+    <value>ちょっとキョン、どこなの？</value>
+  </data>
+  <data name="0009 (589.ja) HARUHI (HRH_HRHWIT04)" xml:space="preserve">
+    <value>ここにいるのは分かってるんだから</value>
+  </data>
+  <data name="0010 (589.ja) HARUHI (HRH_HRHWIT05)" xml:space="preserve">
+    <value>こっちのほうかしら？</value>
+  </data>
+  <data name="0011 (589.ja) KYON (KYN_ACD00)" xml:space="preserve">
+    <value>しまった！</value>
+  </data>
+  <data name="0012 (589.ja) KYON (KYN_BLK00)" xml:space="preserve">
+    <value>よし！やったぞ！</value>
+  </data>
+  <data name="0013 (589.ja) KYON (KYN_BLK1ST00)" xml:space="preserve">
+    <value>よし！次だ！</value>
+  </data>
+  <data name="0014 (589.ja) KYON (KYN_BLKHLF00)" xml:space="preserve">
+    <value>まだまだだな</value>
+  </data>
+  <data name="0015 (589.ja) KYON (KYN_BLKLST00)" xml:space="preserve">
+    <value>ラストはどこだ！</value>
+  </data>
+  <data name="0016 (589.ja) KYON (KYN_BLKOUT00)" xml:space="preserve">
+    <value>もう一息だ！</value>
+  </data>
+  <data name="0017 (589.ja) KYON (KYN_CANTP00)" xml:space="preserve">
+    <value>いや、やめておこう</value>
+  </data>
+  <data name="0018 (589.ja) KYON (KYN_CHEK00)" xml:space="preserve">
+    <value>この辺か？</value>
+  </data>
+  <data name="0019 (589.ja) KYON (KYN_CLR100)" xml:space="preserve">
+    <value>何とか間に合ったな</value>
+  </data>
+  <data name="0020 (589.ja) KYON (KYN_CLR200)" xml:space="preserve">
+    <value>これで元に戻れるのか？</value>
+  </data>
+  <data name="0021 (589.ja) KYON (KYN_CLR300)" xml:space="preserve">
+    <value>はあ、終わったな</value>
+  </data>
+  <data name="0022 (589.ja) KYON (KYN_CLR400)" xml:space="preserve">
+    <value>宇宙人に拉致されずに済んだな</value>
+  </data>
+  <data name="0023 (589.ja) KYON (KYN_CLR500)" xml:space="preserve">
+    <value>この木は元に戻るのか？</value>
+  </data>
+  <data name="0024 (589.ja) KYON (KYN_CLR600)" xml:space="preserve">
+    <value>やれやれ、もう出てこないでくれよ</value>
+  </data>
+  <data name="0025 (589.ja) KYON (KYN_CLR700)" xml:space="preserve">
+    <value>同じことを繰り返すのはしんどいな</value>
+  </data>
+  <data name="0026 (589.ja) KYON (KYN_CLR800)" xml:space="preserve">
+    <value>これで、最後だ</value>
+  </data>
+  <data name="0027 (589.ja) KYON (KYN_DETECT00)" xml:space="preserve">
+    <value>が、画鋲？</value>
+  </data>
+  <data name="0028 (589.ja) KYON (KYN_DETECT01)" xml:space="preserve">
+    <value>あったぞ！</value>
+  </data>
+  <data name="0029 (589.ja) KYON (KYN_DETECT02)" xml:space="preserve">
+    <value>こんなものが？</value>
+  </data>
+  <data name="0030 (589.ja) KYON (KYN_DETECT03)" xml:space="preserve">
+    <value>宇宙人？</value>
+  </data>
+  <data name="0031 (589.ja) KYON (KYN_DETECT04)" xml:space="preserve">
+    <value>またこれか</value>
+  </data>
+  <data name="0032 (589.ja) KYON (KYN_DETECT05)" xml:space="preserve">
+    <value>ん？これか？</value>
+  </data>
+  <data name="0033 (589.ja) KYON (KYN_DETECT06)" xml:space="preserve">
+    <value>これだよな</value>
+  </data>
+  <data name="0034 (589.ja) KYON (KYN_DETECT07)" xml:space="preserve">
+    <value>見つけたぞ！</value>
+  </data>
+  <data name="0035 (589.ja) KYON (KYN_FOUND00)" xml:space="preserve">
+    <value>あったぞ！</value>
+  </data>
+  <data name="0036 (589.ja) KYON (KYN_FOUND01)" xml:space="preserve">
+    <value>見つけたぞ！</value>
+  </data>
+  <data name="0037 (589.ja) KYON (KYN_FOUND02)" xml:space="preserve">
+    <value>ここか！</value>
+  </data>
+  <data name="0038 (589.ja) KYON (KYN_GO00)" xml:space="preserve">
+    <value>やるか</value>
+  </data>
+  <data name="0039 (589.ja) KYON (KYN_HAZARD00)" xml:space="preserve">
+    <value>朝比奈さん、急いでください！</value>
+  </data>
+  <data name="0040 (589.ja) KYON (KYN_HAZARD01)" xml:space="preserve">
+    <value>長門、急いでくれ！</value>
+  </data>
+  <data name="0041 (589.ja) KYON (KYN_HAZARD02)" xml:space="preserve">
+    <value>古泉！急げ！</value>
+  </data>
+  <data name="0042 (589.ja) KYON (KYN_KYNWIT00)" xml:space="preserve">
+    <value>いいから、ちっとは落ち着け</value>
+  </data>
+  <data name="0043 (589.ja) KYON (KYN_KYNWIT01)" xml:space="preserve">
+    <value>こらこら、走るな</value>
+  </data>
+  <data name="0044 (589.ja) KYON (KYN_KYNWIT02)" xml:space="preserve">
+    <value>頼むからおとなしくしてくれ</value>
+  </data>
+  <data name="0045 (589.ja) KYON (KYN_KYNWIT03)" xml:space="preserve">
+    <value>本物のほうがまだましだな</value>
+  </data>
+  <data name="0046 (589.ja) KYON (KYN_KYNWIT04)" xml:space="preserve">
+    <value>偽物でも十分迷惑だ</value>
+  </data>
+  <data name="0047 (589.ja) KYON (KYN_KYNWIT05)" xml:space="preserve">
+    <value>くそ、おとなしくしろ！</value>
+  </data>
+  <data name="0048 (589.ja) KYON (KYN_MOVE00)" xml:space="preserve">
+    <value>こっちか？</value>
+  </data>
+  <data name="0049 (589.ja) KYON (KYN_OVER00)" xml:space="preserve">
+    <value>なんてこった</value>
+  </data>
+  <data name="0050 (589.ja) KYON (KYN_OVER01)" xml:space="preserve">
+    <value>すみません、朝比奈さん</value>
+  </data>
+  <data name="0051 (589.ja) KYON (KYN_OVER02)" xml:space="preserve">
+    <value>すまん、長門</value>
+  </data>
+  <data name="0052 (589.ja) KYON (KYN_OVER03)" xml:space="preserve">
+    <value>すまん、小泉</value>
+  </data>
+  <data name="0053 (589.ja) KYON (KYN_PCHEK00)" xml:space="preserve">
+    <value>ここはどうだ！</value>
+  </data>
+  <data name="0054 (589.ja) KYON (KYN_READY00)" xml:space="preserve">
+    <value>さてと</value>
+  </data>
+  <data name="0055 (589.ja) KYON (KYN_REQ00)" xml:space="preserve">
+    <value>朝比奈さん、お願いします！</value>
+  </data>
+  <data name="0056 (589.ja) KYON (KYN_REQ01)" xml:space="preserve">
+    <value>頼むぞ、長門！</value>
+  </data>
+  <data name="0057 (589.ja) KYON (KYN_REQ02)" xml:space="preserve">
+    <value>古泉！</value>
+  </data>
+  <data name="0058 (589.ja) KYON (KYN_START00)" xml:space="preserve">
+    <value>時間がない、急ぐぞ！</value>
+  </data>
+  <data name="0059 (589.ja) KYON (KYN_START01)" xml:space="preserve">
+    <value>ま、何とかなりそうだな</value>
+  </data>
+  <data name="0060 (589.ja) KYON (KYN_START02)" xml:space="preserve">
+    <value>ハルヒが来る前に！</value>
+  </data>
+  <data name="0061 (589.ja) KYON (KYN_START03)" xml:space="preserve">
+    <value>はあ、しょうがない</value>
+  </data>
+  <data name="0062 (589.ja) KYON (KYN_START04)" xml:space="preserve">
+    <value>さ、やるぞ！</value>
+  </data>
+  <data name="0063 (589.ja) KYON (KYN_START05)" xml:space="preserve">
+    <value>やれやれ</value>
+  </data>
+  <data name="0064 (589.ja) KYON (KYN_START06)" xml:space="preserve">
+    <value>どうすりゃいいんだ</value>
+  </data>
+  <data name="0065 (589.ja) KYON (KYN_START07)" xml:space="preserve">
+    <value>やるしかないか</value>
+  </data>
+  <data name="0066 (589.ja) KYON (KYN_TMDEL00)" xml:space="preserve">
+    <value>まずいな、こりゃ</value>
+  </data>
+  <data name="0067 (589.ja) KYON (KYN_TMINC00)" xml:space="preserve">
+    <value>はあ、うまくいったな</value>
+  </data>
+  <data name="0068 (589.ja) KYON (KYN_USEHRH00)" xml:space="preserve">
+    <value>ここは一発！</value>
+  </data>
+  <data name="0069 (589.ja) KYON (KYN_USETP00)" xml:space="preserve">
+    <value>これだ！</value>
+  </data>
+  <data name="0070 (589.ja) KYON (KYN_WAIT00)" xml:space="preserve">
+    <value>ああ… どこだ？</value>
+  </data>
+  <data name="0071 (589.ja) KYON (KYN_WAIT01)" xml:space="preserve">
+    <value>急がないとな</value>
+  </data>
+  <data name="0072 (589.ja) KYON (KYN_WAIT02)" xml:space="preserve">
+    <value>どうする、時間がないぞ</value>
+  </data>
+  <data name="0073 (589.ja) KOIZUMI (KZM_ACD00)" xml:space="preserve">
+    <value>これは、いけませんね</value>
+  </data>
+  <data name="0074 (589.ja) KOIZUMI (KZM_ACPT00)" xml:space="preserve">
+    <value>おまかせください</value>
+  </data>
+  <data name="0075 (589.ja) KOIZUMI (KZM_ACPTM00)" xml:space="preserve">
+    <value>了解です</value>
+  </data>
+  <data name="0076 (589.ja) KOIZUMI (KZM_ACPTN00)" xml:space="preserve">
+    <value>お手伝いしましょう</value>
+  </data>
+  <data name="0077 (589.ja) KOIZUMI (KZM_BLK00)" xml:space="preserve">
+    <value>これでよいのでしょうか？</value>
+  </data>
+  <data name="0078 (589.ja) KOIZUMI (KZM_BLK1ST00)" xml:space="preserve">
+    <value>一つ目ですね</value>
+  </data>
+  <data name="0079 (589.ja) KOIZUMI (KZM_BLKHLF00)" xml:space="preserve">
+    <value>まだこれからですね</value>
+  </data>
+  <data name="0080 (589.ja) KOIZUMI (KZM_BLKLST00)" xml:space="preserve">
+    <value>次で終わりです</value>
+  </data>
+  <data name="0081 (589.ja) KOIZUMI (KZM_BLKOUT00)" xml:space="preserve">
+    <value>もう少しです</value>
+  </data>
+  <data name="0082 (589.ja) KOIZUMI (KZM_CANTP00)" xml:space="preserve">
+    <value>おや、辞めるのですか？</value>
+  </data>
+  <data name="0083 (589.ja) KOIZUMI (KZM_CHEK00)" xml:space="preserve">
+    <value>この辺りでしょうか？</value>
+  </data>
+  <data name="0084 (589.ja) KOIZUMI (KZM_CLR100)" xml:space="preserve">
+    <value>どうやら、終わったようですね</value>
+  </data>
+  <data name="0085 (589.ja) KOIZUMI (KZM_CLR200)" xml:space="preserve">
+    <value>元に戻れそうですね</value>
+  </data>
+  <data name="0086 (589.ja) KOIZUMI (KZM_CLR300)" xml:space="preserve">
+    <value>いや、大変でしたね</value>
+  </data>
+  <data name="0087 (589.ja) KOIZUMI (KZM_CLR400)" xml:space="preserve">
+    <value>やれやれ、とんだ災難でした</value>
+  </data>
+  <data name="0088 (589.ja) KOIZUMI (KZM_CLR500)" xml:space="preserve">
+    <value>今回も何とかなったようですね</value>
+  </data>
+  <data name="0089 (589.ja) KOIZUMI (KZM_CLR600)" xml:space="preserve">
+    <value>我々の分身は消滅したようです</value>
+  </data>
+  <data name="0090 (589.ja) KOIZUMI (KZM_CLR700)" xml:space="preserve">
+    <value>これで終わったのならよいのですが</value>
+  </data>
+  <data name="0091 (589.ja) KOIZUMI (KZM_CLR800)" xml:space="preserve">
+    <value>すべて終わったようです</value>
+  </data>
+  <data name="0092 (589.ja) KOIZUMI (KZM_DETECT00)" xml:space="preserve">
+    <value>画鋲ですか？</value>
+  </data>
+  <data name="0093 (589.ja) KOIZUMI (KZM_DETECT01)" xml:space="preserve">
+    <value>なかなか愉快な代物ですね</value>
+  </data>
+  <data name="0094 (589.ja) KOIZUMI (KZM_DETECT02)" xml:space="preserve">
+    <value>水晶ですか？</value>
+  </data>
+  <data name="0095 (589.ja) KOIZUMI (KZM_DETECT03)" xml:space="preserve">
+    <value>おや、宇宙人ですか？</value>
+  </data>
+  <data name="0096 (589.ja) KOIZUMI (KZM_DETECT04)" xml:space="preserve">
+    <value>なるほど、そういうことですか</value>
+  </data>
+  <data name="0097 (589.ja) KOIZUMI (KZM_DETECT05)" xml:space="preserve">
+    <value>ふん、なるほど</value>
+  </data>
+  <data name="0098 (589.ja) KOIZUMI (KZM_DETECT06)" xml:space="preserve">
+    <value>これですか？</value>
+  </data>
+  <data name="0099 (589.ja) KOIZUMI (KZM_DETECT07)" xml:space="preserve">
+    <value>見つけましたよ</value>
+  </data>
+  <data name="0100 (589.ja) KOIZUMI (KZM_FOUND00)" xml:space="preserve">
+    <value>ありました</value>
+  </data>
+  <data name="0101 (589.ja) KOIZUMI (KZM_FOUND01)" xml:space="preserve">
+    <value>見つけましたよ</value>
+  </data>
+  <data name="0102 (589.ja) KOIZUMI (KZM_FOUND02)" xml:space="preserve">
+    <value>ここですね</value>
+  </data>
+  <data name="0103 (589.ja) KOIZUMI (KZM_GO00)" xml:space="preserve">
+    <value>やりましか？</value>
+  </data>
+  <data name="0104 (589.ja) KOIZUMI (KZM_HAZARD00)" xml:space="preserve">
+    <value>急いでください、時間が迫っています</value>
+  </data>
+  <data name="0105 (589.ja) KOIZUMI (KZM_KZMWIT00)" xml:space="preserve">
+    <value>涼宮さん、そうは慌てなくても</value>
+  </data>
+  <data name="0106 (589.ja) KOIZUMI (KZM_KZMWIT01)" xml:space="preserve">
+    <value>焦っても仕方ありません</value>
+  </data>
+  <data name="0107 (589.ja) KOIZUMI (KZM_KZMWIT02)" xml:space="preserve">
+    <value>お待ちください</value>
+  </data>
+  <data name="0108 (589.ja) KOIZUMI (KZM_KZMWIT03)" xml:space="preserve">
+    <value>ここまでよく似ているとは</value>
+  </data>
+  <data name="0109 (589.ja) KOIZUMI (KZM_KZMWIT04)" xml:space="preserve">
+    <value>やれやれ、少し気が引けます</value>
+  </data>
+  <data name="0110 (589.ja) KOIZUMI (KZM_KZMWIT05)" xml:space="preserve">
+    <value>僕にも立場があります。手加減しませんよ</value>
+  </data>
+  <data name="0111 (589.ja) KOIZUMI (KZM_KZMWIT06)" xml:space="preserve">
+    <value>行かせません</value>
+  </data>
+  <data name="0112 (589.ja) KOIZUMI (KZM_KZMWIT07)" xml:space="preserve">
+    <value>僕の能力が役に立ちますかね</value>
+  </data>
+  <data name="0113 (589.ja) KOIZUMI (KZM_KZMWIT08)" xml:space="preserve">
+    <value>何とか足止めしなくては</value>
+  </data>
+  <data name="0114 (589.ja) KOIZUMI (KZM_MOVE00)" xml:space="preserve">
+    <value>さて</value>
+  </data>
+  <data name="0115 (589.ja) KOIZUMI (KZM_OOPS00)" xml:space="preserve">
+    <value>まずは特異点を見つけてください</value>
+  </data>
+  <data name="0116 (589.ja) KOIZUMI (KZM_OVER00)" xml:space="preserve">
+    <value>申し訳ありません。僕の力不足です</value>
+  </data>
+  <data name="0117 (589.ja) KOIZUMI (KZM_PCHEK00)" xml:space="preserve">
+    <value>ここでしょうか？</value>
+  </data>
+  <data name="0118 (589.ja) KOIZUMI (KZM_READY00)" xml:space="preserve">
+    <value>さて</value>
+  </data>
+  <data name="0119 (589.ja) KOIZUMI (KZM_REQ00)" xml:space="preserve">
+    <value>朝比奈さん、お願いします</value>
+  </data>
+  <data name="0120 (589.ja) KOIZUMI (KZM_REQ01)" xml:space="preserve">
+    <value>長門さん、お願いします</value>
+  </data>
+  <data name="0121 (589.ja) KOIZUMI (KZM_START00)" xml:space="preserve">
+    <value>どうやら、事態は深刻のようです</value>
+  </data>
+  <data name="0122 (589.ja) KOIZUMI (KZM_START01)" xml:space="preserve">
+    <value>皆さん、サポートをお願いします</value>
+  </data>
+  <data name="0123 (589.ja) KOIZUMI (KZM_START02)" xml:space="preserve">
+    <value>さて、急がなければいけませんね</value>
+  </data>
+  <data name="0124 (589.ja) KOIZUMI (KZM_START03)" xml:space="preserve">
+    <value>どこから行きましょうか</value>
+  </data>
+  <data name="0125 (589.ja) KOIZUMI (KZM_START04)" xml:space="preserve">
+    <value>では、始めましょうか</value>
+  </data>
+  <data name="0126 (589.ja) KOIZUMI (KZM_START05)" xml:space="preserve">
+    <value>さて、どうしたものか</value>
+  </data>
+  <data name="0127 (589.ja) KOIZUMI (KZM_START06)" xml:space="preserve">
+    <value>特異点はどこに</value>
+  </data>
+  <data name="0128 (589.ja) KOIZUMI (KZM_START07)" xml:space="preserve">
+    <value>あまり時間がないようですね</value>
+  </data>
+  <data name="0129 (589.ja) KOIZUMI (KZM_TEC00)" xml:space="preserve">
+    <value>行きますよ</value>
+  </data>
+  <data name="0130 (589.ja) KOIZUMI (KZM_TECEFF00)" xml:space="preserve">
+    <value>威力は十分の一程度ですが</value>
+  </data>
+  <data name="0131 (589.ja) KOIZUMI (KZM_TMDEL00)" xml:space="preserve">
+    <value>まずいですね</value>
+  </data>
+  <data name="0132 (589.ja) KOIZUMI (KZM_TMINC00)" xml:space="preserve">
+    <value>少し、時間が稼げました</value>
+  </data>
+  <data name="0133 (589.ja) KOIZUMI (KZM_USEHRH00)" xml:space="preserve">
+    <value>行きますよ！</value>
+  </data>
+  <data name="0134 (589.ja) KOIZUMI (KZM_USETP00)" xml:space="preserve">
+    <value>これでいいのですか？</value>
+  </data>
+  <data name="0135 (589.ja) KOIZUMI (KZM_WAIT00)" xml:space="preserve">
+    <value>見つかりませんね</value>
+  </data>
+  <data name="0136 (589.ja) KOIZUMI (KZM_WAIT01)" xml:space="preserve">
+    <value>早く、見つけなくては</value>
+  </data>
+  <data name="0137 (589.ja) KOIZUMI (KZM_WAIT02)" xml:space="preserve">
+    <value>時間がありません</value>
+  </data>
+  <data name="0138 (589.ja) MIKURU (MKR_ACD00)" xml:space="preserve">
+    <value>きゃああああぁ！</value>
+  </data>
+  <data name="0139 (589.ja) MIKURU (MKR_ACPT00)" xml:space="preserve">
+    <value>はぁ、あたしですか？</value>
+  </data>
+  <data name="0140 (589.ja) MIKURU (MKR_ACPTK00)" xml:space="preserve">
+    <value>は、はい！</value>
+  </data>
+  <data name="0141 (589.ja) MIKURU (MKR_ACPTN00)" xml:space="preserve">
+    <value>は、はい！分かりました</value>
+  </data>
+  <data name="0142 (589.ja) MIKURU (MKR_BLK00)" xml:space="preserve">
+    <value>やりました！</value>
+  </data>
+  <data name="0143 (589.ja) MIKURU (MKR_BLK1ST00)" xml:space="preserve">
+    <value>やっと一つです</value>
+  </data>
+  <data name="0144 (589.ja) MIKURU (MKR_BLKHLF00)" xml:space="preserve">
+    <value>あとどのくらいかな</value>
+  </data>
+  <data name="0145 (589.ja) MIKURU (MKR_BLKLST00)" xml:space="preserve">
+    <value>ま、まだあるんですか？</value>
+  </data>
+  <data name="0146 (589.ja) MIKURU (MKR_BLKOUT00)" xml:space="preserve">
+    <value>が、頑張ります</value>
+  </data>
+  <data name="0147 (589.ja) MIKURU (MKR_CANTP00)" xml:space="preserve">
+    <value>辞めちゃうんですか？</value>
+  </data>
+  <data name="0148 (589.ja) MIKURU (MKR_CHEK00)" xml:space="preserve">
+    <value>この辺ですか？</value>
+  </data>
+  <data name="0149 (589.ja) MIKURU (MKR_CLR100)" xml:space="preserve">
+    <value>やりました！</value>
+  </data>
+  <data name="0150 (589.ja) MIKURU (MKR_CLR200)" xml:space="preserve">
+    <value>終わったんですか？</value>
+  </data>
+  <data name="0151 (589.ja) MIKURU (MKR_CLR300)" xml:space="preserve">
+    <value>間に合いました～</value>
+  </data>
+  <data name="0152 (589.ja) MIKURU (MKR_CLR400)" xml:space="preserve">
+    <value>地球に帰れるんでしょうか</value>
+  </data>
+  <data name="0153 (589.ja) MIKURU (MKR_CLR500)" xml:space="preserve">
+    <value>ほええぇ、もうダメです</value>
+  </data>
+  <data name="0154 (589.ja) MIKURU (MKR_CLR600)" xml:space="preserve">
+    <value>気持ち悪かったです</value>
+  </data>
+  <data name="0155 (589.ja) MIKURU (MKR_CLR700)" xml:space="preserve">
+    <value>やっと終わりました～</value>
+  </data>
+  <data name="0156 (589.ja) MIKURU (MKR_CLR800)" xml:space="preserve">
+    <value>全部終わったんでしょうか</value>
+  </data>
+  <data name="0157 (589.ja) MIKURU (MKR_DETECT00)" xml:space="preserve">
+    <value>えっと、画鋲？</value>
+  </data>
+  <data name="0158 (589.ja) MIKURU (MKR_DETECT01)" xml:space="preserve">
+    <value>音符、かわいい～</value>
+  </data>
+  <data name="0159 (589.ja) MIKURU (MKR_DETECT02)" xml:space="preserve">
+    <value>えっと、水晶？</value>
+  </data>
+  <data name="0160 (589.ja) MIKURU (MKR_DETECT03)" xml:space="preserve">
+    <value>ほえぇ、めるめる</value>
+  </data>
+  <data name="0161 (589.ja) MIKURU (MKR_DETECT04)" xml:space="preserve">
+    <value>さ、触っても大丈夫ですよね？</value>
+  </data>
+  <data name="0162 (589.ja) MIKURU (MKR_DETECT05)" xml:space="preserve">
+    <value>こ、これって？</value>
+  </data>
+  <data name="0163 (589.ja) MIKURU (MKR_DETECT06)" xml:space="preserve">
+    <value>あったぁ！</value>
+  </data>
+  <data name="0164 (589.ja) MIKURU (MKR_DETECT07)" xml:space="preserve">
+    <value>見つけたぁ！</value>
+  </data>
+  <data name="0165 (589.ja) MIKURU (MKR_FOUND00)" xml:space="preserve">
+    <value>ありました！</value>
+  </data>
+  <data name="0166 (589.ja) MIKURU (MKR_FOUND01)" xml:space="preserve">
+    <value>見つけました！</value>
+  </data>
+  <data name="0167 (589.ja) MIKURU (MKR_FOUND02)" xml:space="preserve">
+    <value>やったぁ！</value>
+  </data>
+  <data name="0168 (589.ja) MIKURU (MKR_GO00)" xml:space="preserve">
+    <value>頑張りますぅ！</value>
+  </data>
+  <data name="0169 (589.ja) MIKURU (MKR_HAZARD00)" xml:space="preserve">
+    <value>キョンくん、急いで！</value>
+  </data>
+  <data name="0170 (589.ja) MIKURU (MKR_MKRWIT00)" xml:space="preserve">
+    <value>涼宮さん、待ってください！</value>
+  </data>
+  <data name="0171 (589.ja) MIKURU (MKR_MKRWIT01)" xml:space="preserve">
+    <value>おいてかないでぇ！</value>
+  </data>
+  <data name="0172 (589.ja) MIKURU (MKR_MKRWIT02)" xml:space="preserve">
+    <value>すすずみやさ～ん！</value>
+  </data>
+  <data name="0173 (589.ja) MIKURU (MKR_MKRWIT03)" xml:space="preserve">
+    <value>ダメですぅ！</value>
+  </data>
+  <data name="0174 (589.ja) MIKURU (MKR_MKRWIT04)" xml:space="preserve">
+    <value>待って涼宮さん！あ、違うんだった</value>
+  </data>
+  <data name="0175 (589.ja) MIKURU (MKR_MKRWIT05)" xml:space="preserve">
+    <value>行っちゃだめですってばぁ</value>
+  </data>
+  <data name="0176 (589.ja) MIKURU (MKR_MKRWIT06)" xml:space="preserve">
+    <value>い、いかせません！</value>
+  </data>
+  <data name="0177 (589.ja) MIKURU (MKR_MKRWIT07)" xml:space="preserve">
+    <value>ダメですぅ</value>
+  </data>
+  <data name="0178 (589.ja) MIKURU (MKR_MKRWIT08)" xml:space="preserve">
+    <value>キョンくん、急いでぇ</value>
+  </data>
+  <data name="0179 (589.ja) MIKURU (MKR_MOVE00)" xml:space="preserve">
+    <value>ふ～ん</value>
+  </data>
+  <data name="0180 (589.ja) MIKURU (MKR_OOPS00)" xml:space="preserve">
+    <value>ほえぇ、ダメでした</value>
+  </data>
+  <data name="0181 (589.ja) MIKURU (MKR_OVER00)" xml:space="preserve">
+    <value>ごめんなさい、キョンくん</value>
+  </data>
+  <data name="0182 (589.ja) MIKURU (MKR_PCHEK00)" xml:space="preserve">
+    <value>ここかなぁ？</value>
+  </data>
+  <data name="0183 (589.ja) MIKURU (MKR_READY00)" xml:space="preserve">
+    <value>そ、それじゃあぁ…</value>
+  </data>
+  <data name="0184 (589.ja) MIKURU (MKR_REQ00)" xml:space="preserve">
+    <value>名、長門さん、お願いします</value>
+  </data>
+  <data name="0185 (589.ja) MIKURU (MKR_REQ01)" xml:space="preserve">
+    <value>古泉くん、お願いします</value>
+  </data>
+  <data name="0186 (589.ja) MIKURU (MKR_START00)" xml:space="preserve">
+    <value>時間が足りません！</value>
+  </data>
+  <data name="0187 (589.ja) MIKURU (MKR_START01)" xml:space="preserve">
+    <value>が、頑張りまぁす</value>
+  </data>
+  <data name="0188 (589.ja) MIKURU (MKR_START02)" xml:space="preserve">
+    <value>い、行きまぁす</value>
+  </data>
+  <data name="0189 (589.ja) MIKURU (MKR_START03)" xml:space="preserve">
+    <value>ほええぇ！</value>
+  </data>
+  <data name="0190 (589.ja) MIKURU (MKR_START04)" xml:space="preserve">
+    <value>ひゃああぁ、怖いですぅ！</value>
+  </data>
+  <data name="0191 (589.ja) MIKURU (MKR_START05)" xml:space="preserve">
+    <value>どうしよう、あたし…</value>
+  </data>
+  <data name="0192 (589.ja) MIKURU (MKR_START06)" xml:space="preserve">
+    <value>急がないと、涼宮さんが来ちゃう</value>
+  </data>
+  <data name="0193 (589.ja) MIKURU (MKR_START07)" xml:space="preserve">
+    <value>暗いよぉ、こわいよぉ</value>
+  </data>
+  <data name="0194 (589.ja) MIKURU (MKR_TEC01)" xml:space="preserve">
+    <value>あ、ありましたぁ</value>
+  </data>
+  <data name="0195 (589.ja) MIKURU (MKR_TECEFF00)" xml:space="preserve">
+    <value>い、い、行きますぅ！</value>
+  </data>
+  <data name="0196 (589.ja) MIKURU (MKR_TMDEL00)" xml:space="preserve">
+    <value>きゃ！</value>
+  </data>
+  <data name="0197 (589.ja) MIKURU (MKR_TMINC00)" xml:space="preserve">
+    <value>ああ、よかった～</value>
+  </data>
+  <data name="0198 (589.ja) MIKURU (MKR_USEHRH00)" xml:space="preserve">
+    <value>え、えいぃ！</value>
+  </data>
+  <data name="0199 (589.ja) MIKURU (MKR_USETP00)" xml:space="preserve">
+    <value>これでいいんですか？</value>
+  </data>
+  <data name="0200 (589.ja) MIKURU (MKR_WAIT00)" xml:space="preserve">
+    <value>ど、どうしましょう…</value>
+  </data>
+  <data name="0201 (589.ja) MIKURU (MKR_WAIT01)" xml:space="preserve">
+    <value>ほえぇ、見つかりませぇん</value>
+  </data>
+  <data name="0202 (589.ja) MIKURU (MKR_WAIT02)" xml:space="preserve">
+    <value>キョンくぅん！</value>
+  </data>
+  <data name="0203 (589.ja) NAGATO (NGT_ACD00)" xml:space="preserve">
+    <value>耐えよう不能</value>
+  </data>
+  <data name="0204 (589.ja) NAGATO (NGT_ACPT00)" xml:space="preserve">
+    <value>わかった</value>
+  </data>
+  <data name="0205 (589.ja) NAGATO (NGT_ACPTK00)" xml:space="preserve">
+    <value>了承した</value>
+  </data>
+  <data name="0206 (589.ja) NAGATO (NGT_ACPTM00)" xml:space="preserve">
+    <value>了解</value>
+  </data>
+  <data name="0207 (589.ja) NAGATO (NGT_BLK00)" xml:space="preserve">
+    <value>消滅を確認</value>
+  </data>
+  <data name="0208 (589.ja) NAGATO (NGT_BLK1ST00)" xml:space="preserve">
+    <value>一つ</value>
+  </data>
+  <data name="0209 (589.ja) NAGATO (NGT_BLKHLF00)" xml:space="preserve">
+    <value>作業を継続</value>
+  </data>
+  <data name="0210 (589.ja) NAGATO (NGT_BLKLST00)" xml:space="preserve">
+    <value>残り、一つ</value>
+  </data>
+  <data name="0211 (589.ja) NAGATO (NGT_BLKOUT00)" xml:space="preserve">
+    <value>順調</value>
+  </data>
+  <data name="0212 (589.ja) NAGATO (NGT_CANTP00)" xml:space="preserve">
+    <value>中止、了解</value>
+  </data>
+  <data name="0213 (589.ja) NAGATO (NGT_CHEK00)" xml:space="preserve">
+    <value>探索中</value>
+  </data>
+  <data name="0214 (589.ja) NAGATO (NGT_CLR100)" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="0215 (589.ja) NAGATO (NGT_CLR200)" xml:space="preserve">
+    <value>異空間からのシフトを確認</value>
+  </data>
+  <data name="0216 (589.ja) NAGATO (NGT_CLR300)" xml:space="preserve">
+    <value>特異点の消滅を確認</value>
+  </data>
+  <data name="0217 (589.ja) NAGATO (NGT_CLR400)" xml:space="preserve">
+    <value>すべて、正常化</value>
+  </data>
+  <data name="0218 (589.ja) NAGATO (NGT_CLR500)" xml:space="preserve">
+    <value>情報生命体の活動停止を確認</value>
+  </data>
+  <data name="0219 (589.ja) NAGATO (NGT_CLR600)" xml:space="preserve">
+    <value>コピーはすべて消滅した</value>
+  </data>
+  <data name="0220 (589.ja) NAGATO (NGT_CLR700)" xml:space="preserve">
+    <value>処理、完了</value>
+  </data>
+  <data name="0221 (589.ja) NAGATO (NGT_CLR800)" xml:space="preserve">
+    <value>最終処理に一考する</value>
+  </data>
+  <data name="0222 (589.ja) NAGATO (NGT_DETECT00)" xml:space="preserve">
+    <value>視覚情報は無意味</value>
+  </data>
+  <data name="0223 (589.ja) NAGATO (NGT_DETECT01)" xml:space="preserve">
+    <value>特異点を確認</value>
+  </data>
+  <data name="0224 (589.ja) NAGATO (NGT_DETECT02)" xml:space="preserve">
+    <value>見つけた</value>
+  </data>
+  <data name="0225 (589.ja) NAGATO (NGT_DETECT03)" xml:space="preserve">
+    <value>消去する</value>
+  </data>
+  <data name="0226 (589.ja) NAGATO (NGT_DETECT04)" xml:space="preserve">
+    <value>端末を発見</value>
+  </data>
+  <data name="0227 (589.ja) NAGATO (NGT_DETECT05)" xml:space="preserve">
+    <value>隠ぺいモード解除</value>
+  </data>
+  <data name="0228 (589.ja) NAGATO (NGT_DETECT06)" xml:space="preserve">
+    <value>これ</value>
+  </data>
+  <data name="0229 (589.ja) NAGATO (NGT_DETECT07)" xml:space="preserve">
+    <value>発見</value>
+  </data>
+  <data name="0230 (589.ja) NAGATO (NGT_FOUND00)" xml:space="preserve">
+    <value>発見</value>
+  </data>
+  <data name="0231 (589.ja) NAGATO (NGT_FOUND01)" xml:space="preserve">
+    <value>見つけた</value>
+  </data>
+  <data name="0232 (589.ja) NAGATO (NGT_FOUND02)" xml:space="preserve">
+    <value>ここ</value>
+  </data>
+  <data name="0233 (589.ja) NAGATO (NGT_GO00)" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="0234 (589.ja) NAGATO (NGT_HAZARD00)" xml:space="preserve">
+    <value>時間がない、急いで</value>
+  </data>
+  <data name="0235 (589.ja) NAGATO (NGT_MOVE00)" xml:space="preserve">
+    <value>こっち</value>
+  </data>
+  <data name="0236 (589.ja) NAGATO (NGT_NGTWIT00)" xml:space="preserve">
+    <value>ダメ</value>
+  </data>
+  <data name="0237 (589.ja) NAGATO (NGT_NGTWIT01)" xml:space="preserve">
+    <value>待って</value>
+  </data>
+  <data name="0238 (589.ja) NAGATO (NGT_NGTWIT02)" xml:space="preserve">
+    <value>行ってはいけない</value>
+  </data>
+  <data name="0239 (589.ja) NAGATO (NGT_NGTWIT03)" xml:space="preserve">
+    <value>停止を要求する</value>
+  </data>
+  <data name="0240 (589.ja) NAGATO (NGT_NGTWIT04)" xml:space="preserve">
+    <value>行ってはダメ</value>
+  </data>
+  <data name="0241 (589.ja) NAGATO (NGT_NGTWIT05)" xml:space="preserve">
+    <value>早く</value>
+  </data>
+  <data name="0242 (589.ja) NAGATO (NGT_NGTWIT06)" xml:space="preserve">
+    <value>ここは、あなたのいるべき場所ではない</value>
+  </data>
+  <data name="0243 (589.ja) NAGATO (NGT_NGTWIT07)" xml:space="preserve">
+    <value>行かせない</value>
+  </data>
+  <data name="0244 (589.ja) NAGATO (NGT_NGTWIT08)" xml:space="preserve">
+    <value>思い通りにはさせない</value>
+  </data>
+  <data name="0245 (589.ja) NAGATO (NGT_OOPS00)" xml:space="preserve">
+    <value>周辺に特異点は存在しない</value>
+  </data>
+  <data name="0246 (589.ja) NAGATO (NGT_OVER00)" xml:space="preserve">
+    <value>涼宮ハルヒが到着した</value>
+  </data>
+  <data name="0247 (589.ja) NAGATO (NGT_PCHEK00)" xml:space="preserve">
+    <value>探索個所を特定</value>
+  </data>
+  <data name="0248 (589.ja) NAGATO (NGT_READY00)" xml:space="preserve">
+    <value>行動</value>
+  </data>
+  <data name="0249 (589.ja) NAGATO (NGT_REQ00)" xml:space="preserve">
+    <value>サポート</value>
+  </data>
+  <data name="0250 (589.ja) NAGATO (NGT_REQ01)" xml:space="preserve">
+    <value>サポート</value>
+  </data>
+  <data name="0251 (589.ja) NAGATO (NGT_START00)" xml:space="preserve">
+    <value>余裕はない。効率を重視</value>
+  </data>
+  <data name="0252 (589.ja) NAGATO (NGT_START01)" xml:space="preserve">
+    <value>特異点消去開始</value>
+  </data>
+  <data name="0253 (589.ja) NAGATO (NGT_START02)" xml:space="preserve">
+    <value>特異点の存在を感知</value>
+  </data>
+  <data name="0254 (589.ja) NAGATO (NGT_START03)" xml:space="preserve">
+    <value>涼宮ハルヒ、接近中</value>
+  </data>
+  <data name="0255 (589.ja) NAGATO (NGT_START04)" xml:space="preserve">
+    <value>警戒</value>
+  </data>
+  <data name="0256 (589.ja) NAGATO (NGT_START05)" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="0257 (589.ja) NAGATO (NGT_START06)" xml:space="preserve">
+    <value>探索開始</value>
+  </data>
+  <data name="0258 (589.ja) NAGATO (NGT_START07)" xml:space="preserve">
+    <value>任せて</value>
+  </data>
+  <data name="0259 (589.ja) NAGATO (NGT_TEC00)" xml:space="preserve">
+    <value>完了した</value>
+  </data>
+  <data name="0260 (589.ja) NAGATO (NGT_TMDEL00)" xml:space="preserve">
+    <value>状況、悪化</value>
+  </data>
+  <data name="0261 (589.ja) NAGATO (NGT_TMINC00)" xml:space="preserve">
+    <value>改善した</value>
+  </data>
+  <data name="0262 (589.ja) NAGATO (NGT_USEHRH00)" xml:space="preserve">
+    <value>発動</value>
+  </data>
+  <data name="0263 (589.ja) NAGATO (NGT_USETP00)" xml:space="preserve">
+    <value>これでいい？</value>
+  </data>
+  <data name="0264 (589.ja) NAGATO (NGT_WAIT00)" xml:space="preserve">
+    <value>作業停滞</value>
+  </data>
+  <data name="0265 (589.ja) NAGATO (NGT_WAIT01)" xml:space="preserve">
+    <value>負荷は増大している</value>
+  </data>
+  <data name="0266 (589.ja) NAGATO (NGT_WAIT02)" xml:space="preserve">
+    <value>無駄な時間はない</value>
+  </data>
+</root>

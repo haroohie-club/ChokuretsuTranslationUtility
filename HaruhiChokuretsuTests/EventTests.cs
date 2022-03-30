@@ -43,6 +43,39 @@ namespace HaruhiChokuretsuTests
             Assert.AreEqual(eventFileOnDisk, @event.GetBytes());
         }
 
+        [TestCase(TestVariables.EVT_589, TestVariables.EVT_589_RESX)]
+        public void VoiceMapFileImportResxTest(string eventFile, string resxFile)
+        {
+            byte[] vmFileFileOnDisk = File.ReadAllBytes(eventFile);
+            VoiceMapFile vmFile = new();
+            vmFile.Initialize(vmFileFileOnDisk);
+
+            int[] originalEndPointerPointers = new int[vmFile.EndPointerPointers.Count];
+            vmFile.EndPointerPointers.CopyTo(originalEndPointerPointers);
+
+            vmFile.ImportResxFile(resxFile);
+
+            int currentShift = 1;
+            bool reset = false;
+            for (int i = 0; i < originalEndPointerPointers.Length; i++)
+            {
+                if (!reset && vmFile.EndPointers[i] > vmFile.DialogueLinesPointer)
+                {
+                    reset = true;
+                    currentShift = 1;
+                }
+                if ((reset && i % 2 != 0 || !reset) && originalEndPointerPointers[i] > vmFile.DialogueLinesPointer)
+                {
+                    Assert.AreEqual(originalEndPointerPointers[i] + 4 * currentShift, BitConverter.ToInt32(vmFile.Data.Skip(vmFile.EndPointers[i]).Take(4).ToArray()), $"Failed at {i}");
+                    currentShift++;
+                }
+                else
+                {
+                    Assert.AreEqual(originalEndPointerPointers[i], vmFile.EndPointerPointers[i], $"Failed at {i}");
+                }
+            }
+        }
+
         [Test]
         // This file can be ripped directly from the ROM
         [TestCase(".\\inputs\\evt.bin")]

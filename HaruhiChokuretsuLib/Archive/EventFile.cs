@@ -153,14 +153,10 @@ namespace HaruhiChokuretsuLib.Archive
             Data.RemoveRange(DialogueLines[index].Pointer, oldLength);
             Data.InsertRange(DialogueLines[index].Pointer, toWrite);
 
-            if (Index == 589)
-            {
-                Console.WriteLine("Here");
-            }
             ShiftPointers(DialogueLines[index].Pointer, lengthDifference);
         }
 
-        public void ShiftPointers(int shiftLocation, int shiftAmount)
+        public virtual void ShiftPointers(int shiftLocation, int shiftAmount)
         {
             for (int i = 0; i < FrontPointers.Count; i++)
             {
@@ -319,11 +315,6 @@ namespace HaruhiChokuretsuLib.Archive
 
                 EditDialogueLine(dialogueIndex, dialogueText);
             }
-            if (Index == 589)
-            {
-                Console.WriteLine("Writing temp.bin");
-                File.WriteAllBytes("temp.bin", Data.ToArray());
-            }
         }
 
         public override string ToString()
@@ -412,6 +403,7 @@ namespace HaruhiChokuretsuLib.Archive
     public class VoiceMapFile : EventFile
     {
         public int VoiceMapStructSectionOffset { get; set; }
+        public int DialogueLinesPointer { get; set; }
         public List<VoiceMapStruct> VoiceMapStructs { get; set; } = new();
 
         public override void Initialize(byte[] decompressedData, int offset = 0)
@@ -427,6 +419,7 @@ namespace HaruhiChokuretsuLib.Archive
             }
             VoiceMapStructSectionOffset = FrontPointers[0];
             DialogueSectionPointer = FrontPointers[1];
+            DialogueLinesPointer = DialogueSectionPointer + (FrontPointers.Count - 1) * 12;
 
             for (int i = 2; i < FrontPointers.Count; i++)
             {
@@ -506,7 +499,7 @@ namespace HaruhiChokuretsuLib.Archive
             Data.InsertRange(0x14, BitConverter.GetBytes(dialogueSectionStart));
 
             // Account for the dialogue section leadin
-            int dialogueLinesStart = Data.Count + dialogueLinePointers.Count * 12 + 12;
+            DialogueLinesPointer = Data.Count + dialogueLinePointers.Count * 12 + 12;
 
             for (int i = 0; i < dialogueLinePointers.Count; i++)
             {
@@ -515,8 +508,8 @@ namespace HaruhiChokuretsuLib.Archive
                 EndPointerPointers.Add(filenamePointers[i] + filenameSectionStart);
                 Data.AddRange(BitConverter.GetBytes(filenamePointers[i] + filenameSectionStart));
                 EndPointers.Add(Data.Count); // add this next pointer to the end pointers so it gets resolved
-                EndPointerPointers.Add(dialogueLinePointers[i] + dialogueLinesStart);
-                Data.AddRange(BitConverter.GetBytes(dialogueLinePointers[i] + dialogueLinesStart));
+                EndPointerPointers.Add(dialogueLinePointers[i] + DialogueLinesPointer);
+                Data.AddRange(BitConverter.GetBytes(dialogueLinePointers[i] + DialogueLinesPointer));
             }
             Data.AddRange(new byte[12]);
             Data.AddRange(dialogueLinesSection);
@@ -525,7 +518,7 @@ namespace HaruhiChokuretsuLib.Archive
             // Initialize the dialogue lines
             for (int i = 0; i < dialogueLinePointers.Count; i++)
             {
-                DialogueLines.Add(new(SpeakerCodeMap[filenames[i].Split('_')[0]], filenames[i], filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + dialogueLinesStart, Data.ToArray()));
+                DialogueLines.Add(new(SpeakerCodeMap[filenames[i].Split('_')[0]], filenames[i], filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer, Data.ToArray()));
             }
 
             // Go back and insert the pointer to the struct section
@@ -554,11 +547,11 @@ namespace HaruhiChokuretsuLib.Archive
                 }
 
                 EndPointers.AddRange(new int[] { Data.Count, Data.Count + 4 }); // Add the next two pointers to end pointers
-                EndPointerPointers.AddRange(new int[] { filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + dialogueLinesStart });
+                EndPointerPointers.AddRange(new int[] { filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer });
                 VoiceMapStruct vmStruct = new()
                 {
                     VoiceFileNamePointer = filenamePointers[i] + filenameSectionStart,
-                    SubtitlePointer = dialogueLinePointers[i] + dialogueLinesStart,
+                    SubtitlePointer = dialogueLinePointers[i] + DialogueLinesPointer,
                     X = (short)((256 - lineLength) / 2),
                     Y = y,
                     FontSize = 130,
@@ -589,6 +582,32 @@ namespace HaruhiChokuretsuLib.Archive
             VoiceMapStructs[index].X = (short)((256 - lineLength) / 2);
             Data.RemoveRange(VoiceMapStructSectionOffset + 16 * index + 8, 2); // Replace X in Data
             Data.InsertRange(VoiceMapStructSectionOffset + 16 * index + 8, BitConverter.GetBytes(VoiceMapStructs[index].X));
+        }
+
+        public override void ShiftPointers(int shiftLocation, int shiftAmount)
+        {
+            base.ShiftPointers(shiftLocation, shiftAmount);
+
+            if (VoiceMapStructSectionOffset > shiftLocation)
+            {
+                VoiceMapStructSectionOffset += shiftAmount;
+            }
+            if (DialogueLinesPointer > shiftLocation)
+            {
+                DialogueLinesPointer += shiftAmount;
+            }
+
+            foreach (VoiceMapStruct vmStruct in VoiceMapStructs)
+            {
+                if (vmStruct.VoiceFileNamePointer > shiftLocation)
+                {
+                    vmStruct.VoiceFileNamePointer += shiftAmount;
+                }
+                if (vmStruct.SubtitlePointer > shiftLocation)
+                {
+                    vmStruct.SubtitlePointer += shiftAmount;
+                }
+            }
         }
 
         private static Dictionary<string, Speaker> SpeakerCodeMap = new()
