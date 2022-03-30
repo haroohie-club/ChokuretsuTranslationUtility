@@ -24,6 +24,11 @@ namespace HaruhiChokuretsuLib.Font
             set => _fontReplacements[_fontReplacements.FindIndex(f => f.ReplacedCharacter == key)] = value;
         }
 
+        public FontReplacement ReverseLookup(char key)
+        {
+            return _fontReplacements.FirstOrDefault(f => f.OriginalCharacter == key);
+        }
+
         public ICollection<char> Keys => (ICollection<char>)_fontReplacements.Select(f => f.ReplacedCharacter);
 
         public ICollection<FontReplacement> Values => _fontReplacements;

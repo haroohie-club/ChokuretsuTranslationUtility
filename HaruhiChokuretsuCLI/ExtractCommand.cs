@@ -91,6 +91,12 @@ namespace HaruhiChokuretsuCLI
                     {
                         evtFile.InitializeDialogueForSpecialFiles();
                     }
+                    else if (_fileIndex == 589)
+                    {
+                        VoiceMapFile vmFile = new();
+                        vmFile.Initialize(evtFile.Data.ToArray(), evtFile.Offset);
+                        evtFile = vmFile;
+                    }
 
                     CommandSet.Out.Write($"Extracting file #{evtFile.Index:X3} as RESX from archive {evtArchive.FileName}... ");
                     evtFile.WriteResxFile(_outputFile);

@@ -47,6 +47,18 @@ namespace HaruhiChokuretsuEditor
                 _evtFile.Files.First(f => f.Index == 580).InitializeDialogueForSpecialFiles();
                 _evtFile.Files.First(f => f.Index == 581).InitializeTopicFile();
                 _evtFile.Files.Where(f => f.Index is >= 358 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.Files.First(f => f.Index == 581).TopicStructs));
+
+                EventFile voiceMapFile = _evtFile.Files.FirstOrDefault(f => f.Index == 589);
+                if (voiceMapFile is not null)
+                {
+                    VoiceMapFile newVoiceMap = new();
+                    newVoiceMap.Initialize(voiceMapFile.Data.ToArray(), voiceMapFile.Offset);
+                    newVoiceMap.Index = voiceMapFile.Index;
+                    newVoiceMap.MagicInteger = voiceMapFile.MagicInteger;
+                    newVoiceMap.CompressedData = voiceMapFile.CompressedData;
+                    _evtFile.Files[_evtFile.Files.IndexOf(voiceMapFile)] = newVoiceMap;
+                }
+
                 FontReplacementDictionary fontReplacementDictionary = new();
                 fontReplacementDictionary.AddRange(JsonSerializer.Deserialize<List<FontReplacement>>(File.ReadAllText("Font/font_replacement.json")));
                 _evtFile.Files.ForEach(e => e.FontReplacementMap = fontReplacementDictionary);
@@ -130,7 +142,7 @@ namespace HaruhiChokuretsuEditor
                 mainWindow.Title = $"Suzumiya Haruhi no Chokuretsu Editor - Event 0x{selectedFile.Index:X3}";
                 editStackPanel.Children.Add(new TextBlock { Text = $"{selectedFile.DialogueLines.Count} lines of dialogue" });
                 frontPointersStackPanel.Children.Add(new TextBlock { Text = $"{selectedFile.Data?.Count ?? 0} bytes" });
-                frontPointersStackPanel.Children.Add(new TextBlock { Text = $"Actual compressed length: {selectedFile.CompressedData.Length:X}; Calculated length: {selectedFile.Length:X}" });
+                frontPointersStackPanel.Children.Add(new TextBlock { Text = $"Actual compressed length: {selectedFile.CompressedData?.Length ?? 0:X}; Calculated length: {selectedFile.Length:X}" });
                 for (int i = 0; i < selectedFile.DialogueLines.Count; i++)
                 {
                     StackPanel dialogueStackPanel = new() { Orientation = Orientation.Horizontal };

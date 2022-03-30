@@ -84,6 +84,15 @@ namespace HaruhiChokuretsuCLI
                 else
                 {
                     evtArchive.Files.Where(f => f.Index is >= 580 and <= 581).ToList().ForEach(f => f.InitializeDialogueForSpecialFiles());
+                    EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == 589);
+                    if (evtVmFile is not null)
+                    {
+                        VoiceMapFile newVmFile = new();
+                        newVmFile.Initialize(evtVmFile.Data.ToArray(), evtVmFile.Offset);
+                        newVmFile.Index = evtVmFile.Index;
+                        newVmFile.MagicInteger = evtVmFile.MagicInteger;
+                        evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = newVmFile;
+                    }
                 }
 
                 FontReplacementDictionary fontReplacementDictionary = new();
@@ -96,7 +105,20 @@ namespace HaruhiChokuretsuCLI
                 foreach (string file in files)
                 {
                     int fileIndex = int.Parse(Regex.Match(file, @"(?<index>\d{3})\.[\w-]+\.resx").Groups["index"].Value);
-                    evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex).ImportResxFile(file);
+                    if (fileIndex == 589)
+                    {
+                        EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex);
+                        VoiceMapFile vmFile = new();
+                        vmFile.Initialize(evtVmFile.Data.ToArray(), evtVmFile.Offset);
+                        vmFile.Index = evtVmFile.Index;
+                        vmFile.MagicInteger = evtVmFile.MagicInteger;
+                        vmFile.ImportResxFile(file);
+                        evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = vmFile;
+                    }
+                    else
+                    {
+                        evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex).ImportResxFile(file);
+                    }
                 }
                 File.WriteAllBytes(_outputArchive, evtArchive.GetBytes());
                 CommandSet.Out.WriteLine("Done.");

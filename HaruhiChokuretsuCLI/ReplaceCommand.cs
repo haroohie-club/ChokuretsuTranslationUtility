@@ -201,6 +201,12 @@ namespace HaruhiChokuretsuCLI
                 graphicsFile.NewFile(filePath);
                 archive.AddFile(graphicsFile);
             }
+            else if (filePath.EndsWith("_voicemap.csv", StringComparison.OrdinalIgnoreCase))
+            {
+                VoiceMapFile voiceMapFile = new();
+                voiceMapFile.NewFile(filePath);
+                archive.AddFile(voiceMapFile);
+            }
             else
             {
                 FileInArchive file = new();
