@@ -581,6 +581,11 @@ namespace HaruhiChokuretsuLib.Archive
 
             base.EditDialogueLine(index, newText);
 
+            if (DialogueLines[index].Text.Contains('\n'))
+            {
+                Console.WriteLine($"File {Index} has subtitle too long ({index}) (Starts with {DialogueLines[index].Text[4..20]}");
+            }
+
             string actualText = newText[4..];
             int lineLength = actualText.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
             VoiceMapStructs[index].X = CenterSubtitle(lineLength);
