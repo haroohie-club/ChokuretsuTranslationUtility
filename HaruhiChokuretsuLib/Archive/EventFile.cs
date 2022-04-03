@@ -583,7 +583,7 @@ namespace HaruhiChokuretsuLib.Archive
 
             if (DialogueLines[index].Text.Contains('\n'))
             {
-                Console.WriteLine($"File {Index} has subtitle too long ({index}) (Starts with {DialogueLines[index].Text[4..20]}");
+                Console.WriteLine($"File {Index} has subtitle too long ({index}) (starting with: {DialogueLines[index].Text[4..20]})");
             }
 
             string actualText = newText[4..];
