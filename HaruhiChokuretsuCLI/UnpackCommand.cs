@@ -8,7 +8,7 @@ namespace HaruhiChokuretsuCLI
     public class UnpackCommand : Command
     {
         private string _inputArchive = "", _outputDirectory = "";
-        private bool _compressed, _showHelp;
+        private bool _compressed, _decimal, _showHelp;
 
         public UnpackCommand() : base("unpack", "Unpacks an archive")
         {
@@ -20,6 +20,7 @@ namespace HaruhiChokuretsuCLI
                 { "i|input-archive=", "The archive to unpack", i => _inputArchive = i },
                 { "o|output-direcetory=", "The directory to unpack the archive files (will be created if does not exist)", o => _outputDirectory = o },
                 { "c|compressed", "Add this flag if you want files to remain compressed", c => _compressed = true },
+                { "d|decimal", "Switches the output from hexadecimal numbering to decimal", d => _decimal = true },
                 { "h|help", "Show this help screen", h => _showHelp = true }
             };
         }
@@ -54,11 +55,11 @@ namespace HaruhiChokuretsuCLI
 
             if (_compressed)
             {
-                archive.Files.ForEach(x => File.WriteAllBytes(Path.Combine(_outputDirectory, $"{x.Index:X3}.bin"), x.CompressedData));
+                archive.Files.ForEach(x => File.WriteAllBytes(Path.Combine(_outputDirectory, _decimal ? $"{x.Index:3}.bin" : $"{x.Index:X3}.bin"), x.CompressedData));
             }
             else
             {
-                archive.Files.ForEach(x => File.WriteAllBytes(Path.Combine(_outputDirectory, $"{x.Index:X3}.bin"), x.Data.ToArray()));
+                archive.Files.ForEach(x => File.WriteAllBytes(Path.Combine(_outputDirectory, _decimal ? $"{x.Index:D3}.bin" : $"{x.Index:X3}.bin"), x.Data.ToArray()));
             }
 
             CommandSet.Out.WriteLine($"Successfully unpacked {archive.Files.Count} from archive {archive.FileName}.");

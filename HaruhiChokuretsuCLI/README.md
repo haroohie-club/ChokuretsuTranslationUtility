@@ -10,6 +10,7 @@ The `unpack` command unpacks all files in a specified archive to a specified dir
 * `-i` or `--input-archive` &ndash; The archive to unpack files from.
 * `-o` or `--output-directory` &ndash; The directory to unpack files to.
 * `-c` or `--compressed` &ndash; Don't decompress the unpacked files.
+* `-d` or `--decimal` &ndash; Use decimal numbering instead of hexadecimal numbering for output files.
 
 | Example | Function |
 |---------|----------|
