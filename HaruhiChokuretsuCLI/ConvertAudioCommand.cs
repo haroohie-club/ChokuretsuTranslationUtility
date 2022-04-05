@@ -11,7 +11,7 @@ namespace HaruhiChokuretsuCLI
     {
         private string _directory, _adx2wav, _ahx2wav;
 
-        public ConvertAudioCommand() : base("convert-audio")
+        public ConvertAudioCommand() : base("convert-audio", "Converts all the audio files in a directory")
         {
             Options = new()
             {

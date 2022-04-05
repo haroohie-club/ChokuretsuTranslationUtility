@@ -11,7 +11,7 @@ namespace HaruhiChokuretsuCLI
     {
         private string _version, _splashScreenPath, _fontFile, _outputPath;
 
-        public VersionScreenCommand() : base("version-screen")
+        public VersionScreenCommand() : base("version-screen", "Creates a versioned splash screen")
         {
             Options = new()
             {

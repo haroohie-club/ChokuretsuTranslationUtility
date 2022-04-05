@@ -17,7 +17,7 @@ namespace HaruhiChokuretsuCLI
     {
         private string _sourceDirectory, _overlayDirectory, _outputPatch;
 
-        public AssembleOverlayCodeCommand() : base("assemble-overlay-code")
+        public AssembleOverlayCodeCommand() : base("assemble-overlay-code", "Assembles overlay source code for patching a la Wiinject")
         {
             Options = new()
             {
