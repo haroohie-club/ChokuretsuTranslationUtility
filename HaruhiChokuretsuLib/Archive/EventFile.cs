@@ -428,7 +428,7 @@ namespace HaruhiChokuretsuLib.Archive
 
             for (int i = 0; i < FrontPointers.Count - 2; i++)
             {
-                VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * 16).Take(16)));
+                VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH)));
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset);
@@ -558,13 +558,14 @@ namespace HaruhiChokuretsuLib.Archive
                     X = CenterSubtitle(lineLength),
                     Y = y,
                     FontSize = 100,
-                    Timer = ushort.Parse(fields[3]),
+                    TargetScreen = (VoiceMapStruct.Screen)Enum.Parse(typeof(VoiceMapStruct.Screen), fields[3]),
+                    Timer = ushort.Parse(fields[4]),
                 };
 
                 VoiceMapStructs.Add(vmStruct);
                 Data.AddRange(vmStruct.GetBytes());
             }
-            Data.AddRange(new byte[16]);
+            Data.AddRange(new byte[VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH]);
 
             // Go back and insert the pointer to the end pointers section
             int endPointersSectionStart = Data.Count;
@@ -589,8 +590,8 @@ namespace HaruhiChokuretsuLib.Archive
             string actualText = newText[4..];
             int lineLength = actualText.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
             VoiceMapStructs[index].X = CenterSubtitle(lineLength);
-            Data.RemoveRange(VoiceMapStructSectionOffset + 16 * index + 8, 2); // Replace X in Data
-            Data.InsertRange(VoiceMapStructSectionOffset + 16 * index + 8, BitConverter.GetBytes(VoiceMapStructs[index].X));
+            Data.RemoveRange(VoiceMapStructSectionOffset + VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH * index + 8, 2); // Replace X in Data
+            Data.InsertRange(VoiceMapStructSectionOffset + VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH * index + 8, BitConverter.GetBytes(VoiceMapStructs[index].X));
         }
 
         public override void ShiftPointers(int shiftLocation, int shiftAmount)
@@ -636,13 +637,22 @@ namespace HaruhiChokuretsuLib.Archive
 
         public class VoiceMapStruct
         {
+            public const int VOICE_MAP_STRUCT_LENGTH = 20;
+
+            public enum Screen
+            {
+                BOTTOM = 0,
+                TOP = 1,
+            }
+
             public List<byte> Data { get; set; } = new();
             public int VoiceFileNamePointer { get; set; }
             public int SubtitlePointer { get; set; }
             public short X { get; set; }
             public short Y { get; set; }
             public short FontSize { get; set; }
-            public ushort Timer { get; set; }
+            public Screen TargetScreen { get; set; }
+            public int Timer { get; set; }
 
             public VoiceMapStruct()
             {
@@ -650,9 +660,9 @@ namespace HaruhiChokuretsuLib.Archive
 
             public VoiceMapStruct(IEnumerable<byte> data)
             {
-                if (data.Count() != 0x10)
+                if (data.Count() != VOICE_MAP_STRUCT_LENGTH)
                 {
-                    throw new ArgumentException($"Voice map struct data length must be 0x10, was 0x{data.Count():X2}");
+                    throw new ArgumentException($"Voice map struct data length must be 0x{VOICE_MAP_STRUCT_LENGTH:X2}, was 0x{data.Count():X2}");
                 }
 
                 VoiceFileNamePointer = BitConverter.ToInt32(data.Take(4).ToArray());
@@ -660,7 +670,8 @@ namespace HaruhiChokuretsuLib.Archive
                 X = BitConverter.ToInt16(data.Skip(8).Take(2).ToArray());
                 Y = BitConverter.ToInt16(data.Skip(10).Take(2).ToArray());
                 FontSize = BitConverter.ToInt16(data.Skip(12).Take(2).ToArray());
-                Timer = BitConverter.ToUInt16(data.Skip(14).Take(2).ToArray());
+                TargetScreen = (Screen)BitConverter.ToInt16(data.Skip(14).Take(2).ToArray());
+                Timer = BitConverter.ToInt32(data.Skip(16).Take(4).ToArray());
 
                 Data = data.ToList();
             }
@@ -674,6 +685,7 @@ namespace HaruhiChokuretsuLib.Archive
                 Data.AddRange(BitConverter.GetBytes(X));
                 Data.AddRange(BitConverter.GetBytes(Y));
                 Data.AddRange(BitConverter.GetBytes(FontSize));
+                Data.AddRange(BitConverter.GetBytes((short)TargetScreen));
                 Data.AddRange(BitConverter.GetBytes(Timer));
 
                 return Data.ToArray();
