@@ -545,7 +545,7 @@ namespace HaruhiChokuretsuLib.Archive
                         y = 160;
                         break;
                     case "BOTTOM":
-                        y = 180;
+                        y = 176;
                         break;
                 }
 
