@@ -73,8 +73,8 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(outputDirectory);
             }
 
-            //try
-            //{
+            try
+            {
                 var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive);
 
                 if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase))
@@ -123,12 +123,12 @@ namespace HaruhiChokuretsuCLI
                 }
                 File.WriteAllBytes(_outputArchive, evtArchive.GetBytes());
                 CommandSet.Out.WriteLine("Done.");
-            //}
-            //catch (Exception e)
-            //{
-            //    CommandSet.Out.WriteLine($"Fatal exception: {e.Message}");
-            //    return 1;
-            //}
+        }
+            catch (Exception e)
+            {
+                CommandSet.Out.WriteLine($"Fatal exception: {e.Message}");
+                return 1;
+            }
 
             return 0;
         }
