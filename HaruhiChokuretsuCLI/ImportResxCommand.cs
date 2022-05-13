@@ -123,7 +123,7 @@ namespace HaruhiChokuretsuCLI
                 }
                 File.WriteAllBytes(_outputArchive, evtArchive.GetBytes());
                 CommandSet.Out.WriteLine("Done.");
-        }
+            }
             catch (Exception e)
             {
                 CommandSet.Out.WriteLine($"Fatal exception: {e.Message}");
