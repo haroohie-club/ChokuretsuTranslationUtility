@@ -157,9 +157,9 @@ namespace HaruhiChokuretsuCLI
                             CommandSet.Out.WriteLine($"NOT OK: {e.Message}");
                         }
 
-                        File.WriteAllBytes(_outputArchive, archive.GetBytes());
                     }
                 }
+                File.WriteAllBytes(_outputArchive, archive.GetBytes());
             }
             catch (Exception e)
             {
@@ -245,8 +245,9 @@ namespace HaruhiChokuretsuCLI
             {
                 grpFile.SetPalette(sharedPalettes[int.Parse(sharedPaletteMatch.Groups["index"].Value)]);
             }
+            bool newSize = filePath.Contains("newsize");
 
-            grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex);
+            grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex, newSize: newSize);
 
             archive.Files[archive.Files.IndexOf(file)] = grpFile;
         }

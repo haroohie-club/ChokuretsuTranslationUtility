@@ -390,10 +390,10 @@ namespace HaruhiChokuretsuLib.Archive
         /// </summary>
         /// <param name="bitmapFile">Path to bitmap file to import</param>
         /// <returns>Width of new bitmap image</returns>
-        public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1)
+        public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1, bool newSize = false)
         {
             Edited = true;
-            return SetImage(SKBitmap.Decode(bitmapFile), setPalette, transparentIndex);
+            return SetImage(SKBitmap.Decode(bitmapFile), setPalette, transparentIndex, newSize);
         }
 
         /// <summary>
@@ -401,7 +401,7 @@ namespace HaruhiChokuretsuLib.Archive
         /// </summary>
         /// <param name="bitmap">Bitmap image in memory</param>
         /// <returns>Width of new bitmap image</returns>
-        public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1)
+        public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false)
         {
             if (setPalette)
             {
@@ -410,11 +410,11 @@ namespace HaruhiChokuretsuLib.Archive
 
             if (IsTexture())
             {
-                return SetTexture(bitmap);
+                return SetTexture(bitmap, newSize);
             }
             else
             {
-                return SetTiles(bitmap);
+                return SetTiles(bitmap, newSize);
             }
         }
 
@@ -445,14 +445,18 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        private int SetTexture(SKBitmap bitmap)
+        private int SetTexture(SKBitmap bitmap, bool newSize)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
                 throw new ArgumentException($"Image width {bitmap.Width} not a valid width.");
             }
             int calculatedHeight = PixelData.Count / bitmap.Width;
-            if (bitmap.Height != calculatedHeight)
+            if (newSize)
+            {
+                PixelData = new(new byte[bitmap.Width * bitmap.Height]);
+            }
+            else if (bitmap.Height != calculatedHeight)
             {
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
@@ -469,14 +473,19 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap.Width;
         }
 
-        private int SetTiles(SKBitmap bitmap)
+        private int SetTiles(SKBitmap bitmap, bool newSize)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
                 throw new ArgumentException($"Image width {bitmap.Width} not a valid width.");
             }
             int calculatedHeight = PixelData.Count / (bitmap.Width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
-            if (bitmap.Height != calculatedHeight)
+            if (newSize)
+            {
+                Console.Write("Warning: Resizing... ");
+                PixelData = new(new byte[bitmap.Width * bitmap.Height]);
+            }
+            else if (bitmap.Height != calculatedHeight)
             {
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
