@@ -562,14 +562,14 @@ namespace HaruhiChokuretsuLib.Archive
                 {
                     Left = currentEntry.ScreenX,
                     Top = currentEntry.ScreenY,
-                    Right = currentEntry.ScreenX + currentEntry.ScreenW,
-                    Bottom = currentEntry.ScreenY + currentEntry.ScreenH,
+                    Right = currentEntry.ScreenX + Math.Abs(currentEntry.ScreenW),
+                    Bottom = currentEntry.ScreenY + Math.Abs(currentEntry.ScreenH),
                 };
 
                 SKBitmap texture = grpFile.GetImage(transparentIndex: 0);
                 SKBitmap tile = new((int)Math.Abs(boundingBox.Right - boundingBox.Left), (int)Math.Abs(boundingBox.Bottom - boundingBox.Top));
                 SKCanvas transformCanvas = new(tile);
-
+                
                 if (currentEntry.ScreenW < 0)
                 {
                     transformCanvas.Scale(-1, 1, tile.Width / 2.0f, 0);
@@ -578,7 +578,8 @@ namespace HaruhiChokuretsuLib.Archive
                 {
                     transformCanvas.Scale(1, -1, 0, tile.Height / 2.0f);
                 }
-                transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, tile.Width, tile.Height));
+                transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, Math.Abs(tile.Width), Math.Abs(tile.Height)));
+                transformCanvas.Flush();
 
                 for (int x = 0; x < tile.Width; x++)
                 {
