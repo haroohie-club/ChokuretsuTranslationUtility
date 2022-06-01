@@ -17,4 +17,4 @@ There are two ways of building the solution:
 * For documentation on how to use the graphical editor, go [here](HaruhiChokuretsuEditor/README.md).
 * For documentation on how to use the command-line interface, go [here](HaruhiChokuretsuCLI/README.md).
 * For documentation on how to use HaruhiChokuretsuLib in your own code, go [here](HaruhiChokuretsuLib/README.md).
-* For documentation on the structure and composition of Suzumiya Haruhi no Chokuretsu, see the [reverse engineering document](ReverseEngineering.md).
+* For documentation on the structure and composition of Suzumiya Haruhi no Chokuretsu, see the [Wiki](https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki).
