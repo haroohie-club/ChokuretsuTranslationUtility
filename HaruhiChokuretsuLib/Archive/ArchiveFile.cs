@@ -19,7 +19,7 @@ namespace HaruhiChokuretsuLib.Archive
         public int MagicIntegerLsbMultiplier { get; set; }
         public int MagicIntegerLsbAnd { get; set; }
         public int MagicIntegerMsbShift { get; set; }
-        public List<uint> HeaderPointers { get; set; } = new();
+        public List<uint> MagicIntegers { get; set; } = new();
         public List<uint> SecondHeaderNumbers { get; set; } = new();
         public List<byte> FinalHeaderComponent { get; set; }
         public List<T> Files { get; set; } = new();
@@ -42,8 +42,8 @@ namespace HaruhiChokuretsuLib.Archive
                     break;
                 }
             }
-            int numZeroes = archiveBytes.Skip(endOfHeader).TakeWhile(b => b == 0x00).Count();
-            int firstFileOffset = endOfHeader + numZeroes;
+            int numZeros = archiveBytes.Skip(endOfHeader).TakeWhile(b => b == 0x00).Count();
+            int firstFileOffset = endOfHeader + numZeros;
 
             Header = archiveBytes.Take(firstFileOffset).ToList();
 
@@ -67,9 +67,9 @@ namespace HaruhiChokuretsuLib.Archive
             HeaderLength = BitConverter.ToInt32(archiveBytes.Skip(0x1C).Take(4).ToArray()) + (((NumItems * 2) + 8) * 4);
             for (int i = FirstHeaderPointerOffset; i < (NumItems * 4) + 0x20; i += 4)
             {
-                HeaderPointers.Add(BitConverter.ToUInt32(archiveBytes.Skip(i).Take(4).ToArray()));
+                MagicIntegers.Add(BitConverter.ToUInt32(archiveBytes.Skip(i).Take(4).ToArray()));
             }
-            int firstNextPointer = FirstHeaderPointerOffset + HeaderPointers.Count * 4;
+            int firstNextPointer = FirstHeaderPointerOffset + MagicIntegers.Count * 4;
             for (int i = firstNextPointer; i < (NumItems * 4) + firstNextPointer; i += 4)
             {
                 SecondHeaderNumbers.Add(BitConverter.ToUInt32(archiveBytes.Skip(i).Take(4).ToArray()));
@@ -116,12 +116,12 @@ namespace HaruhiChokuretsuLib.Archive
         public uint GetMagicInteger(int offset)
         {
             uint msbToSearchFor = (uint)(offset / MagicIntegerMsbMultiplier) << MagicIntegerMsbShift;
-            return HeaderPointers.FirstOrDefault(p => (p & 0xFFFF0000) == msbToSearchFor);
+            return MagicIntegers.FirstOrDefault(p => (p & 0xFFFF0000) == msbToSearchFor);
         }
 
         public int GetFileIndex(uint magicInteger)
         {
-            return HeaderPointers.IndexOf(magicInteger);
+            return MagicIntegers.IndexOf(magicInteger);
         }
 
         public int GetFileLength(uint magicInteger)
@@ -223,9 +223,9 @@ namespace HaruhiChokuretsuLib.Archive
             file.Length = file.CompressedData.Length + (0x800 - (file.CompressedData.Length % 0x800) == 0 ? 0 : 0x800 - (file.CompressedData.Length % 0x800));
             file.MagicInteger = GetNewMagicalInteger(file, file.CompressedData.Length);
             uint secondHeaderNumber = 0xC0C0C0C0;
-            Header.InsertRange(0x1C + HeaderPointers.Count * 4, BitConverter.GetBytes(file.MagicInteger));
-            HeaderPointers.Add(file.MagicInteger);
-            Header.InsertRange(0x1C + HeaderPointers.Count * 4 + SecondHeaderNumbers.Count * 4, BitConverter.GetBytes(secondHeaderNumber));
+            Header.InsertRange(0x1C + MagicIntegers.Count * 4, BitConverter.GetBytes(file.MagicInteger));
+            MagicIntegers.Add(file.MagicInteger);
+            Header.InsertRange(0x1C + MagicIntegers.Count * 4 + SecondHeaderNumbers.Count * 4, BitConverter.GetBytes(secondHeaderNumber));
             SecondHeaderNumbers.Add(secondHeaderNumber);
             FinalHeaderComponent.RemoveRange(FinalHeaderComponent.Count - 8, 8);
             Files.Add(file);
