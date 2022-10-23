@@ -260,8 +260,10 @@ namespace HaruhiChokuretsuLib.Archive
                     if (pointerShift > 0)
                     {
                         Files[i + 1].Offset = ((Files[i + 1].Offset / MagicIntegerMsbMultiplier) + pointerShift) * MagicIntegerMsbMultiplier;
-                        int magicIntegerOffset = FirstMagicIntegerOffset + ((Files[i + 1].Index - 1) * 4);
-                        Files[i + 1].MagicInteger = GetNewMagicInteger(Files[i + 1], Files[i + 1].Length);
+                        int magicIntegerOffset = FirstMagicIntegerOffset + (i + 1) * 4;
+                        uint newMagicInteger = GetNewMagicInteger(Files[i + 1], Files[i + 1].Length);
+                        Files[i + 1].MagicInteger = newMagicInteger;
+                        MagicIntegers[i + 1] = newMagicInteger;
                         bytes.RemoveRange(magicIntegerOffset, 4);
                         bytes.InsertRange(magicIntegerOffset, BitConverter.GetBytes(Files[i + 1].MagicInteger));
                     }
