@@ -85,23 +85,12 @@ namespace HaruhiChokuretsuLib.Archive
                     }
                     file.Offset = offset;
                     file.MagicInteger = MagicIntegers[i];
-                    file.Index = GetFileIndex(file.MagicInteger);
+                    file.Index = i + 1;
                     file.Length = compressedLength;
                     file.CompressedData = fileBytes.ToArray();
                     Files.Add(file);
                 }
             }
-        }
-
-        public uint GetMagicInteger(int offset)
-        {
-            uint msbToSearchFor = (uint)(offset / MagicIntegerMsbMultiplier) << MagicIntegerMsbShift;
-            return MagicIntegers.FirstOrDefault(p => (p & 0xFFFF0000) == msbToSearchFor);
-        }
-
-        public int GetFileIndex(uint magicInteger)
-        {
-            return MagicIntegers.IndexOf(magicInteger) + 1;
         }
 
         public int GetFileOffset(uint magicInteger)
