@@ -33,6 +33,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         public ArchiveFile(byte[] archiveBytes)
         {
+            // Convert the main header components
             NumFiles = BitConverter.ToInt32(archiveBytes.Take(4).ToArray());
 
             MagicIntegerMsbMultiplier = BitConverter.ToInt32(archiveBytes.Skip(0x04).Take(4).ToArray());
@@ -44,6 +45,7 @@ namespace HaruhiChokuretsuLib.Archive
             Unknown1 = BitConverter.ToUInt32(archiveBytes.Skip(0x14).Take(4).ToArray());
             Unknown2 = BitConverter.ToUInt32(archiveBytes.Skip(0x18).Take(4).ToArray());
 
+            // Grab all the magic integers
             for (int i = 0; i <= MagicIntegerLsbAnd; i++)
             {
                 int length = GetFileLength((uint)i);
@@ -135,13 +137,16 @@ namespace HaruhiChokuretsuLib.Archive
 
                 for (; pcIncrement <= 0x174; pcIncrement += 0x0C)
                 {
+                    // ADCS
                     bool nextCarryFlag = Helpers.AddWillCauseCarry(standardLengthIncrement, (int)(salt << 1) + (carryFlag ? 1 : 0));
                     salt = (uint)standardLengthIncrement + (salt << 1) + (uint)(carryFlag ? 1 : 0);
                     carryFlag = nextCarryFlag;
+                    // SUBCC
                     if (!carryFlag)
                     {
                         salt -= (uint)standardLengthIncrement;
                     }
+                    // ADCS
                     nextCarryFlag = Helpers.AddWillCauseCarry(magicLengthInt, magicLengthInt + (carryFlag ? 1 : 0));
                     magicLengthInt = (magicLengthInt * 2) + (carryFlag ? 1 : 0);
                     carryFlag = nextCarryFlag;
@@ -159,7 +164,7 @@ namespace HaruhiChokuretsuLib.Archive
         public uint GetNewMagicInteger(T file, int compressedLength)
         {
             uint offsetComponent = (uint)(file.Offset / MagicIntegerMsbMultiplier) << MagicIntegerMsbShift;
-            int newLength = (compressedLength + 0x7FF) & ~0x7FF;
+            int newLength = (compressedLength + 0x7FF) & ~0x7FF; // round to nearest 0x800
             int newLengthComponent = LengthToMagicIntegerMap[newLength];
 
             return offsetComponent | (uint)newLengthComponent;
