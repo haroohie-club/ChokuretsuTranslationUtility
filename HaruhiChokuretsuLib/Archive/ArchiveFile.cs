@@ -12,7 +12,6 @@ namespace HaruhiChokuretsuLib.Archive
 
         public string FileName { get; set; }
         public int NumFiles { get; set; }
-        public int HeaderLength { get; set; }
         public int MagicIntegerMsbMultiplier { get; set; }
         public int MagicIntegerLsbMultiplier { get; set; }
         public int MagicIntegerLsbAnd { get; set; }
@@ -55,7 +54,6 @@ namespace HaruhiChokuretsuLib.Archive
             }
 
             UnrulyDataLength = BitConverter.ToUInt16(archiveBytes.Skip(0x1C).Take(4).ToArray());
-            HeaderLength = UnrulyDataLength + (((NumFiles * 2) + 8) * 4);
             for (int i = FirstMagicIntegerOffset; i < (NumFiles * 4) + 0x20; i += 4)
             {
                 MagicIntegers.Add(BitConverter.ToUInt32(archiveBytes.Skip(i).Take(4).ToArray()));
