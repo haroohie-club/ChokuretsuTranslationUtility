@@ -2,7 +2,7 @@
 The HaruhiChokuretsuLib project is the primary library on which the rest of the solution depends. It contains a Helpers
 class with various helper methods as well as three namespaces.
 
-Before reading this documentation, it is recommended you familiarize yourself with the [reverse engineering documentation](./ReverseEngineering.md)
+Before reading this documentation, it is recommended you familiarize yourself with the [reverse engineering documentation](https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki)
 as it will provide context for what is being described here.
 
 ## Helpers
@@ -160,7 +160,7 @@ relevant property for layouts is `List<LayoutEntry> LayoutEntries`, which abstra
 
 The only relevant method is `GetLayout()`, which returns a bitmap representation of the given layout entries as well as those layout entries.
 
-The `LayoutEntry` class, however, is immediately relevant. All of its properties are self-explanatory and line up exactly with those described in the [reverse engineering documentation](ReverseEngineering.md).
+The `LayoutEntry` class, however, is immediately relevant. All of its properties are self-explanatory and line up exactly with those described in the [reverse engineering documentation](https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki).
 
 ## HaruhiChokuretsuLib.Font
 The Font namespace is composed of two classes and simply provides the logic for interacting with the font-width ASM hack we have implemented. The first class, the [`FontReplacement`](Font/FontReplacement.cs) class,

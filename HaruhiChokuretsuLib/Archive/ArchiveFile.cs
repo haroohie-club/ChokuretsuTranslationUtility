@@ -55,6 +55,7 @@ namespace HaruhiChokuretsuLib.Archive
                 }
             }
 
+            // Grab the other parts of the header (not used in-game, but we should keep them for fidelity)
             UnrulyDataLength = BitConverter.ToUInt16(archiveBytes.Skip(0x1C).Take(4).ToArray());
             for (int i = FirstMagicIntegerOffset; i < (NumFiles * 4) + 0x20; i += 4)
             {
@@ -67,6 +68,7 @@ namespace HaruhiChokuretsuLib.Archive
             }
             FinalHeaderComponent = archiveBytes.Skip(0x20 + (NumFiles * 8)).Take(UnrulyDataLength).ToList();
 
+            // Add all the files to the archive from the magic integer offsets
             for (int i = 0; i < MagicIntegers.Count; i++)
             {
                 int offset = GetFileOffset(MagicIntegers[i]);
@@ -238,19 +240,22 @@ namespace HaruhiChokuretsuLib.Archive
                     }
                 }
                 bytes.AddRange(compressedBytes);
-                if (i < Files.Count - 1)
+                if (i < Files.Count - 1) // If we aren't on the last file
                 {
                     int pointerShift = 0;
                     while (bytes.Count % 0x10 != 0)
                     {
                         bytes.Add(0);
                     }
+                    // If the current size of the archive we’ve constructed so far is greater than
+                    // the next file’s offset, that means we need to adjust the next file’s offset
                     if (bytes.Count > Files[i + 1].Offset)
                     {
                         pointerShift = ((bytes.Count - Files[i + 1].Offset) / MagicIntegerMsbMultiplier) + 1;
                     }
                     if (pointerShift > 0)
                     {
+                        // Calculate the new magic integer factoring in pointer shift
                         Files[i + 1].Offset = ((Files[i + 1].Offset / MagicIntegerMsbMultiplier) + pointerShift) * MagicIntegerMsbMultiplier;
                         int magicIntegerOffset = FirstMagicIntegerOffset + (i + 1) * 4;
                         uint newMagicInteger = GetNewMagicInteger(Files[i + 1], Files[i + 1].Length);
