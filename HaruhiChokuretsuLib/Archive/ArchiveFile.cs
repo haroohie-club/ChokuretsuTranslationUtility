@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive
 {
@@ -16,12 +17,12 @@ namespace HaruhiChokuretsuLib.Archive
         public int MagicIntegerLsbMultiplier { get; set; }
         public int MagicIntegerLsbAnd { get; set; }
         public int MagicIntegerMsbShift { get; set; }
-        public int UnrulyDataLength { get; set; }
+        public int FileNamesLength { get; set; }
         public uint Unknown1 { get; set; }
         public uint Unknown2 { get; set; }
         public List<uint> MagicIntegers { get; set; } = new();
         public List<uint> SecondHeaderNumbers { get; set; } = new();
-        public List<byte> FinalHeaderComponent { get; set; }
+        public List<byte> FileNamesSection { get; set; }
         public List<T> Files { get; set; } = new();
         public Dictionary<int, int> LengthToMagicIntegerMap { get; private set; } = new();
 
@@ -56,7 +57,7 @@ namespace HaruhiChokuretsuLib.Archive
             }
 
             // Grab the other parts of the header (not used in-game, but we should keep them for fidelity)
-            UnrulyDataLength = BitConverter.ToUInt16(archiveBytes.Skip(0x1C).Take(4).ToArray());
+            FileNamesLength = BitConverter.ToUInt16(archiveBytes.Skip(0x1C).Take(4).ToArray());
             for (int i = FirstMagicIntegerOffset; i < (NumFiles * 4) + 0x20; i += 4)
             {
                 MagicIntegers.Add(BitConverter.ToUInt32(archiveBytes.Skip(i).Take(4).ToArray()));
@@ -66,7 +67,32 @@ namespace HaruhiChokuretsuLib.Archive
             {
                 SecondHeaderNumbers.Add(BitConverter.ToUInt32(archiveBytes.Skip(i).Take(4).ToArray()));
             }
-            FinalHeaderComponent = archiveBytes.Skip(0x20 + (NumFiles * 8)).Take(UnrulyDataLength).ToList();
+            FileNamesSection = archiveBytes.Skip(0x20 + (NumFiles * 8)).Take(FileNamesLength).ToList();
+
+            // Calculate file names based on the substitution cipher
+            List<string> filenames = new();
+            for (int i = 0; i < FileNamesSection.Count;)
+            {
+                byte[] nameBytes = FileNamesSection.Skip(i).TakeWhile(b => b != 0x00).ToArray();
+                for (int j = 0; j < nameBytes.Length; j++)
+                {
+                    if ((nameBytes[j] >= 67 && nameBytes[j] <= 70)
+                        || (nameBytes[j] >= 75 && nameBytes[j] <= 76)
+                        || (nameBytes[j] >= 84 && nameBytes[j] <= 86)
+                        || (nameBytes[j] >= 91 && nameBytes[j] <= 94)
+                        || (nameBytes[j] >= 99 && nameBytes[j] <= 103)
+                        || nameBytes[j] >= 107)
+                    {
+                        nameBytes[j] -= 19;
+                    }
+                    else
+                    {
+                        nameBytes[j] -= 11;
+                    }
+                }
+                filenames.Add(Encoding.ASCII.GetString(nameBytes));
+                i += nameBytes.Length + 1;
+            }
 
             // Add all the files to the archive from the magic integer offsets
             for (int i = 0; i < MagicIntegers.Count; i++)
@@ -85,6 +111,7 @@ namespace HaruhiChokuretsuLib.Archive
                     {
                         Console.WriteLine($"Failed to parse file at 0x{i:X8} due to index out of range exception (most likely during decompression)");
                     }
+                    file.Name = filenames[i];
                     file.Offset = offset;
                     file.MagicInteger = MagicIntegers[i];
                     file.Index = i + 1;
@@ -193,7 +220,7 @@ namespace HaruhiChokuretsuLib.Archive
             uint secondHeaderNumber = 0xC0C0C0C0;
             MagicIntegers.Add(file.MagicInteger);
             SecondHeaderNumbers.Add(secondHeaderNumber);
-            FinalHeaderComponent.RemoveRange(FinalHeaderComponent.Count - 8, 8);
+            FileNamesSection.RemoveRange(FileNamesSection.Count - 8, 8);
             Files.Add(file);
         }
 
@@ -208,7 +235,7 @@ namespace HaruhiChokuretsuLib.Archive
             bytes.AddRange(BitConverter.GetBytes(MagicIntegerLsbAnd));
             bytes.AddRange(BitConverter.GetBytes(Unknown1));
             bytes.AddRange(BitConverter.GetBytes(Unknown2));
-            bytes.AddRange(BitConverter.GetBytes(UnrulyDataLength));
+            bytes.AddRange(BitConverter.GetBytes(FileNamesLength));
 
             foreach (uint magicInteger in MagicIntegers)
             {
@@ -218,7 +245,7 @@ namespace HaruhiChokuretsuLib.Archive
             {
                 bytes.AddRange(BitConverter.GetBytes(secondInteger));
             }
-            bytes.AddRange(FinalHeaderComponent);
+            bytes.AddRange(FileNamesSection);
 
             bytes.AddRange(new byte[Files[0].Offset - bytes.Count]);
 

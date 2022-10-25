@@ -14,7 +14,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         public override string ToString()
         {
-            return $"{Index:X3} 0x{Offset:X8}";
+            return $"{Index:X3} 0x{Offset:X8} - {Name}";
         }
     }
 }

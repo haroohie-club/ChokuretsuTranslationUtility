@@ -5,6 +5,7 @@ namespace HaruhiChokuretsuLib.Archive
 {
     public partial class FileInArchive
     {
+        public string Name { get; set; }
         public uint MagicInteger { get; set; }
         public int Index { get; set; }
         public int Offset { get; set; }
@@ -28,6 +29,11 @@ namespace HaruhiChokuretsuLib.Archive
 
         public FileInArchive()
         {
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 

@@ -235,7 +235,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         public override string ToString()
         {
-            return $"{Index:X3} {Index:D4} 0x{Offset:X8} ({FileFunction})";
+            return $"{Index:X3} {Index:D4} 0x{Offset:X8} ({FileFunction}) - {Name}";
         }
 
         public SKBitmap GetImage(int width = -1, int transparentIndex = -1)

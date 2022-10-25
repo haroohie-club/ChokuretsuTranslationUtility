@@ -319,18 +319,18 @@ namespace HaruhiChokuretsuLib.Archive
 
         public override string ToString()
         {
-            if (!string.IsNullOrWhiteSpace(Title))
-            {
-                return $"{Index:X3} {Index:D3} 0x{Offset:X8} '{Title}'";
-            }
-            else if (DialogueLines.Count > 0)
-            {
-                return $"{Index:X3} {Index:D3} 0x{Offset:X8}, Line 1: {DialogueLines[0].Text}";
-            }
-            else
-            {
-                return $"{Index:X3} {Index:D3} 0x{Offset:X8}";
-            }
+            //if (!string.IsNullOrWhiteSpace(Title))
+            //{
+            return $"{Index:X3} {Index:D3} 0x{Offset:X8} '{Name}'";
+            //}
+            //else if (DialogueLines.Count > 0)
+            //{
+            //    return $"{Index:X3} {Index:D3} 0x{Offset:X8}, Line 1: {Name}";
+            //}
+            //else
+            //{
+            //    return $"{Index:X3} {Index:D3} 0x{Offset:X8}";
+            //}
         }
     }
 
