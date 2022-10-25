@@ -82,6 +82,7 @@ namespace HaruhiChokuretsuTests
         public void EvtFileParserTest(string evtFile)
         {
             ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(evtFile);
+            Assert.AreEqual(evt.NumFiles, evt.Files.Count);
 
             foreach (EventFile eventFile in evt.Files)
             {
