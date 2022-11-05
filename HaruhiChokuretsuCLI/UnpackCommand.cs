@@ -2,13 +2,14 @@
 using Mono.Options;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml.Schema;
 
 namespace HaruhiChokuretsuCLI
 {
     public class UnpackCommand : Command
     {
         private string _inputArchive = "", _outputDirectory = "";
-        private bool _compressed, _decimal, _showHelp;
+        private bool _compressed, _decimal, _useNames;
 
         public UnpackCommand() : base("unpack", "Unpacks an archive")
         {
@@ -21,7 +22,7 @@ namespace HaruhiChokuretsuCLI
                 { "o|output-direcetory=", "The directory to unpack the archive files (will be created if does not exist)", o => _outputDirectory = o },
                 { "c|compressed", "Add this flag if you want files to remain compressed", c => _compressed = true },
                 { "d|decimal", "Switches the output from hexadecimal numbering to decimal", d => _decimal = true },
-                { "h|help", "Show this help screen", h => _showHelp = true }
+                { "n|names", "Append internal filenames to the extracted files", n => _useNames = true }
             };
         }
 
@@ -29,7 +30,7 @@ namespace HaruhiChokuretsuCLI
         {
             Options.Parse(arguments);
 
-            if (_showHelp || string.IsNullOrEmpty(_inputArchive) || string.IsNullOrEmpty(_outputDirectory))
+            if (string.IsNullOrEmpty(_inputArchive) || string.IsNullOrEmpty(_outputDirectory))
             {
                 int returnValue = 0;
                 if (string.IsNullOrEmpty(_inputArchive))
@@ -53,14 +54,9 @@ namespace HaruhiChokuretsuCLI
 
             var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
 
-            if (_compressed)
-            {
-                archive.Files.ForEach(x => File.WriteAllBytes(Path.Combine(_outputDirectory, _decimal ? $"{x.Index:3}.bin" : $"{x.Index:X3}.bin"), x.CompressedData));
-            }
-            else
-            {
-                archive.Files.ForEach(x => File.WriteAllBytes(Path.Combine(_outputDirectory, _decimal ? $"{x.Index:D3}.bin" : $"{x.Index:X3}.bin"), x.Data.ToArray()));
-            }
+            archive.Files.ForEach(x => File.WriteAllBytes(Path.Combine(_outputDirectory, 
+                (_decimal ? $"{x.Index:D3}" : $"{x.Index:X3}") + (_useNames ? $" - {x.Name}" : "") + ".bin"), 
+                _compressed ? x.CompressedData : x.Data.ToArray()));
 
             CommandSet.Out.WriteLine($"Successfully unpacked {archive.Files.Count} from archive {archive.FileName}.");
 
