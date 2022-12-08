@@ -40,9 +40,10 @@ namespace HaruhiChokuretsuLib.Archive
     public static class FileManager<T>
         where T : FileInArchive, new()
     {
-        public static T FromCompressedData(byte[] compressedData, int offset = 0)
+        public static T FromCompressedData(byte[] compressedData, int offset = 0, string name = null)
         {
             T created = new();
+            created.Name = name;
             created.Initialize(Helpers.DecompressData(compressedData), offset);
             return created;
         }

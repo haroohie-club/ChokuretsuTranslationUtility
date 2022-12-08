@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Archive.Data;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ namespace HaruhiChokuretsuEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 _evtFile = ArchiveFile<EventFile>.FromFile(openFileDialog.FileName);
-                _evtFile.Files.First(f => f.Index == 580).InitializeDialogueForSpecialFiles();
+                _evtFile.Files.First(f => f.Index == 580).InitializeScenarioFile();
                 _evtFile.Files.First(f => f.Index == 581).InitializeTopicFile();
                 _evtFile.Files.Where(f => f.Index is >= 358 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.Files.First(f => f.Index == 581).TopicStructs));
 
@@ -134,6 +135,7 @@ namespace HaruhiChokuretsuEditor
         {
             editStackPanel.Children.Clear();
             eventsTopicsStackPanel.Children.Clear();
+            eventsScenariosStackPanel.Children.Clear();
             frontPointersStackPanel.Children.Clear();
             endPointersStackPanel.Children.Clear();
             if (eventsListBox.SelectedIndex >= 0)
@@ -159,6 +161,28 @@ namespace HaruhiChokuretsuEditor
                     topicStackPanel.Children.Add(new TextBlock { Text = $"{topic.EventIndex} (0x{topic.EventIndex:X3})" });
                     eventsTopicsStackPanel.Children.Add(topicStackPanel);
                 }
+                foreach (ScenarioCommand command in selectedFile.Scenario?.Commands ?? new())
+                {
+                    eventsScenariosStackPanel.Children.Add(new TextBlock { Text = command.ToString() });
+                }
+                //foreach (ScenarioRouteSelectionStruct scenario in selectedFile.ScenarioStructs)
+                //{
+                //    StackPanel scenarioStackPanel = new();
+                //    scenarioStackPanel.Children.Add(new TextBlock { Text = $"{scenario.Title}" });
+                //    scenarioStackPanel.Children.Add(new TextBlock { Text = $"{scenario.UnknownInt1}\t{scenario.UnknownInt2}\t" +
+                //        $"{scenario.UnknownInt3}\t{scenario.UnknownInt4}\t{scenario.UnknownInt5}\t{scenario.UnknownInt6}" });
+                //    scenarioStackPanel.Children.Add(new TextBlock { Text = $"Required Brigade Member: {scenario.RequiredBrigadeMember}" });
+                //    scenarioStackPanel.Children.Add(new TextBlock { Text = $"Haruhi Present: {scenario.HaruhiPresent}" });
+                //    foreach (ScenarioRouteStruct route in scenario.Routes)
+                //    {
+                //        StackPanel routeStackPanel = new() { Orientation = Orientation.Horizontal };
+                //        routeStackPanel.Children.Add(new TextBlock { Text = $"{route.Title} ({route.UnknownShort}) -> {route.ScriptIndex}\t" });
+                //        routeStackPanel.Children.Add(new TextBlock { Text = $"{string.Join(", ", route.CharactersInvolved)}" });
+                //        scenarioStackPanel.Children.Add(routeStackPanel);
+                //    }
+                //    eventsScenariosStackPanel.Children.Add(scenarioStackPanel);
+                //    eventsScenariosStackPanel.Children.Add(new Separator());
+                //}
                 foreach (int frontPointer in selectedFile.FrontPointers)
                 {
                     StackPanel fpStackPanel = new() { Orientation = Orientation.Horizontal };
@@ -674,6 +698,17 @@ namespace HaruhiChokuretsuEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 _datFile = ArchiveFile<DataFile>.FromFile(openFileDialog.FileName);
+                for (int i = 0x8E; i <= 0x97; i++)
+                {
+                    DataFile puzzleMapDataFile = _datFile.Files.First(f => f.Index == i);
+                    PuzzleMap puzzleMapFile = new();
+                    puzzleMapFile.Initialize(puzzleMapDataFile.Data.ToArray(), puzzleMapDataFile.Offset);
+                    puzzleMapFile.Index = puzzleMapDataFile.Index;
+                    puzzleMapFile.Name = puzzleMapDataFile.Name;
+                    puzzleMapFile.Length = puzzleMapDataFile.Length;
+                    puzzleMapFile.CompressedData = puzzleMapDataFile.CompressedData;
+                    _datFile.Files[_datFile.Files.IndexOf(puzzleMapDataFile)] = puzzleMapFile;
+                }
                 dataListBox.ItemsSource = _datFile.Files;
                 dataListBox.Items.Refresh();
             }
@@ -729,6 +764,31 @@ namespace HaruhiChokuretsuEditor
                 DataFile selectedFile = (DataFile)dataListBox.SelectedItem;
                 dataEditStackPanel.Children.Add(new TextBlock { Text = $"{selectedFile.Data.Count} bytes" });
                 dataEditStackPanel.Children.Add(new TextBlock { Text = $"Actual compressed length: {selectedFile.CompressedData.Length:X}; Calculated length: {selectedFile.Length:X}" });
+
+                if (selectedFile.GetType() == typeof(PuzzleMap))
+                {
+                    PuzzleMap map = (PuzzleMap)selectedFile;
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"Map: " +
+                        $"{map.Settings.GetMapName(_datFile.Files.First(f => f.Name == "QMAPS").Data)} " +
+                        $"({map.Settings.MapId})" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.BaseTime)}: {map.Settings.BaseTime}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.NumSingularities)}: {map.Settings.NumSingularities}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown04)}: {map.Settings.Unknown04}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TargetNumber)}: {map.Settings.TargetNumber}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ContinueOnFailure)}: {map.Settings.ContinueOnFailure}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.AccompanyingCharacter)}: {map.Settings.AccompanyingCharacter}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PowerCharacter1)}: {map.Settings.PowerCharacter1}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PowerCharacter2)}: {map.Settings.PowerCharacter2}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SingularityGraphic)}: {map.Settings.SingularityGraphic}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SingularityLayout)}: {map.Settings.SingularityLayout}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SingularityAnim1)}: {map.Settings.SingularityAnim1}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SingularityAnim2)}: {map.Settings.SingularityAnim2}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TopicSet)}: {map.Settings.TopicSet}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown15)}: {map.Settings.Unknown15}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown16)}: {map.Settings.Unknown16}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown17)}: {map.Settings.Unknown17}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown18)}: {map.Settings.Unknown18}" });
+                }
             }
         }
     }

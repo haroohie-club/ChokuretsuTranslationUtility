@@ -105,13 +105,12 @@ namespace HaruhiChokuretsuLib.Archive
                     T file = new();
                     try
                     {
-                        file = FileManager<T>.FromCompressedData(fileBytes, offset);
+                        file = FileManager<T>.FromCompressedData(fileBytes, offset, filenames[i]);
                     }
                     catch (IndexOutOfRangeException)
                     {
                         Console.WriteLine($"Failed to parse file at 0x{i:X8} due to index out of range exception (most likely during decompression)");
                     }
-                    file.Name = filenames[i];
                     file.Offset = offset;
                     file.MagicInteger = MagicIntegers[i];
                     file.Index = i + 1;
