@@ -698,16 +698,27 @@ namespace HaruhiChokuretsuEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 _datFile = ArchiveFile<DataFile>.FromFile(openFileDialog.FileName);
+                List<byte> qmapData = _datFile.Files.First(f => f.Name == "QMAPS").Data;
+                List<string> mapFileNames = new();
+                for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
+                {
+                    mapFileNames.Add(Encoding.ASCII.GetString(qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + i * 8).Take(4).ToArray())).TakeWhile(b => b != 0).ToArray()).Replace(".", ""));
+                }
+                
+                for (int i = 1; i < _datFile.Files.Count + 1; i++)
+                {
+                    if (mapFileNames.Contains(_datFile.Files[i - 1].Name))
+                    {
+                        DataFile oldMapFile = _datFile.Files.First(f => f.Index == i);
+                        MapFile mapFile = _datFile.Files.First(f => f.Index == i).CastTo<MapFile>();
+                        _datFile.Files[_datFile.Files.IndexOf(oldMapFile)] = mapFile;
+                    }
+                }
                 for (int i = 0x8E; i <= 0x97; i++)
                 {
-                    DataFile puzzleMapDataFile = _datFile.Files.First(f => f.Index == i);
-                    PuzzleMap puzzleMapFile = new();
-                    puzzleMapFile.Initialize(puzzleMapDataFile.Data.ToArray(), puzzleMapDataFile.Offset);
-                    puzzleMapFile.Index = puzzleMapDataFile.Index;
-                    puzzleMapFile.Name = puzzleMapDataFile.Name;
-                    puzzleMapFile.Length = puzzleMapDataFile.Length;
-                    puzzleMapFile.CompressedData = puzzleMapDataFile.CompressedData;
-                    _datFile.Files[_datFile.Files.IndexOf(puzzleMapDataFile)] = puzzleMapFile;
+                    DataFile oldPuzzleFile = _datFile.Files.First(f => f.Index == i);
+                    PuzzleFile puzzleFile = oldPuzzleFile.CastTo<PuzzleFile>();
+                    _datFile.Files[_datFile.Files.IndexOf(oldPuzzleFile)] = puzzleFile;
                 }
                 dataListBox.ItemsSource = _datFile.Files;
                 dataListBox.Items.Refresh();
@@ -765,30 +776,118 @@ namespace HaruhiChokuretsuEditor
                 dataEditStackPanel.Children.Add(new TextBlock { Text = $"{selectedFile.Data.Count} bytes" });
                 dataEditStackPanel.Children.Add(new TextBlock { Text = $"Actual compressed length: {selectedFile.CompressedData.Length:X}; Calculated length: {selectedFile.Length:X}" });
 
-                if (selectedFile.GetType() == typeof(PuzzleMap))
+                if (selectedFile.GetType() == typeof(PuzzleFile))
                 {
-                    PuzzleMap map = (PuzzleMap)selectedFile;
+                    PuzzleFile puzzle = (PuzzleFile)selectedFile;
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"Map: " +
-                        $"{map.Settings.GetMapName(_datFile.Files.First(f => f.Name == "QMAPS").Data)} " +
-                        $"({map.Settings.MapId})" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.BaseTime)}: {map.Settings.BaseTime}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.NumSingularities)}: {map.Settings.NumSingularities}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown04)}: {map.Settings.Unknown04}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TargetNumber)}: {map.Settings.TargetNumber}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ContinueOnFailure)}: {map.Settings.ContinueOnFailure}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.AccompanyingCharacter)}: {map.Settings.AccompanyingCharacter}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PowerCharacter1)}: {map.Settings.PowerCharacter1}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PowerCharacter2)}: {map.Settings.PowerCharacter2}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SingularityGraphic)}: {map.Settings.SingularityGraphic}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SingularityLayout)}: {map.Settings.SingularityLayout}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SingularityAnim1)}: {map.Settings.SingularityAnim1}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SingularityAnim2)}: {map.Settings.SingularityAnim2}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TopicSet)}: {map.Settings.TopicSet}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown15)}: {map.Settings.Unknown15}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown16)}: {map.Settings.Unknown16}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown17)}: {map.Settings.Unknown17}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown18)}: {map.Settings.Unknown18}" });
+                        $"{puzzle.Settings.GetMapName(_datFile.Files.First(f => f.Name == "QMAPS").Data)} " +
+                        $"({puzzle.Settings.MapId})" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.BaseTime)}: {puzzle.Settings.BaseTime}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.NumSingularities)}: {puzzle.Settings.NumSingularities}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown04)}: {puzzle.Settings.Unknown04}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.TargetNumber)}: {puzzle.Settings.TargetNumber}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.ContinueOnFailure)}: {puzzle.Settings.ContinueOnFailure}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.AccompanyingCharacter)}: {puzzle.Settings.AccompanyingCharacter}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.PowerCharacter1)}: {puzzle.Settings.PowerCharacter1}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.PowerCharacter2)}: {puzzle.Settings.PowerCharacter2}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.SingularityTexture)}: {puzzle.Settings.SingularityTexture}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.SingularityLayout)}: {puzzle.Settings.SingularityLayout}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.SingularityAnim1)}: {puzzle.Settings.SingularityAnim1}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.SingularityAnim2)}: {puzzle.Settings.SingularityAnim2}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.TopicSet)}: {puzzle.Settings.TopicSet}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown15)}: {puzzle.Settings.Unknown15}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown16)}: {puzzle.Settings.Unknown16}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown17)}: {puzzle.Settings.Unknown17}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown18)}: {puzzle.Settings.Unknown18}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = puzzle.HaruhiRoute.ToString() });
+                    GraphicsFile singularityLayout = _grpFile.Files.First(f => f.Index == puzzle.Settings.SingularityLayout);
+                    GraphicsFile singularityTexture = _grpFile.Files.First(f => f.Index == puzzle.Settings.SingularityTexture);
+                    SKBitmap singularityImage = singularityLayout.GetLayout(
+                            new List<GraphicsFile>() { singularityTexture },
+                            0,
+                            singularityLayout.LayoutEntries.Count,
+                            false,
+                            true).bitmap;
+                    dataEditStackPanel.Children.Add(new Image
+                    {
+                        Source = GuiHelpers.GetBitmapImageFromBitmap(singularityImage),
+                        Width = singularityImage.Width,
+                        Height = singularityImage.Height
+                    });
                 }
+                else if (selectedFile.GetType() == typeof(MapFile))
+                {
+                    MapFile map = (MapFile)selectedFile;
+
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown00)}: {map.Settings.Unknown00}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.MapWidth)}: {map.Settings.MapWidth}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.MapHeight)}: {map.Settings.MapHeight}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TextureFileIndices)}: {string.Join(", ", map.Settings.TextureFileIndices.Select(i => $"0x{i:X3}"))}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutFileIndex)}: 0x{map.Settings.LayoutFileIndex:X3} ({_grpFile.Files.First(f => f.Index == map.Settings.LayoutFileIndex).LayoutEntries.Count} entries)" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ForegroundLayoutStartIndex)}: {map.Settings.ForegroundLayoutStartIndex}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown18)}: {map.Settings.Unknown18}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.UnknownLayoutIndex1C)}: {map.Settings.UnknownLayoutIndex1C}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.UnknownLayoutIndex20)}: {map.Settings.UnknownLayoutIndex20}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.UnknownLayoutIndex24)}: {map.Settings.UnknownLayoutIndex24}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown28)}: {map.Settings.Unknown28}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.BackgroundLayoutStartIndex)}: {map.Settings.BackgroundLayoutStartIndex}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.BackgroundLayoutEndIndex)}: {map.Settings.BackgroundLayoutEndIndex}" });
+
+                    GraphicsLayoutCreationButton displayLayoutButton = new() { Content = "Display Layout" };
+                    displayLayoutButton.Click += DisplayLayoutButton_Click;
+                    dataEditStackPanel.Children.Add(displayLayoutButton);
+                }
+            }
+        }
+
+        private void DisplayLayoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            MapFile map = (MapFile)dataListBox.SelectedItem;
+            GraphicsFile layout = _grpFile.Files.First(f => f.Index == map.Settings.LayoutFileIndex);
+
+            (SKBitmap mapBitmap, SKBitmap bgBitmap) = map.GetMapImages(_grpFile);
+            BitmapButton mapBitmapButton = new() { Bitmap = mapBitmap, Content = "Save Image" };
+            //BitmapButton overlayBitmapButton = new() { Bitmap = overlayBitmap, Content = "Save Image" };
+            BitmapButton bgBitmapButton = new() { Bitmap = bgBitmap, Content = "Save Image" };
+            mapBitmapButton.Click += BitmapButton_Click;
+            bgBitmapButton.Click += BitmapButton_Click;
+            dataEditStackPanel.Children.Add(mapBitmapButton);
+            dataEditStackPanel.Children.Add(new Image
+            {
+                Source = GuiHelpers.GetBitmapImageFromBitmap(mapBitmap),
+                Width = layout.Width,
+                Height = layout.Height,
+            });
+            //if (overlayBitmap is not null)
+            //{
+            //    dataEditStackPanel.Children.Add(overlayBitmapButton);
+            //    dataEditStackPanel.Children.Add(new Image
+            //    {
+            //        Source = GuiHelpers.GetBitmapImageFromBitmap(overlayBitmap),
+            //        Width = layout.Width,
+            //        Height = layout.Height,
+            //    });
+            //}
+            if (bgBitmap is not null)
+            {
+                dataEditStackPanel.Children.Add(bgBitmapButton);
+                dataEditStackPanel.Children.Add(new Image
+                {
+                    Source = GuiHelpers.GetBitmapImageFromBitmap(bgBitmap),
+                    Width = layout.Width,
+                    Height = layout.Height,
+                });
+            }
+        }
+
+        private void BitmapButton_Click(object sender, RoutedEventArgs e)
+        {
+            BitmapButton button = (BitmapButton)sender;
+            SaveFileDialog saveFileDialog = new() { Filter = "PNG image|*.png" };
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                using FileStream fileStream = new(saveFileDialog.FileName, FileMode.Create);
+                button.Bitmap.Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
             }
         }
     }

@@ -7,14 +7,16 @@ using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
-    public class PuzzleMap : DataFile
+    public class PuzzleFile : DataFile
     {
         public int NumSections { get; set; }
         public int EndPointersOffset { get; set; }
         public int HeaderEndPointer { get; set; }
         public List<(int Offset, int ItemCount)> SectionOffsetsAndCounts { get; set; } = new();
 
-        public PuzzleMapSettings Settings { get; set; }
+        public List<(int Topic, int Unknown)> AssociatedTopics { get; set; } = new();
+        public PuzzleHaruhiRoute HaruhiRoute { get; set; }
+        public PuzzleSettings Settings { get; set; }
 
         public override void Initialize(byte[] decompressedData, int offset)
         {
@@ -30,10 +32,65 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
 
             Settings = new(Data.Skip(SectionOffsetsAndCounts[0].Offset).Take(0x48));
+            HaruhiRoute = new(Data.Skip(SectionOffsetsAndCounts[3].Offset).Take(SectionOffsetsAndCounts[3].ItemCount * 2).ToArray());
+            for (int i = 0; i < SectionOffsetsAndCounts[12].ItemCount; i++)
+            {
+                AssociatedTopics.Add((BitConverter.ToInt32(Data.Skip(SectionOffsetsAndCounts[12].Offset + i * 8).Take(4).ToArray()),
+                    BitConverter.ToInt32(Data.Skip(SectionOffsetsAndCounts[12].Offset + i * 8 + 4).Take(4).ToArray())));
+            }
         }
     }
 
-    public class PuzzleMapSettings
+    public class PuzzleHaruhiRoute
+    {
+        public enum RouteEventType
+        {
+            NOTHING,
+            TOPIC,
+            ACCIDENT
+        }
+
+        public struct RouteEvent
+        {
+            public RouteEventType EventType;
+            public int AssociatedTopicIndex;
+        }
+
+        public List<RouteEvent> HaruhiRoute { get; set; } = new();
+
+        public PuzzleHaruhiRoute(byte[] data)
+        {
+            for (int i = 0; i < data.Length - 1; i += 2)
+            {
+                HaruhiRoute.Add(new() { EventType = (RouteEventType)data[i], AssociatedTopicIndex = data[i + 1] });
+            }
+        }
+
+        public override string ToString()
+        {
+            string str = string.Empty;
+
+            foreach (RouteEvent e in HaruhiRoute)
+            {
+                switch (e.EventType)
+                {
+                    case RouteEventType.NOTHING:
+                        str += "-";
+                        break;
+                    case RouteEventType.TOPIC:
+                        str += "T";
+                        break;
+                    case RouteEventType.ACCIDENT:
+                        str += "A";
+                        break;
+                }
+            }
+
+            return str;
+        }
+    }
+
+    public class PuzzleSettings
     {
         public int MapId { get; set; }
         public int BaseTime { get; set; }
@@ -44,7 +101,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public string AccompanyingCharacter { get; set; }
         public string PowerCharacter1 { get; set; }
         public string PowerCharacter2 { get; set; }
-        public int SingularityGraphic { get; set; }
+        public int SingularityTexture { get; set; }
         public int SingularityLayout { get; set; }
         public int SingularityAnim1 { get; set; }
         public int SingularityAnim2 { get; set; }
@@ -54,7 +111,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public int Unknown17 { get; set; }
         public int Unknown18 { get; set; }
 
-        public PuzzleMapSettings(IEnumerable<byte> data)
+        public PuzzleSettings(IEnumerable<byte> data)
         {
             MapId = BitConverter.ToInt32(data.Take(4).ToArray());
             BaseTime = BitConverter.ToInt32(data.Skip(0x04).Take(4).ToArray());
@@ -65,7 +122,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             AccompanyingCharacter = CharacterSwitch(BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray()));
             PowerCharacter1 = CharacterSwitch(BitConverter.ToInt32(data.Skip(0x1C).Take(4).ToArray()));
             PowerCharacter2 = CharacterSwitch(BitConverter.ToInt32(data.Skip(0x20).Take(4).ToArray()));
-            SingularityGraphic = BitConverter.ToInt32(data.Skip(0x24).Take(4).ToArray());
+            SingularityTexture = BitConverter.ToInt32(data.Skip(0x24).Take(4).ToArray());
             SingularityLayout = BitConverter.ToInt32(data.Skip(0x28).Take(4).ToArray());
             SingularityAnim1 = BitConverter.ToInt32(data.Skip(0x2C).Take(4).ToArray());
             SingularityAnim2 = BitConverter.ToInt32(data.Skip(0x30).Take(4).ToArray());

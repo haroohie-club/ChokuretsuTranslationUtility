@@ -13,7 +13,7 @@ namespace HaruhiChokuretsuCLI
     {
         private string _inputArchive, _outputFile;
         private int _fileIndex = -1, _imageWidth = -1;
-        private bool _showHelp;
+        private bool _showHelp, _compressed;
 
         public ExtractCommand() : base("extract", "Extracts a file from an archive")
         {
@@ -27,6 +27,7 @@ namespace HaruhiChokuretsuCLI
                     n => _fileIndex = n.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? int.Parse(n[2..], NumberStyles.HexNumber) : int.Parse(n) },
                 { "o|output-file=", "File name of extracted file (if ends in PNG or RESX, will extract to those formats; otherwise extracts raw binary data)", o => _outputFile = o},
                 { "w|image-width=", "Width of an image to extract (defaults to the image's encoded width)", w => _imageWidth = int.Parse(w) },
+                { "c|compressed", "Extract compressed file", c => _compressed = true },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
         }
@@ -107,8 +108,16 @@ namespace HaruhiChokuretsuCLI
                     var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
                     FileInArchive file = archive.Files.First(f => f.Index == _fileIndex);
 
-                    CommandSet.Out.Write($"Extracting file #{file.Index:X3} from archive {archive.FileName}... ");
-                    File.WriteAllBytes(_outputFile, file.GetBytes());
+                    if (_compressed)
+                    {
+                        CommandSet.Out.Write($"Extracting compressed file #{file.Index:X3} from archive {archive.FileName}... ");
+                        File.WriteAllBytes(_outputFile, file.CompressedData);
+                    }
+                    else
+                    {
+                        CommandSet.Out.Write($"Extracting file #{file.Index:X3} from archive {archive.FileName}... ");
+                        File.WriteAllBytes(_outputFile, file.GetBytes());
+                    }
                 }
             }
             catch (Exception e)

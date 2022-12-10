@@ -82,7 +82,7 @@ namespace HaruhiChokuretsuLib.Archive
             else if (Name.EndsWith("BNL", StringComparison.OrdinalIgnoreCase)/*magicBytes.SequenceEqual(new byte[] { 0x00, 0x01, 0xC0, 0x00 }) || magicBytes.SequenceEqual(new byte[] { 0x10, 0x04, 0x88, 0x02 })*/)
             {
                 FileFunction = Function.LAYOUT;
-                for (int i = 0x08; i < Data.Count - 0x1C; i += 0x1C)
+                for (int i = 0x08; i <= Data.Count - 0x1C; i += 0x1C)
                 {
                     LayoutEntries.Add(new(Data.Skip(i).Take(0x1C)));
                 }
@@ -522,14 +522,18 @@ namespace HaruhiChokuretsuLib.Archive
             return bitmap.Width;
         }
 
-        public (SKBitmap bitmap, List<LayoutEntry> layoutEntries) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries, bool darkMode)
+        public (SKBitmap bitmap, List<LayoutEntry> layoutEntries) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries, bool darkMode, bool preprocessedList = false)
         {
-            return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList(), darkMode);
+            return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList(), darkMode, preprocessedList);
         }
 
-        public (SKBitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, List<LayoutEntry> layoutEntries, bool darkMode)
+        public (SKBitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, List<LayoutEntry> layoutEntries, bool darkMode, bool preprocessedList = false)
         {
-            SKBitmap layoutBitmap = new(640, 480);
+            LayoutEntry maxX = LayoutEntries.OrderByDescending(l => l.ScreenX).First();
+            LayoutEntry maxY = LayoutEntries.OrderByDescending(l => l.ScreenY).First();
+            Width = maxX.ScreenX + maxX.ScreenW;
+            Height = maxY.ScreenY + maxY.ScreenH;
+            SKBitmap layoutBitmap = new(Width, Height);
             using SKCanvas canvas = new(layoutBitmap);
             if (darkMode)
             {
@@ -541,15 +545,24 @@ namespace HaruhiChokuretsuLib.Archive
                 {
                     continue;
                 }
-                int grpIndex = Index + 1;
-                for (int i = 0; i <= currentEntry.RelativeShtxIndex && grpIndex < grpFiles.Count; grpIndex++)
+                GraphicsFile grpFile;
+
+                if (preprocessedList)
                 {
-                    if (grpFiles.First(g => g.Index == grpIndex).FileFunction == Function.SHTX)
-                    {
-                        i++;
-                    }
+                    grpFile = grpFiles[currentEntry.RelativeShtxIndex];
                 }
-                GraphicsFile grpFile = grpFiles.First(g => g.Index == grpIndex - 1);
+                else
+                {
+                    int grpIndex = Index + 1;
+                    for (int i = 0; i <= currentEntry.RelativeShtxIndex && grpIndex < grpFiles.Count; grpIndex++)
+                    {
+                        if (grpFiles.First(g => g.Index == grpIndex).FileFunction == Function.SHTX)
+                        {
+                            i++;
+                        }
+                    }
+                    grpFile = grpFiles.First(g => g.Index == grpIndex - 1);
+                }
 
                 SKRect boundingBox = new()
                 {
@@ -581,19 +594,18 @@ namespace HaruhiChokuretsuLib.Archive
                 transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, Math.Abs(tile.Width), Math.Abs(tile.Height)));
                 transformCanvas.Flush();
 
-                for (int x = 0; x < tile.Width; x++)
+                if (currentEntry.Tint != SKColors.White)
                 {
-                    for (int y = 0; y < tile.Height; y++)
+                    for (int x = 0; x < tile.Width; x++)
                     {
-                        if (currentEntry.Tint.Red != 0xFF)
+                        for (int y = 0; y < tile.Height; y++)
                         {
-                            Console.WriteLine("Here");
+                            SKColor pixelColor = tile.GetPixel(x, y);
+                            tile.SetPixel(x, y, new((byte)(pixelColor.Red * currentEntry.Tint.Red / 255),
+                                (byte)(pixelColor.Green * currentEntry.Tint.Green / 255),
+                                (byte)(pixelColor.Blue * currentEntry.Tint.Blue / 255),
+                                (byte)(pixelColor.Alpha * currentEntry.Tint.Alpha / 255)));
                         }
-                        SKColor pixelColor = tile.GetPixel(x, y);
-                        tile.SetPixel(x, y, new((byte)(pixelColor.Red * currentEntry.Tint.Red / 255),
-                            (byte)(pixelColor.Green * currentEntry.Tint.Green / 255),
-                            (byte)(pixelColor.Blue * currentEntry.Tint.Blue / 255),
-                            (byte)(pixelColor.Alpha * currentEntry.Tint.Alpha / 255)));
                     }
                 }
 

@@ -16,6 +16,11 @@ namespace HaruhiChokuretsuEditor
         public GraphicsFile Shtxds { get; set; }
     }
 
+    public class BitmapButton : Button
+    {
+        public SKBitmap Bitmap { get; set; }
+    }
+
     public class GraphicsLayoutCreationButton : Button
     {
         public TextBox StartTextBox { get; set; }

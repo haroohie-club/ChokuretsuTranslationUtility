@@ -72,7 +72,7 @@ namespace HaruhiChokuretsuTests
 
         public static byte[] StripZeroes(byte[] array)
         {
-            List<byte> strippedArray = new List<byte>(array);
+            List<byte> strippedArray = new(array);
 
             for (int i = strippedArray.Count - 1; strippedArray[i] == 0; i--)
             {

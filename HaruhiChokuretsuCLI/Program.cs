@@ -20,6 +20,7 @@ namespace HaruhiChokuretsuCLI
                 new VersionScreenCommand(),
                 new AssembleOverlayCodeCommand(),
                 new ConvertAudioCommand(),
+                new ExportMapCommand(),
             };
 
             return commands.Run(args);

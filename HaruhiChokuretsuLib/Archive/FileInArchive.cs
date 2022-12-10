@@ -31,6 +31,21 @@ namespace HaruhiChokuretsuLib.Archive
         {
         }
 
+        public T CastTo<T>() where T : FileInArchive, new()
+        {
+            T newFile = new();
+            newFile.Name = Name;
+            newFile.MagicInteger = MagicInteger;
+            newFile.Index = Index;
+            newFile.Offset = Offset;
+            newFile.Length = Length;
+            newFile.Data = Data;
+            newFile.CompressedData = CompressedData;
+            newFile.Edited = Edited;
+            newFile.Initialize(Data.ToArray(), Offset);
+
+            return newFile;
+        }
         public override string ToString()
         {
             return Name;
