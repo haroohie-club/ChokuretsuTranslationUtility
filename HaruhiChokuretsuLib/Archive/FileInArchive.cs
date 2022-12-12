@@ -33,15 +33,17 @@ namespace HaruhiChokuretsuLib.Archive
 
         public T CastTo<T>() where T : FileInArchive, new()
         {
-            T newFile = new();
-            newFile.Name = Name;
-            newFile.MagicInteger = MagicInteger;
-            newFile.Index = Index;
-            newFile.Offset = Offset;
-            newFile.Length = Length;
-            newFile.Data = Data;
-            newFile.CompressedData = CompressedData;
-            newFile.Edited = Edited;
+            T newFile = new()
+            {
+                Name = Name,
+                MagicInteger = MagicInteger,
+                Index = Index,
+                Offset = Offset,
+                Length = Length,
+                Data = Data,
+                CompressedData = CompressedData,
+                Edited = Edited
+            };
             newFile.Initialize(Data.ToArray(), Offset);
 
             return newFile;

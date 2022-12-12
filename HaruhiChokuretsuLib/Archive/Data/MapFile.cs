@@ -1,10 +1,7 @@
 ﻿using SkiaSharp;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
@@ -16,6 +13,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public List<(int Offset, int ItemCount)> SectionOffsetsAndCounts { get; set; } = new();
 
         public MapFileSettings Settings { get; set; }
+        public byte[][] PathingMap { get; set; }
 
         public override void Initialize(byte[] decompressedData, int offset)
         {
@@ -31,14 +29,45 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
 
             Settings = new(Data.Skip(SectionOffsetsAndCounts[0].Offset).Take(0xBC));
+            int currentPathingByte = 0;
+            byte[] pathingBytes = Data.Skip(SectionOffsetsAndCounts[4].Offset).Take(SectionOffsetsAndCounts[4].ItemCount).ToArray();
+            if (Settings.YOriented)
+            {
+                PathingMap = new byte[Settings.MapWidth][];
+                for (int x = 0; x < Settings.MapWidth; x++)
+                {
+                    PathingMap[x] = new byte[Settings.MapHeight];
+
+                    for (int y = 0; y < Settings.MapHeight; y++)
+                    {
+                        PathingMap[x][y] = pathingBytes[currentPathingByte++];
+                    }
+                }
+            }
+            else
+            {
+                PathingMap = new byte[Settings.MapHeight][];
+                for (int y = 0; y < Settings.MapHeight; y++)
+                {
+                    PathingMap[y] = new byte[Settings.MapWidth];
+
+                    for (int x = 0; x < Settings.MapWidth; x++)
+                    {
+                        PathingMap[y][x] = pathingBytes[currentPathingByte++];
+                    }
+                }
+            }
         }
 
-        public (SKBitmap, SKBitmap) GetMapImages(ArchiveFile<GraphicsFile> grp)
+        public (SKBitmap mapBitmap, SKBitmap bgBitmap) GetMapImages(ArchiveFile<GraphicsFile> grp, GraphicsFile objGrpReplacement = null)
         {
             List<GraphicsFile> textures = Settings.TextureFileIndices.Select(i => grp.Files.First(f => f.Index == i)).ToList();
+            if (objGrpReplacement is not null)
+            {
+                textures[1] = objGrpReplacement;
+            }
             GraphicsFile layout = grp.Files.First(f => f.Index == Settings.LayoutFileIndex);
 
-            //int mapEndIndex = Settings.OverlayLayoutStartIndex == 0 && Settings.OverlayLayoutEndIndex == 0 ? Settings.ForegroundLayoutEndIndex - Settings.ForegroundLayoutStartIndex + 1 : Settings.OverlayLayoutEndIndex - Settings.ForegroundLayoutStartIndex + 1;
             int mapEndIndex = Settings.BackgroundLayoutStartIndex == 0 ? layout.Length : Settings.BackgroundLayoutStartIndex;
 
             SKBitmap mapBitmap = layout.GetLayout(textures, Settings.ForegroundLayoutStartIndex, mapEndIndex, false, true).bitmap;
@@ -51,11 +80,84 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
             return (mapBitmap, bgBitmap);
         }
+
+        public SKBitmap GetMapImages(ArchiveFile<GraphicsFile> grp, int start, int length)
+        {
+            List<GraphicsFile> textures = Settings.TextureFileIndices.Select(i => grp.Files.First(f => f.Index == i)).ToList();
+            GraphicsFile layout = grp.Files.First(f => f.Index == Settings.LayoutFileIndex);
+
+            return layout.GetLayout(textures, start, length, false, true).bitmap;
+        }
+
+        public SKBitmap GetPathingImage()
+        {
+            SKBitmap pathingImage;
+            pathingImage = new((Settings.MapWidth + Settings.MapHeight) * 10, (Settings.MapWidth + Settings.MapHeight) * 10);
+            SKCanvas canvas = new(pathingImage);
+
+            SKPathEffect rotatePathEffect = SKPathEffect.Create1DPath(
+                SKPath.ParseSvgPathData("M -5 0 L 0 -5, 5 0, 0 5 Z"), 20, 0, SKPath1DPathEffectStyle.Rotate);
+            
+            if (Settings.YOriented)
+            {
+                for (int x = 0; x < PathingMap.Length; x++)
+                {
+                    for (int y = 0; y < PathingMap[x].Length; y++)
+                    {
+                        canvas.DrawRect(((Settings.MapWidth + Settings.MapHeight) * 10 / 2) - (x * 5) + (y * 5), (y * 5) + (x * 5) + 5, 5, 5, GetPathingSpacePaint(x, y, rotatePathEffect));
+                        canvas.Flush();
+                    }
+                }
+            }
+            else
+            {
+                for (int y = 0; y < Settings.MapHeight; y++)
+                {
+                    for (int x = 0; x < Settings.MapWidth; x++)
+                    {
+                        canvas.DrawRect(((Settings.MapWidth + Settings.MapHeight) * 10 / 2) + (x * 5) - (y * 5), (y * 5) + (x * 5) + 5, 5, 5, GetPathingSpacePaint(y, x, rotatePathEffect));
+                        canvas.Flush();
+                    }
+                }
+            }
+
+            return pathingImage;
+        }
+
+        public SKBitmap GetBackgroundGradient()
+        {
+            SKBitmap bgGradient = new(64, 64);
+            SKCanvas canvas = new(bgGradient);
+            SKRect rect = new(0, 0, 64, 64);
+
+            using SKPaint paint = new();
+            paint.Shader = SKShader.CreateLinearGradient(
+                new SKPoint((rect.Left + rect.Right) / 2, rect.Top),
+                new SKPoint((rect.Left + rect.Right) / 2, rect.Bottom),
+                new SKColor[] { Settings.TopGradient, Settings.BottomGradient },
+                new float[] { 0, 1 },
+                SKShaderTileMode.Repeat);
+
+            canvas.DrawRect(rect, paint);
+            canvas.Flush();
+
+            return bgGradient;
+        }
+
+        private SKPaint GetPathingSpacePaint(int x, int y, SKPathEffect rotatePathEffect)
+        {
+            return PathingMap[x][y] switch
+            {
+                1 => new() { Color = SKColors.Gray, PathEffect = rotatePathEffect }, // walkable
+                2 => new() { Color = SKColors.Teal, PathEffect = rotatePathEffect }, // spawnable
+                _ => new() { Color = SKColors.Black, PathEffect = rotatePathEffect }, // unwalkable
+            };
+        }
     }
 
     public class MapFileSettings
     {
-        public int Unknown00 { get; set; }
+        public bool YOriented { get; set; }
         public int MapWidth { get; set; }
         public int MapHeight { get; set; }
         public List<short> TextureFileIndices { get; set; } = new();
@@ -68,10 +170,24 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public int Unknown28 { get; set; }
         public int BackgroundLayoutStartIndex { get; set; }
         public int BackgroundLayoutEndIndex { get; set; }
+        public int Unknown34 { get; set; }
+        public SKColor TopGradient { get; set; }
+        public SKColor BottomGradient { get; set; }
+        public int UnknownLayoutIndex40 { get; set; }
+        public int Unknown44 { get; set; }
+        public int Unknown48 { get; set; }
+        public (int x, int y) StartingPosition { get; set; }
+        public int PrimaryAnimationFileIndex { get; set; }
+        public int SecondaryAnimationFileIndex { get; set; }
+        public int Unknown5C { get; set; }
+        public int Unknown60 { get; set; }
+        public int Unknown64 { get; set; }
+        public int Unknown68 { get; set; }
+        public int Unknown6C { get; set; }
 
         public MapFileSettings(IEnumerable<byte> data)
         {
-            Unknown00 = BitConverter.ToInt32(data.Take(4).ToArray());
+            YOriented = BitConverter.ToInt32(data.Take(4).ToArray()) > 0;
             MapWidth = BitConverter.ToInt32(data.Skip(0x04).Take(4).ToArray());
             MapHeight = BitConverter.ToInt32(data.Skip(0x08).Take(4).ToArray());
             TextureFileIndices.Add(BitConverter.ToInt16(data.Skip(0x0C).Take(2).ToArray()));
@@ -86,6 +202,21 @@ namespace HaruhiChokuretsuLib.Archive.Data
             Unknown28 = BitConverter.ToInt32(data.Skip(0x28).Take(4).ToArray());
             BackgroundLayoutStartIndex = BitConverter.ToInt32(data.Skip(0x2C).Take(4).ToArray());
             BackgroundLayoutEndIndex = BitConverter.ToInt32(data.Skip(0x30).Take(4).ToArray());
+            Unknown34 = BitConverter.ToInt32(data.Skip(0x34).Take(4).ToArray());
+            TopGradient = new(data.ElementAt(0x3A), data.ElementAt(0x39), data.ElementAt(0x38));
+            BottomGradient = new(data.ElementAt(0x3E), data.ElementAt(0x3D), data.ElementAt(0x3C));
+            UnknownLayoutIndex40 = BitConverter.ToInt32(data.Skip(0x40).Take(4).ToArray());
+            Unknown44 = BitConverter.ToInt32(data.Skip(0x44).Take(4).ToArray());
+            Unknown48 = BitConverter.ToInt32(data.Skip(0x48).Take(4).ToArray());
+            StartingPosition = (BitConverter.ToInt32(data.Skip(0x4C).Take(4).ToArray()), BitConverter.ToInt32(data.Skip(0x50).Take(4).ToArray()));
+            PrimaryAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x54).Take(4).ToArray());
+            SecondaryAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x58).Take(4).ToArray());
+            Unknown5C = BitConverter.ToInt32(data.Skip(0x5C).Take(4).ToArray());
+            Unknown60 = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
+            Unknown60 = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
+            Unknown64 = BitConverter.ToInt32(data.Skip(0x64).Take(4).ToArray());
+            Unknown68 = BitConverter.ToInt32(data.Skip(0x68).Take(4).ToArray());
+            Unknown6C = BitConverter.ToInt32(data.Skip(0x6C).Take(4).ToArray());
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using HaruhiChokuretsuLib.Archive;
+﻿using HaruhiChokuretsuLib;
+using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using Mono.Options;
 using SkiaSharp;
@@ -16,7 +17,7 @@ namespace HaruhiChokuretsuCLI
         private string _dat, _grp, _outputFolder;
         private string[] _mapNames;
         private int[] _mapIndices;
-        private bool _allMaps = false, _listMaps = false;
+        private bool _allMaps = false, _listMaps = false, _animated = false;
         public ExportMapCommand() : base("export-map", "Export a map graphic from the game")
         {
             Options = new()
@@ -25,6 +26,7 @@ namespace HaruhiChokuretsuCLI
                 { "g|grp=", "GRP archive", g => _grp = g },
                 { "n|names|map-names=", "Comma-delimited list of map names", n => _mapNames = n.Split(',') },
                 { "i|indices|map-indices=", "Comma-delimited list of map indices", i => _mapIndices = i.Split(',').Select(ind => int.Parse(ind)).ToArray() },
+                { "animated", "Indicates that maps with animation should be exported as APNGs", an => _animated = true },
                 { "a|all-maps", "Indicates all maps should be exported", a => _allMaps = true },
                 { "l|list-maps", "Lists maps available for export (still requires dat.bin)", l => _listMaps = true },
                 { "o|output|output-folder|output-directory=", "Output directory", o => _outputFolder = o },
@@ -120,21 +122,43 @@ namespace HaruhiChokuretsuCLI
                 CommandSet.Out.WriteLine($"Exporting map for {mapName[0..^1]}...");
                 MapFile map = (MapFile)dat.Files.First(f => f.Name == mapName);
 
-                (SKBitmap mapBitmap, SKBitmap bgBitmap) = map.GetMapImages(grp);
-
-                using FileStream mapStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}.png"), FileMode.Create);
-                mapBitmap.Encode(mapStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
-
-                //if (overlayBitmap is not null)
-                //{
-                //    using FileStream overlayStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}-BG.png"), FileMode.Create);
-                //    overlayBitmap.Encode(overlayStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
-                //}
-
-                if (bgBitmap is not null)
+                if (_animated && map.Settings.SecondaryAnimationFileIndex > 0)
                 {
-                    using FileStream bgStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}-BG.png"), FileMode.Create);
-                    bgBitmap.Encode(bgStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+                    GraphicsFile animatedTexture = grp.Files.First(f => f.Index == map.Settings.TextureFileIndices[1]);
+                    GraphicsFile animation = grp.Files.First(f => f.Index == map.Settings.SecondaryAnimationFileIndex);
+                    List<GraphicsFile> graphicFrames = animation.AnimationEntries[0].GetAnimationFrames(animatedTexture);
+                    Console.WriteLine($"Animated map will have {graphicFrames.Count} frames.");
+
+                    List<SKBitmap> frames = new();
+                    for (int i = 0; i < graphicFrames.Count; i++)
+                    {
+                        Console.WriteLine($"Creating bitmap for frame {i + 1}...");
+                        frames.Add(map.GetMapImages(grp, graphicFrames[i]).mapBitmap);
+                    }
+
+                    //byte[] encodedWebp = Helpers.EncodeAnimatedWebp(frames, 60 / animation.AnimationEntries[0].FramesPerTick);
+                    //File.WriteAllBytes(Path.Combine(_outputFolder, $"{mapName[0..^1]}.webp"), encodedWebp);
+                    //Image image = Helpers.GetEncodedAnimatedWebp(frames, 60 / animation.AnimationEntries[0].FramesPerTick);
+                    //image.SaveAsGif(Path.Combine(_outputFolder, $"{mapName[0..^1]}.webp"));
+
+                    for (int i = 0; i < frames.Count; i++)
+                    {
+                        using FileStream mapStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}-{i}.png"), FileMode.Create);
+                        frames[i].Encode(mapStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+                    }
+                }
+                else
+                {
+                    (SKBitmap mapBitmap, SKBitmap bgBitmap) = map.GetMapImages(grp);
+
+                    using FileStream mapStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}.png"), FileMode.Create);
+                    mapBitmap.Encode(mapStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+
+                    if (bgBitmap is not null)
+                    {
+                        using FileStream bgStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}-BG.png"), FileMode.Create);
+                        bgBitmap.Encode(bgStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+                    }
                 }
             }
 

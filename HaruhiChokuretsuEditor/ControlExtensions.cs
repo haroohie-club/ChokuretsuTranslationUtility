@@ -42,6 +42,9 @@ namespace HaruhiChokuretsuEditor
         public TextBox ScreenW { get; set; } = new() { Width = 35 };
         public TextBox ScreenH { get; set; } = new() { Width = 35 };
         public TextBox Tint { get; set; } = new() { Width = 100 };
+        public TextBox UnknownShort1 { get; set; } = new() { Width = 35 };
+        public TextBox UnknownShort2 { get; set; } = new() { Width = 35 };
+        public TextBox UnknownShort3 { get; set; } = new() { Width = 35 };
 
         public LayoutEntryStackPanel(LayoutEntry layoutEntry, int index)
         {
@@ -60,6 +63,9 @@ namespace HaruhiChokuretsuEditor
             ScreenW.Text = $"{layoutEntry.ScreenW}";
             ScreenH.Text = $"{layoutEntry.ScreenH}";
             Tint.Text = $"{(uint)layoutEntry.Tint:X8}";
+            UnknownShort1.Text = $"{layoutEntry.UnknownShort1}";
+            UnknownShort2.Text = $"{layoutEntry.UnknownShort2}";
+            UnknownShort3.Text = $"{layoutEntry.UnknownShort3}";
 
             RelativeShtxIndex.TextChanged += RelativeShtxIndex_TextChanged;
             TextureX.TextChanged += TextureX_TextChanged;
@@ -71,6 +77,9 @@ namespace HaruhiChokuretsuEditor
             ScreenW.TextChanged += ScreenW_TextChanged;
             ScreenH.TextChanged += ScreenH_TextChanged;
             Tint.TextChanged += Tint_TextChanged;
+            UnknownShort1.TextChanged += UnknownShort1_TextChanged;
+            UnknownShort2.TextChanged += UnknownShort2_TextChanged;
+            UnknownShort3.TextChanged += UnknownShort3_TextChanged;
 
             Children.Add(new TextBlock { Text = $"{EntryIndex}" });
             Children.Add(RelativeShtxIndex);
@@ -83,6 +92,33 @@ namespace HaruhiChokuretsuEditor
             Children.Add(ScreenW);
             Children.Add(ScreenH);
             Children.Add(Tint);
+            Children.Add(UnknownShort1);
+            Children.Add(UnknownShort2);
+            Children.Add(UnknownShort3);
+        }
+
+        private void UnknownShort3_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (short.TryParse(UnknownShort3.Text, out short relativeShtxIndex))
+            {
+                LayoutEntry.UnknownShort3 = relativeShtxIndex;
+            }
+        }
+
+        private void UnknownShort2_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (short.TryParse(UnknownShort2.Text, out short relativeShtxIndex))
+            {
+                LayoutEntry.UnknownShort2 = relativeShtxIndex;
+            }
+        }
+
+        private void UnknownShort1_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (short.TryParse(UnknownShort1.Text, out short relativeShtxIndex))
+            {
+                LayoutEntry.UnknownShort1 = relativeShtxIndex;
+            }
         }
 
         private void RelativeShtxIndex_TextChanged(object sender, TextChangedEventArgs e)

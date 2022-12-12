@@ -16,12 +16,13 @@ namespace HaruhiChokuretsuLib.Archive
         public int Width { get; set; }
         public int Height { get; set; }
         public List<LayoutEntry> LayoutEntries { get; set; } = new();
+        public List<AnimationEntry> AnimationEntries { get; set; } = new();
         public Function FileFunction { get; set; }
         public TileForm ImageTileForm { get; set; }
         public Form ImageForm { get; set; }
         public string Determinant { get; set; }
 
-        public static int PNG_QUALITY = 300;
+        public static int PNG_QUALITY = 100;
 
         private readonly static int[] VALID_WIDTHS = new int[] { 8, 16, 32, 64, 128, 256, 512, 1024 };
 
@@ -37,6 +38,7 @@ namespace HaruhiChokuretsuLib.Archive
             UNKNOWN,
             SHTX,
             LAYOUT,
+            ANIMATION,
         }
 
         public enum Form
@@ -79,12 +81,20 @@ namespace HaruhiChokuretsuLib.Archive
 
                 PixelData = Data.Skip(paletteLength + 0x14).ToList();
             }
-            else if (Name.EndsWith("BNL", StringComparison.OrdinalIgnoreCase)/*magicBytes.SequenceEqual(new byte[] { 0x00, 0x01, 0xC0, 0x00 }) || magicBytes.SequenceEqual(new byte[] { 0x10, 0x04, 0x88, 0x02 })*/)
+            else if (Name.EndsWith("BNL", StringComparison.OrdinalIgnoreCase))
             {
                 FileFunction = Function.LAYOUT;
                 for (int i = 0x08; i <= Data.Count - 0x1C; i += 0x1C)
                 {
                     LayoutEntries.Add(new(Data.Skip(i).Take(0x1C)));
+                }
+            }
+            else if (Name.EndsWith("BNA", StringComparison.OrdinalIgnoreCase))
+            {
+                FileFunction = Function.ANIMATION;
+                for (int i = 0x00; i <= Data.Count - 0x08; i += 0x08)
+                {
+                    AnimationEntries.Add(new(Data.Skip(i).Take(0x08)));
                 }
             }
             else
@@ -367,7 +377,7 @@ namespace HaruhiChokuretsuLib.Archive
             return palette;
         }
 
-        public void SetPalette(List<SKColor> palette, int transparentIndex = -1)
+        public void SetPalette(List<SKColor> palette, int transparentIndex = -1, bool suppressOutput = false)
         {
             Palette = palette;
             if (transparentIndex >= 0)
@@ -376,7 +386,10 @@ namespace HaruhiChokuretsuLib.Archive
             }
 
             PaletteData = new();
-            Console.Write($"Using provided palette for #{Index:X3}... ");
+            if (!suppressOutput)
+            {
+                Console.Write($"Using provided palette for #{Index:X3}... ");
+            }
 
             for (int i = 0; i < Palette.Count; i++)
             {
@@ -651,7 +664,7 @@ namespace HaruhiChokuretsuLib.Archive
             ScreenW = BitConverter.ToInt16(data.Skip(0x12).Take(2).ToArray());
             ScreenH = BitConverter.ToInt16(data.Skip(0x14).Take(2).ToArray());
             UnknownShort3 = BitConverter.ToInt16(data.Skip(0x16).Take(2).ToArray());
-            Tint = new((uint)BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray()));
+            Tint = new(BitConverter.ToUInt32(data.Skip(0x18).Take(4).ToArray()));
         }
 
         public byte[] GetBytes()
@@ -676,6 +689,47 @@ namespace HaruhiChokuretsuLib.Archive
         public override string ToString()
         {
             return $"Index: {RelativeShtxIndex}; TX: {TextureX} {TextureY} {TextureX + TextureW} {TextureY + TextureH}, SC: {ScreenX} {ScreenY} {ScreenX + ScreenW} {ScreenY + ScreenH}";
+        }
+    }
+
+    public class AnimationEntry
+    {
+        public short PaletteOffset { get; set; }
+        public short SwapSize { get; set; }
+        public byte SwapAreaSize { get; set; }
+        public byte FramesPerTick { get; set; }
+        public short AnimationType { get; set; }
+
+        public AnimationEntry(IEnumerable<byte> data)
+        {
+            PaletteOffset = BitConverter.ToInt16(data.Take(2).ToArray());
+            SwapSize = BitConverter.ToInt16(data.Skip(0x02).Take(2).ToArray());
+            SwapAreaSize = data.ElementAt(0x04);
+            FramesPerTick = data.ElementAt(0x05);
+            AnimationType = BitConverter.ToInt16(data.Skip(0x06).Take(2).ToArray());
+        }
+
+        public List<GraphicsFile> GetAnimationFrames(GraphicsFile texture)
+        {
+            List<GraphicsFile> graphicFrames = new();
+
+            for (int i = 0; i < SwapAreaSize; i++)
+            {
+                switch (AnimationType)
+                {
+                    case 1:
+                        texture.SetPalette(texture.Palette.RotateSectionRight(PaletteOffset, SwapAreaSize).ToList(), suppressOutput: true);
+                        texture.Data = texture.GetBytes().ToList();
+                        break;
+                    case 2:
+                        texture.SetPalette(texture.Palette.RotateSectionLeft(PaletteOffset, SwapAreaSize).ToList(), suppressOutput: true);
+                        texture.Data = texture.GetBytes().ToList();
+                        break;
+                }
+                graphicFrames.Add(texture.CastTo<GraphicsFile>()); // creates a new instance of the graphics file
+            }
+
+            return graphicFrames;
         }
     }
 }

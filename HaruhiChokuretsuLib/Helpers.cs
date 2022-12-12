@@ -1,15 +1,112 @@
-﻿using SkiaSharp;
+﻿using HaruhiChokuretsuLib.Archive;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib
 {
     public static class Helpers
     {
+
+
+        public static byte[] EncodeAnimatedWebp(List<SKBitmap> bitmaps, int fps)
+        {
+            List<byte> webpBytes = new();
+
+            // Header
+            webpBytes.AddRange(Encoding.ASCII.GetBytes("RIFF"));
+            webpBytes.AddRange(new byte[4]);
+            webpBytes.AddRange(Encoding.ASCII.GetBytes("WEBP"));
+
+            // VP8X chunk defines the structure of the WEBP
+            webpBytes.AddRange(Encoding.ASCII.GetBytes("VP8X"));
+            webpBytes.Add(0x0A); // EXIF, Animation
+            webpBytes.AddRange(new byte[3]); // Reserved 24-bits
+            webpBytes.Add(6);
+            webpBytes.AddRange(new byte[3]);
+            byte[] widthBytes = BitConverter.GetBytes(bitmaps.Max(b => b.Width) - 1);
+            byte[] heightBytes = BitConverter.GetBytes(bitmaps.Max(b => b.Height) - 1);
+            if (widthBytes[3] > 0)
+            {
+                throw new ArgumentException($"A bitmap width width {bitmaps.Max(b => b.Width)} was provided, which is greater than the maximum allowable webp width.");
+            }
+            if (heightBytes[3] > 0)
+            {
+                throw new ArgumentException($"A bitmap width height {bitmaps.Max(b => b.Height)} was provided, which is greater than the maximum allowable webp height.");
+            }
+            webpBytes.AddRange(widthBytes.Take(3));
+            webpBytes.AddRange(heightBytes.Take(3));
+
+            // ANIM chunk defines animation settings
+            webpBytes.AddRange(Encoding.ASCII.GetBytes("ANIM"));
+            webpBytes.AddRange(new byte[] { 6, 0, 0, 0 });
+            webpBytes.AddRange(new byte[4]); // Transparent background color
+            webpBytes.AddRange(new byte[2]); // Loop infinitely
+
+            // Add frames
+            foreach (SKBitmap frame in bitmaps)
+            {
+                using MemoryStream webpStream = new();
+                frame.Encode(webpStream, SKEncodedImageFormat.Webp, 0);
+                IEnumerable<byte> frameBytes = webpStream.ToArray().Skip(12);
+
+                webpBytes.AddRange(Encoding.ASCII.GetBytes("ANMF"));
+                webpBytes.AddRange(BitConverter.GetBytes(frameBytes.Count()));
+                webpBytes.AddRange(new byte[3]); // frame x = 0
+                webpBytes.AddRange(new byte[3]); // frame y = 0
+                byte[] frameWidthBytes = BitConverter.GetBytes(frame.Width - 1);
+                byte[] frameHeightBytes = BitConverter.GetBytes(frame.Height - 1);
+                webpBytes.AddRange(frameWidthBytes.Take(3));
+                webpBytes.AddRange(frameHeightBytes.Take(3));
+                byte[] frameDurationBytes = BitConverter.GetBytes(1000 / fps);
+                webpBytes.AddRange(frameDurationBytes.Take(3));
+                webpBytes.Add(0x02); // Do not blend, dispose to background;
+                webpBytes.AddRange(frameBytes);
+            }
+            
+            webpBytes.RemoveRange(4, 4);
+            webpBytes.InsertRange(4, BitConverter.GetBytes(webpBytes.Count - 4)); // length does not include first eight bytes
+            return webpBytes.ToArray();
+        }
+
+        public static IList<T> Swap<T>(this IList<T> list, int firstIndex, int secondIndex, int numToSwapAtOnce = 1)
+        {
+            for (int i = 0; i < numToSwapAtOnce; i++)
+            {
+                (list[secondIndex + i], list[firstIndex + i]) = (list[firstIndex + i], list[secondIndex + i]);
+            }
+
+            return list;
+        }
+
+        public static IEnumerable<T> RotateSectionLeft<T>(this IEnumerable<T> enumerable, int index, int length)
+        {
+            T[] array = enumerable.ToArray();
+            T firstItem = array[index];
+            for (int i = 1; i < length; i++)
+            {
+                array[index + i - 1] = array[index + i];
+            }
+            array[index + length - 1] = firstItem;
+
+            return array.AsEnumerable();
+        }
+
+        public static IEnumerable<T> RotateSectionRight<T>(this IEnumerable<T> enumerable, int index, int length)
+        {
+            T[] array = enumerable.ToArray();
+            T lastItem = array[index + length - 1];
+            for (int i = length - 1; i > 0; i--)
+            {
+                array[index + i] = array[index + i - 1];
+            }
+            array[index] = lastItem;
+
+            return array.AsEnumerable();
+        }
 
         // redmean color distance formula with alpha term
         private static double ColorDistance(SKColor color1, SKColor color2)

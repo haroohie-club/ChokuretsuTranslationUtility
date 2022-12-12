@@ -445,32 +445,28 @@ namespace HaruhiChokuretsuLib.Archive
         private short _verbIndex;
 
         public string Verb => VERBS[_verbIndex];
-        public object Parameter { get; set; } = new();
+        public int Parameter { get; set; } = new();
 
         public ScenarioCommand(IEnumerable<byte> data)
         {
             _verbIndex = BitConverter.ToInt16(data.Take(2).ToArray());
-
-            switch (_verbIndex)
-            {
-                default:
-                case 2:
-                    Parameter = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
-                    break;
-
-                case 9: // PLAY_VIDEO
-                    Parameter = $"MOVIE{BitConverter.ToInt16(data.Skip(2).Take(2).ToArray()):D2}.MODS";
-                    break;
-            }
+            Parameter = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
         }
 
         public override string ToString()
         {
-            string parameterString = Parameter.ToString();
-            if (Parameter.GetType() == typeof(string))
+            return $"{Verb}({Parameter})";
+        }
+
+        public string GetParameterString(ArchiveFile<EventFile> evt, ArchiveFile<DataFile> dat)
+        {
+            string parameterString = _verbIndex switch
             {
-                parameterString = $"\"{parameterString}\"";
-            }
+                2 => $"\"{evt.Files.First(f => f.Index == Parameter).Name[0..^1]}\" ({Parameter})", // LOAD_SCENE
+                3 => $"\"{dat.Files.First(f => f.Index == Parameter).Name[0..^1]}\"", // PUZZLE_PHASE
+                9 => $"\"MOVIE{Parameter}.MODS\"", // PLAY_VIDEO
+                _ => Parameter.ToString(),
+            };
             return $"{Verb}({parameterString})";
         }
     }

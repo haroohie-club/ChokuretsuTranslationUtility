@@ -163,7 +163,7 @@ namespace HaruhiChokuretsuEditor
                 }
                 foreach (ScenarioCommand command in selectedFile.Scenario?.Commands ?? new())
                 {
-                    eventsScenariosStackPanel.Children.Add(new TextBlock { Text = command.ToString() });
+                    eventsScenariosStackPanel.Children.Add(new TextBlock { Text = command.GetParameterString(_evtFile, _datFile) });
                 }
                 //foreach (ScenarioRouteSelectionStruct scenario in selectedFile.ScenarioStructs)
                 //{
@@ -590,6 +590,7 @@ namespace HaruhiChokuretsuEditor
             if (graphicsListBox.SelectedIndex >= 0)
             {
                 GraphicsFile selectedFile = (GraphicsFile)graphicsListBox.SelectedItem;
+                tilesEditStackPanel.Children.Add(new TextBlock { Text = selectedFile.Name });
                 tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{selectedFile.Determinant ?? ""} {selectedFile.Data?.Count ?? 0} bytes" });
                 tilesEditStackPanel.Children.Add(new TextBlock { Text = $"Actual compressed length: {selectedFile.CompressedData.Length:X}; Calculated length: {selectedFile.Length:X}" });
                 if (selectedFile.PixelData is not null)
@@ -621,6 +622,15 @@ namespace HaruhiChokuretsuEditor
                     layoutControlsPanel.Children.Add(new TextBlock() { Text = "Dark Mode " });
                     layoutControlsPanel.Children.Add(new TextBlock { Text = $" (Total Entries: {selectedFile.LayoutEntries.Count})" });
                     tilesEditStackPanel.Children.Add(layoutControlsPanel);
+                }
+                else if (selectedFile.FileFunction == GraphicsFile.Function.ANIMATION)
+                {
+                    AnimationEntry firstAnimEntry = selectedFile.AnimationEntries[0];
+                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.PaletteOffset)}: {firstAnimEntry.PaletteOffset}" });
+                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.SwapSize)}: {firstAnimEntry.SwapSize}" });
+                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.SwapAreaSize)}: {firstAnimEntry.SwapAreaSize}" });
+                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.FramesPerTick)}: {firstAnimEntry.FramesPerTick}" });
+                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.AnimationType)}: {firstAnimEntry.AnimationType}" });
                 }
             }
         }
@@ -698,27 +708,30 @@ namespace HaruhiChokuretsuEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 _datFile = ArchiveFile<DataFile>.FromFile(openFileDialog.FileName);
-                List<byte> qmapData = _datFile.Files.First(f => f.Name == "QMAPS").Data;
-                List<string> mapFileNames = new();
-                for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
+                if (openFileDialog.FileName.Contains("dat.bin", StringComparison.OrdinalIgnoreCase))
                 {
-                    mapFileNames.Add(Encoding.ASCII.GetString(qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + i * 8).Take(4).ToArray())).TakeWhile(b => b != 0).ToArray()).Replace(".", ""));
-                }
-                
-                for (int i = 1; i < _datFile.Files.Count + 1; i++)
-                {
-                    if (mapFileNames.Contains(_datFile.Files[i - 1].Name))
+                    List<byte> qmapData = _datFile.Files.First(f => f.Name == "QMAPS").Data;
+                    List<string> mapFileNames = new();
+                    for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
                     {
-                        DataFile oldMapFile = _datFile.Files.First(f => f.Index == i);
-                        MapFile mapFile = _datFile.Files.First(f => f.Index == i).CastTo<MapFile>();
-                        _datFile.Files[_datFile.Files.IndexOf(oldMapFile)] = mapFile;
+                        mapFileNames.Add(Encoding.ASCII.GetString(qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + i * 8).Take(4).ToArray())).TakeWhile(b => b != 0).ToArray()).Replace(".", ""));
                     }
-                }
-                for (int i = 0x8E; i <= 0x97; i++)
-                {
-                    DataFile oldPuzzleFile = _datFile.Files.First(f => f.Index == i);
-                    PuzzleFile puzzleFile = oldPuzzleFile.CastTo<PuzzleFile>();
-                    _datFile.Files[_datFile.Files.IndexOf(oldPuzzleFile)] = puzzleFile;
+
+                    for (int i = 1; i < _datFile.Files.Count + 1; i++)
+                    {
+                        if (mapFileNames.Contains(_datFile.Files[i - 1].Name))
+                        {
+                            DataFile oldMapFile = _datFile.Files.First(f => f.Index == i);
+                            MapFile mapFile = _datFile.Files.First(f => f.Index == i).CastTo<MapFile>();
+                            _datFile.Files[_datFile.Files.IndexOf(oldMapFile)] = mapFile;
+                        }
+                    }
+                    for (int i = 0x8E; i <= 0x97; i++)
+                    {
+                        DataFile oldPuzzleFile = _datFile.Files.First(f => f.Index == i);
+                        PuzzleFile puzzleFile = oldPuzzleFile.CastTo<PuzzleFile>();
+                        _datFile.Files[_datFile.Files.IndexOf(oldPuzzleFile)] = puzzleFile;
+                    }
                 }
                 dataListBox.ItemsSource = _datFile.Files;
                 dataListBox.Items.Refresh();
@@ -819,7 +832,7 @@ namespace HaruhiChokuretsuEditor
                 {
                     MapFile map = (MapFile)selectedFile;
 
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown00)}: {map.Settings.Unknown00}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.YOriented)}: {map.Settings.YOriented}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.MapWidth)}: {map.Settings.MapWidth}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.MapHeight)}: {map.Settings.MapHeight}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TextureFileIndices)}: {string.Join(", ", map.Settings.TextureFileIndices.Select(i => $"0x{i:X3}"))}" });
@@ -832,50 +845,79 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown28)}: {map.Settings.Unknown28}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.BackgroundLayoutStartIndex)}: {map.Settings.BackgroundLayoutStartIndex}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.BackgroundLayoutEndIndex)}: {map.Settings.BackgroundLayoutEndIndex}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown34)}: {map.Settings.Unknown34}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TopGradient)}: {map.Settings.TopGradient}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.BottomGradient)}: {map.Settings.BottomGradient}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.UnknownLayoutIndex40)}: {map.Settings.UnknownLayoutIndex40}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown44)}: {map.Settings.Unknown44}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown48)}: {map.Settings.Unknown48}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.StartingPosition)}: {map.Settings.StartingPosition}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PrimaryAnimationFileIndex)}: 0x{map.Settings.PrimaryAnimationFileIndex:X3}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SecondaryAnimationFileIndex)}: 0x{map.Settings.SecondaryAnimationFileIndex:X3}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown5C)}: {map.Settings.Unknown5C}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown60)}: {map.Settings.Unknown60}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown64)}: {map.Settings.Unknown64}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown68)}: {map.Settings.Unknown68}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown6C)}: {map.Settings.Unknown6C}" });
 
-                    GraphicsLayoutCreationButton displayLayoutButton = new() { Content = "Display Layout" };
+                    SKBitmap bgGradient = map.GetBackgroundGradient();
+                    dataEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bgGradient), Width = bgGradient.Width });
+
+                    SKBitmap pathingImage = map.GetPathingImage();
+                    dataEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(pathingImage), Width = pathingImage.Width });
+
+                    StackPanel displayLayoutStackPanel = new() { Orientation = Orientation.Horizontal };
+                    TextBox startBox = new() { Width = 135 };
+                    TextBox lengthBox = new() { Width = 135 };
+                    GraphicsLayoutCreationButton displayLayoutButton = new() { StartTextBox = startBox, LengthTextBox = lengthBox, Content = "Display Layout" };
                     displayLayoutButton.Click += DisplayLayoutButton_Click;
-                    dataEditStackPanel.Children.Add(displayLayoutButton);
+                    displayLayoutStackPanel.Children.Add(startBox);
+                    displayLayoutStackPanel.Children.Add(lengthBox);
+                    displayLayoutStackPanel.Children.Add(displayLayoutButton);
+                    dataEditStackPanel.Children.Add(displayLayoutStackPanel);
                 }
             }
         }
 
         private void DisplayLayoutButton_Click(object sender, RoutedEventArgs e)
         {
+            GraphicsLayoutCreationButton button = (GraphicsLayoutCreationButton)sender;
             MapFile map = (MapFile)dataListBox.SelectedItem;
             GraphicsFile layout = _grpFile.Files.First(f => f.Index == map.Settings.LayoutFileIndex);
 
-            (SKBitmap mapBitmap, SKBitmap bgBitmap) = map.GetMapImages(_grpFile);
-            BitmapButton mapBitmapButton = new() { Bitmap = mapBitmap, Content = "Save Image" };
-            //BitmapButton overlayBitmapButton = new() { Bitmap = overlayBitmap, Content = "Save Image" };
-            BitmapButton bgBitmapButton = new() { Bitmap = bgBitmap, Content = "Save Image" };
-            mapBitmapButton.Click += BitmapButton_Click;
-            bgBitmapButton.Click += BitmapButton_Click;
-            dataEditStackPanel.Children.Add(mapBitmapButton);
-            dataEditStackPanel.Children.Add(new Image
+            if (string.IsNullOrWhiteSpace(button.StartTextBox.Text) || string.IsNullOrWhiteSpace(button.LengthTextBox.Text))
             {
-                Source = GuiHelpers.GetBitmapImageFromBitmap(mapBitmap),
-                Width = layout.Width,
-                Height = layout.Height,
-            });
-            //if (overlayBitmap is not null)
-            //{
-            //    dataEditStackPanel.Children.Add(overlayBitmapButton);
-            //    dataEditStackPanel.Children.Add(new Image
-            //    {
-            //        Source = GuiHelpers.GetBitmapImageFromBitmap(overlayBitmap),
-            //        Width = layout.Width,
-            //        Height = layout.Height,
-            //    });
-            //}
-            if (bgBitmap is not null)
-            {
-                dataEditStackPanel.Children.Add(bgBitmapButton);
+                (SKBitmap mapBitmap, SKBitmap bgBitmap) = map.GetMapImages(_grpFile);
+                BitmapButton mapBitmapButton = new() { Bitmap = mapBitmap, Content = "Save Image" };
+                BitmapButton bgBitmapButton = new() { Bitmap = bgBitmap, Content = "Save Image" };
+                mapBitmapButton.Click += BitmapButton_Click;
+                bgBitmapButton.Click += BitmapButton_Click;
+                dataEditStackPanel.Children.Add(mapBitmapButton);
                 dataEditStackPanel.Children.Add(new Image
                 {
-                    Source = GuiHelpers.GetBitmapImageFromBitmap(bgBitmap),
+                    Source = GuiHelpers.GetBitmapImageFromBitmap(mapBitmap),
                     Width = layout.Width,
                     Height = layout.Height,
+                });
+                if (bgBitmap is not null)
+                {
+                    dataEditStackPanel.Children.Add(bgBitmapButton);
+                    dataEditStackPanel.Children.Add(new Image
+                    {
+                        Source = GuiHelpers.GetBitmapImageFromBitmap(bgBitmap),
+                        Width = layout.Width,
+                        Height = layout.Height,
+                    });
+                }
+            }
+            else
+            {
+                SKBitmap mapBitmap = map.GetMapImages(_grpFile, int.Parse(button.StartTextBox.Text), int.Parse(button.LengthTextBox.Text));
+                dataEditStackPanel.Children.Add(new Image
+                {
+                    Source = GuiHelpers.GetBitmapImageFromBitmap(mapBitmap),
+                    Width = layout.Width,
+                    Height = layout.Height
                 });
             }
         }

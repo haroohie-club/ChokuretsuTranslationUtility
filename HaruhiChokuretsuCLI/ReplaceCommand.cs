@@ -224,10 +224,7 @@ namespace HaruhiChokuretsuCLI
         private static void ReplaceSingleGraphicsFile(ArchiveFile<FileInArchive> archive, string filePath, int index, Dictionary<int, List<SKColor>> sharedPalettes)
         {
             FileInArchive file = archive.Files.FirstOrDefault(f => f.Index == index);
-
-            GraphicsFile grpFile = new();
-            grpFile.Initialize(file.Data.ToArray(), file.Offset);
-            grpFile.Index = index;
+            GraphicsFile grpFile = file.CastTo<GraphicsFile>();
 
             if (index == 0xE50)
             {
