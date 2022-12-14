@@ -1,75 +1,40 @@
-﻿using HaruhiChokuretsuLib.Archive;
+﻿using FFMpegCore.Pipes;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib
 {
     public static class Helpers
     {
-
-
-        public static byte[] EncodeAnimatedWebp(List<SKBitmap> bitmaps, int fps)
+        public static int GreatestCommonFactor(int a, int b)
         {
-            List<byte> webpBytes = new();
-
-            // Header
-            webpBytes.AddRange(Encoding.ASCII.GetBytes("RIFF"));
-            webpBytes.AddRange(new byte[4]);
-            webpBytes.AddRange(Encoding.ASCII.GetBytes("WEBP"));
-
-            // VP8X chunk defines the structure of the WEBP
-            webpBytes.AddRange(Encoding.ASCII.GetBytes("VP8X"));
-            webpBytes.Add(0x0A); // EXIF, Animation
-            webpBytes.AddRange(new byte[3]); // Reserved 24-bits
-            webpBytes.Add(6);
-            webpBytes.AddRange(new byte[3]);
-            byte[] widthBytes = BitConverter.GetBytes(bitmaps.Max(b => b.Width) - 1);
-            byte[] heightBytes = BitConverter.GetBytes(bitmaps.Max(b => b.Height) - 1);
-            if (widthBytes[3] > 0)
+            while (b != 0)
             {
-                throw new ArgumentException($"A bitmap width width {bitmaps.Max(b => b.Width)} was provided, which is greater than the maximum allowable webp width.");
+                (a, b) = (b, a % b);
             }
-            if (heightBytes[3] > 0)
+
+            return a;
+        }
+
+        public static int LeastCommonMultiple(int a, int b)
+        {
+            return a / GreatestCommonFactor(a, b) * b;
+        }
+
+        public static int LeastCommonMultiple(IEnumerable<int> list)
+        {
+            int lcm = list.ElementAt(0);
+            for (int i = 1; i < list.Count(); i++)
             {
-                throw new ArgumentException($"A bitmap width height {bitmaps.Max(b => b.Height)} was provided, which is greater than the maximum allowable webp height.");
+                lcm = LeastCommonMultiple(lcm, list.ElementAt(i));
             }
-            webpBytes.AddRange(widthBytes.Take(3));
-            webpBytes.AddRange(heightBytes.Take(3));
 
-            // ANIM chunk defines animation settings
-            webpBytes.AddRange(Encoding.ASCII.GetBytes("ANIM"));
-            webpBytes.AddRange(new byte[] { 6, 0, 0, 0 });
-            webpBytes.AddRange(new byte[4]); // Transparent background color
-            webpBytes.AddRange(new byte[2]); // Loop infinitely
-
-            // Add frames
-            foreach (SKBitmap frame in bitmaps)
-            {
-                using MemoryStream webpStream = new();
-                frame.Encode(webpStream, SKEncodedImageFormat.Webp, 0);
-                IEnumerable<byte> frameBytes = webpStream.ToArray().Skip(12);
-
-                webpBytes.AddRange(Encoding.ASCII.GetBytes("ANMF"));
-                webpBytes.AddRange(BitConverter.GetBytes(frameBytes.Count()));
-                webpBytes.AddRange(new byte[3]); // frame x = 0
-                webpBytes.AddRange(new byte[3]); // frame y = 0
-                byte[] frameWidthBytes = BitConverter.GetBytes(frame.Width - 1);
-                byte[] frameHeightBytes = BitConverter.GetBytes(frame.Height - 1);
-                webpBytes.AddRange(frameWidthBytes.Take(3));
-                webpBytes.AddRange(frameHeightBytes.Take(3));
-                byte[] frameDurationBytes = BitConverter.GetBytes(1000 / fps);
-                webpBytes.AddRange(frameDurationBytes.Take(3));
-                webpBytes.Add(0x02); // Do not blend, dispose to background;
-                webpBytes.AddRange(frameBytes);
-            }
-            
-            webpBytes.RemoveRange(4, 4);
-            webpBytes.InsertRange(4, BitConverter.GetBytes(webpBytes.Count - 4)); // length does not include first eight bytes
-            return webpBytes.ToArray();
+            return lcm;
         }
 
         public static IList<T> Swap<T>(this IList<T> list, int firstIndex, int secondIndex, int numToSwapAtOnce = 1)
@@ -124,6 +89,16 @@ namespace HaruhiChokuretsuLib
             var colorDistances = colors.Select(c => ColorDistance(c, color)).ToList();
 
             return colorDistances.IndexOf(colorDistances.Min());
+        }
+
+        public static SKColor Rgb555ToSKColor(short rgb555)
+        {
+            return new SKColor((byte)((rgb555 & 0x1F) << 3), (byte)(((rgb555 >> 5) & 0x1F) << 3), (byte)(((rgb555 >> 10) & 0x1F) << 3));
+        }
+
+        public static short SKColorToRgb555(SKColor color)
+        {
+            return (short)((color.Red >> 3) | (color.Green << 2) | (color.Blue << 7));
         }
 
         public static bool AddWillCauseCarry(int x, int y)
@@ -726,5 +701,27 @@ namespace HaruhiChokuretsuLib
             }
             Lxx_2026198();
         }
+    }
+
+    public class SKBitmapFrame : IVideoFrame, IDisposable
+    {
+        private readonly SKBitmap _source;
+
+        public int Width => _source.Width;
+
+        public int Height => _source.Height;
+
+        public string Format => "bgra";
+
+        public SKBitmapFrame(SKBitmap source)
+        {
+            _source = source;
+        }
+
+        public void Dispose() => _source.Dispose();
+
+        public void Serialize(Stream pipe) => pipe.Write(_source.Bytes);
+
+        public async Task SerializeAsync(Stream pipe, CancellationToken token) => await pipe.WriteAsync(_source.Bytes, token).ConfigureAwait(false);
     }
 }

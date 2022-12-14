@@ -625,12 +625,18 @@ namespace HaruhiChokuretsuEditor
                 }
                 else if (selectedFile.FileFunction == GraphicsFile.Function.ANIMATION)
                 {
-                    AnimationEntry firstAnimEntry = selectedFile.AnimationEntries[0];
-                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.PaletteOffset)}: {firstAnimEntry.PaletteOffset}" });
-                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.SwapSize)}: {firstAnimEntry.SwapSize}" });
-                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.SwapAreaSize)}: {firstAnimEntry.SwapAreaSize}" });
-                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.FramesPerTick)}: {firstAnimEntry.FramesPerTick}" });
-                    tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.AnimationType)}: {firstAnimEntry.AnimationType}" });
+                    if (selectedFile.AnimationEntries.Count > 0)
+                    {
+                        if (selectedFile.AnimationEntries[0].GetType() == typeof(PaletteRotateAnimationEntry))
+                        {
+                            PaletteRotateAnimationEntry firstAnimEntry = (PaletteRotateAnimationEntry)selectedFile.AnimationEntries[0];
+                            tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.PaletteOffset)}: {firstAnimEntry.PaletteOffset}" });
+                            tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.SwapSize)}: {firstAnimEntry.SwapSize}" });
+                            tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.SwapAreaSize)}: {firstAnimEntry.SwapAreaSize}" });
+                            tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.FramesPerTick)}: {firstAnimEntry.FramesPerTick}" });
+                            tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.AnimationType)}: {firstAnimEntry.AnimationType}" });
+                        }
+                    }
                 }
             }
         }
@@ -852,8 +858,8 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown44)}: {map.Settings.Unknown44}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown48)}: {map.Settings.Unknown48}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.StartingPosition)}: {map.Settings.StartingPosition}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PrimaryAnimationFileIndex)}: 0x{map.Settings.PrimaryAnimationFileIndex:X3}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SecondaryAnimationFileIndex)}: 0x{map.Settings.SecondaryAnimationFileIndex:X3}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.CAnimationFileIndex)}: 0x{map.Settings.CAnimationFileIndex:X3}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PaletteAnimationFileIndex)}: 0x{map.Settings.PaletteAnimationFileIndex:X3}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown5C)}: {map.Settings.Unknown5C}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown60)}: {map.Settings.Unknown60}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown64)}: {map.Settings.Unknown64}" });

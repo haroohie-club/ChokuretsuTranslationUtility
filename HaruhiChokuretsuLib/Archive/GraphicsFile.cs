@@ -1,8 +1,12 @@
 ﻿using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.Loader;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -92,9 +96,19 @@ namespace HaruhiChokuretsuLib.Archive
             else if (Name.EndsWith("BNA", StringComparison.OrdinalIgnoreCase))
             {
                 FileFunction = Function.ANIMATION;
-                for (int i = 0x00; i <= Data.Count - 0x08; i += 0x08)
+                if (Name.Contains("PAN")) // if the animation type byte is valid for rotations, we assume this is a rotatey boy
                 {
-                    AnimationEntries.Add(new(Data.Skip(i).Take(0x08)));
+                    for (int i = 0x00; i <= Data.Count - 0x08; i += 0x08)
+                    {
+                        AnimationEntries.Add(new PaletteRotateAnimationEntry(Data.Skip(i).Take(0x08)));
+                    }
+                }
+                else if (Name.Contains("CAN"))
+                {
+                    for (int i = 0x00; i <= Data.Count - 0xCC; i += 0xCC)
+                    {
+                        AnimationEntries.Add(new PaletteColorAnimationEntry(Data.Skip(i).Take(0xCC)));
+                    }
                 }
             }
             else
@@ -370,7 +384,7 @@ namespace HaruhiChokuretsuLib.Archive
             {
                 for (int col = 0; col < palette.Width / 16; col++)
                 {
-                    canvas.DrawRect(col * 16, row * 16, 16, 16, new() { Color = Palette[16 * row + col]});
+                    canvas.DrawRect(col * 16, row * 16, 16, 16, new() { Color = Palette[16 * row + col] });
                 }
             }
 
@@ -547,34 +561,42 @@ namespace HaruhiChokuretsuLib.Archive
             Width = maxX.ScreenX + maxX.ScreenW;
             Height = maxY.ScreenY + maxY.ScreenH;
             SKBitmap layoutBitmap = new(Width, Height);
-            using SKCanvas canvas = new(layoutBitmap);
+            SKCanvas canvas = new(layoutBitmap);
+
             if (darkMode)
             {
                 canvas.DrawRect(0, 0, layoutBitmap.Width, layoutBitmap.Height, new() { Color = SKColors.Black });
             }
-            foreach (LayoutEntry currentEntry in layoutEntries)
-            {
-                if (currentEntry.RelativeShtxIndex < 0)
-                {
-                    continue;
-                }
-                GraphicsFile grpFile;
 
-                if (preprocessedList)
-                {
-                    grpFile = grpFiles[currentEntry.RelativeShtxIndex];
-                }
-                else
+            List<SKBitmap> textures;
+            if (preprocessedList)
+            {
+                textures = grpFiles.Select(g => g.GetTexture(transparentIndex: 0)).ToList();
+            }
+            else
+            {
+                IEnumerable<short> relativeIndices = layoutEntries.Select(l => l.RelativeShtxIndex).Distinct();
+                textures = new();
+
+                foreach (short index in relativeIndices)
                 {
                     int grpIndex = Index + 1;
-                    for (int i = 0; i <= currentEntry.RelativeShtxIndex && grpIndex < grpFiles.Count; grpIndex++)
+                    for (int i = 0; i <= index && grpIndex < grpFiles.Count; grpIndex++)
                     {
                         if (grpFiles.First(g => g.Index == grpIndex).FileFunction == Function.SHTX)
                         {
                             i++;
                         }
                     }
-                    grpFile = grpFiles.First(g => g.Index == grpIndex - 1);
+                    textures.Add(grpFiles.First(g => g.Index == grpIndex - 1).GetTexture(transparentIndex: 0));
+                }
+            }
+
+            foreach (LayoutEntry currentEntry in layoutEntries)
+            {
+                if (currentEntry.RelativeShtxIndex < 0)
+                {
+                    continue;
                 }
 
                 SKRect boundingBox = new()
@@ -592,26 +614,28 @@ namespace HaruhiChokuretsuLib.Archive
                     Bottom = currentEntry.ScreenY + Math.Abs(currentEntry.ScreenH),
                 };
 
-                SKBitmap texture = grpFile.GetImage(transparentIndex: 0);
-                SKBitmap tile = new((int)Math.Abs(boundingBox.Right - boundingBox.Left), (int)Math.Abs(boundingBox.Bottom - boundingBox.Top));
+                SKBitmap texture = textures[currentEntry.RelativeShtxIndex];
+                int tileWidth = (int)Math.Abs(boundingBox.Right - boundingBox.Left);
+                int tileHeight = (int)Math.Abs(boundingBox.Bottom - boundingBox.Top);
+                SKBitmap tile = new(tileWidth, tileHeight);
                 SKCanvas transformCanvas = new(tile);
-                
+
                 if (currentEntry.ScreenW < 0)
                 {
-                    transformCanvas.Scale(-1, 1, tile.Width / 2.0f, 0);
+                    transformCanvas.Scale(-1, 1, tileWidth / 2.0f, 0);
                 }
                 if (currentEntry.ScreenH < 0)
                 {
-                    transformCanvas.Scale(1, -1, 0, tile.Height / 2.0f);
+                    transformCanvas.Scale(1, -1, 0, tileHeight / 2.0f);
                 }
-                transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, Math.Abs(tile.Width), Math.Abs(tile.Height)));
+                transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, Math.Abs(tileWidth), Math.Abs(tileHeight)));
                 transformCanvas.Flush();
 
                 if (currentEntry.Tint != SKColors.White)
                 {
-                    for (int x = 0; x < tile.Width; x++)
+                    for (int x = 0; x < tileWidth; x++)
                     {
-                        for (int y = 0; y < tile.Height; y++)
+                        for (int y = 0; y < tileHeight; y++)
                         {
                             SKColor pixelColor = tile.GetPixel(x, y);
                             tile.SetPixel(x, y, new((byte)(pixelColor.Red * currentEntry.Tint.Red / 255),
@@ -626,6 +650,177 @@ namespace HaruhiChokuretsuLib.Archive
             }
 
             return (layoutBitmap, layoutEntries);
+        }
+
+        public List<GraphicsFile> GetAnimationFrames(GraphicsFile texture)
+        {
+            List<GraphicsFile> graphicFrames = new();
+
+            if (AnimationEntries[0].GetType() == typeof(PaletteRotateAnimationEntry))
+            {
+                int numFrames = Helpers.LeastCommonMultiple(AnimationEntries
+                    .Where(a => ((PaletteRotateAnimationEntry)a).FramesPerTick * ((PaletteRotateAnimationEntry)a).SwapAreaSize != 0)
+                    .Select(a => (int)((PaletteRotateAnimationEntry)a).FramesPerTick * ((PaletteRotateAnimationEntry)a).SwapAreaSize));
+                for (int f = 0; f < numFrames; f++)
+                {
+                    foreach (PaletteRotateAnimationEntry animationEntry in AnimationEntries.Cast<PaletteRotateAnimationEntry>())
+                    {
+                        if (animationEntry.FramesPerTick > 0 && f % animationEntry.FramesPerTick == 0)
+                        {
+                            switch (animationEntry.AnimationType)
+                            {
+                                case 1:
+                                    texture.SetPalette(texture.Palette.RotateSectionRight(animationEntry.PaletteOffset, animationEntry.SwapAreaSize).ToList(), suppressOutput: true);
+                                    texture.Data = texture.GetBytes().ToList();
+                                    break;
+                                case 2:
+                                    texture.SetPalette(texture.Palette.RotateSectionLeft(animationEntry.PaletteOffset, animationEntry.SwapAreaSize).ToList(), suppressOutput: true);
+                                    texture.Data = texture.GetBytes().ToList();
+                                    break;
+                                case 3:
+                                    throw new NotImplementedException();
+                                default:
+                                    throw new ArgumentException($"Invalid animation type on palette rotation animation entry ({animationEntry.AnimationType})");
+                            }
+                        }
+                    }
+                    graphicFrames.Add(texture.CastTo<GraphicsFile>()); // creates a new instance of the graphics file
+                }
+            }
+            else if (AnimationEntries[0].GetType() == typeof(PaletteColorAnimationEntry))
+            {
+                SKColor[] originalPalette = Array.Empty<SKColor>();
+                foreach (PaletteColorAnimationEntry animationEntry in AnimationEntries.Cast<PaletteColorAnimationEntry>())
+                {
+                    animationEntry.Prepare(texture);
+                }
+
+                int numFrames = 36000;
+
+                int iterator = 0;
+                bool changedOnce = false, changedTwice = false;
+                for (int f = 0; f < numFrames; f++)
+                {
+                    foreach (PaletteColorAnimationEntry animationEntry in AnimationEntries.Cast<PaletteColorAnimationEntry>())
+                    {
+                        animationEntry.ColorIndexer = 0;
+                        if (animationEntry.ColorArray[1] != 0)
+                        {
+                            int colorArrayIndex = 0;
+                            int localIterator = 0;
+                            int v13 = 0;
+                            for (; colorArrayIndex < animationEntry.ColorArray.Count - 3; colorArrayIndex += 3)
+                            {
+                                if (animationEntry.ColorArray[colorArrayIndex + 1] == 0)
+                                {
+                                    short newColorIndex = animationEntry.ColorArray[3 * animationEntry.ColorIndexer - 3];
+                                    SKColor newColor = Helpers.Rgb555ToSKColor(newColorIndex);
+                                    if ((animationEntry.Determinant & 0x10) == 0)
+                                    {
+                                        newColor = texture.Palette[newColorIndex];
+                                    }
+                                    animationEntry.RedComponent = (short)(newColor.Red >> 3);
+                                    animationEntry.GreenComponent = (short)(newColor.Green >> 3);
+                                    animationEntry.BlueComponent = (short)(newColor.Blue >> 3);
+                                    colorArrayIndex = 0;
+                                    animationEntry.ColorIndexer = 0;
+                                }
+
+                                if (animationEntry.ColorArray[colorArrayIndex + 1] > iterator - localIterator)
+                                {
+                                    break;
+                                }
+
+                                animationEntry.RedComponent = (byte)(animationEntry.ColorArray[colorArrayIndex] & 0x1F);
+                                animationEntry.GreenComponent = (byte)((animationEntry.ColorArray[colorArrayIndex] >> 5) & 0x1F);
+                                animationEntry.BlueComponent = (byte)((animationEntry.ColorArray[colorArrayIndex] >> 10) & 0x1F);
+                                localIterator += animationEntry.ColorArray[colorArrayIndex + 1];
+                                animationEntry.ColorIndexer++;
+                            }
+                            animationEntry.ColorArray[colorArrayIndex + 2] = (short)(iterator - localIterator);
+                            int v17 = animationEntry.Determinant;
+                            int v23 = 0;
+                            if ((v17 & 0x10) != 0 && animationEntry.ColorArray[colorArrayIndex + 1] != 0)
+                            {
+                                bool v18 = (v17 & 0x10) == 0;
+                                if ((animationEntry.Determinant & 0x10) != 0)
+                                {
+                                    v13 = animationEntry.ColorArray[colorArrayIndex];
+                                }
+                                else
+                                {
+                                    v17 = animationEntry.ColorArray[colorArrayIndex];
+                                }
+                                if (v18)
+                                {
+                                    v13 = Helpers.SKColorToRgb555(texture.Palette[v17]);
+                                }
+
+                                int internalIterator = 0;
+                                int redComponent13 = v13 & 0x1F;
+                                int greenComponent13 = (v13 >> 5) & 0x1F;
+                                int blueComponent13 = (v13 >> 10) & 0x1F;
+                                do
+                                {
+                                    int v22 = internalIterator switch
+                                    {
+                                        0 => animationEntry.RedComponent,
+                                        1 => animationEntry.GreenComponent,
+                                        _ => animationEntry.BlueComponent,
+                                    };
+                                    switch (internalIterator)
+                                    {
+                                        case 0:
+                                            redComponent13 = v22 + ((redComponent13 - v22) * animationEntry.ColorArray[colorArrayIndex + 2] / animationEntry.ColorArray[colorArrayIndex + 1]);
+                                            break;
+                                        case 1:
+                                            greenComponent13 = v22 + ((greenComponent13 - v22) * animationEntry.ColorArray[colorArrayIndex + 2] / animationEntry.ColorArray[colorArrayIndex + 1]);
+                                            break;
+                                        case 2:
+                                            blueComponent13 = v22 + ((blueComponent13 - v22) * animationEntry.ColorArray[colorArrayIndex + 2] / animationEntry.ColorArray[colorArrayIndex + 1]);
+                                            break;
+                                    }
+                                    internalIterator++;
+                                } while (internalIterator < 3);
+                                v23 = (redComponent13 & 0x1F) | ((greenComponent13 << 5) & 0x3FF) | ((blueComponent13 << 10) & 0x7FFF);
+                            }
+                            else
+                            {
+                                v23 = animationEntry.ColorArray[colorArrayIndex];
+                            }
+                            texture.Palette[animationEntry.PaletteOffset] = Helpers.Rgb555ToSKColor((short)v23);
+                        }
+                    }
+                    iterator += 0x20;
+                    if (iterator >= 0x17E0)
+                    {
+                        iterator = 0;
+                    }
+                    texture.SetPalette(texture.Palette, suppressOutput: true);
+                    texture.Data = texture.GetBytes().ToList();
+                    graphicFrames.Add(texture.CastTo<GraphicsFile>());
+                    
+                    if (f == 0)
+                    {
+                        originalPalette = texture.Palette.ToArray();
+                    }
+                    else if (f > 0 && !changedOnce && !graphicFrames[f].Palette.SequenceEqual(originalPalette))
+                    {
+                        changedOnce = true;
+                        originalPalette = texture.Palette.ToArray();
+                    }
+                    else if (f > 0 && changedOnce && !changedTwice && !graphicFrames[f].Palette.SequenceEqual(originalPalette))
+                    {
+                        changedTwice = true;
+                    }
+                    else if (changedTwice && graphicFrames[f].Palette.SequenceEqual(originalPalette))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return graphicFrames;
         }
     }
 
@@ -694,13 +889,69 @@ namespace HaruhiChokuretsuLib.Archive
 
     public class AnimationEntry
     {
+    }
+
+    public class PaletteColorAnimationEntry : AnimationEntry
+    {
+        public short PaletteOffset { get; set; }
+        public byte Determinant { get; set; }
+        public byte ColorIndexer { get; set; }
+        public List<short> ColorArray { get; set; } = new();
+        public short RedComponent { get; set; }
+        public short GreenComponent { get; set; }
+        public short BlueComponent { get; set; }
+        public short Color { get; set; }
+
+        public int NumColors { get; set; }
+
+        public PaletteColorAnimationEntry(IEnumerable<byte> data)
+        {
+            PaletteOffset = BitConverter.ToInt16(data.Take(2).ToArray());
+            Determinant = data.ElementAt(0x02);
+            ColorIndexer = data.ElementAt(0x03);
+            for (int i = 0; i < 96; i++)
+            {
+                ColorArray.Add(BitConverter.ToInt16(data.Skip(0x04 + i * 2).Take(2).ToArray()));
+            }
+            RedComponent = BitConverter.ToInt16(data.Skip(0xC4).Take(2).ToArray());
+            GreenComponent = BitConverter.ToInt16(data.Skip(0xC6).Take(2).ToArray());
+            BlueComponent = BitConverter.ToInt16(data.Skip(0xC8).Take(2).ToArray());
+            Color = BitConverter.ToInt16(data.Skip(0xCA).Take(2).ToArray());
+        }
+
+        public void Prepare(GraphicsFile texture)
+        {
+            ColorIndexer = 0;
+            int colorIndex = 0;
+            for (NumColors = 0; NumColors < 32 && ColorArray[colorIndex + 1] > 0; NumColors++)
+            {
+                ColorArray[colorIndex + 1] *= 32;
+                ColorArray[colorIndex + 2] = 0;
+                colorIndex += 3;
+            }
+
+            SKColor color = texture.Palette[PaletteOffset];
+            RedComponent = (short)(color.Red / 8);
+            GreenComponent = (short)(color.Green / 8);
+            BlueComponent = (short)(color.Blue / 8);
+            Color = (short)((ushort)RedComponent | (ushort)(GreenComponent << 5) | (ushort)(BlueComponent << 10));
+        }
+
+        public override string ToString()
+        {
+            return $"CAN Off: {PaletteOffset:X4} Unk: {Determinant:X4}";
+        }
+    }
+
+    public class PaletteRotateAnimationEntry : AnimationEntry
+    {
         public short PaletteOffset { get; set; }
         public short SwapSize { get; set; }
         public byte SwapAreaSize { get; set; }
         public byte FramesPerTick { get; set; }
         public short AnimationType { get; set; }
 
-        public AnimationEntry(IEnumerable<byte> data)
+        public PaletteRotateAnimationEntry(IEnumerable<byte> data)
         {
             PaletteOffset = BitConverter.ToInt16(data.Take(2).ToArray());
             SwapSize = BitConverter.ToInt16(data.Skip(0x02).Take(2).ToArray());
@@ -709,27 +960,9 @@ namespace HaruhiChokuretsuLib.Archive
             AnimationType = BitConverter.ToInt16(data.Skip(0x06).Take(2).ToArray());
         }
 
-        public List<GraphicsFile> GetAnimationFrames(GraphicsFile texture)
+        public override string ToString()
         {
-            List<GraphicsFile> graphicFrames = new();
-
-            for (int i = 0; i < SwapAreaSize; i++)
-            {
-                switch (AnimationType)
-                {
-                    case 1:
-                        texture.SetPalette(texture.Palette.RotateSectionRight(PaletteOffset, SwapAreaSize).ToList(), suppressOutput: true);
-                        texture.Data = texture.GetBytes().ToList();
-                        break;
-                    case 2:
-                        texture.SetPalette(texture.Palette.RotateSectionLeft(PaletteOffset, SwapAreaSize).ToList(), suppressOutput: true);
-                        texture.Data = texture.GetBytes().ToList();
-                        break;
-                }
-                graphicFrames.Add(texture.CastTo<GraphicsFile>()); // creates a new instance of the graphics file
-            }
-
-            return graphicFrames;
+            return $"PAN Off: {PaletteOffset:X4} Type: {AnimationType} FPT: {FramesPerTick} Size: {SwapSize}x{SwapAreaSize}";
         }
     }
 }

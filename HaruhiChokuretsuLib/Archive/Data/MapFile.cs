@@ -59,12 +59,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
-        public (SKBitmap mapBitmap, SKBitmap bgBitmap) GetMapImages(ArchiveFile<GraphicsFile> grp, GraphicsFile objGrpReplacement = null)
+        public (SKBitmap mapBitmap, SKBitmap bgBitmap) GetMapImages(ArchiveFile<GraphicsFile> grp, GraphicsFile grpReplacement = null, int replacementIndex = 1)
         {
             List<GraphicsFile> textures = Settings.TextureFileIndices.Select(i => grp.Files.First(f => f.Index == i)).ToList();
-            if (objGrpReplacement is not null)
+            if (grpReplacement is not null)
             {
-                textures[1] = objGrpReplacement;
+                textures[replacementIndex] = grpReplacement;
             }
             GraphicsFile layout = grp.Files.First(f => f.Index == Settings.LayoutFileIndex);
 
@@ -177,8 +177,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public int Unknown44 { get; set; }
         public int Unknown48 { get; set; }
         public (int x, int y) StartingPosition { get; set; }
-        public int PrimaryAnimationFileIndex { get; set; }
-        public int SecondaryAnimationFileIndex { get; set; }
+        public int CAnimationFileIndex { get; set; }
+        public int PaletteAnimationFileIndex { get; set; }
         public int Unknown5C { get; set; }
         public int Unknown60 { get; set; }
         public int Unknown64 { get; set; }
@@ -209,8 +209,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
             Unknown44 = BitConverter.ToInt32(data.Skip(0x44).Take(4).ToArray());
             Unknown48 = BitConverter.ToInt32(data.Skip(0x48).Take(4).ToArray());
             StartingPosition = (BitConverter.ToInt32(data.Skip(0x4C).Take(4).ToArray()), BitConverter.ToInt32(data.Skip(0x50).Take(4).ToArray()));
-            PrimaryAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x54).Take(4).ToArray());
-            SecondaryAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x58).Take(4).ToArray());
+            CAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x54).Take(4).ToArray());
+            PaletteAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x58).Take(4).ToArray());
             Unknown5C = BitConverter.ToInt32(data.Skip(0x5C).Take(4).ToArray());
             Unknown60 = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
             Unknown60 = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
