@@ -695,7 +695,7 @@ namespace HaruhiChokuretsuLib.Archive
                     animationEntry.Prepare(texture);
                 }
 
-                int numFrames = 36000;
+                int numFrames = 1080;
 
                 int iterator = 0;
                 bool changedOnce = false, changedTwice = false;

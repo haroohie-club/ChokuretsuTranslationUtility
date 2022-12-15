@@ -153,19 +153,6 @@ namespace HaruhiChokuretsuCLI
                     Console.WriteLine($"Animated map will have {graphicFrames.Count} frames.");
 
                     List<SKBitmap> frames = new();
-                    //for (int i = 0; i < graphicFrames.Count; i++)
-                    //{
-                    //    if (i > 0 && graphicFrames[i].Data.SequenceEqual(graphicFrames[i - 1].Data))
-                    //    {
-                    //        Console.WriteLine($"Frame {i + 1} identical to frame {i}, reusing...");
-                    //        frames.Add(frames[i - 1]);
-                    //    }
-                    //    else
-                    //    {
-                    //        Console.WriteLine($"Creating bitmap for frame {i + 1}...");
-                    //        frames.Add(map.GetMapImages(grp, graphicFrames[i], replacementIndex).mapBitmap);
-                    //    }
-                    //}
                     Dictionary<uint, SKBitmap> frameMapping = new();
                     for (int i = 0; i < graphicFrames.Count; i++)
                     {
