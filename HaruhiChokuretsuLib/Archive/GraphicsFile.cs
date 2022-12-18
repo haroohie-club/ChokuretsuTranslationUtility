@@ -133,6 +133,7 @@ namespace HaruhiChokuretsuLib.Archive
                 "tile" => Form.TILE,
                 _ => throw new ArgumentException($"Image {filename} does not have its image form (third argument should be 'texture' or 'tile')")
             };
+            Name = fileComponents.Last().ToUpper();
             Data = new();
             FileFunction = Function.SHTX;
             int transparentIndex = -1;

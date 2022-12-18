@@ -47,17 +47,12 @@ namespace HaruhiChokuretsuEditor
                 _evtFile = ArchiveFile<EventFile>.FromFile(openFileDialog.FileName);
                 _evtFile.Files.First(f => f.Index == 580).InitializeScenarioFile();
                 _evtFile.Files.First(f => f.Index == 581).InitializeTopicFile();
-                _evtFile.Files.Where(f => f.Index is >= 358 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.Files.First(f => f.Index == 581).TopicStructs));
+                _evtFile.Files.Where(f => f.Index is >= 359 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.Files.First(f => f.Index == 581).TopicStructs));
 
                 EventFile voiceMapFile = _evtFile.Files.FirstOrDefault(f => f.Index == 589);
                 if (voiceMapFile is not null)
                 {
-                    VoiceMapFile newVoiceMap = new();
-                    newVoiceMap.Initialize(voiceMapFile.Data.ToArray(), voiceMapFile.Offset);
-                    newVoiceMap.Index = voiceMapFile.Index;
-                    newVoiceMap.MagicInteger = voiceMapFile.MagicInteger;
-                    newVoiceMap.CompressedData = voiceMapFile.CompressedData;
-                    _evtFile.Files[_evtFile.Files.IndexOf(voiceMapFile)] = newVoiceMap;
+                    _evtFile.Files[_evtFile.Files.IndexOf(voiceMapFile)] = voiceMapFile.CastTo<VoiceMapFile>();
                 }
 
                 FontReplacementDictionary fontReplacementDictionary = new();
@@ -136,6 +131,7 @@ namespace HaruhiChokuretsuEditor
             editStackPanel.Children.Clear();
             eventsTopicsStackPanel.Children.Clear();
             eventsScenariosStackPanel.Children.Clear();
+            eventSettingsStackPanel.Children.Clear();
             frontPointersStackPanel.Children.Clear();
             endPointersStackPanel.Children.Clear();
             if (eventsListBox.SelectedIndex >= 0)
@@ -183,11 +179,19 @@ namespace HaruhiChokuretsuEditor
                 //    eventsScenariosStackPanel.Children.Add(scenarioStackPanel);
                 //    eventsScenariosStackPanel.Children.Add(new Separator());
                 //}
-                foreach (int frontPointer in selectedFile.FrontPointers)
+                if (selectedFile.Settings is not null)
+                {
+                    eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.EventNamePointer)}: {selectedFile.Settings.EventNamePointer}" });
+                    eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumUnknown01)}: {selectedFile.Settings.NumUnknown01}" });
+                    eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.UnknownSection01Pointer)}: {selectedFile.Settings.UnknownSection01Pointer}" });
+                    eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumUnknown01)}: {selectedFile.Settings.NumUnknown01}" });
+                    eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumChoices)}: {selectedFile.Settings.NumChoices}" });
+                }
+                foreach (EventFileSection frontPointer in selectedFile.SectionPointersAndCounts)
                 {
                     StackPanel fpStackPanel = new() { Orientation = Orientation.Horizontal };
                     fpStackPanel.Children.Add(new TextBlock { Text = $"0x{frontPointer:X8}\t\t" });
-                    fpStackPanel.Children.Add(new TextBox { Text = $"{BitConverter.ToInt32(selectedFile.Data.Skip(frontPointer).Take(4).ToArray()):X8}" });
+                    fpStackPanel.Children.Add(new TextBox { Text = $"{BitConverter.ToInt32(selectedFile.Data.Skip(frontPointer.Pointer).Take(4).ToArray()):X8}" });
                     frontPointersStackPanel.Children.Add(fpStackPanel);
                 }
                 foreach (int endPointer in selectedFile.EndPointers)

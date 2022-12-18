@@ -50,6 +50,13 @@ namespace HaruhiChokuretsuLib.Archive.Data
             source += $".set {nameof(BgType.SINGLE_TEX)}, {(int)BgType.SINGLE_TEX}\n";
             source += "\n";
 
+            source += ".word 1\n";
+            source += ".word END_POINTERS\n";
+            source += ".word FILE_START\n";
+            source += ".word BGTBL\n";
+            source += $".word {BgTableEntries.Count}\n\n";
+
+            source += "FILE_START:\n";
             source += "BGTBL:\n";
 
             const int COMMENT_WIDTH = 24;
@@ -61,21 +68,23 @@ namespace HaruhiChokuretsuLib.Archive.Data
                     string fileName2 = BgTableEntries[i].Type != BgType.SINGLE_TEX ? includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex2).Name : "0";
                     string macroName = fileName1[0..fileName1.LastIndexOf('_')];
 
-                    source += $"    {macroName}:{string.Join(' ', new string[COMMENT_WIDTH - macroName.Length + 10])}@ 0x{i:X4}\n" +
-                        $"        .word {BgTableEntries[i].Type}{string.Join(' ', new string[COMMENT_WIDTH - BgTableEntries[i].Type.ToString().Length + 1])}@ ENTRY TYPE\n" +
-                        $"        .short {fileName1}{string.Join(' ', new string[COMMENT_WIDTH - fileName1.Length])}@ BG TOP\n" +
-                        $"        .short {fileName2}{string.Join(' ', new string[COMMENT_WIDTH - fileName2.Length])}@ BG BOTTOM\n" +
+                    source += $"    .set {macroName}, 0x{i:X4}\n" +
+                        $"    .word {BgTableEntries[i].Type}{string.Join(' ', new string[COMMENT_WIDTH - BgTableEntries[i].Type.ToString().Length + 1])}@ ENTRY TYPE\n" +
+                        $"    .short {fileName1}{string.Join(' ', new string[COMMENT_WIDTH - fileName1.Length])}@ BG TOP\n" +
+                        $"    .short {fileName2}{string.Join(' ', new string[COMMENT_WIDTH - fileName2.Length])}@ BG BOTTOM\n" +
                         $"    \n";
                 }
                 else
                 {
-                    source += $"    UNUSED{i:D2}:\n" +
-                        $"        .word 0\n" +
-                        $"        .short 0\n" +
-                        $"        .short 0\n" +
+                    source += $"    .set UNUSED{i:D3}, 0x{i:X4}\n" +
+                        $"    .word 0\n" +
+                        $"    .short 0\n" +
+                        $"    .short 0\n" +
                         $"    \n";
                 }
             }
+
+            source += "END_POINTERS:\n";
 
             return source;
         }

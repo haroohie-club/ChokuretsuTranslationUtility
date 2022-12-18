@@ -73,8 +73,8 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(outputDirectory);
             }
 
-            try
-            {
+            //try
+            //{
                 var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive);
 
                 if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase))
@@ -88,10 +88,7 @@ namespace HaruhiChokuretsuCLI
                     if (evtVmFile is not null)
                     {
                         VoiceMapFile newVmFile = new();
-                        newVmFile.Initialize(evtVmFile.Data.ToArray(), evtVmFile.Offset);
-                        newVmFile.Index = evtVmFile.Index;
-                        newVmFile.MagicInteger = evtVmFile.MagicInteger;
-                        evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = newVmFile;
+                        evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = evtVmFile.CastTo<VoiceMapFile>();
                     }
                 }
 
@@ -108,11 +105,7 @@ namespace HaruhiChokuretsuCLI
                     if (fileIndex == 589)
                     {
                         EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex);
-                        VoiceMapFile vmFile = new();
-                        vmFile.Initialize(evtVmFile.Data.ToArray(), evtVmFile.Offset);
-                        vmFile.FontReplacementMap = fontReplacementDictionary;
-                        vmFile.Index = evtVmFile.Index;
-                        vmFile.MagicInteger = evtVmFile.MagicInteger;
+                        VoiceMapFile vmFile = evtVmFile.CastTo<VoiceMapFile>();
                         vmFile.ImportResxFile(file);
                         evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = vmFile;
                     }
@@ -123,12 +116,12 @@ namespace HaruhiChokuretsuCLI
                 }
                 File.WriteAllBytes(_outputArchive, evtArchive.GetBytes());
                 CommandSet.Out.WriteLine("Done.");
-            }
-            catch (Exception e)
-            {
-                CommandSet.Out.WriteLine($"Fatal exception: {e.Message}");
-                return 1;
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    CommandSet.Out.WriteLine($"Fatal exception: {e.Message}\n{e.StackTrace}");
+            //    return 1;
+            //}
 
             return 0;
         }

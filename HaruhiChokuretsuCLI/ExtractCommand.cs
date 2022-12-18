@@ -141,6 +141,7 @@ namespace HaruhiChokuretsuCLI
 
                     // There's not a better way to do this that I can think of
                     // Sorry
+                    ISourceFile sourceFile;
                     if (archive.FileName.StartsWith("dat", StringComparison.OrdinalIgnoreCase))
                     {
                         List<byte> qmapData = archive.Files.First(f => f.Name == "QMAPS").Data;
@@ -159,10 +160,12 @@ namespace HaruhiChokuretsuCLI
                         {
                             file = file.CastTo<BgTable>();
                         }
+                        sourceFile = file;
                     }
                     else if (archive.FileName.StartsWith("evt", StringComparison.OrdinalIgnoreCase))
                     {
-
+                        EventFile evtFile = file.CastTo<EventFile>();
+                        sourceFile = evtFile;
                     }
                     else
                     {
@@ -171,7 +174,7 @@ namespace HaruhiChokuretsuCLI
                     }
 
                     CommandSet.Out.Write($"Extracting file #{file.Index:X3} as ASM from archive {archive.FileName}... ");
-                    File.WriteAllText(_outputFile, file.GetSource(includes));
+                    File.WriteAllText(_outputFile, sourceFile.GetSource(includes));
                     CommandSet.Out.WriteLine("OK");
                 }
                 else

@@ -11,14 +11,16 @@ namespace HaruhiChokuretsuLib.Archive
 {
     public class EventFile : FileInArchive, ISourceFile
     {
-        public List<int> FrontPointers { get; set; } = new();
+        public int NumSections { get; set; }
+
+        public List<EventFileSection> SectionPointersAndCounts { get; set; } = new();
         public int PointerToEndPointerSection { get; set; }
         public List<int> EndPointers { get; set; } = new();
         public List<int> EndPointerPointers { get; set; } = new();
         public string Title { get; set; }
 
+        public EventFileSettings Settings { get; set; }
         public Dictionary<int, string> DramatisPersonae { get; set; } = new();
-        public int DialogueSectionPointer { get; set; }
         public List<DialogueLine> DialogueLines { get; set; } = new();
 
         public List<TopicStruct> TopicStructs { get; set; } = new();
@@ -38,43 +40,48 @@ namespace HaruhiChokuretsuLib.Archive
             Offset = offset;
             Data = decompressedData.ToList();
 
-            int numFrontPointers = BitConverter.ToInt32(decompressedData.Take(4).ToArray());
-            bool reachedDramatisPersonae = false;
-            for (int i = 0; i < numFrontPointers; i++)
+            NumSections = BitConverter.ToInt32(decompressedData.Take(4).ToArray());
+            for (int i = 0; i < NumSections; i++)
             {
-                FrontPointers.Add(BitConverter.ToInt32(decompressedData.Skip(0x0C + (0x08 * i)).Take(4).ToArray()));
-                uint pointerValue = BitConverter.ToUInt32(decompressedData.Skip(FrontPointers[i]).Take(4).ToArray());
-                if (pointerValue > 0x10000000 || pointerValue == 0x8596) // 8596 is 妹 which is a valid character name, sadly lol
+                SectionPointersAndCounts.Add(new()
                 {
-                    reachedDramatisPersonae = true;
-                    DramatisPersonae.Add(FrontPointers[i],
-                        Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(FrontPointers[i]).TakeWhile(b => b != 0x00).ToArray()));
-                }
-                else if (reachedDramatisPersonae)
-                {
-                    reachedDramatisPersonae = false;
-                    DialogueSectionPointer = FrontPointers[i];
-                }
+                    Pointer = BitConverter.ToInt32(decompressedData.Skip(0x0C + (0x08 * i)).Take(4).ToArray()),
+                    ItemCount = BitConverter.ToInt32(decompressedData.Skip(0x10 + (0x08 * i)).Take(4).ToArray()),
+                });
+            }
+
+            Settings = new(decompressedData.Skip(SectionPointersAndCounts[0].Pointer).Take(EventFileSettings.SETTINGS_LENGTH));
+
+            int dialogueSectionPointerIndex = SectionPointersAndCounts.FindIndex(f => f.Pointer == Settings.DialogueSectionPointer);
+            for (int i = SectionPointersAndCounts.FindIndex(f => f.Pointer == Settings.FlagsSectionPointer) + 1; i < dialogueSectionPointerIndex; i++)
+            {
+                DramatisPersonae.Add(SectionPointersAndCounts[i].Pointer,
+                    Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(SectionPointersAndCounts[i].Pointer).TakeWhile(b => b != 0x00).ToArray()));
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset);
         }
 
-        protected void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset)
+        protected void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset, bool @override = false)
         {
-            for (int i = 0; DialogueSectionPointer + i < decompressedData.Length - 0x0C; i += 0x0C)
+            if ((Name != "CHESSS" && Name != "EVTTBLS" && Name != "TOPICS" && Name != "SCENARIOS" && Name != "VOICEMAPS"
+                && Name != "MESSS"
+                && Settings.DialogueSectionPointer < decompressedData.Length) || @override)
             {
-                int character = BitConverter.ToInt32(decompressedData.Skip(DialogueSectionPointer + i).Take(4).ToArray());
-                int speakerPointer = BitConverter.ToInt32(decompressedData.Skip(DialogueSectionPointer + i + 4).Take(4).ToArray());
-                int dialoguePointer = BitConverter.ToInt32(decompressedData.Skip(DialogueSectionPointer + i + 8).Take(4).ToArray());
-
-                if (character == 0 && speakerPointer == 0 && dialoguePointer == 0)
+                for (int i = 0; i < Settings.NumDialogueEntries; i++)
                 {
-                    break;
-                }
+                    int character = BitConverter.ToInt32(decompressedData.Skip(Settings.DialogueSectionPointer + i * 0x0C).Take(4).ToArray());
+                    int speakerPointer = BitConverter.ToInt32(decompressedData.Skip(Settings.DialogueSectionPointer + i * 0x0C + 4).Take(4).ToArray());
+                    int dialoguePointer = BitConverter.ToInt32(decompressedData.Skip(Settings.DialogueSectionPointer + i * 0x0C + 8).Take(4).ToArray());
 
-                DramatisPersonae.TryGetValue(speakerPointer, out string speakerName);
-                DialogueLines.Add(new DialogueLine((Speaker)character, speakerName, speakerPointer, dialoguePointer, Data.ToArray()));
+                    if (character == 0 && speakerPointer == 0 && dialoguePointer == 0)
+                    {
+                        break;
+                    }
+
+                    DramatisPersonae.TryGetValue(speakerPointer, out string speakerName);
+                    DialogueLines.Add(new DialogueLine((Speaker)character, speakerName, speakerPointer, dialoguePointer, Data.ToArray()));
+                }
             }
 
             PointerToEndPointerSection = BitConverter.ToInt32(decompressedData.Skip(4).Take(4).ToArray());
@@ -100,7 +107,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         public void IdentifyEventFileTopics(IList<TopicStruct> availableTopics)
         {
-            int topicsSectionPointer = FrontPointers.Where(f => f > DialogueLines.Last(d => d.SpeakerName != "CHOICE").Pointer).ToArray()[3]; // third pointer after dialogue section
+            int topicsSectionPointer = SectionPointersAndCounts.Where(s => s.Pointer > DialogueLines.Last(d => d.SpeakerName != "CHOICE").Pointer).Select(s => s.Pointer).ToArray()[3]; // third pointer after dialogue section
             for (int i = topicsSectionPointer; i < PointerToEndPointerSection; i += 0x24)
             {
                 int controlSwitch = BitConverter.ToInt32(Data.Skip(i).Take(4).ToArray());
@@ -137,7 +144,7 @@ namespace HaruhiChokuretsuLib.Archive
         public void InitializeScenarioFile()
         {
             InitializeDialogueForSpecialFiles();
-            Scenario = new(Data, FrontPointers[^2], FrontPointers[^3]);
+            Scenario = new(Data, SectionPointersAndCounts[^2].Pointer, SectionPointersAndCounts[^3].Pointer);
         }
 
         public override byte[] GetBytes() => Data.ToArray();
@@ -165,13 +172,13 @@ namespace HaruhiChokuretsuLib.Archive
 
         public virtual void ShiftPointers(int shiftLocation, int shiftAmount)
         {
-            for (int i = 0; i < FrontPointers.Count; i++)
+            for (int i = 0; i < SectionPointersAndCounts.Count; i++)
             {
-                if (FrontPointers[i] > shiftLocation)
+                if (SectionPointersAndCounts[i].Pointer > shiftLocation)
                 {
-                    FrontPointers[i] += shiftAmount;
+                    SectionPointersAndCounts[i].Pointer += shiftAmount;
                     Data.RemoveRange(0x0C + (0x08 * i), 4);
-                    Data.InsertRange(0x0C + (0x08 * i), BitConverter.GetBytes(FrontPointers[i]));
+                    Data.InsertRange(0x0C + (0x08 * i), BitConverter.GetBytes(SectionPointersAndCounts[i].Pointer));
                 }
             }
             if (PointerToEndPointerSection > shiftLocation)
@@ -331,7 +338,15 @@ namespace HaruhiChokuretsuLib.Archive
 
         public string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
-            if (Name == "SCENARIOS")
+            if (Name == "CHESSS")
+            {
+                return "";
+            }
+            else if (Name == "EVTTBLS")
+            {
+                return "";
+            }
+            else if (Name == "SCENARIOS")
             {
                 return "";
             }
@@ -341,8 +356,111 @@ namespace HaruhiChokuretsuLib.Archive
             }
             else
             {
-                return "";
+                StringBuilder builder = new();
+                builder.AppendLine(".include DATBIN.INC");
+                builder.AppendLine(".include EVTBIN.INC");
+                builder.AppendLine(".include GRPBIN.INC");
+                builder.AppendLine(".include BGTBL.S");
+                builder.AppendLine();
+                builder.AppendLine($".word {NumSections}");
+                builder.AppendLine(".word END_POINTERS");
+                builder.AppendLine(".word FILE_START");
+
+                builder.AppendLine(".word SETTINGS");
+                builder.AppendLine(".word 1");
+                if (Settings.UnknownSection01Pointer > 0)
+                {
+                    builder.AppendLine($".word 0");
+                }
+
+                return builder.ToString();
             }
+        }
+    }
+    public class EventFileSection
+    {
+        public int Pointer { get; set; }
+        public int ItemCount { get; set; }
+
+        public override string ToString()
+        {
+            return $"0x{Pointer:X8}, {ItemCount}";
+        }
+    }
+
+    public class EventFileSettings
+    {
+        public const int SETTINGS_LENGTH = 0x128;
+
+        public int EventNamePointer { get; set; }
+        public int NumUnknown01 { get; set; }
+        public int UnknownSection01Pointer { get; set; } // probably straight up unused
+        public int NumUnknown02 { get; set; }
+        public int UnknownSection02Pointer { get; set; } // potentially something to do with flag setting after you've investigated something
+        public int NumUnknown03 { get; set; }
+        public int UnknownSection03Pointer { get; set; } // probably straight up unused
+        public int NumUnknown04 { get; set; }
+        public int UnknownSection04Pointer { get; set; } // array indices of some kind
+        public int NumUnknown05 { get; set; }
+        public int UnknownSection05Pointer { get; set; } // flag setting (investigation-related)
+        public int NumUnknown06 { get; set; }
+        public int UnknownSection06Pointer { get; set; } // probably straigt up unused
+        public int NumUnknown07 { get; set; }
+        public int UnknownSection07Pointer { get; set; } // more flags stuff (investigation-related)
+        public int NumChoices { get; set; }
+        public int ChoicesSectionPointer { get; set; }
+        public int Unused44 { get; set; }
+        public int Unused48 { get; set; }
+        public int NumUnknown08 { get; set; }
+        public int UnknownSection08Pointer { get; set; } // maybe unused
+        public int NumUnknown09 { get; set; }
+        public int UnknownSection09Pointer { get; set; } // seems unused
+        public int NumFlags { get; set; }
+        public int FlagsSectionPointer { get; set; }
+        public int NumDialogueEntries { get; set; }
+        public int DialogueSectionPointer { get; set; }
+        public int NumUnknown10 { get; set; }
+        public int UnknownSection10Pointer { get; set; }
+        public int NumCodeSections { get; set; }
+        public int CodeSectionsSectionPointer { get; set; }
+
+        public EventFileSettings(IEnumerable<byte> data)
+        {
+            if (data.Count() < 0x128)
+            {
+                return;
+            }
+            EventNamePointer = BitConverter.ToInt32(data.Take(4).ToArray());
+            NumUnknown01 = BitConverter.ToInt32(data.Skip(0x004).Take(4).ToArray());
+            UnknownSection01Pointer = BitConverter.ToInt32(data.Skip(0x008).Take(4).ToArray());
+            NumUnknown02 = BitConverter.ToInt32(data.Skip(0x00C).Take(4).ToArray());
+            UnknownSection02Pointer = BitConverter.ToInt32(data.Skip(0x010).Take(4).ToArray());
+            NumUnknown03 = BitConverter.ToInt32(data.Skip(0x014).Take(4).ToArray());
+            UnknownSection03Pointer = BitConverter.ToInt32(data.Skip(0x018).Take(4).ToArray());
+            NumUnknown04 = BitConverter.ToInt32(data.Skip(0x01C).Take(4).ToArray());
+            UnknownSection04Pointer = BitConverter.ToInt32(data.Skip(0x020).Take(4).ToArray());
+            NumUnknown05 = BitConverter.ToInt32(data.Skip(0x024).Take(4).ToArray());
+            UnknownSection05Pointer = BitConverter.ToInt32(data.Skip(0x028).Take(4).ToArray());
+            NumUnknown06 = BitConverter.ToInt32(data.Skip(0x02C).Take(4).ToArray());
+            UnknownSection06Pointer = BitConverter.ToInt32(data.Skip(0x030).Take(4).ToArray());
+            NumUnknown07 = BitConverter.ToInt32(data.Skip(0x034).Take(4).ToArray());
+            UnknownSection07Pointer = BitConverter.ToInt32(data.Skip(0x038).Take(4).ToArray());
+            NumChoices = BitConverter.ToInt32(data.Skip(0x03C).Take(4).ToArray());
+            ChoicesSectionPointer = BitConverter.ToInt32(data.Skip(0x040).Take(4).ToArray());
+            Unused44 = BitConverter.ToInt32(data.Skip(0x044).Take(4).ToArray());
+            Unused48 = BitConverter.ToInt32(data.Skip(0x048).Take(4).ToArray());
+            NumUnknown08 = BitConverter.ToInt32(data.Skip(0x04C).Take(4).ToArray());
+            UnknownSection08Pointer = BitConverter.ToInt32(data.Skip(0x050).Take(4).ToArray());
+            NumUnknown09 = BitConverter.ToInt32(data.Skip(0x054).Take(4).ToArray());
+            UnknownSection09Pointer = BitConverter.ToInt32(data.Skip(0x058).Take(4).ToArray());
+            NumFlags = BitConverter.ToInt32(data.Skip(0x05C).Take(4).ToArray());
+            FlagsSectionPointer = BitConverter.ToInt32(data.Skip(0x060).Take(4).ToArray());
+            NumDialogueEntries = BitConverter.ToInt32(data.Skip(0x064).Take(4).ToArray());
+            DialogueSectionPointer = BitConverter.ToInt32(data.Skip(0x068).Take(4).ToArray());
+            NumUnknown10 = BitConverter.ToInt32(data.Skip(0x06C).Take(4).ToArray());
+            UnknownSection10Pointer = BitConverter.ToInt32(data.Skip(0x070).Take(4).ToArray());
+            NumCodeSections = BitConverter.ToInt32(data.Skip(0x074).Take(4).ToArray());
+            CodeSectionsSectionPointer = BitConverter.ToInt32(data.Skip(0x078).Take(4).ToArray());
         }
     }
 
@@ -621,23 +739,29 @@ namespace HaruhiChokuretsuLib.Archive
             int numFrontPointers = BitConverter.ToInt32(decompressedData.Take(4).ToArray());
             for (int i = 0; i < numFrontPointers; i++)
             {
-                FrontPointers.Add(BitConverter.ToInt32(decompressedData.Skip(0x0C + (0x08 * i)).Take(4).ToArray()));
+                SectionPointersAndCounts.Add(new()
+                {
+                    Pointer = BitConverter.ToInt32(decompressedData.Skip(0x0C + (0x08 * i)).Take(4).ToArray()),
+                    ItemCount = BitConverter.ToInt32(decompressedData.Skip(0x10 + (0x08 * i)).Take(4).ToArray()),
+                });
             }
-            VoiceMapStructSectionOffset = FrontPointers[0];
-            DialogueSectionPointer = FrontPointers[1];
-            DialogueLinesPointer = DialogueSectionPointer + (FrontPointers.Count - 1) * 12;
+            Settings = new(new byte[0x128]);
+            VoiceMapStructSectionOffset = SectionPointersAndCounts[0].Pointer;
+            Settings.DialogueSectionPointer = SectionPointersAndCounts[1].Pointer;
+            DialogueLinesPointer = Settings.DialogueSectionPointer + (SectionPointersAndCounts.Count - 1) * 12;
+            Settings.NumDialogueEntries = (numFrontPointers - 2);
 
-            for (int i = 2; i < FrontPointers.Count; i++)
+            for (int i = 2; i < SectionPointersAndCounts.Count; i++)
             {
-                DramatisPersonae.Add(FrontPointers[i], Encoding.ASCII.GetString(Data.Skip(FrontPointers[i]).TakeWhile(b => b != 0).ToArray()));
+                DramatisPersonae.Add(SectionPointersAndCounts[i].Pointer, Encoding.ASCII.GetString(Data.Skip(SectionPointersAndCounts[i].Pointer).TakeWhile(b => b != 0).ToArray()));
             }
 
-            for (int i = 0; i < FrontPointers.Count - 2; i++)
+            for (int i = 0; i < SectionPointersAndCounts.Count - 2; i++)
             {
                 VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH)));
             }
 
-            InitializeDialogueAndEndPointers(decompressedData, offset);
+            InitializeDialogueAndEndPointers(decompressedData, offset, @override: true);
         }
 
         public override void NewFile(string filename)
@@ -645,6 +769,7 @@ namespace HaruhiChokuretsuLib.Archive
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Data = new();
             string[] csvData = File.ReadAllLines(filename);
+            Name = "VOICEMAPS";
 
             List<int> filenamePointers = new();
             List<byte> filenameSection = new();

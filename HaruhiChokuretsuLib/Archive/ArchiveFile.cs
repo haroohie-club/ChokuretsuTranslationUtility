@@ -123,7 +123,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         public string GetSourceInclude()
         {
-            return string.Join("\n", Files.Select(f => $".set {f.Name}, {f.Index}"));
+            return string.Join("\n", Files.Select(f => $".set {f.Name}, {f.Index}")) + "\n";
         }
 
         public int GetFileOffset(uint magicInteger)
@@ -224,7 +224,7 @@ namespace HaruhiChokuretsuLib.Archive
             uint secondHeaderNumber = 0xC0C0C0C0;
             MagicIntegers.Add(file.MagicInteger);
             SecondHeaderNumbers.Add(secondHeaderNumber);
-            FileNamesSection.RemoveRange(FileNamesSection.Count - 8, 8);
+            byte[] nameBytes = Encoding.ASCII.GetBytes(file.Name);
             Files.Add(file);
         }
 
@@ -239,7 +239,31 @@ namespace HaruhiChokuretsuLib.Archive
             bytes.AddRange(BitConverter.GetBytes(MagicIntegerLsbAnd));
             bytes.AddRange(BitConverter.GetBytes(Unknown1));
             bytes.AddRange(BitConverter.GetBytes(Unknown2));
-            bytes.AddRange(BitConverter.GetBytes(FileNamesLength));
+
+            List<byte> namesSectionBytes = new();
+            foreach (string filename in Files.Select(f => f.Name))
+            {
+                byte[] nameBytes = Encoding.ASCII.GetBytes(filename);
+                for (int j = 0; j < nameBytes.Length; j++)
+                {
+                    if ((nameBytes[j] >= 48 && nameBytes[j] <= 51)
+                        || (nameBytes[j] >= 56 && nameBytes[j] <= 57)
+                        || (nameBytes[j] >= 65 && nameBytes[j] <= 67)
+                        || (nameBytes[j] >= 72 && nameBytes[j] <= 75)
+                        || (nameBytes[j] >= 80 && nameBytes[j] <= 84)
+                        || nameBytes[j] >= 88)
+                    {
+                        nameBytes[j] += 19;
+                    }
+                    else
+                    {
+                        nameBytes[j] += 11;
+                    }
+                }
+                namesSectionBytes.AddRange(nameBytes);
+                namesSectionBytes.Add(0);
+            }
+            bytes.AddRange(BitConverter.GetBytes(namesSectionBytes.Count));
 
             foreach (uint magicInteger in MagicIntegers)
             {
@@ -249,7 +273,7 @@ namespace HaruhiChokuretsuLib.Archive
             {
                 bytes.AddRange(BitConverter.GetBytes(secondInteger));
             }
-            bytes.AddRange(FileNamesSection);
+            bytes.AddRange(namesSectionBytes);
 
             bytes.AddRange(new byte[Files[0].Offset - bytes.Count]);
 

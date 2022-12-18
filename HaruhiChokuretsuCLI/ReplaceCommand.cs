@@ -163,7 +163,7 @@ namespace HaruhiChokuretsuCLI
             }
             catch (Exception e)
             {
-                CommandSet.Out.WriteLine($"Fatal exception: {e.Message}");
+                CommandSet.Out.WriteLine($"Fatal exception: {e.Message}\n{e.StackTrace}");
                 return 1;
             }
 

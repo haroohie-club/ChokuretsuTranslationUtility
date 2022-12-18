@@ -53,6 +53,13 @@
                                     </DockPanel>
                                 </ScrollViewer>
                             </TabItem>
+                            <TabItem Header="Event Settings">
+                                <ScrollViewer Grid.Column="1" Height="350" >
+                                    <DockPanel>
+                                        <StackPanel x:Name="eventSettingsStackPanel"/>
+                                    </DockPanel>
+                                </ScrollViewer>
+                            </TabItem>
                             <TabItem Header="Front Pointers">
                                 <ScrollViewer Grid.Column="1" Height="350" >
                                     <DockPanel>
