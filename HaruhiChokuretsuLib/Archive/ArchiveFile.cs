@@ -121,6 +121,11 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
+        public string GetSourceInclude()
+        {
+            return string.Join("\n", Files.Select(f => $".set {f.Name}, {f.Index}"));
+        }
+
         public int GetFileOffset(uint magicInteger)
         {
             return (int)((magicInteger >> MagicIntegerMsbShift) * MagicIntegerMsbMultiplier);

@@ -9,7 +9,7 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive
 {
-    public class EventFile : FileInArchive
+    public class EventFile : FileInArchive, ISourceFile
     {
         public List<int> FrontPointers { get; set; } = new();
         public int PointerToEndPointerSection { get; set; }
@@ -326,18 +326,23 @@ namespace HaruhiChokuretsuLib.Archive
 
         public override string ToString()
         {
-            //if (!string.IsNullOrWhiteSpace(Title))
-            //{
             return $"{Index:X3} {Index:D3} 0x{Offset:X8} '{Name}'";
-            //}
-            //else if (DialogueLines.Count > 0)
-            //{
-            //    return $"{Index:X3} {Index:D3} 0x{Offset:X8}, Line 1: {Name}";
-            //}
-            //else
-            //{
-            //    return $"{Index:X3} {Index:D3} 0x{Offset:X8}";
-            //}
+        }
+
+        public string GetSource(Dictionary<string, IncludeEntry[]> includes)
+        {
+            if (Name == "SCENARIOS")
+            {
+                return "";
+            }
+            else if (Name == "TOPICS")
+            {
+                return "";
+            }
+            else
+            {
+                return "";
+            }
         }
     }
 

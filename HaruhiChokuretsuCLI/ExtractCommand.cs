@@ -1,17 +1,21 @@
 ﻿using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Archive.Data;
 using Mono.Options;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
 
 namespace HaruhiChokuretsuCLI
 {
     public class ExtractCommand : Command
     {
-        private string _inputArchive, _outputFile;
+        private string _inputArchive, _outputFile, _fileName;
+        private string[] _includes;
         private int _fileIndex = -1, _imageWidth = -1;
         private bool _showHelp, _compressed;
 
@@ -23,10 +27,12 @@ namespace HaruhiChokuretsuCLI
                 "Usage: HaruhiChokuretsuCLI extract -i [inputArchive] -o [outputFile] [OPTIONS]",
                 "",
                 { "i|input-archive=", "Archive to extract file from", i => _inputArchive = i },
-                { "n|index=", "Index of file to extract (prefix with 0x to use hex number); this can be omitted if output file is named as a hex integer",
+                { "n|index=", "Index of file to extract (prefix with 0x to use hex number); this can be omitted if output file is named as a hex integer or if using filename",
                     n => _fileIndex = n.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? int.Parse(n[2..], NumberStyles.HexNumber) : int.Parse(n) },
+                { "name=", "Name of the file to extract", name => _fileName = name },
                 { "o|output-file=", "File name of extracted file (if ends in PNG or RESX, will extract to those formats; otherwise extracts raw binary data)", o => _outputFile = o},
                 { "w|image-width=", "Width of an image to extract (defaults to the image's encoded width)", w => _imageWidth = int.Parse(w) },
+                { "includes=", "Comma-separated list of include files to use when producing a source file", include => _includes = include.Split(',') },
                 { "c|compressed", "Extract compressed file", c => _compressed = true },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
@@ -41,21 +47,21 @@ namespace HaruhiChokuretsuCLI
                 int returnValue = 0;
                 if (string.IsNullOrEmpty(_inputArchive))
                 {
-                    CommandSet.Out.WriteLine("Input archive not provided, please supply -i or --input-archive");
+                    CommandSet.Error.WriteLine("Input archive not provided, please supply -i or --input-archive");
                     returnValue = 1;
                 }
                 if (string.IsNullOrEmpty(_outputFile))
                 {
-                    CommandSet.Out.WriteLine("Output file not provided, please supply -o or --output-file");
+                    CommandSet.Error.WriteLine("Output file not provided, please supply -o or --output-file");
                     returnValue = 1;
                 }
                 Options.WriteOptionDescriptions(CommandSet.Out);
                 return returnValue;
             }
 
-            if (_fileIndex == -1 && !int.TryParse(Path.GetFileNameWithoutExtension(_outputFile), NumberStyles.HexNumber, new CultureInfo("en-US"), out _fileIndex))
+            if (string.IsNullOrEmpty(_fileName) && _fileIndex == -1 && !int.TryParse(Path.GetFileNameWithoutExtension(_outputFile), NumberStyles.HexNumber, new CultureInfo("en-US"), out _fileIndex))
             {
-                CommandSet.Out.WriteLine("Either file index (-n or --index) must be set or output file name (-o or --output-file) must be a hex integer.");
+                CommandSet.Error.WriteLine("Either file index (-n or --index) or file name (--name) must be set or output file name (-o or --output-file) must be a hex integer.");
                 Options.WriteOptionDescriptions(CommandSet.Out);
                 return 1;
             }
@@ -71,7 +77,14 @@ namespace HaruhiChokuretsuCLI
                 if (Path.GetExtension(_outputFile).Equals(".png", StringComparison.OrdinalIgnoreCase))
                 {
                     var grpArchive = ArchiveFile<GraphicsFile>.FromFile(_inputArchive);
-                    GraphicsFile grpFile = grpArchive.Files.First(f => f.Index == _fileIndex);
+
+                    int fileIndex = _fileIndex;
+                    if (fileIndex < 0)
+                    {
+                        fileIndex = grpArchive.Files.First(f => f.Name == _fileName).Index;
+                    }
+
+                    GraphicsFile grpFile = grpArchive.Files.First(f => f.Index == fileIndex);
 
                     if (grpFile.Index == 0xE50)
                     {
@@ -86,7 +99,12 @@ namespace HaruhiChokuretsuCLI
                 else if (Path.GetExtension(_outputFile).Equals(".resx", StringComparison.OrdinalIgnoreCase))
                 {
                     var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive);
-                    EventFile evtFile = evtArchive.Files.First(f => f.Index == _fileIndex);
+                    int fileIndex = _fileIndex;
+                    if (fileIndex < 0)
+                    {
+                        fileIndex = evtArchive.Files.First(f => f.Name == _fileName).Index;
+                    }
+                    EventFile evtFile = evtArchive.Files.First(f => f.Index == fileIndex);
 
                     if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase) || (_fileIndex >= 580 && _fileIndex <= 581))
                     {
@@ -101,10 +119,70 @@ namespace HaruhiChokuretsuCLI
                     evtFile.WriteResxFile(_outputFile);
                     CommandSet.Out.WriteLine("OK");
                 }
+                else if (Path.GetExtension(_outputFile).Equals(".s", StringComparison.OrdinalIgnoreCase))
+                {
+                    var archive = ArchiveFile<DataFile>.FromFile(_inputArchive);
+                    int fileIndex = _fileIndex;
+                    if (fileIndex < 0)
+                    {
+                        fileIndex = archive.Files.First(f => f.Name == _fileName).Index;
+                    }
+                    DataFile file = archive.Files.First(f => f.Index == fileIndex);
+
+                    Dictionary<string, IncludeEntry[]> includes = new();
+                    if (_includes is not null)
+                    {
+                        foreach (string include in _includes)
+                        {
+                            IncludeEntry[] entries = File.ReadAllLines(include).Where(l => l.Length > 1).Select(l => new IncludeEntry(l)).ToArray();
+                            includes.Add(Path.GetFileNameWithoutExtension(include).ToUpper(), entries);
+                        }
+                    }
+
+                    // There's not a better way to do this that I can think of
+                    // Sorry
+                    if (archive.FileName.StartsWith("dat", StringComparison.OrdinalIgnoreCase))
+                    {
+                        List<byte> qmapData = archive.Files.First(f => f.Name == "QMAPS").Data;
+                        List<string> mapFileNames = new();
+                        for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
+                        {
+                            mapFileNames.Add(Encoding.ASCII.GetString(qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + i * 8).Take(4).ToArray())).TakeWhile(b => b != 0).ToArray()).Replace(".", ""));
+                        }
+                        mapFileNames = mapFileNames.Take(mapFileNames.Count - 1).ToList();
+
+                        if (mapFileNames.Contains(file.Name))
+                        {
+                            file = file.CastTo<MapFile>();
+                        }
+                        else if (file.Name == "BGTBLS")
+                        {
+                            file = file.CastTo<BgTable>();
+                        }
+                    }
+                    else if (archive.FileName.StartsWith("evt", StringComparison.OrdinalIgnoreCase))
+                    {
+
+                    }
+                    else
+                    {
+                        CommandSet.Error.WriteLine("Source files are only contained in dat.bin and evt.bin; please use one of those two bin archives.");
+                        return 1;
+                    }
+
+                    CommandSet.Out.Write($"Extracting file #{file.Index:X3} as ASM from archive {archive.FileName}... ");
+                    File.WriteAllText(_outputFile, file.GetSource(includes));
+                    CommandSet.Out.WriteLine("OK");
+                }
                 else
                 {
                     var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
-                    FileInArchive file = archive.Files.First(f => f.Index == _fileIndex);
+                    int fileIndex = _fileIndex;
+                    if (fileIndex < 0)
+                    {
+                        fileIndex = archive.Files.First(f => f.Name == _fileName).Index;
+                    }
+                    FileInArchive file = archive.Files.First(f => f.Index == fileIndex);
 
                     if (_compressed)
                     {
@@ -116,6 +194,7 @@ namespace HaruhiChokuretsuCLI
                         CommandSet.Out.Write($"Extracting file #{file.Index:X3} from archive {archive.FileName}... ");
                         File.WriteAllBytes(_outputFile, file.GetBytes());
                     }
+                    CommandSet.Out.WriteLine("OK");
                 }
             }
             catch (Exception e)
