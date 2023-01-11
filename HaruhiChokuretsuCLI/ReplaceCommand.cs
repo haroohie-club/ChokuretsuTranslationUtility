@@ -1,19 +1,22 @@
 ﻿using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Archive.Event;
 using Mono.Options;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuCLI
 {
     public class ReplaceCommand : Command
     {
-        string _inputArchive, _outputArchive, _replacement;
+        string _inputArchive, _outputArchive, _replacement, _devkitArm;
         private bool _showHelp;
         private Dictionary<int, List<SKColor>> _palettes = new();
 
@@ -40,11 +43,16 @@ namespace HaruhiChokuretsuCLI
                                     "\n\t(comments) are any comments on the contents of the image. These will be ignored during file replacement." +
                                     "\n\tFinally, a file containing the term \"ignore\" will be ignored by the replacement process.",
                     r => _replacement = r },
+                { "d|devkitARM=", "Location of devkitARM (for assembling .s files)", d => _devkitArm = d },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
         }
-
         public override int Invoke(IEnumerable<string> arguments)
+        {
+            return InvokeAsync(arguments).GetAwaiter().GetResult();
+        }
+
+        public async Task<int> InvokeAsync(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
 
@@ -87,8 +95,8 @@ namespace HaruhiChokuretsuCLI
                 filePaths.AddRange(Directory.EnumerateFiles(_replacement, "*.*", SearchOption.AllDirectories));
             }
 
-            try
-            {
+            //try
+            //{
                 var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
                 CommandSet.Out.WriteLine($"Beginning file replacement in {archive.FileName}...");
 
@@ -131,8 +139,8 @@ namespace HaruhiChokuretsuCLI
                             CommandSet.Out.Write($"Adding new file from {Path.GetFileName(filePath)}... ");
                         }
 
-                        try
-                        {
+                        //try
+                        //{
                             if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
                             {
                                 AddNewFile(archive, filePath);
@@ -140,6 +148,15 @@ namespace HaruhiChokuretsuCLI
                             else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
                             {
                                 ReplaceSingleGraphicsFile(archive, filePath, index.Value, _palettes);
+                            }
+                            else if (Path.GetExtension(filePath).Equals(".s", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (string.IsNullOrEmpty(_devkitArm))
+                                {
+                                    CommandSet.Error.WriteLine("ERROR: DevkitARM must be supplied for replacing with source files");
+                                    return 1;
+                                }
+                                await ReplaceSingleSourceFileAsync(archive, filePath, index.Value, _devkitArm);
                             }
                             else if (Path.GetExtension(filePath).Equals(".bin", StringComparison.OrdinalIgnoreCase))
                             {
@@ -151,21 +168,21 @@ namespace HaruhiChokuretsuCLI
                             }
 
                             CommandSet.Out.WriteLine("OK");
-                        }
-                        catch (Exception e)
-                        {
-                            CommandSet.Out.WriteLine($"NOT OK: {e.Message}");
-                        }
+                        //}
+                        //catch (Exception e)
+                        //{
+                        //    CommandSet.Out.WriteLine($"NOT OK: {e.Message}");
+                        //}
 
                     }
                 }
                 File.WriteAllBytes(_outputArchive, archive.GetBytes());
-            }
-            catch (Exception e)
-            {
-                CommandSet.Out.WriteLine($"Fatal exception: {e.Message}\n{e.StackTrace}");
-                return 1;
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    CommandSet.Out.WriteLine($"Fatal exception: {e.Message}\n{e.StackTrace}");
+            //    return 1;
+            //}
 
             CommandSet.Out.WriteLine("Done.");
             return 0;
@@ -247,6 +264,24 @@ namespace HaruhiChokuretsuCLI
             grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex, newSize: newSize);
 
             archive.Files[archive.Files.IndexOf(file)] = grpFile;
+        }
+
+        private static async Task ReplaceSingleSourceFileAsync(ArchiveFile<FileInArchive> archive, string filePath, int index, string devkitArm)
+        {
+            string commandsInc = Path.Combine(Environment.CurrentDirectory, "COMMANDS.INC");
+            string objFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.o";
+            string binFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.bin";
+            new ExportIncludeCommand().Invoke(new string[] { "-c", "-o", commandsInc });
+            ProcessStartInfo gcc = new(Path.Combine(devkitArm, "bin/arm-none-eabi-gcc.exe"), $"-c -nostdlib -static \"{filePath}\" -o \"{objFile}");
+            await Process.Start(gcc).WaitForExitAsync();
+            await Task.Delay(50); // ensures process is actually complete
+            ProcessStartInfo objcopy = new(Path.Combine(devkitArm, "bin/arm-none-eabi-objcopy.exe"), $"-O binary \"{objFile}\" \"{binFile}");
+            await Process.Start(objcopy).WaitForExitAsync();
+            await Task.Delay(50); // ensures process is actually copmlete
+            ReplaceSingleFile(archive, binFile, index);
+            File.Delete("COMMANDS.INC");
+            File.Delete(objFile);
+            File.Delete(binFile);
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,6 +12,11 @@ namespace HaruhiChokuretsuLib
 {
     public static class Helpers
     {
+        public static string EscapeShiftJIS(this string shiftJisString)
+        {
+            return string.Join("", Encoding.GetEncoding("Shift-JIS").GetBytes(shiftJisString).Select(b => $"\\x{b:X2}"));
+        }
+
         public static int GreatestCommonFactor(int a, int b)
         {
             while (b != 0)

@@ -1,12 +1,12 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
+using HaruhiChokuretsuLib.Archive.Event;
 using Mono.Options;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 
@@ -30,7 +30,7 @@ namespace HaruhiChokuretsuCLI
                 { "n|index=", "Index of file to extract (prefix with 0x to use hex number); this can be omitted if output file is named as a hex integer or if using filename",
                     n => _fileIndex = n.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? int.Parse(n[2..], NumberStyles.HexNumber) : int.Parse(n) },
                 { "name=", "Name of the file to extract", name => _fileName = name },
-                { "o|output-file=", "File name of extracted file (if ends in PNG or RESX, will extract to those formats; otherwise extracts raw binary data)", o => _outputFile = o},
+                { "o|output-file=", "File name of extracted file (if ends in PNG, RESX, or S, will extract to those formats; otherwise extracts raw binary data)", o => _outputFile = o},
                 { "w|image-width=", "Width of an image to extract (defaults to the image's encoded width)", w => _imageWidth = int.Parse(w) },
                 { "includes=", "Comma-separated list of include files to use when producing a source file", include => _includes = include.Split(',') },
                 { "c|compressed", "Extract compressed file", c => _compressed = true },
@@ -72,8 +72,8 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(directory);
             }
 
-            try
-            {
+            //try
+            //{
                 if (Path.GetExtension(_outputFile).Equals(".png", StringComparison.OrdinalIgnoreCase))
                 {
                     var grpArchive = ArchiveFile<GraphicsFile>.FromFile(_inputArchive);
@@ -199,11 +199,11 @@ namespace HaruhiChokuretsuCLI
                     }
                     CommandSet.Out.WriteLine("OK");
                 }
-            }
-            catch (Exception e)
-            {
-                CommandSet.Out.WriteLine($"Failed to extract file #0x{_fileIndex:X3} from archive {_inputArchive}, exception '{e.Message}'");
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    CommandSet.Out.WriteLine($"Failed to extract file #0x{_fileIndex:X3} from archive {_inputArchive}, exception '{e.Message}'");
+            //}
 
             return 0;
         }

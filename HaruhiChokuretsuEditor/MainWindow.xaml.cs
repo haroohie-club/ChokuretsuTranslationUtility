@@ -1,8 +1,10 @@
 ﻿using FolderBrowserEx;
-using Microsoft.Win32;
 using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
+using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Font;
+using Microsoft.Win32;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using HaruhiChokuretsuLib.Font;
 
 namespace HaruhiChokuretsuEditor
 {
@@ -186,6 +187,15 @@ namespace HaruhiChokuretsuEditor
                     eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.UnknownSection01Pointer)}: {selectedFile.Settings.UnknownSection01Pointer}" });
                     eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumUnknown01)}: {selectedFile.Settings.NumUnknown01}" });
                     eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumChoices)}: {selectedFile.Settings.NumChoices}" });
+                    
+                    foreach (EventFileSection section in selectedFile.SectionPointersAndCounts)
+                    {
+                        if (section.Section is not null)
+                        {
+                            eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{section.Section.Name}: " +
+                                $"{string.Join(", ", section.Section.Objects.Where(o => o is not null).Select(o => ((dynamic)Convert.ChangeType(o, section.Section.ObjectType)).ToString()))}" });
+                        }
+                    }
                 }
                 foreach (EventFileSection frontPointer in selectedFile.SectionPointersAndCounts)
                 {
@@ -252,7 +262,7 @@ namespace HaruhiChokuretsuEditor
             {
                 foreach (EventFile eventFile in _evtFile.Files)
                 {
-                    eventFile.WriteResxFile(System.IO.Path.Combine(folderBrowser.SelectedFolder, $"{eventFile.Index:D3}.ja.resx"));
+                    eventFile.WriteResxFile(Path.Combine(folderBrowser.SelectedFolder, $"{eventFile.Index:D3}.ja.resx"));
                 }
             }
         }

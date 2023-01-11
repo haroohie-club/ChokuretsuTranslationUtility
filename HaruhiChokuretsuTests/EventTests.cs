@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Archive.Event;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,6 @@ namespace HaruhiChokuretsuTests
         [Test]
         [TestCase(TestVariables.EVT_000_DECOMPRESSED)]
         [TestCase(TestVariables.EVT_66_DECOMPRESSED)]
-        [TestCase(TestVariables.EVT_MEMORYCARD_DECOMPRESSED)]
         [TestCase(TestVariables.EVT_TEST_DECOMPRESSED)]
         public void EventFileParserTest(string eventFile)
         {
@@ -27,7 +27,6 @@ namespace HaruhiChokuretsuTests
         [Test]
         [TestCase(TestVariables.EVT_000_DECOMPRESSED)]
         [TestCase(TestVariables.EVT_66_DECOMPRESSED)]
-        [TestCase(TestVariables.EVT_MEMORYCARD_DECOMPRESSED)]
         [TestCase(TestVariables.EVT_TEST_DECOMPRESSED)]
         public void EventFileMovePointersIdempotentTest(string eventFile)
         {

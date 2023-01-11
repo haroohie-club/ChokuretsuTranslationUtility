@@ -1,4 +1,5 @@
 ﻿using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Archive.Event;
 using SkiaSharp;
 using System.Collections.Generic;
 using System.Windows.Controls;

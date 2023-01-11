@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Archive.Data;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

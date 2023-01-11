@@ -1,4 +1,5 @@
 ﻿using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Archive.Event;
 using HaruhiChokuretsuLib.Font;
 using Mono.Options;
 using System;

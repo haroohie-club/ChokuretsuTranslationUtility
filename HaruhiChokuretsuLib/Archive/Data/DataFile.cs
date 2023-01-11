@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace HaruhiChokuretsuLib.Archive
+namespace HaruhiChokuretsuLib.Archive.Data
 {
     public class DataFile : FileInArchive, ISourceFile
     {
