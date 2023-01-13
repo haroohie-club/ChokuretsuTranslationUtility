@@ -34,24 +34,24 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x04, "BG_DISP", new string[] { "bgIndex" }),
             new(0x05, "SCREEN_FADEIN", new string[] { "timeToFade", "unused", "fadeLocation", "fadeColor" }),
             new(0x06, "SCREEN_FADEOUT", new string[] { "timeToFade", "unused", "fadeColorRed", "fadeColorGreen", "fadeColorBlue", "fadeLocation" }),
-            new(0x07, "UNKNOWN07", Array.Empty<string>()),
+            new(0x07, "SCREEN_FLASH", new string[] { "fadeInTime", "holdTime", "fadeOutTime", "flashColorRed", "flashColorGreen", "flashColorBlue" }),
             new(0x08, "SND_PLAY", new string[] { "soundIndex", "mode", "volume", "crossfadeDupe", "crossfadeTime" }),
             new(0x09, "REMOVED", Array.Empty<string>()),
             new(0x0A, "UNKNOWN0A", Array.Empty<string>()),
             new(0x0B, "BGM_PLAY", new string[] { "bgmIndex", "mode", "volume", "fadeInTime", "fadeOutTime" }),
-            new(0x0C, "UNKNOWN0C", Array.Empty<string>()),
-            new(0x0D, "UNKNOWN0D", Array.Empty<string>()),
+            new(0x0C, "VCE_PLAY", new string[] { "vceIndex" }),
+            new(0x0D, "FLAG", new string[] { "flag", "set" }),
             new(0x0E, "UNKNOWN0E", Array.Empty<string>()),
             new(0x0F, "TOGGLE_DIALOGUE", new string[] { "show" }),
             new(0x10, "SELECT", new string[] { "option1", "option2", "option3", "option4", "unknown04", "unknown05", "unknown06", "unknown07" }),
             new(0x11, "SCREEN_SHAKE", new string[] { "duration", "horizontalIntensity", "verticalIntensity" }),
-            new(0x12, "UNKNOWN12", Array.Empty<string>()),
-            new(0x13, "UNKNOWN13", Array.Empty<string>()),
+            new(0x12, "SCREEN_SHAKE_STOP", Array.Empty<string>()),
+            new(0x13, "GOTO", new string[] { "blockId" }),
             new(0x14, "UNKNOWN14", Array.Empty<string>()),
             new(0x15, "WAIT", new string[] { "frames" }),
             new(0x16, "UNKNOWN16", Array.Empty<string>()),
             new(0x17, "NOOP1", Array.Empty<string>()),
-            new(0x18, "UNKNOWN18", Array.Empty<string>()),
+            new(0x18, "VGOTO", new string[] { "conditionalIndex", "unused", "gotoId" }),
             new(0x19, "HARUHI_METER", new string[] { "unused", "addValue", "setValue" }),
             new(0x1A, "UNKNOWN1A", Array.Empty<string>()),
             new(0x1B, "BG_PALEFFECT", new string[] { "paletteMode", "transitionTime", "unknownBool" }),
@@ -63,16 +63,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x21, "SET_READ_FLAG", Array.Empty<string>()),
             new(0x22, "UNKNOWN22", Array.Empty<string>()),
             new(0x23, "UNKNOWN23", Array.Empty<string>()),
-            new(0x24, "UNKNOWN24", Array.Empty<string>()),
-            new(0x25, "UNKNOWN25", Array.Empty<string>()),
-            new(0x26, "UNKNOWN26", Array.Empty<string>()),
-            new(0x27, "UNKNOWN27", new string[] { "unknown00", "unknown02" }),
+            new(0x24, "LOAD_ISOMAP", new string[] { "mapFileIndex" }),
+            new(0x25, "INVEST_START", new string[] { "unknown00", "unknown01", "unknown02", "unknown03", "endScriptBlock" }),
+            new(0x26, "INVEST_END", Array.Empty<string>()),
+            new(0x27, "CHIBI_EMOTE", new string[] { "chibiIndex", "emoteIndex" }),
             new(0x28, "NEXT_SCENE", Array.Empty<string>()),
-            new(0x29, "UNKNOWN29", Array.Empty<string>()),
-            new(0x2A, "UNKNOWN2A", Array.Empty<string>()),
+            new(0x29, "SKIP_SCENE", new string[] { "scenesToSkip" }),
+            new(0x2A, "GLOBAL", new string[] { "globalIndex", "value" }),
             new(0x2B, "CHIBI_ENTEREXIT", new string[] { "chibiIndex", "mode", "delay" }),
             new(0x2C, "UNKNOWN2C", Array.Empty<string>()),
-            new(0x2D, "UNKNOWN2D", Array.Empty<string>()),
+            new(0x2D, "GLOBAL2D", new string[] { "value" }),
             new(0x2E, "UNKNOWN2E", Array.Empty<string>()),
             new(0x2F, "UNKNOWN2F", Array.Empty<string>()),
             new(0x30, "UNKNOWN30", Array.Empty<string>()),
@@ -189,20 +189,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[unknownSection04Index].Section = unknown04Section.GetGeneric();
                 }
 
-                if (Settings.UnknownSection05Pointer > 0)
+                if (Settings.MapCharactersSectionPointer > 0)
                 {
-                    string name = "UNKNOWNSECTION05";
+                    string name = "MAPCHARACTERS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection05Pointer, name, Data);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.MapCharactersSectionPointer, name, Data);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    int unknownSection05Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
-                    Unknown05Section unknown05Section = new();
-                    unknown05Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection05Index].Pointer)
-                        .Take(SectionPointersAndCounts[unknownSection05Index + 1].Pointer - SectionPointersAndCounts[unknownSection05Index].Pointer),
-                        SectionPointersAndCounts[unknownSection05Index].ItemCount,
-                        name, SectionPointersAndCounts[unknownSection05Index].Pointer);
-                    SectionPointersAndCounts[unknownSection05Index].Section = unknown05Section.GetGeneric();
+                    int mapCharactersSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    MapCharactersSection mapCharactersSection = new();
+                    mapCharactersSection.Initialize(Data.Skip(SectionPointersAndCounts[mapCharactersSectionIndex].Pointer)
+                        .Take(SectionPointersAndCounts[mapCharactersSectionIndex + 1].Pointer - SectionPointersAndCounts[mapCharactersSectionIndex].Pointer),
+                        SectionPointersAndCounts[mapCharactersSectionIndex].ItemCount,
+                        name, SectionPointersAndCounts[mapCharactersSectionIndex].Pointer);
+                    SectionPointersAndCounts[mapCharactersSectionIndex].Section = mapCharactersSection.GetGeneric();
                 }
 
                 if (Settings.UnknownSection06Pointer > 0)
@@ -333,16 +333,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[dialogueSectionPointerIndex].Section = dialogueSection.GetGeneric();
                 }
 
-                int unknownSection11Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.UnknownSection11Pointer);
-                if (Settings.UnknownSection11Pointer > 0)
+                int conditionalSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.ConditionalsSectionPointer);
+                if (Settings.ConditionalsSectionPointer > 0)
                 {
-                    string name = "UNKNOWNSECTION11";
+                    string name = "CONDITIONALS";
 
-                    Unknown11Section unknown11Section = new();
-                    unknown11Section.Initialize(Data,
-                        SectionPointersAndCounts[unknownSection11Index].ItemCount,
-                        name, SectionPointersAndCounts[unknownSection11Index].Pointer);
-                    SectionPointersAndCounts[unknownSection11Index].Section = unknown11Section.GetGeneric();
+                    ConditionalSection conditionalSection = new();
+                    conditionalSection.Initialize(Data,
+                        SectionPointersAndCounts[conditionalSectionIndex].ItemCount,
+                        name, SectionPointersAndCounts[conditionalSectionIndex].Pointer);
+                    SectionPointersAndCounts[conditionalSectionIndex].Section = conditionalSection.GetGeneric();
                 }
 
                 int scriptSectionDefinitionsSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.ScriptSectionDefinitionsSectionPointer);
@@ -754,7 +754,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public int NumUnknown04 { get; set; }
         public int UnknownSection04Pointer { get; set; } // array indices of some kind
         public int NumUnknown05 { get; set; }
-        public int UnknownSection05Pointer { get; set; } // flag setting (investigation-related)
+        public int MapCharactersSectionPointer { get; set; } // flag setting (investigation-related)
         public int NumUnknown06 { get; set; }
         public int UnknownSection06Pointer { get; set; } // probably straigt up unused
         public int NumUnknown07 { get; set; }
@@ -771,8 +771,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public int LabelsSectionPointer { get; set; }
         public int NumDialogueEntries { get; set; }
         public int DialogueSectionPointer { get; set; }
-        public int NumUnknown11 { get; set; }
-        public int UnknownSection11Pointer { get; set; }
+        public int NumConditionals { get; set; }
+        public int ConditionalsSectionPointer { get; set; }
         public int NumScriptSections { get; set; }
         public int ScriptSectionDefinitionsSectionPointer { get; set; }
 
@@ -792,7 +792,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             NumUnknown04 = BitConverter.ToInt32(data.Skip(0x01C).Take(4).ToArray());
             UnknownSection04Pointer = BitConverter.ToInt32(data.Skip(0x020).Take(4).ToArray());
             NumUnknown05 = BitConverter.ToInt32(data.Skip(0x024).Take(4).ToArray());
-            UnknownSection05Pointer = BitConverter.ToInt32(data.Skip(0x028).Take(4).ToArray());
+            MapCharactersSectionPointer = BitConverter.ToInt32(data.Skip(0x028).Take(4).ToArray());
             NumUnknown06 = BitConverter.ToInt32(data.Skip(0x02C).Take(4).ToArray());
             UnknownSection06Pointer = BitConverter.ToInt32(data.Skip(0x030).Take(4).ToArray());
             NumUnknown07 = BitConverter.ToInt32(data.Skip(0x034).Take(4).ToArray());
@@ -809,8 +809,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             LabelsSectionPointer = BitConverter.ToInt32(data.Skip(0x060).Take(4).ToArray());
             NumDialogueEntries = BitConverter.ToInt32(data.Skip(0x064).Take(4).ToArray());
             DialogueSectionPointer = BitConverter.ToInt32(data.Skip(0x068).Take(4).ToArray());
-            NumUnknown11 = BitConverter.ToInt32(data.Skip(0x06C).Take(4).ToArray());
-            UnknownSection11Pointer = BitConverter.ToInt32(data.Skip(0x070).Take(4).ToArray());
+            NumConditionals = BitConverter.ToInt32(data.Skip(0x06C).Take(4).ToArray());
+            ConditionalsSectionPointer = BitConverter.ToInt32(data.Skip(0x070).Take(4).ToArray());
             NumScriptSections = BitConverter.ToInt32(data.Skip(0x074).Take(4).ToArray());
             ScriptSectionDefinitionsSectionPointer = BitConverter.ToInt32(data.Skip(0x078).Take(4).ToArray());
         }
