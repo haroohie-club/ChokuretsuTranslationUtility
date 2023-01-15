@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace HaruhiChokuretsuLib.Overlay
+namespace HaruhiChokuretsuLib.NDS.Overlay
 {
     public class OverlayPatchDocument
     {

@@ -1,9 +1,8 @@
 ﻿using Mono.Options;
-using System.Collections.Generic;
 using SkiaSharp;
 using SkiaTextRenderer;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace HaruhiChokuretsuCLI
 {

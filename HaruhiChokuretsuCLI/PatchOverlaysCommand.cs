@@ -1,4 +1,4 @@
-﻿using HaruhiChokuretsuLib.Overlay;
+﻿using HaruhiChokuretsuLib.NDS.Overlay;
 using Mono.Options;
 using System.Collections.Generic;
 using System.IO;

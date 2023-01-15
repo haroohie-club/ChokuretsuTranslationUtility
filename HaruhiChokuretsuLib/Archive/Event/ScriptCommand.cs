@@ -27,17 +27,17 @@ namespace HaruhiChokuretsuLib.Archive.Event
             StringBuilder macroBuilder = new();
             macroBuilder.Append($".macro {Mnemonic} ");
             macroBuilder.AppendLine(string.Join(", ", Parameters));
-            macroBuilder.AppendLine($"    .word {CommandId}");
+            macroBuilder.AppendLine($"   .word {CommandId}");
 
             for (int i = 0; i < 16; i++)
             {
                 if (i < Parameters.Length)
                 {
-                    macroBuilder.AppendLine($"        .short \\{Parameters[i]}");
+                    macroBuilder.AppendLine($"      .short \\{Parameters[i]}");
                 }
                 else
                 {
-                    macroBuilder.AppendLine("        .short 0");
+                    macroBuilder.AppendLine("      .short 0");
                 }
             }
 

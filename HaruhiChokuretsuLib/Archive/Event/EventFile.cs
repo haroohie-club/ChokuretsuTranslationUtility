@@ -1,5 +1,4 @@
-﻿using HaruhiChokuretsuLib.Archive.Data;
-using HaruhiChokuretsuLib.Font;
+﻿using HaruhiChokuretsuLib.Font;
 using System;
 using System.Collections;
 using System.Collections.Generic;

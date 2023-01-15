@@ -1,4 +1,4 @@
-﻿using HaruhiChokuretsuLib.Overlay;
+﻿using HaruhiChokuretsuLib.NDS.Overlay;
 using Keystone;
 using Mono.Options;
 using System;
@@ -222,6 +222,7 @@ namespace HaruhiChokuretsuCLI
             {
                 if (RoutineMode == Mode.REPL)
                 {
+                    Assembly = Regex.Replace(Assembly, $@".(byte|hword|word)(\s+)={appendedVariable.Name}(?=\s)", $".$1$2({appendedVariable.Location}"); // for .word directives, etc.
                     Assembly = Regex.Replace(Assembly, $@"={appendedVariable.Name}(?=\s)", $"[pc, #0x{appendedVariable.Location - insertionPoint - 8:X3}]"); // this assumes all replacements will be exactly one instruction
                     if (Regex.IsMatch(Assembly, @"\[pc, #0x[\w\d]{4,}\]"))
                     {

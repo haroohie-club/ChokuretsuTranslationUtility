@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
@@ -54,6 +55,27 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             _verbIndex = BitConverter.ToInt16(data.Take(2).ToArray());
             Parameter = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
+        }
+
+        public string GetAsm(int indentation)
+        {
+            return $"{string.Join(" ", new string[indentation + 1])}{Verb} {Parameter}";
+        }
+
+        public static string GetMacros()
+        {
+            StringBuilder sb = new();
+
+            for (int i = 0; i < VERBS.Length; i++)
+            {
+                sb.AppendLine($".macro {VERBS[i]} p");
+                sb.AppendLine($"   .short {i}");
+                sb.AppendLine("   .short \\p");
+                sb.AppendLine(".endm");
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
         }
 
         public override string ToString()

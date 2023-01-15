@@ -107,6 +107,7 @@ namespace HaruhiChokuretsuCLI
                     {
                         EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex);
                         VoiceMapFile vmFile = evtVmFile.CastTo<VoiceMapFile>();
+                        vmFile.FontReplacementMap = evtVmFile.FontReplacementMap;
                         vmFile.ImportResxFile(file);
                         evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = vmFile;
                     }
