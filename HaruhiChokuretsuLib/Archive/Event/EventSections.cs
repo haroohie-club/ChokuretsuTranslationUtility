@@ -81,9 +81,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 return new Unknown03Section() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (Unknown03SectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
             }
-            else if (conversionType == typeof(Unknown04Section))
+            else if (conversionType == typeof(StartingChibisSection))
             {
-                return new Unknown04Section() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (Unknown04SectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
+                return new StartingChibisSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (StartingChibiEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
             }
             else if (conversionType == typeof(MapCharactersSection))
             {
@@ -182,9 +182,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection02Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION02_POINTER");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown03}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection03Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION03_POINTER");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown04}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection04Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION04_POINTER");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown05}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumStartingChibisSections}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].StartingChibisSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word STARTINGCHIBIS_POINTER");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumMapCharacterSections}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].MapCharactersSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word MAPCHARACTERS_POINTER");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown06}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection06Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION06_POINTER");
@@ -481,13 +481,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public class Unknown04Section : IEventSection<Unknown04SectionEntry>
+    public class StartingChibisSection : IEventSection<StartingChibiEntry>
     {
         public string Name { get; set; }
         public List<byte> Data { get; set; }
         public int NumObjects { get; set; }
         public int ObjectLength { get; set; }
-        public List<Unknown04SectionEntry> Objects { get; set; } = new();
+        public List<StartingChibiEntry> Objects { get; set; } = new();
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
@@ -501,14 +501,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
             }
-            SectionType = typeof(Unknown04Section);
-            ObjectType = typeof(Unknown04SectionEntry);
+            SectionType = typeof(StartingChibisSection);
+            ObjectType = typeof(StartingChibiEntry);
 
             for (int i = 0; i < NumObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    UnknownShort1 = BitConverter.ToInt16(data.Skip(i * 12).Take(2).ToArray()),
+                    ChibiIndex = BitConverter.ToInt16(data.Skip(i * 12).Take(2).ToArray()),
                     UnknownShort2 = BitConverter.ToInt16(data.Skip(i * 12 + 2).Take(2).ToArray()),
                     UnknownShort3 = BitConverter.ToInt16(data.Skip(i * 12 + 4).Take(2).ToArray()),
                     UnknownShort4 = BitConverter.ToInt16(data.Skip(i * 12 + 6).Take(2).ToArray()),
@@ -529,12 +529,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
             for (int i = 0; i < NumObjects; i++)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort1}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort2}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort3}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort4}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort5}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort6}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].ChibiIndex}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort2}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort3}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort4}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort5}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort6}");
             }
             sb.AppendLine();
 
@@ -542,9 +542,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct Unknown04SectionEntry
+    public struct StartingChibiEntry
     {
-        public short UnknownShort1 { get; set; }
+        public short ChibiIndex { get; set; }
         public short UnknownShort2 { get; set; }
         public short UnknownShort3 { get; set; }
         public short UnknownShort4 { get; set; }
@@ -553,7 +553,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public override string ToString()
         {
-            return UnknownShort1.ToString();
+            return ChibiIndex.ToString();
         }
     }
 
@@ -585,7 +585,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 Objects.Add(new()
                 {
                     CharacterIndex = BitConverter.ToInt32(data.Skip(i * 14).Take(4).ToArray()),
-                    UnknownShort1 = BitConverter.ToInt16(data.Skip(i * 14 + 4).Take(2).ToArray()),
+                    FacingDirection = BitConverter.ToInt16(data.Skip(i * 14 + 4).Take(2).ToArray()),
                     X = BitConverter.ToInt16(data.Skip(i * 14 + 6).Take(2).ToArray()),
                     Y = BitConverter.ToInt16(data.Skip(i * 14 + 8).Take(2).ToArray()),
                     TalkScriptBlock = BitConverter.ToInt16(data.Skip(i * 14 + 10).Take(2).ToArray()),
@@ -606,7 +606,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             for (int i = 0; i < NumObjects; i++)
             {
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].CharacterIndex}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort1}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].FacingDirection}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].X}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].Y}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].TalkScriptBlock}");
@@ -625,7 +625,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
     public struct MapCharactersSectionEntry
     {
         public int CharacterIndex { get; set; }
-        public short UnknownShort1 { get; set; }
+        public short FacingDirection { get; set; }
         public short X { get; set; }
         public short Y { get; set; }
         public short TalkScriptBlock { get; set; }
@@ -633,7 +633,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public override string ToString()
         {
-            return $"{CharacterIndex}: ({UnknownShort1}, {X}, {Y}, {TalkScriptBlock}, {Padding})";
+            return $"{CharacterIndex}: ({FacingDirection}, {X}, {Y}, {TalkScriptBlock}, {Padding})";
         }
     }
 
@@ -939,6 +939,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Name = name;
             Data = data.ToList();
             NumObjects = numObjects;
+            ObjectType = typeof(Unknown10SectionEntry);
             ObjectLength = 8;
             if (NumObjects != Data.Count / ObjectLength)
             {

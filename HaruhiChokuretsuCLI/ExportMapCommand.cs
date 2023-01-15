@@ -18,7 +18,7 @@ namespace HaruhiChokuretsuCLI
     {
         private string _dat, _grp, _outputFolder;
         private string[] _mapNames;
-        private int[] _mapIndices;
+        private int[] _mapIndices, _maxLayoutIndices;
         private bool _allMaps = false, _listMaps = false, _animated = false;
         public ExportMapCommand() : base("export-map", "Export a map graphic from the game")
         {
@@ -28,6 +28,7 @@ namespace HaruhiChokuretsuCLI
                 { "g|grp=", "GRP archive", g => _grp = g },
                 { "n|names|map-names=", "Comma-delimited list of map names", n => _mapNames = n.Split(',') },
                 { "i|indices|map-indices=", "Comma-delimited list of map indices", i => _mapIndices = i.Split(',').Select(ind => int.Parse(ind)).ToArray() },
+                { "m|max-layout-indices=", "Comma-delimited list of max layout indices", m => _maxLayoutIndices = m.Split(',').Select(ind => int.Parse(ind)).ToArray() },
                 { "animated", "Indicates that maps with animation should be exported as WEBM (requires ffmpeg)", an => _animated = true },
                 { "a|all-maps", "Indicates all maps should be exported", a => _allMaps = true },
                 { "l|list-maps", "Lists maps available for export (still requires dat.bin)", l => _listMaps = true },
@@ -119,8 +120,14 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(_outputFolder);
             }
 
-            foreach (string mapName in mapsToExport)
+            for (int m = 0; m < mapsToExport.Count; m++)
             {
+                string mapName = mapsToExport[m];
+                int maxLayoutIndex = -1;
+                if (_maxLayoutIndices is not null)
+                {
+                    maxLayoutIndex = _maxLayoutIndices[m];
+                }
                 CommandSet.Out.WriteLine($"Exporting map for {mapName[0..^1]}...");
                 MapFile map = (MapFile)dat.Files.First(f => f.Name == mapName);
 
@@ -160,7 +167,7 @@ namespace HaruhiChokuretsuCLI
                         if (!frameMapping.ContainsKey(frameHashCode))
                         {
                             Console.WriteLine($"Generating unique bitmap for frame {i}...");
-                            frameMapping.Add(frameHashCode, map.GetMapImages(grp, graphicFrames[i], replacementIndex).mapBitmap);
+                            frameMapping.Add(frameHashCode, map.GetMapImages(grp, maxLayoutIndex, graphicFrames[i], replacementIndex).mapBitmap);
                         }
                     }
                     foreach (GraphicsFile frame in graphicFrames)
@@ -191,7 +198,7 @@ namespace HaruhiChokuretsuCLI
                 }
                 else
                 {
-                    (SKBitmap mapBitmap, SKBitmap bgBitmap) = map.GetMapImages(grp);
+                    (SKBitmap mapBitmap, SKBitmap bgBitmap) = map.GetMapImages(grp, maxLayoutIndex: maxLayoutIndex);
 
                     using FileStream mapStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}.png"), FileMode.Create);
                     mapBitmap.Encode(mapStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
@@ -200,6 +207,11 @@ namespace HaruhiChokuretsuCLI
                     {
                         using FileStream bgStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}-BG.png"), FileMode.Create);
                         bgBitmap.Encode(bgStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+                    }
+                    else
+                    {
+                        using FileStream bgStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}-BG.png"), FileMode.Create);
+                        map.GetBackgroundGradient().Encode(bgStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
                     }
                 }
             }
