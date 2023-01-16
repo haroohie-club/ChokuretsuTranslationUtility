@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
@@ -16,7 +14,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         SINGLE_TEX = 0x0E,
     }
 
-    public class BgTable : DataFile
+    public class BgTableFile : DataFile
     {
         public List<BgTableEntry> BgTableEntries { get; set; } = new();
 
@@ -68,19 +66,19 @@ namespace HaruhiChokuretsuLib.Archive.Data
                     string fileName2 = BgTableEntries[i].Type != BgType.SINGLE_TEX ? includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex2).Name : "0";
                     string macroName = fileName1[0..fileName1.LastIndexOf('_')];
 
-                    source += $"    .set {macroName}, 0x{i:X4}\n" +
-                        $"    .word {BgTableEntries[i].Type}{string.Join(' ', new string[COMMENT_WIDTH - BgTableEntries[i].Type.ToString().Length + 1])}@ ENTRY TYPE\n" +
-                        $"    .short {fileName1}{string.Join(' ', new string[COMMENT_WIDTH - fileName1.Length])}@ BG TOP\n" +
-                        $"    .short {fileName2}{string.Join(' ', new string[COMMENT_WIDTH - fileName2.Length])}@ BG BOTTOM\n" +
-                        $"    \n";
+                    source += $"   .set {macroName}, 0x{i:X4}\n" +
+                        $"   .word {BgTableEntries[i].Type}{string.Join(' ', new string[COMMENT_WIDTH - BgTableEntries[i].Type.ToString().Length + 1])}@ ENTRY TYPE\n" +
+                        $"   .short {fileName1}{string.Join(' ', new string[COMMENT_WIDTH - fileName1.Length])}@ BG TOP\n" +
+                        $"   .short {fileName2}{string.Join(' ', new string[COMMENT_WIDTH - fileName2.Length])}@ BG BOTTOM\n" +
+                        $"   \n";
                 }
                 else
                 {
-                    source += $"    .set UNUSED{i:D3}, 0x{i:X4}\n" +
-                        $"    .word 0\n" +
-                        $"    .short 0\n" +
-                        $"    .short 0\n" +
-                        $"    \n";
+                    source += $"   .set UNUSED{i:D3}, 0x{i:X4}\n" +
+                        $"   .word 0\n" +
+                        $"   .short 0\n" +
+                        $"   .short 0\n" +
+                        $"   \n";
                 }
             }
 

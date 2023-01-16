@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
@@ -152,6 +153,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 2 => new() { Color = SKColors.Teal, PathEffect = rotatePathEffect }, // spawnable
                 _ => new() { Color = SKColors.Black, PathEffect = rotatePathEffect }, // unwalkable
             };
+        }
+
+        public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
+        {
+            StringBuilder sb = new();
+
+
+
+            return sb.ToString();
         }
     }
 

@@ -158,7 +158,7 @@ namespace HaruhiChokuretsuCLI
                         }
                         else if (file.Name == "BGTBLS")
                         {
-                            file = file.CastTo<BgTable>();
+                            file = file.CastTo<BgTableFile>();
                         }
                         sourceFile = file;
                     }
