@@ -2,7 +2,7 @@
 The HaruhiChokuretsuCLI is a command-line interface that can be used to directly interact with an unpacked Suzumiya Haruhi no Chokuretsu ROM. To unpack the ROM,
 you will need to use a utility such as NDS Lazy or NitroPacker.
 
-All commands are self-documented with `-h` or `--help`, e.g. `HaruhiChokuretsuCLI unpack --help` will print help for the `unpack` command.
+All commands are self-documented with `help`, e.g. `HaruhiChokuretsuCLI help unpack` will print help for the `unpack` command.
 
 ## _Unpack_ an archive
 The `unpack` command unpacks all files in a specified archive to a specified directory. Files will be named by hexadecimal index. Its arguments are:
@@ -11,20 +11,25 @@ The `unpack` command unpacks all files in a specified archive to a specified dir
 * `-o` or `--output-directory` &ndash; The directory to unpack files to.
 * `-c` or `--compressed` &ndash; Don't decompress the unpacked files.
 * `-d` or `--decimal` &ndash; Use decimal numbering instead of hexadecimal numbering for output files.
+* `-n` or `--names` &ndash; Append file names to the unpacked files.
 
 | Example | Function |
 |---------|----------|
 | `HaruhiChokuretsuCLI unpack -i "rom/grp.bin" -o "graphics/"` | Unpacks all of the files in `grp.bin` to the `graphics/` directory. |
 | `HaruhiChokuretsuCLI unpack -i "rom/scn.bin" -o "scene/" -c` | Unpacks all the files in `scn.bin` to `scene/`, but leaves them compressed. |
+| `HaruhiChokuretsuCLI unpack -i "rom/dat.bin" -o "data/" -n` | Unpacks all of the files in `dat.bin` to the `data/` directory with names appended. |
 
 ## _Extract_ a file from an archive
-The `extract` command will extract an individual file from an archive either as raw binary data (a targeted `unpack`) or as a PNG image for graphics or a .NET resource
-file (RESX) for string files. Its arguments are:
+The `extract` command will extract an individual file from an archive either as raw binary data (a targeted `unpack`) or as a PNG image for graphics, 
+a .NET resource file (RESX) for string files, or an assembly source file for all of the files that can be represented that way. Its arguments are:
 
 * `-i` or `--input-archive` &ndash; The archive to extract a file from.
 * `-n` or `--index` &ndash; The index of the file to extract; this doesn't need to be specified if the output file is a hex integer.
+* `--name` &ndash; The name of the file to extract
 * `-o` or `--output-file` &ndash; Filename of the extracted file. If the file extension is `.png` or `.resx`, the utility will attempt to extract the file in that format.
 * `-w` or `--image-width` &ndash; If extracting an image file, this specifies the width of the image. Defaults to the encoded width of the image.
+* `--includes` &ndash; A comma-separated list of includes files (used when extracting an assembly source file).
+* `-c` or `--compressed` &ndash; Extracts the file without decompressing it.
 
 | Example | Function |
 |---------|----------|
@@ -32,13 +37,15 @@ file (RESX) for string files. Its arguments are:
 | `HaruhiChokuretsuCLI extract -i "rom/evt.bin" -n 361 -o "event/EV1_001.ja.resx"` | Extracts the file at index 361 from `evt.bin` as a .NET resource file. |
 | `HaruhiChokuretsuCLI extract -i "rom/grp.bin" -o "graphics/E50.png"` | Extracts the file at index 0xE50 from `grp.bin` as a PNG. |
 | `HaruhiChokuretsuCLI extract -i "rom/grp.bin" -n 0xC1A -o "graphics/title.png" -w 64` | Extracts the file at index 0xC1A from `grp.bin` as a 64-pixel wide PNG. |
+| `HaruhiChokuretsuCLI extract -i "rom/dat.bin" --name "BGTBLS" -o "BGTBL.S" --includes "GRPBIN.INC"` | Extracts `BGTBLS` from `dat.bin` as an assembly source file with `GRPBIN.INC` as an included file. |
 
 ## _Replace_ a file in an archive
 The `replace` command will replace either a single file or a set of files in an archive depending on whether you pass it a file or a directory. It has the following arguments:
 
 * `-i` or `--input-archive` &ndash; The archive to replace file(s) in.
 * `-o` or `--output-archive` &ndash; The location to save the modified archive to.
-* `-r` or `--replacement` &ndash; A file or directory to replace with/from. Images must be `.png` files and all others must be `.bin` files.
+* `-r` or `--replacement` &ndash; A file or directory to replace with/from. Images must be `.png` files, assembly source files must be `.s` files, and all others must be `.bin` files.
+* `-d` or `--devkitARM` &ndash; The path to your devkitARM installation; used to compile source files for replacement
 
 The files referenced by `--replacement` have a naming convention of `({hex}|new)[_newpal|_sharedpal{num}[_tidx{num}]][_{comments}].{ext}`. These components have the following
 effects:
@@ -97,8 +104,34 @@ An example `strings/` directory might look like:
 
 etc.
 
-## _Patch Overlays_
-The `patch-overlays` command does essentially exactly what it says on the tin: it patches the game's overlays using a Riivolution-style XML file and a rominfo.xml file containing the overlay table.
+## _Localize source_ files
+The `localize-sources` was born out of the need for replacing hard-coded strings in overlay files. The idea is to provide a RESX
+containing localized strings and use the RESX keys to replace placeholder strings in source files. Its arguments are:
+
+* `-s` or `--sources` &ndash; The directory containing source files (also searches subdirectories).
+* `-r` or `--resx` &ndash; The localized string RESX.
+* `-f` or `--font-map` &ndash; The font offset mapping JSON file.
+* `-t` or `-o` or `--temp-output` &ndash; The directory to temporarily copy the unlocalized versions of source files to.
+
+| Example | Function |
+|---------|----------|
+| `HaruhiChokuretsuCLI localize-sources -i "src" -r "strings/asm_strings.en.resx" -f "charset.json" -t "src-backup"` | Localizes sources in the `src` directory with localized strings provided by `strings/asm_strings.en.resx` and using `charset.json` as a font map; backs up the unlocalized sources to `src-backup`. |
+
+After sources are localized, a JSON file called `map.json` is produced in the temporary output directory. This is intended for use by a script to copy the unlocalized source files back to their original locations.
+
+## _Patch ARM9_
+The `patch-arm9` command does essentially exactly what it says on the tin: it patches the game's `arm9.bin` given some assembly source files.
+Its arguments are:
+
+* `-i` or `--input-dir` &ndash; The directory containing `arm9.bin` and the assembly source files.
+* `-o` or `--output-dir` &ndash; The directory to write the patched `arm9.bin` to.
+* `-a` or `--arena-lo-offset` &ndash; The AreanaLo offset, needed for writing to the autoload table. For Chokuretsu, this is 02005ECC.
+
+The source directory for `patch-arm9` can contain `.s` assembly files, `.c` C files, or even `.cpp` C++ files. See the
+[Chokuretsu Translation Build](https://github.com/haroohie-club/ChokuretsuTranslationBuild) for an example of this directory.
+
+## _Patch overlays_
+The `patch-overlays` command is similar to the `patch-arm9` command, 
 Its arguments are:
 
 * `-i` or `--input-overlays` &ndash; Directory containing the unpatched overlays.
@@ -109,38 +142,6 @@ Its arguments are:
 | Example | Function |
 |---------|----------|
 | `HaruhiChokuretsuCLI patch-overlays -i "rom/overlays/" -o "out/overlays/" -p "overlay_patch.xml" -r "rominfo.xml"` | Patches the overlays contained in `rom/overlays` with `overlay_patch.xml` and places the patched overlays in `overlay_patch.xml`. Modifies `rominfo.xml` in place to change the overlay table if necessary. |
-
-An example `overlay.xml` file might look something like:
-
-```xml
-<?xml version="1.0"?>
-<OverlayPatchDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <overlays>
-        <overlay name="main_0001">
-            <start>020C7660</start>
-            <patches>
-                <replace location="020C76D4" value="0410A0E3" />
-            </patches>
-            <append>04002DE5000090E5040090E5030050E3010000AA1E2DA0E3000000EA1E2CA0E304009DE41EFF2FE1</append>
-        </overlay>
-        <overlay name="main_0004">
-            <start>020C7660</start>
-            <patches>
-                <replace location="020C76D4" value="0410A0E3" />
-            </patches>
-            <append>04002DE5000090E5040090E5030050E3010000AA1E2DA0E3000000EA1E2CA0E304009DE41EFF2FE1</append>
-        </overlay>
-    </overlays>
-</OverlayPatchDocument>
-```
-
-The root element is an `<OverlayPatchDocument>` followed by an array called `<overlays>` containing a series of `<overlay>` objects. The overlay object contains the following elements:
-
-* `<start>` &ndash; The location where the overlay is loaded in memory. This location can be found in the `rominfo.xml`.
-* `<patches>` &ndash; An array of `<replace>` elements. `<replace>` elements have the following attributes:
-    - `location` &ndash; The location at which the replacement should take place.
-    - `value` &ndash; The little-endian encoded binary instruction to replace at that location.
-* `<append>` &ndash; An element containing all code that should be appended at the end of the overlay.
 
 ## _Search_ an archive for a particular _hex string_
 The `hex-search` command searches an archive for a given hex string. Its arguments are:
@@ -164,54 +165,3 @@ The `version-screen` command accepts an unversioned splash screen image and writ
 |---------|----------|
 | `HaruhiChokuretsuCLI version-screen -v 0.2 -s "path/to/splash-screen.png" -f "path/to/font.ttf" -o "out/8b7_newpal_tidx0_splash_screen.png"` | Writes version `0.2` using `font.ttf` to `splash-screen.png` and outputs the result to `out/8b7_newpal_tidx0_splash_screen.png`. |
 
-## _Assemble overlay code_
-Eventually, I got sick of assembling overlay code by hand, so I made the `assemble-overlay-code` command. This command takes a folder of source files and generates the XML patch
-files that will be consumed by the `patch-overlays` command. It uses the [Keystone Engine](https://www.keystone-engine.org/) to handle the assembly.
-
-The command's arguments are as follows:
-
-* `-s` or `--source` &ndash; The directory containing the assembly source files.
-* `-l` or `--overlays` &ndash; The directory containing unpatched overlays.
-* `-o` or `--output` &ndash; The path to which the XML patch should be output.
-
-| Example | Function |
-|---------|----------|
-| `HaruhiChokuretsuCLI assemble-overlay-code -s "source/" -l "overlays/" -o "overlay.xml"` | Assembles source files in `source/` given overlays in `overlays` and outputs resulting patch to `overlay.xml`. |
-
-The source files should be for the most part standard ARM assembly files with the following notes:
-
-* To replace a line of assembly in an overlay in-place, use `arepl_8DIGITHEXLOCATION:` as the routine name.
-* To replace a line of assembly with a branch link to a routine, use `ahook_8DIGITHEXLOCATION:` as the routine name.
-* To append variables to the end of the overlay that can be used throughout the file, use `aappend_00000000:` as the routine name.
-    - In the append section, to reference the location of another appended variable, declare the variable such as `variableLoc: .word [variable]`.
-
-Example ASM files:
-
-```arm
-ahook_020C77FC:
-    push {r6}
-    ldr r6, =0x04000130 @ button presses address
-    ldrb r6, [r6]
-    cmp r6, #0xFF
-    bne skip
-    sub r0, r2, r0
-    b done
-    skip:
-        mov r0, #0
-    done:
-        pop {r6}
-        bx lr
-
-arepl_020C9FA0:
-    ldr r0, =speechBubbleLoc
-
-arepl_020C9FB8:
-    ldr r0, =speechBubbleLoc
-
-arepl_020C9FD4:
-    ldr r0, =speechBubbleLoc
-
-aappend_00000000:
-    speechBubbleLoc: .word [speechBubble]
-    speechBubble: .skip 256
-```

@@ -21,7 +21,7 @@ namespace HaruhiChokuretsuCLI
             {
                 { "s|sources=", "Sources directory", s => _sourceDir = s },
                 { "r|resx=", "RESX containing keys", r => _resxPath = r },
-                { "f|font-replacement=", "Font replacement map JSON", f => _fontReplacementJson = f },
+                { "f|font-map=", "Font replacement map JSON", f => _fontReplacementJson = f },
                 { "t|o|temp-output=", "Temporary holding place for the files", t => _tempOut = t },
             };
         }

@@ -20,6 +20,8 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
 
             Name = Path.GetFileNameWithoutExtension(file);
             Data = File.ReadAllBytes(file).ToList();
+            // Every overlay seems to have functions that write an integer directly after the end of the overlay.
+            // This ensures that when we begin appending, we don't have any code get overwritten.
             Data.AddRange(new byte[4]);
 
             var overlayTableEntry = romInfo.Root.Element("RomInfo").Element("ARM9Ovt").Elements()

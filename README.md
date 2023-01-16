@@ -6,8 +6,8 @@ and a command-line interface and graphical editor that use that library.
 ## Dependencies & Building
 The utility is built on top of the .NET 6.0 runtime and that's a requirement to use it. To build the solution,
 you will need to install the .NET 6.0 runtime. The CLI and library are fully cross-platform, working on Windows,
-macOS, and Linux. However, currently the editor only runs on Windows, but there are plans to make
-it cross-platform in the future (likely with the advent of .NET 7.0 and MAUI).
+macOS, and Linux. However, currently the editor only runs on Windows. There are no plans to make it cross-platform
+in the future as it will be superseded by a level editor.
 
 There are two ways of building the solution:
 1. Open the solution file in Visual Studio 2022 (or later, probably) and build it from there.

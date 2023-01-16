@@ -32,6 +32,8 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             }
             File.WriteAllLines(Path.Combine(path, overlay.Name, "newcode.x"), newSymbolsFile);
 
+            // Each repl should be compiled separately since they all have their own entry points
+            // That's why each one lives in its own separate directory
             List<string> replFiles = new();
             foreach (string subdir in Directory.GetDirectories(Path.Combine(path, overlay.Name, "replSource")))
             {
@@ -52,6 +54,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
                     return false;
                 }
             }
+            // We'll start by adding in the hook and append codes
             byte[] newCode = File.ReadAllBytes(Path.Combine(path, overlay.Name, "newcode.bin"));
 
             foreach (string line in newSym)
@@ -75,6 +78,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
                 }
             }
 
+            // Perform the replacements for each of the replacement hacks we assembled
             foreach (string replFile in replFiles)
             {
                 byte[] replCode = File.ReadAllBytes(Path.Combine(path, overlay.Name, $"{replFile}.bin"));
@@ -83,7 +87,8 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             }
 
             overlay.Append(newCode, romInfoPath);
-
+            
+            // Clean up after ourselves
             File.Delete(Path.Combine(path, overlay.Name, "newcode.bin"));
             File.Delete(Path.Combine(path, overlay.Name, "newcode.elf"));
             File.Delete(Path.Combine(path, overlay.Name, "newcode.sym"));
