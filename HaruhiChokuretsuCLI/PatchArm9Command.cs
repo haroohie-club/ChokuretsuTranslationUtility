@@ -45,7 +45,7 @@ namespace HaruhiChokuretsuCLI
             }
 
             ARM9 arm9 = new(File.ReadAllBytes(Path.Combine(_inputDir, "arm9.bin")), 0x02000000);
-            if (!AsmHack.Insert(_inputDir, arm9, _arenaLoOffset))
+            if (!ARM9AsmHack.Insert(_inputDir, arm9, _arenaLoOffset))
             {
                 Console.WriteLine("ERROR: ASM hack insertion failed!");
                 return 1;

@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib.NDS.Overlay
 {
     public class OverlayAsmHack
     {
-        public static bool Insert(string path, Overlay overlay, string romInfoPath)
+        public static bool Insert(string path, Overlay overlay, string romInfoPath, DataReceivedEventHandler outputDataReceived = null, DataReceivedEventHandler errorDataReceived = null)
         {
-            if (!Compile(path, overlay))
+            if (!Compile(path, overlay, outputDataReceived, errorDataReceived))
             {
                 return false;
             }
@@ -38,7 +35,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             foreach (string subdir in Directory.GetDirectories(Path.Combine(path, overlay.Name, "replSource")))
             {
                 replFiles.Add($"repl_{Path.GetFileNameWithoutExtension(subdir)}");
-                if (!CompileReplace(Path.GetRelativePath(path, subdir), path, overlay))
+                if (!CompileReplace(Path.GetRelativePath(path, subdir), path, overlay, outputDataReceived, errorDataReceived))
                 {
                     return false;
                 }
@@ -103,7 +100,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             return true;
         }
 
-        private static bool Compile(string path, Overlay overlay)
+        private static bool Compile(string path, Overlay overlay, DataReceivedEventHandler outputDataReceived, DataReceivedEventHandler errorDataReceived)
         {
             ProcessStartInfo psi = new()
             {
@@ -119,8 +116,8 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             {
                 Console.WriteLine(e.Data);
             }
-            p.OutputDataReceived += func;
-            p.ErrorDataReceived += func;
+            p.OutputDataReceived += outputDataReceived is not null ? outputDataReceived : func;
+            p.ErrorDataReceived += errorDataReceived is not null ? errorDataReceived : func;
             p.Start();
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
@@ -128,7 +125,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             return p.ExitCode == 0;
         }
 
-        private static bool CompileReplace(string subdir, string path, Overlay overlay)
+        private static bool CompileReplace(string subdir, string path, Overlay overlay, DataReceivedEventHandler outputDataReceived, DataReceivedEventHandler errorDataReceived)
         {
             uint address = uint.Parse(Path.GetFileNameWithoutExtension(subdir), NumberStyles.HexNumber);
             ProcessStartInfo psi = new()
@@ -145,8 +142,8 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             {
                 Console.WriteLine(e.Data);
             }
-            p.OutputDataReceived += func;
-            p.ErrorDataReceived += func;
+            p.OutputDataReceived += outputDataReceived is not null ? outputDataReceived : func;
+            p.ErrorDataReceived += errorDataReceived is not null ? errorDataReceived : func;
             p.Start();
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();

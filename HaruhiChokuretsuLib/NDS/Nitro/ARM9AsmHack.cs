@@ -4,10 +4,12 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 
 namespace HaruhiChokuretsuLib.NDS.Nitro
 {
-	public class AsmHack
+	public class ARM9AsmHack
 	{
 		public static bool Insert(string path, ARM9 arm9, uint arenaLoOffset)
 		{
@@ -101,14 +103,15 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
 			return true;
 		}
 
-		private static bool Compile(string path, uint arenaLo)
+		private static bool Compile(string path, uint arenaLo, DataReceivedEventHandler outputDataReceived = null, DataReceivedEventHandler errorDataReceived = null)
 		{
 			ProcessStartInfo psi = new()
 			{
 				FileName = "make",
 				Arguments = $"CODEADDR=0x{arenaLo:X8}",
 				WorkingDirectory = path,
-				UseShellExecute = false,
+                CreateNoWindow = true,
+                UseShellExecute = false,
 				RedirectStandardError = true,
 				RedirectStandardOutput = true,
 			};
@@ -117,8 +120,8 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
             {
                 Console.WriteLine(e.Data);
             }
-            p.OutputDataReceived += func;
-            p.ErrorDataReceived += func;
+            p.OutputDataReceived += outputDataReceived is not null ? outputDataReceived : func;
+            p.ErrorDataReceived += errorDataReceived is not null ? errorDataReceived : func;
             p.Start();
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
