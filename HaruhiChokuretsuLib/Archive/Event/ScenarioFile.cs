@@ -57,14 +57,19 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Parameter = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
         }
 
-        public string GetAsm(int indentation)
+        public string GetAsm(int indentation, ArchiveFile<EventFile> evt, ArchiveFile<DataFile> dat)
         {
-            return $"{string.Join(" ", new string[indentation + 1])}{Verb} {Parameter}";
+            return $"{string.Join(" ", new string[indentation + 1])}{Verb} {GetParameterString(evt, dat)}";
         }
 
         public static string GetMacros()
         {
             StringBuilder sb = new();
+
+            sb.AppendLine(".include DATBIN.INC");
+            sb.AppendLine(".include EVTBIN.INC");
+            sb.AppendLine(".set MOVIE00, 0");
+            sb.AppendLine(".set MOVIE01, 1");
 
             for (int i = 0; i < VERBS.Length; i++)
             {
@@ -89,7 +94,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 2 => $"\"{evt.Files.First(f => f.Index == Parameter).Name[0..^1]}\" ({Parameter})", // LOAD_SCENE
                 3 => $"\"{dat.Files.First(f => f.Index == Parameter).Name[0..^1]}\"", // PUZZLE_PHASE
-                9 => $"\"MOVIE{Parameter}.MODS\"", // PLAY_VIDEO
+                9 => $"\"MOVIE{Parameter}\"", // PLAY_VIDEO
                 _ => Parameter.ToString(),
             };
             return $"{Verb}({parameterString})";
