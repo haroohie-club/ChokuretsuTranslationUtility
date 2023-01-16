@@ -9,7 +9,7 @@ namespace HaruhiChokuretsuCLI
 {
     public class PatchOverlaysCommand : Command
     {
-        private string _inputOverlaysDirectory, _outputOverlaysDirectory, _overlayPatch, _romInfoPath;
+        private string _inputOverlaysDirectory, _outputOverlaysDirectory, _overlaySourceDir, _romInfoPath;
         private bool _showHelp;
 
         public PatchOverlaysCommand() : base("patch-overlays", "Patches the game's overlays")
@@ -21,7 +21,7 @@ namespace HaruhiChokuretsuCLI
                 "",
                 { "i|input-overlays=", "Directory containing unpatched overlays", i => _inputOverlaysDirectory = i },
                 { "o|output-overlays=", "Directory where patched overlays will be written", o => _outputOverlaysDirectory = o },
-                { "p|patch=", "Riivolution-style XML patch containing patch information for overlays", p => _overlayPatch = p },
+                { "s|source-dir=", "Directory where overlay source code lives", s => _overlaySourceDir = s },
                 { "r|rom-info=", "rominfo.xml file containing the overlay table", r => _romInfoPath = r },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
@@ -31,7 +31,7 @@ namespace HaruhiChokuretsuCLI
         {
             Options.Parse(arguments);
 
-            if (_showHelp || string.IsNullOrEmpty(_inputOverlaysDirectory) || string.IsNullOrEmpty(_outputOverlaysDirectory) || string.IsNullOrEmpty(_overlayPatch) || string.IsNullOrEmpty(_romInfoPath))
+            if (_showHelp || string.IsNullOrEmpty(_inputOverlaysDirectory) || string.IsNullOrEmpty(_outputOverlaysDirectory) || string.IsNullOrEmpty(_overlaySourceDir) || string.IsNullOrEmpty(_romInfoPath))
             {
                 int returnValue = 0;
                 if (string.IsNullOrEmpty(_inputOverlaysDirectory))
@@ -44,9 +44,9 @@ namespace HaruhiChokuretsuCLI
                     CommandSet.Out.WriteLine("Output overlays directory not provided, please supply -o or --output-overlays");
                     returnValue = 1;
                 }
-                if (string.IsNullOrEmpty(_overlayPatch))
+                if (string.IsNullOrEmpty(_overlaySourceDir))
                 {
-                    CommandSet.Out.WriteLine("Overlay patch not provided, please supply -p or --patch");
+                    CommandSet.Out.WriteLine("Overlay source directory not provided, please supply -s or --source-dir");
                     returnValue = 1;
                 }
                 if (string.IsNullOrEmpty(_romInfoPath))
@@ -66,22 +66,14 @@ namespace HaruhiChokuretsuCLI
             List<Overlay> overlays = new();
             foreach (string file in Directory.GetFiles(_inputOverlaysDirectory))
             {
-                overlays.Add(new(file));
+                overlays.Add(new(file, _romInfoPath));
             }
 
-            XmlSerializer serializer = new(typeof(OverlayPatchDocument));
-            OverlayPatchDocument patchDoc = (OverlayPatchDocument)serializer.Deserialize(File.OpenRead(_overlayPatch));
-            foreach (OverlayXml overlay in patchDoc.Overlays)
+            foreach (Overlay overlay in overlays)
             {
-                Overlay overlayToModify = overlays.First(o => o.Name == overlay.Name);
-                CommandSet.Out.WriteLine($"Patching overlay '{overlay.Name}'...");
-                foreach (OverlayPatchXml patch in overlay.Patches)
+                if (Directory.GetDirectories(_overlaySourceDir).Contains(Path.Combine(_overlaySourceDir, overlay.Name)))
                 {
-                    overlayToModify.Patch((int)(patch.Location - overlay.Start), patch.Value);
-                }
-                if (overlay.appendFunction is not null)
-                {
-                    overlayToModify.Append(overlay.AppendFunction, _romInfoPath);
+                    OverlayAsmHack.Insert(_overlaySourceDir, overlay, _romInfoPath);
                 }
             }
 

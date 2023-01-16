@@ -19,7 +19,6 @@ namespace HaruhiChokuretsuCLI
                 new PatchOverlaysCommand(),
                 new HexSearchCommand(),
                 new VersionScreenCommand(),
-                new AssembleOverlayCodeCommand(),
                 new ConvertAudioCommand(),
                 new ExportMapCommand(),
                 new ExportLayoutCommand(),

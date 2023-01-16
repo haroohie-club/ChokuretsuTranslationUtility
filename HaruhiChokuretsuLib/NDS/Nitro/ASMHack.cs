@@ -1,11 +1,13 @@
-﻿using System;
+﻿// This code is heavily based on code Gericom wrote for ErmiiBuild
+
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
 namespace HaruhiChokuretsuLib.NDS.Nitro
 {
-	public class ASMHack
+	public class AsmHack
 	{
 		public static bool Insert(string path, ARM9 arm9, uint arenaLoOffset)
 		{
@@ -67,23 +69,23 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
 							}
 						case "trepl_":
 							{
-								string ReplaceOffsetString = lines[3].Replace("trepl_", "");
-								uint ReplaceOffset = uint.Parse(ReplaceOffsetString, NumberStyles.HexNumber);
-								ushort Replace1 = 0xF000;//BLX Instruction (Part 1)
-								ushort Replace2 = 0xE800;//BLX Instruction (Part 2)
-								uint DestinationOffset = uint.Parse(lines[0], NumberStyles.HexNumber);
-								uint RelativeDestinationOffset = DestinationOffset - ReplaceOffset - 2;
-								RelativeDestinationOffset >>= 1;
-								RelativeDestinationOffset &= 0x003FFFFF;
-								Replace1 |= (ushort)((RelativeDestinationOffset >> 11) & 0x7FF);
-								Replace2 |= (ushort)((RelativeDestinationOffset >> 0) & 0x7FE);
-								if (!arm9.WriteU16LE(ReplaceOffset, Replace1)) 
+								string replaceOffsetString = lines[3].Replace("trepl_", "");
+								uint replaceOffset = uint.Parse(replaceOffsetString, NumberStyles.HexNumber);
+								ushort replace1 = 0xF000;//BLX Instruction (Part 1)
+								ushort replace2 = 0xE800;//BLX Instruction (Part 2)
+								uint destinationOffset = uint.Parse(lines[0], NumberStyles.HexNumber);
+								uint relativeDestinationOffset = destinationOffset - replaceOffset - 2;
+								relativeDestinationOffset >>= 1;
+								relativeDestinationOffset &= 0x003FFFFF;
+								replace1 |= (ushort)((relativeDestinationOffset >> 11) & 0x7FF);
+								replace2 |= (ushort)((relativeDestinationOffset >> 0) & 0x7FE);
+								if (!arm9.WriteU16LE(replaceOffset, replace1)) 
                                 {
                                     throw new Exception(
-                                        $"The offset of function {lines[3]} is invalid. Maybe your code is inside an overlay or you wrote the wrong offset.\r\nIf your code is inside an overlay, this is an action replay code to let your asm hack still work:\r\n1 {ReplaceOffset:X7} 0000{Replace1:X4}\r\n1{ReplaceOffset + 2:X7} 0000{Replace2:X4})"
+                                        $"The offset of function {lines[3]} is invalid. Maybe your code is inside an overlay or you wrote the wrong offset.\r\nIf your code is inside an overlay, this is an action replay code to let your asm hack still work:\r\n1 {replaceOffset:X7} 0000{replace1:X4}\r\n1{replaceOffset + 2:X7} 0000{replace2:X4})"
                                         );
                                 }
-								else arm9.WriteU16LE(ReplaceOffset + 2, Replace2);
+								else arm9.WriteU16LE(replaceOffset + 2, replace2);
 								break;
 							}
 					}

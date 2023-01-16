@@ -9,13 +9,22 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
     public class Overlay
     {
         public string Name { get; set; }
-        public int Id { get => int.Parse(Name.Substring(Name.Length - 4), System.Globalization.NumberStyles.HexNumber); }
+        public int Id { get => int.Parse(Name[^4..], System.Globalization.NumberStyles.HexNumber); }
         public List<byte> Data { get; set; }
+        public uint Address { get; set; }
+        public int Length => Data.Count;
 
-        public Overlay(string file)
+        public Overlay(string file, string romInfoPath)
         {
+            XDocument romInfo = XDocument.Load(romInfoPath);
+
             Name = Path.GetFileNameWithoutExtension(file);
             Data = File.ReadAllBytes(file).ToList();
+            Data.AddRange(new byte[4]);
+
+            var overlayTableEntry = romInfo.Root.Element("RomInfo").Element("ARM9Ovt").Elements()
+                .First(o => o.Attribute("Id").Value == $"{Id}");
+            Address = uint.Parse(overlayTableEntry.Element("RamAddress").Value);
         }
 
         public void Save(string file)
@@ -23,8 +32,9 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             File.WriteAllBytes(file, Data.ToArray());
         }
 
-        public void Patch(int loc, byte[] patchData)
+        public void Patch(uint address, byte[] patchData)
         {
+            int loc = (int)(address - Address);
             Data.RemoveRange(loc, patchData.Length);
             Data.InsertRange(loc, patchData);
         }

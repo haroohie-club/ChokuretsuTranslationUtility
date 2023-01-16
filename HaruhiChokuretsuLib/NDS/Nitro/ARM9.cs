@@ -1,6 +1,7 @@
-﻿using System;
+﻿// This code is heavily based on code Gericom wrote for ErmiiBuild
+
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace HaruhiChokuretsuLib.NDS.Nitro
