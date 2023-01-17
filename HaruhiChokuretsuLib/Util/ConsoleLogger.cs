@@ -45,7 +45,7 @@ namespace HaruhiChokuretsuLib.Util
                     }
                     ConsoleColor oldColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine($"WARN: {message}");
+                    Console.WriteLine($"WARNING: {message}");
                     Console.ForegroundColor = oldColor;
                 }
                 else
