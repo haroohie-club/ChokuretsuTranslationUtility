@@ -13,9 +13,9 @@ namespace HaruhiChokuretsuTests
         [Test]
         // This file can be ripped directly from the ROM
         [TestCase(".\\inputs\\grp.bin")]
-        public void GrpFileParserTest(string evtFile)
+        public void GrpFileParserTest(string grpFile)
         {
-            ArchiveFile<GraphicsFile> grp = ArchiveFile<GraphicsFile>.FromFile(evtFile);
+            ArchiveFile<GraphicsFile> grp = ArchiveFile<GraphicsFile>.FromFile(grpFile);
             grp.Files.First(f => f.Index == 0xE50).InitializeFontFile();
 
             foreach (GraphicsFile graphicsFile in grp.Files)
@@ -24,7 +24,7 @@ namespace HaruhiChokuretsuTests
             }
 
             byte[] newGrpBytes = grp.GetBytes();
-            Console.WriteLine($"Efficiency: {(double)newGrpBytes.Length / File.ReadAllBytes(evtFile).Length * 100}%");
+            Console.WriteLine($"Efficiency: {(double)newGrpBytes.Length / File.ReadAllBytes(grpFile).Length * 100}%");
 
             ArchiveFile<GraphicsFile> newGrpFile = new(newGrpBytes);
             newGrpFile.Files.First(f => f.Index == 0xE50).InitializeFontFile();

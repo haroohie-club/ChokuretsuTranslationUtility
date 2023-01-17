@@ -872,13 +872,13 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown44)}: {map.Settings.Unknown44}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown48)}: {map.Settings.Unknown48}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.StartingPosition)}: {map.Settings.StartingPosition}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.CAnimationFileIndex)}: 0x{map.Settings.CAnimationFileIndex:X3}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ColorAnimationFileIndex)}: 0x{map.Settings.ColorAnimationFileIndex:X3}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PaletteAnimationFileIndex)}: 0x{map.Settings.PaletteAnimationFileIndex:X3}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown5C)}: {map.Settings.Unknown5C}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown60)}: {map.Settings.Unknown60}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown64)}: {map.Settings.Unknown64}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown68)}: {map.Settings.Unknown68}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown6C)}: {map.Settings.Unknown6C}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown2Count)}: {map.Settings.Unknown2Count}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown2SectionPointer)}: {map.Settings.Unknown2SectionPointer}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.InteractableObjectsCount)}: {map.Settings.InteractableObjectsCount}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.InteractableObjectsSectionPointer)}: {map.Settings.InteractableObjectsSectionPointer}" });
 
                     SKBitmap bgGradient = map.GetBackgroundGradient();
                     dataEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bgGradient), Width = bgGradient.Width });

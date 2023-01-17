@@ -11,13 +11,18 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public int NumSections { get; set; }
         public int EndPointersOffset { get; set; }
         public int HeaderEndPointer { get; set; }
-        public List<(int Offset, int ItemCount)> SectionOffsetsAndCounts { get; set; } = new();
+        public List<DataFileSection> SectionOffsetsAndCounts { get; set; } = new();
 
         public MapFileSettings Settings { get; set; }
+        public List<UnknownMapObject2> UnknownMapObject2s { get; set; } = new();
+        public List<UnknownMapObject3> UnknownMapObject3s { get; set; } = new();
+        public List<InteractableObject> InteractableObjects { get; set; } = new();
         public byte[][] PathingMap { get; set; }
 
         public override void Initialize(byte[] decompressedData, int offset)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             Offset = offset;
             Data = decompressedData.ToList();
 
@@ -26,12 +31,33 @@ namespace HaruhiChokuretsuLib.Archive.Data
             HeaderEndPointer = BitConverter.ToInt32(Data.Skip(0x08).Take(4).ToArray());
             for (int i = 0x0C; i < HeaderEndPointer; i += 0x08)
             {
-                SectionOffsetsAndCounts.Add((BitConverter.ToInt32(Data.Skip(i).Take(4).ToArray()), BitConverter.ToInt32(Data.Skip(i + 4).Take(4).ToArray())));
+                SectionOffsetsAndCounts.Add(new() { Offset = BitConverter.ToInt32(Data.Skip(i).Take(4).ToArray()), ItemCount = BitConverter.ToInt32(Data.Skip(i + 4).Take(4).ToArray()) });
             }
 
             Settings = new(Data.Skip(SectionOffsetsAndCounts[0].Offset).Take(0xBC));
+            SectionOffsetsAndCounts[0].Name = "SETTINGS";
+
+            SectionOffsetsAndCounts[1].Name = "UNKNOWNSECTION2";
+            for (int i = 0; i < SectionOffsetsAndCounts[1].ItemCount; i++)
+            {
+                UnknownMapObject2s.Add(new(Data.Skip(SectionOffsetsAndCounts[1].Offset + i * 0x48)));
+            }
+
+            SectionOffsetsAndCounts[2].Name = "UNKNOWNSECTION3";
+            for (int i = 0; i < SectionOffsetsAndCounts[2].ItemCount; i++)
+            {
+                UnknownMapObject3s.Add(new(Data.Skip(SectionOffsetsAndCounts[2].Offset + i * 0x0C)));
+            }
+
+            SectionOffsetsAndCounts[3].Name = "INTERACTABLEOBJECTS";
+            for (int i = 0; i < SectionOffsetsAndCounts[3].ItemCount; i++)
+            {
+                InteractableObjects.Add(new(Data, SectionOffsetsAndCounts[3].Offset + i * 0x10));
+            }
+
             int currentPathingByte = 0;
             byte[] pathingBytes = Data.Skip(SectionOffsetsAndCounts[4].Offset).Take(SectionOffsetsAndCounts[4].ItemCount).ToArray();
+            SectionOffsetsAndCounts[4].Name = "PATHING_MAP";
             if (Settings.YOriented)
             {
                 PathingMap = new byte[Settings.MapWidth][];
@@ -159,7 +185,84 @@ namespace HaruhiChokuretsuLib.Archive.Data
         {
             StringBuilder sb = new();
 
+            sb.AppendLine(string.Join("\n", includes.Select(i => $".include {i.Key}.INC")));
 
+            sb.AppendLine($".word {NumSections}");
+            sb.AppendLine(".word ENDPOINTERS");
+            sb.AppendLine(".word FILE_START");
+
+            foreach (var section in SectionOffsetsAndCounts)
+            {
+                sb.AppendLine($".word {section.Name}");
+                sb.AppendLine($".word {section.ItemCount}");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("FILE_START:");
+
+            sb.AppendLine($"{SectionOffsetsAndCounts[4].Name}:");
+            if (Settings.YOriented)
+            {
+                for (int x = 0; x < Settings.MapWidth; x++)
+                {
+                    for (int y = 0; y < Settings.MapHeight; y++)
+                    {
+                        sb.AppendLine($"   .byte {PathingMap[x][y]}");
+                    }
+                }
+            }
+            else
+            {
+                for (int y = 0; y < Settings.MapHeight; y++)
+                {
+                    for (int x = 0; x < Settings.MapWidth; x++)
+                    {
+                        sb.AppendLine($"   .byte {PathingMap[y][x]}");
+                    }
+                }
+            }
+            sb.AppendLine($".skip {4 - PathingMap.Length * PathingMap[0].Length % 4}");
+            sb.AppendLine();
+
+            sb.AppendLine($"{SectionOffsetsAndCounts[1].Name}:");
+            foreach (UnknownMapObject2 mapObject2 in UnknownMapObject2s)
+            {
+                sb.AppendLine(mapObject2.GetAsm(3));
+            }
+            sb.AppendLine();
+
+            sb.AppendLine($"{SectionOffsetsAndCounts[2].Name}:");
+            foreach (UnknownMapObject3 mapObject3 in UnknownMapObject3s)
+            {
+                sb.AppendLine(mapObject3.GetAsm(3));
+            }
+            sb.AppendLine();
+
+            sb.AppendLine($"{SectionOffsetsAndCounts[3].Name}:");
+            int currentPointer = 0;
+            foreach (InteractableObject interactableObject in InteractableObjects)
+            {
+                sb.AppendLine(interactableObject.GetAsm(3, ref currentPointer));
+            }
+            foreach (InteractableObject interactableObject in InteractableObjects)
+            {
+                if (interactableObject.ObjectId != 0)
+                {
+                    sb.AppendLine($"{Helpers.Indent(3)}INTERACTABLEOBJECT{interactableObject.ObjectId}: .string \"{Helpers.EscapeShiftJIS(interactableObject.ObjectName)}\"");
+                    sb.AppendLine($".skip {4 - (Encoding.GetEncoding("Shift-JIS").GetBytes(interactableObject.ObjectName).Length + 1) % 4}");
+                }
+            }
+            sb.AppendLine();
+
+            sb.AppendLine($"{SectionOffsetsAndCounts[0].Name}:");
+            sb.AppendLine(Settings.GetAsm(3, SectionOffsetsAndCounts, ref currentPointer));
+            sb.AppendLine();
+
+            sb.AppendLine($"ENDPOINTERS: .word {currentPointer}");
+            for (int i = 0; i < currentPointer; i++)
+            {
+                sb.AppendLine($"{Helpers.Indent(3)}.word POINTER{i:D2}");
+            }
 
             return sb.ToString();
         }
@@ -187,13 +290,16 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public int Unknown44 { get; set; }
         public int Unknown48 { get; set; }
         public (int x, int y) StartingPosition { get; set; }
-        public int CAnimationFileIndex { get; set; }
+        public int ColorAnimationFileIndex { get; set; }
         public int PaletteAnimationFileIndex { get; set; }
         public int Unknown5C { get; set; }
-        public int Unknown60 { get; set; }
-        public int Unknown64 { get; set; }
-        public int Unknown68 { get; set; }
-        public int Unknown6C { get; set; }
+        public int Unknown2Count { get; set; }
+        public int Unknown2SectionPointer { get; set; }
+        public int InteractableObjectsCount { get; set; }
+        public int InteractableObjectsSectionPointer { get; set; }
+        public int WalkabilityMapPointer { get; set; }
+        public int Unknown3Count { get; set; }
+        public int Unknown3SectionPointer { get; set; }
 
         public MapFileSettings(IEnumerable<byte> data)
         {
@@ -219,14 +325,136 @@ namespace HaruhiChokuretsuLib.Archive.Data
             Unknown44 = BitConverter.ToInt32(data.Skip(0x44).Take(4).ToArray());
             Unknown48 = BitConverter.ToInt32(data.Skip(0x48).Take(4).ToArray());
             StartingPosition = (BitConverter.ToInt32(data.Skip(0x4C).Take(4).ToArray()), BitConverter.ToInt32(data.Skip(0x50).Take(4).ToArray()));
-            CAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x54).Take(4).ToArray());
+            ColorAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x54).Take(4).ToArray());
             PaletteAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x58).Take(4).ToArray());
             Unknown5C = BitConverter.ToInt32(data.Skip(0x5C).Take(4).ToArray());
-            Unknown60 = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
-            Unknown60 = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
-            Unknown64 = BitConverter.ToInt32(data.Skip(0x64).Take(4).ToArray());
-            Unknown68 = BitConverter.ToInt32(data.Skip(0x68).Take(4).ToArray());
-            Unknown6C = BitConverter.ToInt32(data.Skip(0x6C).Take(4).ToArray());
+            Unknown3Count = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
+            Unknown3SectionPointer = BitConverter.ToInt32(data.Skip(0x64).Take(4).ToArray());
+            InteractableObjectsCount = BitConverter.ToInt32(data.Skip(0x68).Take(4).ToArray());
+            InteractableObjectsSectionPointer = BitConverter.ToInt32(data.Skip(0x6C).Take(4).ToArray());
+            WalkabilityMapPointer = BitConverter.ToInt32(data.Skip(0x70).Take(4).ToArray());
+            Unknown2Count = BitConverter.ToInt32(data.Skip(0x74).Take(4).ToArray());
+            Unknown2SectionPointer = BitConverter.ToInt32(data.Skip(0x78).Take(4).ToArray());
+        }
+
+        public string GetAsm(int indent, List<DataFileSection> sections, ref int currentPointer)
+        {
+            StringBuilder sb = new();
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {(YOriented ? 1 : 0)}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {MapWidth}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {MapHeight}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.short {TextureFileIndices[0]}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.short {TextureFileIndices[2]}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.short {TextureFileIndices[1]}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.short {LayoutFileIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {ForegroundLayoutStartIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown18}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex1C}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex20}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex24}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown28}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {BackgroundLayoutStartIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {BackgroundLayoutEndIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown34}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word 0x{TopGradient.Red << 16 | TopGradient.Green << 8 | TopGradient.Blue:X6}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word 0x{BottomGradient.Red << 16 | BottomGradient.Green << 8 | BottomGradient.Blue:X6}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex40}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown44}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown48}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {StartingPosition.x}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {StartingPosition.y}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {ColorAnimationFileIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {PaletteAnimationFileIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown5C}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown3Count}");
+            sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[2].Name}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {InteractableObjectsCount}");
+            sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[3].Name}");
+            sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[4].Name}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown2Count}");
+            sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[1].Name}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.skip 0x40");
+            return sb.ToString();
+        }
+    }
+
+    public class UnknownMapObject2
+    {
+        public short UnknownShort1 { get; set; }
+        public short UnknownShort2 { get; set; }
+
+        public UnknownMapObject2(IEnumerable<byte> data)
+        {
+            UnknownShort1 = BitConverter.ToInt16(data.Take(2).ToArray());
+            UnknownShort2 = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
+        }
+
+        public string GetAsm(int indent)
+        {
+            StringBuilder sb = new();
+            sb.AppendLine($"{Helpers.Indent(indent)}.short {UnknownShort1}");
+            sb.AppendLine($"{Helpers.Indent(indent + 3)}.short {UnknownShort2}");
+            sb.AppendLine($"{Helpers.Indent(indent + 3)}.skip 0x44");
+            return sb.ToString();
+        }
+    }
+
+    public class UnknownMapObject3
+    {
+        public short UnknownShort1 { get; set; }
+        public short UnknownShort2 { get; set; }
+        public short UnknownShort3 { get; set; }
+
+        public UnknownMapObject3(IEnumerable<byte> data)
+        {
+            UnknownShort1 = BitConverter.ToInt16(data.Take(2).ToArray());
+            UnknownShort2 = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
+            UnknownShort3 = BitConverter.ToInt16(data.Skip(4).Take(2).ToArray());
+        }
+
+        public string GetAsm(int indent)
+        {
+            StringBuilder sb = new();
+            sb.AppendLine($"{Helpers.Indent(indent)}.short {UnknownShort1}");
+            sb.AppendLine($"{Helpers.Indent(indent + 3)}.short {UnknownShort2}");
+            sb.AppendLine($"{Helpers.Indent(indent + 3)}.short {UnknownShort3}");
+            sb.AppendLine($"{Helpers.Indent(indent + 3)}.skip 6");
+            return sb.ToString();
+        }
+    }
+
+    public class InteractableObject
+    {
+        public short ObjectX { get; set; }
+        public short ObjectY { get; set; }
+        public int ObjectId { get; set; }
+        public string ObjectName { get; set; }
+
+        public InteractableObject(IEnumerable<byte> data, int offset)
+        {
+            ObjectX = BitConverter.ToInt16(data.Skip(offset).Take(2).ToArray());
+            ObjectY = BitConverter.ToInt16(data.Skip(offset + 2).Take(2).ToArray());
+            ObjectId = BitConverter.ToInt32(data.Skip(offset+ 4).Take(4).ToArray());
+            ObjectName = Encoding.GetEncoding("Shift-JIS").GetString(data.Skip(BitConverter.ToInt32(data.Skip(offset + 8).Take(4).ToArray())).TakeWhile(b => b != 0x00).ToArray());
+        }
+
+        public string GetAsm(int indent, ref int currentPointer)
+        {
+            StringBuilder sb = new();
+            sb.AppendLine($"{Helpers.Indent(indent)}.short {ObjectX}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.short {ObjectY}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {ObjectId}");
+            if (ObjectId > 0)
+            {
+                sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .int INTERACTABLEOBJECT{ObjectId}");
+            }
+            else
+            {
+                sb.AppendLine($"{Helpers.Indent(indent)}.word 0");
+            }
+            sb.AppendLine($"{Helpers.Indent(indent)}.skip 4");
+            sb.AppendLine();
+            return sb.ToString();
         }
     }
 }

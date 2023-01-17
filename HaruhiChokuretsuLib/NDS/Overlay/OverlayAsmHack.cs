@@ -32,12 +32,15 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             // Each repl should be compiled separately since they all have their own entry points
             // That's why each one lives in its own separate directory
             List<string> replFiles = new();
-            foreach (string subdir in Directory.GetDirectories(Path.Combine(path, overlay.Name, "replSource")))
+            if (Directory.Exists(Path.Combine(path, overlay.Name, "replSource")))
             {
-                replFiles.Add($"repl_{Path.GetFileNameWithoutExtension(subdir)}");
-                if (!CompileReplace(Path.GetRelativePath(path, subdir), path, overlay, outputDataReceived, errorDataReceived))
+                foreach (string subdir in Directory.GetDirectories(Path.Combine(path, overlay.Name, "replSource")))
                 {
-                    return false;
+                    replFiles.Add($"repl_{Path.GetFileNameWithoutExtension(subdir)}");
+                    if (!CompileReplace(Path.GetRelativePath(path, subdir), path, overlay, outputDataReceived, errorDataReceived))
+                    {
+                        return false;
+                    }
                 }
             }
             if (!File.Exists(Path.Combine(path, overlay.Name, "newcode.bin")))

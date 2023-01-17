@@ -12,9 +12,28 @@ namespace HaruhiChokuretsuLib
 {
     public static class Helpers
     {
+        public static string Indent(int indent)
+        {
+            return string.Join(' ', new string[indent + 1]);
+        }
+
         public static string EscapeShiftJIS(this string shiftJisString)
         {
             return string.Join("", Encoding.GetEncoding("Shift-JIS").GetBytes(shiftJisString).Select(b => $"\\x{b:X2}"));
+        }
+
+        public static int GetShiftJISLength(this string shiftJisString)
+        {
+            return Encoding.GetEncoding("Shift-JIS").GetByteCount(shiftJisString) + 1; // +1 for trailing \x00
+        }
+
+        public static void AsmPadShiftJISString(this string shiftJisString, StringBuilder sb)
+        {
+            int neededPadding = 4 - Encoding.GetEncoding("Shift-JIS").GetByteCount(shiftJisString) % 4 - 1;
+            if (neededPadding > 0)
+            {
+                sb.AppendLine($".skip {neededPadding}");
+            }
         }
 
         public static int GreatestCommonFactor(int a, int b)

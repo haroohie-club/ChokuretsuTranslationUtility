@@ -392,7 +392,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort2}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort3}");
             }
-            sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.balign 4");
+            sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip 2");
             sb.AppendLine();
 
             return sb.ToString();
@@ -609,7 +609,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].TalkScriptBlock}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].Padding}");
             }
-            sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.balign 4");
+            sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip 2");
             sb.AppendLine();
 
             return sb.ToString();
@@ -757,7 +757,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 if (Objects[i].Id > 0)
                 {
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}CHOICE{i:D2}: .string \"{Objects[i].Text.EscapeShiftJIS()}\"");
-                    sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.balign 4");
+                    Objects[i].Text.AsmPadShiftJISString(sb);
                 }
             }
             sb.AppendLine();
@@ -1034,8 +1034,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 if (Objects[i].Id > 0)
                 {
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}LABEL{i:D2}: .string \"{Objects[i].Name}\"");
-                    int neededPadding = 4 - Encoding.GetEncoding("Shift-JIS").GetByteCount(Objects[i].Name) % 4 - 1;
-                    sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.balign 4");
+                    Objects[i].Name.AsmPadShiftJISString(sb);
                 }
             }
             sb.AppendLine();
@@ -1090,7 +1089,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
             sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.string \"{Objects[0].EscapeShiftJIS()}\"");
             int neededPadding = 4 - Encoding.GetEncoding("Shift-JIS").GetByteCount(Objects[0]) % 4 - 1;
-            sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.balign 4");
+            Objects[0].AsmPadShiftJISString(sb);
             sb.AppendLine();
 
             return sb.ToString();
@@ -1165,8 +1164,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 if ((int)Objects[i].Speaker > 0 && Objects[i].Pointer > 0)
                 {
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}DIALOGUELINE{i:D3}: .string \"{Objects[i].Text.EscapeShiftJIS()}\"");
-                    int neededPadding = 4 - Encoding.GetEncoding("Shift-JIS").GetByteCount(Objects[i].Text) % 4 - 1;
-                    sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.balign 4");
+                    Objects[i].Text.AsmPadShiftJISString(sb);
                 }
             }
             sb.AppendLine();
@@ -1232,8 +1230,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 if (!string.IsNullOrEmpty(Objects[i]))
                 {
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}CONDITIONAL_{i:D2}: .string \"{Objects[i]}\"");
-                    int neededPadding = 4 - Objects[i].Length % 4 - 1;
-                    sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.balign 4");
+                    Objects[i].AsmPadShiftJISString(sb);
                 }
             }
             sb.AppendLine();
@@ -1281,19 +1278,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public string GetAsm(int indentation, ref int currentPointer)
         {
             StringBuilder sb = new();
-            sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
+            sb.AppendLine($"{Helpers.Indent(indentation)}{Name}:");
             for (int i = 0; i < Objects.Count; i++)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumCommands}");
+                sb.AppendLine($"{Helpers.Indent(indentation + 3)}.word {Objects[i].NumCommands}");
                 if (Objects[i].Pointer > 0)
                 {
-                    sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}POINTER{currentPointer++}: .word {Objects[i].Name}");
+                    sb.AppendLine($"{Helpers.Indent(indentation + 3)}POINTER{currentPointer++}: .word {Objects[i].Name}");
                 }
                 else
                 {
-                    sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word 0");
+                    sb.AppendLine($"{Helpers.Indent(indentation + 3)}.word 0");
                 }
             }
+            sb.AppendLine($"{Helpers.Indent(indentation + 3)}.skip 8");
             sb.AppendLine();
 
             return sb.ToString();
@@ -1383,8 +1381,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}: .string \"{Objects[0]}\"");
-            int neededPadding = 4 - Objects[0].Length % 4 - 1;
-            sb.AppendLine($"{string.Join(' ', new string[indentation])}.balign 4");
+            Objects[0].AsmPadShiftJISString(sb);
             sb.AppendLine();
 
             return sb.ToString();

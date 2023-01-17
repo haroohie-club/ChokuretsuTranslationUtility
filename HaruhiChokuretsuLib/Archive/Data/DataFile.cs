@@ -23,4 +23,11 @@ namespace HaruhiChokuretsuLib.Archive.Data
             throw new System.NotImplementedException();
         }
     }
+
+    public class DataFileSection
+    {
+        public string Name { get; set; }
+        public int Offset { get; set; }
+        public int ItemCount { get; set; }
+    }
 }

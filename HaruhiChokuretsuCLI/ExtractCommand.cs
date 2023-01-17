@@ -72,138 +72,136 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(directory);
             }
 
-            //try
-            //{
-                if (Path.GetExtension(_outputFile).Equals(".png", StringComparison.OrdinalIgnoreCase))
+            if (Path.GetExtension(_outputFile).Equals(".png", StringComparison.OrdinalIgnoreCase))
+            {
+                var grpArchive = ArchiveFile<GraphicsFile>.FromFile(_inputArchive);
+
+                int fileIndex = _fileIndex;
+                if (fileIndex < 0)
                 {
-                    var grpArchive = ArchiveFile<GraphicsFile>.FromFile(_inputArchive);
-
-                    int fileIndex = _fileIndex;
-                    if (fileIndex < 0)
-                    {
-                        fileIndex = grpArchive.Files.First(f => f.Name == _fileName).Index;
-                    }
-
-                    GraphicsFile grpFile = grpArchive.Files.First(f => f.Index == fileIndex);
-
-                    if (grpFile.Index == 0xE50)
-                    {
-                        grpFile.InitializeFontFile();
-                    }
-
-                    CommandSet.Out.Write($"Extracting file #{grpFile.Index:X3} as image from archive {grpArchive.FileName}... ");
-                    using FileStream fileStream = new(_outputFile, FileMode.Create);
-                    grpFile.GetImage(_imageWidth).Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
-                    CommandSet.Out.WriteLine("OK");
+                    fileIndex = grpArchive.Files.First(f => f.Name == _fileName).Index;
                 }
-                else if (Path.GetExtension(_outputFile).Equals(".resx", StringComparison.OrdinalIgnoreCase))
+
+                GraphicsFile grpFile = grpArchive.Files.First(f => f.Index == fileIndex);
+
+                if (grpFile.Index == 0xE50)
                 {
-                    var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive);
-                    int fileIndex = _fileIndex;
-                    if (fileIndex < 0)
-                    {
-                        fileIndex = evtArchive.Files.First(f => f.Name == _fileName).Index;
-                    }
-                    EventFile evtFile = evtArchive.Files.First(f => f.Index == fileIndex);
-
-                    if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase) || (_fileIndex >= 580 && _fileIndex <= 581))
-                    {
-                        evtFile.InitializeDialogueForSpecialFiles();
-                    }
-                    else if (_fileIndex == 589)
-                    {
-                        VoiceMapFile vmFile = evtFile.CastTo<VoiceMapFile>();
-                    }
-
-                    CommandSet.Out.Write($"Extracting file #{evtFile.Index:X3} as RESX from archive {evtArchive.FileName}... ");
-                    evtFile.WriteResxFile(_outputFile);
-                    CommandSet.Out.WriteLine("OK");
+                    grpFile.InitializeFontFile();
                 }
-                else if (Path.GetExtension(_outputFile).Equals(".s", StringComparison.OrdinalIgnoreCase))
+
+                CommandSet.Out.Write($"Extracting file #{grpFile.Index:X3} as image from archive {grpArchive.FileName}... ");
+                using FileStream fileStream = new(_outputFile, FileMode.Create);
+                grpFile.GetImage(_imageWidth).Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+                CommandSet.Out.WriteLine("OK");
+            }
+            else if (Path.GetExtension(_outputFile).Equals(".resx", StringComparison.OrdinalIgnoreCase))
+            {
+                var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive);
+                int fileIndex = _fileIndex;
+                if (fileIndex < 0)
                 {
-                    var archive = ArchiveFile<DataFile>.FromFile(_inputArchive);
-                    int fileIndex = _fileIndex;
-                    if (fileIndex < 0)
-                    {
-                        fileIndex = archive.Files.First(f => f.Name == _fileName).Index;
-                    }
-                    DataFile file = archive.Files.First(f => f.Index == fileIndex);
+                    fileIndex = evtArchive.Files.First(f => f.Name == _fileName).Index;
+                }
+                EventFile evtFile = evtArchive.Files.First(f => f.Index == fileIndex);
 
-                    Dictionary<string, IncludeEntry[]> includes = new();
-                    if (_includes is not null)
-                    {
-                        foreach (string include in _includes)
-                        {
-                            IncludeEntry[] entries = File.ReadAllLines(include).Where(l => l.Length > 1).Select(l => new IncludeEntry(l)).ToArray();
-                            includes.Add(Path.GetFileNameWithoutExtension(include).ToUpper(), entries);
-                        }
-                    }
+                if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase) || (_fileIndex >= 580 && _fileIndex <= 581))
+                {
+                    evtFile.InitializeDialogueForSpecialFiles();
+                }
+                else if (_fileIndex == 589)
+                {
+                    VoiceMapFile vmFile = evtFile.CastTo<VoiceMapFile>();
+                }
 
-                    // There's not a better way to do this that I can think of
-                    // Sorry
-                    ISourceFile sourceFile;
-                    if (archive.FileName.StartsWith("dat", StringComparison.OrdinalIgnoreCase))
-                    {
-                        List<byte> qmapData = archive.Files.First(f => f.Name == "QMAPS").Data;
-                        List<string> mapFileNames = new();
-                        for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
-                        {
-                            mapFileNames.Add(Encoding.ASCII.GetString(qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + i * 8).Take(4).ToArray())).TakeWhile(b => b != 0).ToArray()).Replace(".", ""));
-                        }
-                        mapFileNames = mapFileNames.Take(mapFileNames.Count - 1).ToList();
+                CommandSet.Out.Write($"Extracting file #{evtFile.Index:X3} as RESX from archive {evtArchive.FileName}... ");
+                evtFile.WriteResxFile(_outputFile);
+                CommandSet.Out.WriteLine("OK");
+            }
+            else if (Path.GetExtension(_outputFile).Equals(".s", StringComparison.OrdinalIgnoreCase))
+            {
+                var archive = ArchiveFile<DataFile>.FromFile(_inputArchive);
+                int fileIndex = _fileIndex;
+                if (fileIndex < 0)
+                {
+                    fileIndex = archive.Files.First(f => f.Name == _fileName).Index;
+                }
+                DataFile file = archive.Files.First(f => f.Index == fileIndex);
 
-                        if (mapFileNames.Contains(file.Name))
-                        {
-                            file = file.CastTo<MapFile>();
-                        }
-                        else if (file.Name == "BGTBLS")
-                        {
-                            file = file.CastTo<BgTableFile>();
-                        }
-                        sourceFile = file;
-                    }
-                    else if (archive.FileName.StartsWith("evt", StringComparison.OrdinalIgnoreCase))
+                Dictionary<string, IncludeEntry[]> includes = new();
+                if (_includes is not null)
+                {
+                    foreach (string include in _includes)
                     {
-                        EventFile evtFile = file.CastTo<EventFile>();
-                        sourceFile = evtFile;
+                        IncludeEntry[] entries = File.ReadAllLines(include).Where(l => l.Length > 1).Select(l => new IncludeEntry(l)).ToArray();
+                        includes.Add(Path.GetFileNameWithoutExtension(include).ToUpper(), entries);
+                    }
+                }
+
+                // There's not a better way to do this that I can think of
+                // Sorry
+                ISourceFile sourceFile;
+                if (archive.FileName.StartsWith("dat", StringComparison.OrdinalIgnoreCase))
+                {
+                    List<byte> qmapData = archive.Files.First(f => f.Name == "QMAPS").Data;
+                    List<string> mapFileNames = new();
+                    for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
+                    {
+                        mapFileNames.Add(Encoding.ASCII.GetString(qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + i * 8).Take(4).ToArray())).TakeWhile(b => b != 0).ToArray()).Replace(".", ""));
+                    }
+                    mapFileNames = mapFileNames.Take(mapFileNames.Count - 1).ToList();
+
+                    if (mapFileNames.Contains(file.Name))
+                    {
+                        file = file.CastTo<MapFile>();
                     }
                     else
                     {
-                        CommandSet.Error.WriteLine("Source files are only contained in dat.bin and evt.bin; please use one of those two bin archives.");
-                        return 1;
+                        switch (file.Name)
+                        {
+                            case "BGTBLS":
+                                file = file.CastTo<BgTableFile>();
+                                break;
+                        }
                     }
-
-                    CommandSet.Out.Write($"Extracting file #{file.Index:X3} as ASM from archive {archive.FileName}... ");
-                    File.WriteAllText(_outputFile, sourceFile.GetSource(includes));
-                    CommandSet.Out.WriteLine("OK");
+                    sourceFile = file;
+                }
+                else if (archive.FileName.StartsWith("evt", StringComparison.OrdinalIgnoreCase))
+                {
+                    EventFile evtFile = file.CastTo<EventFile>();
+                    sourceFile = evtFile;
                 }
                 else
                 {
-                    var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
-                    int fileIndex = _fileIndex;
-                    if (fileIndex < 0)
-                    {
-                        fileIndex = archive.Files.First(f => f.Name == _fileName).Index;
-                    }
-                    FileInArchive file = archive.Files.First(f => f.Index == fileIndex);
-
-                    if (_compressed)
-                    {
-                        CommandSet.Out.Write($"Extracting compressed file #{file.Index:X3} from archive {archive.FileName}... ");
-                        File.WriteAllBytes(_outputFile, file.CompressedData);
-                    }
-                    else
-                    {
-                        CommandSet.Out.Write($"Extracting file #{file.Index:X3} from archive {archive.FileName}... ");
-                        File.WriteAllBytes(_outputFile, file.GetBytes());
-                    }
-                    CommandSet.Out.WriteLine("OK");
+                    CommandSet.Error.WriteLine("Source files are only contained in dat.bin and evt.bin; please use one of those two bin archives.");
+                    return 1;
                 }
-            //}
-            //catch (Exception e)
-            //{
-            //    CommandSet.Out.WriteLine($"Failed to extract file #0x{_fileIndex:X3} from archive {_inputArchive}, exception '{e.Message}'");
-            //}
+
+                CommandSet.Out.Write($"Extracting file #{file.Index:X3} as ASM from archive {archive.FileName}... ");
+                File.WriteAllText(_outputFile, sourceFile.GetSource(includes));
+                CommandSet.Out.WriteLine("OK");
+            }
+            else
+            {
+                var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
+                int fileIndex = _fileIndex;
+                if (fileIndex < 0)
+                {
+                    fileIndex = archive.Files.First(f => f.Name == _fileName).Index;
+                }
+                FileInArchive file = archive.Files.First(f => f.Index == fileIndex);
+
+                if (_compressed)
+                {
+                    CommandSet.Out.Write($"Extracting compressed file #{file.Index:X3} from archive {archive.FileName}... ");
+                    File.WriteAllBytes(_outputFile, file.CompressedData);
+                }
+                else
+                {
+                    CommandSet.Out.Write($"Extracting file #{file.Index:X3} from archive {archive.FileName}... ");
+                    File.WriteAllBytes(_outputFile, file.GetBytes());
+                }
+                CommandSet.Out.WriteLine("OK");
+            }
 
             return 0;
         }

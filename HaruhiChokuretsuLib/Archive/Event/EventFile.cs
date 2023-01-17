@@ -32,7 +32,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x03, "PIN_MNL", new string[] { "dialogueIndex" }),
             new(0x04, "BG_DISP", new string[] { "bgIndex" }),
             new(0x05, "SCREEN_FADEIN", new string[] { "timeToFade", "unused", "fadeLocation", "fadeColor" }),
-            new(0x06, "SCREEN_FADEOUT", new string[] { "timeToFade", "unused", "fadeColorRed", "fadeColorGreen", "fadeColorBlue", "fadeLocation" }),
+            new(0x06, "SCREEN_FADEOUT", new string[] { "timeToFade", "unknown1", "fadeColorRed", "fadeColorGreen", "fadeColorBlue", "fadeLocation", "unknown6" }),
             new(0x07, "SCREEN_FLASH", new string[] { "fadeInTime", "holdTime", "fadeOutTime", "flashColorRed", "flashColorGreen", "flashColorBlue" }),
             new(0x08, "SND_PLAY", new string[] { "soundIndex", "mode", "volume", "crossfadeDupe", "crossfadeTime" }),
             new(0x09, "REMOVED", Array.Empty<string>()),

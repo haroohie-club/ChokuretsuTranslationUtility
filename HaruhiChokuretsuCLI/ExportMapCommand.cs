@@ -131,13 +131,13 @@ namespace HaruhiChokuretsuCLI
                 CommandSet.Out.WriteLine($"Exporting map for {mapName[0..^1]}...");
                 MapFile map = (MapFile)dat.Files.First(f => f.Name == mapName);
 
-                if (_animated && (map.Settings.PaletteAnimationFileIndex > 0 || map.Settings.CAnimationFileIndex > 0))
+                if (_animated && (map.Settings.PaletteAnimationFileIndex > 0 || map.Settings.ColorAnimationFileIndex > 0))
                 {
                     GraphicsFile animation;
                     int replacementIndex = 1;
-                    if (map.Settings.CAnimationFileIndex > 0)
+                    if (map.Settings.ColorAnimationFileIndex > 0)
                     {
-                        animation = grp.Files.First(f => f.Index == map.Settings.CAnimationFileIndex);
+                        animation = grp.Files.First(f => f.Index == map.Settings.ColorAnimationFileIndex);
                     }
                     else
                     {
