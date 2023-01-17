@@ -7,7 +7,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
 {
     public enum BgType
     { 
-        UNKNOWN00 = 0,
+        KINETIC_VECTOR = 0,
         TEX_TOP_BOTTOM = 1,
         TEX_TOP_BOTTOM_0A = 0x0A,
         TEX_BOTTOM_TILE_TOP = 0x0B,
@@ -41,8 +41,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
+            HashSet<string> names = new();
             string source = ".include \"GRPBIN.INC\"\n\n";
-            source += $".set {nameof(BgType.UNKNOWN00)}, {(int)BgType.UNKNOWN00}\n";
+            source += $".set {nameof(BgType.KINETIC_VECTOR)}, {(int)BgType.KINETIC_VECTOR}\n";
             source += $".set {nameof(BgType.TEX_TOP_BOTTOM)}, {(int)BgType.TEX_TOP_BOTTOM}\n";
             source += $".set {nameof(BgType.TEX_TOP_BOTTOM_0A)}, {(int)BgType.TEX_TOP_BOTTOM_0A}\n";
             source += $".set {nameof(BgType.TEX_BOTTOM_TILE_TOP)}, {(int)BgType.TEX_BOTTOM_TILE_TOP}\n";
@@ -66,9 +67,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 {
                     string fileName1 = includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex1).Name;
                     string fileName2 = BgTableEntries[i].Type != BgType.SINGLE_TEX ? includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex2).Name : "0";
-                    string macroName = fileName1[0..fileName1.LastIndexOf('_')];
+                    string bgName = fileName1[0..fileName1.LastIndexOf('_')];
+                    string bgNameBackup = bgName;
+                    for (int j = 1; names.Contains(bgName); j++)
+                    {
+                        bgName = $"{bgNameBackup}{j:D2}";
+                    }
+                    names.Add(bgName);
 
-                    source += $"   .set {macroName}, 0x{i:X4}\n" +
+                    source += $"   .set {bgName}, 0x{i:X4}\n" +
                         $"   .word {BgTableEntries[i].Type}{string.Join(' ', new string[COMMENT_WIDTH - BgTableEntries[i].Type.ToString().Length + 1])}@ ENTRY TYPE\n" +
                         $"   .short {fileName1}{string.Join(' ', new string[COMMENT_WIDTH - fileName1.Length])}@ BG TOP\n" +
                         $"   .short {fileName2}{string.Join(' ', new string[COMMENT_WIDTH - fileName2.Length])}@ BG BOTTOM\n" +

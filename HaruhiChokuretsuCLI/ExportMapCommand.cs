@@ -2,6 +2,7 @@
 using FFMpegCore.Pipes;
 using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
+using HaruhiChokuretsuLib.Archive.Graphics;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using SkiaSharp;

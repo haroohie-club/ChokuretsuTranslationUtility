@@ -1,4 +1,5 @@
-﻿using HaruhiChokuretsuLib.Util;
+﻿using HaruhiChokuretsuLib.Archive.Graphics;
+using HaruhiChokuretsuLib.Util;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,5 @@
-﻿using Mono.Options;
+﻿using HaruhiChokuretsuLib.Archive.Graphics;
+using Mono.Options;
 using SkiaSharp;
 using SkiaTextRenderer;
 using System.Collections.Generic;
@@ -43,7 +44,7 @@ namespace HaruhiChokuretsuCLI
             TextRendererSk.DrawText(canvas, _version, new Font(SKTypeface.FromFile(_fontFile), 11.0f), bounds, SKColors.Black, TextFormatFlags.Left);
 
             using FileStream fileStream = new(_outputPath, FileMode.Create);
-            splashScreenVersionless.Encode(fileStream, SKEncodedImageFormat.Png, HaruhiChokuretsuLib.Archive.GraphicsFile.PNG_QUALITY);
+            splashScreenVersionless.Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
 
             CommandSet.Out.WriteLine($"Generated new splash screen with version '{_version}'.");
             return 0;

@@ -1,4 +1,5 @@
 ﻿using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Archive.Graphics;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using SkiaSharp;

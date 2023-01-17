@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Archive.Graphics;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using SkiaSharp;
@@ -96,6 +97,10 @@ namespace HaruhiChokuretsuCLI
                 filePaths.AddRange(Directory.EnumerateFiles(_replacement, "*.*", SearchOption.AllDirectories));
             }
 
+            // Create includes for source files
+            new ExportIncludeCommand().Invoke(new string[] { "-c", "-o", "COMMANDS.INC" });
+            new ExportIncludeCommand().Invoke(new string[] { "-i", Path.Combine(Path.GetDirectoryName(_inputArchive), "grp.bin"),  "-o", "GRPBIN.INC" });
+
             var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive, log);
             CommandSet.Out.WriteLine($"Beginning file replacement in {archive.FileName}...");
 
@@ -171,6 +176,8 @@ namespace HaruhiChokuretsuCLI
             }
             File.WriteAllBytes(_outputArchive, archive.GetBytes());
 
+            File.Delete("COMMANDS.INC");
+            File.Delete("GRPBIN.INC");
             CommandSet.Out.WriteLine("Done.");
             return 0;
         }
@@ -255,10 +262,8 @@ namespace HaruhiChokuretsuCLI
 
         private static async Task ReplaceSingleSourceFileAsync(ArchiveFile<FileInArchive> archive, string filePath, int index, string devkitArm)
         {
-            string commandsInc = Path.Combine(Environment.CurrentDirectory, "COMMANDS.INC");
             string objFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.o";
             string binFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.bin";
-            new ExportIncludeCommand().Invoke(new string[] { "-c", "-o", commandsInc });
             ProcessStartInfo gcc = new(Path.Combine(devkitArm, "bin/arm-none-eabi-gcc.exe"), $"-c -nostdlib -static \"{filePath}\" -o \"{objFile}");
             await Process.Start(gcc).WaitForExitAsync();
             await Task.Delay(50); // ensures process is actually complete
@@ -266,7 +271,6 @@ namespace HaruhiChokuretsuCLI
             await Process.Start(objcopy).WaitForExitAsync();
             await Task.Delay(50); // ensures process is actually copmlete
             ReplaceSingleFile(archive, binFile, index);
-            File.Delete("COMMANDS.INC");
             File.Delete(objFile);
             File.Delete(binFile);
         }

@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using HaruhiChokuretsuLib.Archive.Graphics;
+using SkiaSharp;
 using System.IO;
 using System.Windows.Media.Imaging;
 
@@ -11,7 +12,7 @@ namespace HaruhiChokuretsuEditor
             BitmapImage bitmapImage = new();
             using (MemoryStream memoryStream = new())
             {
-                bitmap.Encode(memoryStream, SKEncodedImageFormat.Png, HaruhiChokuretsuLib.Archive.GraphicsFile.PNG_QUALITY);
+                bitmap.Encode(memoryStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
                 memoryStream.Position = 0;
                 bitmapImage.BeginInit();
                 bitmapImage.StreamSource = memoryStream;

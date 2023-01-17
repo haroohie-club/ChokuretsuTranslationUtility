@@ -3,6 +3,7 @@ using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Archive.Graphics;
 using HaruhiChokuretsuLib.Font;
 using HaruhiChokuretsuLib.Util;
 using Microsoft.Win32;
@@ -542,9 +543,18 @@ namespace HaruhiChokuretsuEditor
                 };
                 if (saveFileDialog.ShowDialog() == true)
                 {
-                    SKBitmap bitmap = selectedFile.GetImage(_currentImageWidth);
-                    using FileStream fileStream = new(saveFileDialog.FileName, FileMode.Create);
-                    bitmap.Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+                    if (selectedFile.ImageForm == GraphicsFile.Form.TEXTURE || selectedFile.ImageForm == GraphicsFile.Form.TILE)
+                    {
+                        SKBitmap bitmap = selectedFile.GetImage(_currentImageWidth);
+                        using FileStream fileStream = new(saveFileDialog.FileName, FileMode.Create);
+                        bitmap.Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+                    }
+                    else
+                    {
+                        SKBitmap bitmap = selectedFile.GetScreenImage(selectedFile.GetAssociateScreenTiles(_grpFile));
+                        using FileStream fileStream = new(saveFileDialog.FileName, FileMode.Create);
+                        bitmap.Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+                    }
                 }
             }
         }
@@ -619,6 +629,10 @@ namespace HaruhiChokuretsuEditor
                     _currentImageWidth = 256;
 
                     paletteEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetPalette()), MaxWidth = 256 });
+                }
+                else if (selectedFile.FileFunction == GraphicsFile.Function.SCREEN)
+                {
+                    tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetScreenImage(selectedFile.GetAssociateScreenTiles(_grpFile))), MaxWidth = selectedFile.Width });
                 }
                 else if (selectedFile.FileFunction == GraphicsFile.Function.LAYOUT)
                 {
