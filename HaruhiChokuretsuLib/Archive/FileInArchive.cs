@@ -26,7 +26,7 @@ namespace HaruhiChokuretsuLib.Archive
             return Data.ToArray();
         }
 
-        public virtual void NewFile(string filename)
+        public virtual void NewFile(string filename, ILogger log)
         {
         }
 

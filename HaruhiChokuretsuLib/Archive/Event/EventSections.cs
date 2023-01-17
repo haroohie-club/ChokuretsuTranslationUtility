@@ -393,7 +393,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort2}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort3}");
             }
-            sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip 2");
+            if (NumObjects * ObjectLength % 4 > 0)
+            {
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip {4 - NumObjects * ObjectLength % 4}");
+            }
             sb.AppendLine();
 
             return sb.ToString();
@@ -610,7 +613,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].TalkScriptBlock}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].Padding}");
             }
-            sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip 2");
+            if (NumObjects * ObjectLength % 4 > 0)
+            {
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip {4 - NumObjects * ObjectLength % 4}");
+            }
             sb.AppendLine();
 
             return sb.ToString();

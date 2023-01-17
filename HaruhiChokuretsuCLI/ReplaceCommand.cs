@@ -141,7 +141,7 @@ namespace HaruhiChokuretsuCLI
 
                     if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
                     {
-                        AddNewFile(archive, filePath);
+                        AddNewFile(archive, filePath, log);
                     }
                     else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
                     {
@@ -197,18 +197,18 @@ namespace HaruhiChokuretsuCLI
             return null;
         }
 
-        private static void AddNewFile(ArchiveFile<FileInArchive> archive, string filePath)
+        private static void AddNewFile(ArchiveFile<FileInArchive> archive, string filePath, ILogger log)
         {
             if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
             {
                 GraphicsFile graphicsFile = new();
-                graphicsFile.NewFile(filePath);
+                graphicsFile.NewFile(filePath, log);
                 archive.AddFile(graphicsFile);
             }
             else if (filePath.EndsWith("_voicemap.csv", StringComparison.OrdinalIgnoreCase))
             {
                 VoiceMapFile voiceMapFile = new();
-                voiceMapFile.NewFile(filePath);
+                voiceMapFile.NewFile(filePath, log);
                 archive.AddFile(voiceMapFile);
             }
             else

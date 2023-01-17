@@ -115,8 +115,9 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
-        public override void NewFile(string filename)
+        public override void NewFile(string filename, ILogger log)
         {
+            _log = log;
             SKBitmap bitmap = SKBitmap.Decode(filename);
             string[] fileComponents = Path.GetFileNameWithoutExtension(filename).Split('_');
             ImageTileForm = fileComponents[1].ToLower() switch

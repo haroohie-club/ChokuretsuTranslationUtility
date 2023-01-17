@@ -75,7 +75,7 @@ namespace HaruhiChokuretsuTests
 
             string objFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.o";
             string binFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.bin";
-            
+
             ProcessStartInfo gcc = new(Path.Combine(devkitArm, "bin/arm-none-eabi-gcc.exe"), $"-c -nostdlib -static \"{filePath}\" -o \"{objFile}");
             await Process.Start(gcc).WaitForExitAsync();
             await Task.Delay(50); // ensures process is actually complete
@@ -90,7 +90,7 @@ namespace HaruhiChokuretsuTests
             return bytes;
         }
 
-        [SetUp]
+        [OneTimeSetUp]
         public static void Setup()
         {
             if (!File.Exists("COMMANDS.INC"))
@@ -101,6 +101,15 @@ namespace HaruhiChokuretsuTests
                     sb.AppendLine(command.GetMacro());
                 }
                 File.WriteAllText("COMMANDS.INC", sb.ToString());
+            }
+        }
+
+        [OneTimeTearDown]
+        public static void TearDown()
+        {
+            if (File.Exists("COMMANDS.INC"))
+            {
+                File.Delete("COMMANDS.INC");
             }
         }
 

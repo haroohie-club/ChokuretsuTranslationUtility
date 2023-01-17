@@ -50,6 +50,7 @@ namespace HaruhiChokuretsuTests
         [TestCase(".\\inputs\\evt.bin")]
         public void EvtFileParserTest(string evtFile)
         {
+            ConsoleLogger log = new();
             ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(evtFile, _log);
             Assert.AreEqual(evt.NumFiles, evt.Files.Count);
 
@@ -61,7 +62,7 @@ namespace HaruhiChokuretsuTests
             byte[] newEvtBytes = evt.GetBytes();
             Console.WriteLine($"Efficiency: {(double)newEvtBytes.Length / File.ReadAllBytes(evtFile).Length * 100}%");
 
-            ArchiveFile<EventFile> newEvtFile = new(newEvtBytes);
+            ArchiveFile<EventFile> newEvtFile = new(newEvtBytes, log);
             Assert.AreEqual(evt.Files.Count, newEvtFile.Files.Count);
             for (int i = 0; i < newEvtFile.Files.Count; i++)
             {

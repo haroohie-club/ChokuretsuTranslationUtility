@@ -31,11 +31,13 @@ namespace HaruhiChokuretsuLib.Archive
         public static ArchiveFile<T> FromFile(string fileName, ILogger log)
         {
             byte[] archiveBytes = File.ReadAllBytes(fileName);
-            return new ArchiveFile<T>(archiveBytes) { FileName = Path.GetFileName(fileName) };
+            return new ArchiveFile<T>(archiveBytes, log) { FileName = Path.GetFileName(fileName) };
         }
 
-        public ArchiveFile(byte[] archiveBytes)
+        public ArchiveFile(byte[] archiveBytes, ILogger log)
         {
+            _log = log;
+
             // Convert the main header components
             NumFiles = BitConverter.ToInt32(archiveBytes.Take(4).ToArray());
 
@@ -209,7 +211,7 @@ namespace HaruhiChokuretsuLib.Archive
         {
             T file = new();
             _log.Log($"Creating new file from {Path.GetFileName(filename)}... ");
-            file.NewFile(filename);
+            file.NewFile(filename, _log);
             AddFile(file);
         }
 

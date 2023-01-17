@@ -29,7 +29,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public static List<ScriptCommand> CommandsAvailable { get; set; } = new()
         {
             new(0x00, "INIT_READ_FLAG", Array.Empty<string>()),
-            new(0x01, "DIALOGUE", new string[] { "dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition", "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed" }),
+            new(0x01, "DIALOGUE", new string[] { "dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition", "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed", "unknown8", "unknown9", "unknown10", "unknown11" }),
             new(0x02, "KBG_DISP", new string[] { "kbgIndex" }),
             new(0x03, "PIN_MNL", new string[] { "dialogueIndex" }),
             new(0x04, "BG_DISP", new string[] { "bgIndex" }),
@@ -86,7 +86,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x37, "EPHEADER", new string[] { "headerIndex" }),
             new(0x38, "NOOP3", Array.Empty<string>()),
             new(0x39, "CONFETTI", new string[] { "on" }),
-            new(0x3A, "BG_DISPTEMP", new string[] { "bgIndex" }),
+            new(0x3A, "BG_DISPTEMP", new string[] { "bgIndex", "unknown1" }),
             new(0x3B, "UNKNOWN3B", Array.Empty<string>()),
             new(0x3C, "OP_MODE", Array.Empty<string>()),
             new(0x3D, "WAIT_CANCEL", new string[] { "frames" }),
@@ -125,7 +125,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             SectionPointersAndCounts[0].Section = settingsSection.GetGeneric();
             int dialogueSectionPointerIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
 
-            if (Name == "BGTESTS" || Regex.IsMatch(Name, @"[MCT][AHKNTR]\d{2}S") || Regex.IsMatch(Name, @"CHS_\w{3}_\d{2}S") || Regex.IsMatch(Name, @"E[VD]\d?_\d{3}S"))
+            if (Name == "BGTESTS" || Regex.IsMatch(Name, @"[MCT][AHKNTR]\d{2}S") || Regex.IsMatch(Name, @"CHS_\w{3}_\d{2}S") || Regex.IsMatch(Name, @"E[VD]\d?_[HKMNT]?\d{2,3}S"))
             {
                 if (Settings.UnknownSection01Pointer > 0)
                 {

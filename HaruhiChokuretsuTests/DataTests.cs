@@ -18,6 +18,7 @@ namespace HaruhiChokuretsuTests
         [TestCase(".\\inputs\\dat.bin")]
         public void DatFileParserTest(string datFile)
         {
+            ConsoleLogger log = new();
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(datFile, _log);
 
             foreach (DataFile dataFile in dat.Files)
@@ -28,7 +29,7 @@ namespace HaruhiChokuretsuTests
             byte[] newDataBytes = dat.GetBytes();
             Console.WriteLine($"Efficiency: {(double)newDataBytes.Length / File.ReadAllBytes(datFile).Length * 100}%");
 
-            ArchiveFile<DataFile> newDatFile = new(newDataBytes);
+            ArchiveFile<DataFile> newDatFile = new(newDataBytes, log);
 
             Assert.AreEqual(dat.Files.Count, newDatFile.Files.Count);
             for (int i = 0; i < newDatFile.Files.Count; i++)

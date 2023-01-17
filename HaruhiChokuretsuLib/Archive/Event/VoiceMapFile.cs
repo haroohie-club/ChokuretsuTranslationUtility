@@ -48,12 +48,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             InitializeDialogueAndEndPointers(decompressedData, offset, @override: true);
         }
 
-        public override void NewFile(string filename)
+        public override void NewFile(string filename, ILogger log)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Data = new();
             string[] csvData = File.ReadAllLines(filename);
             Name = "VOICEMAPS";
+            _log = log;
 
             List<int> filenamePointers = new();
             List<byte> filenameSection = new();
