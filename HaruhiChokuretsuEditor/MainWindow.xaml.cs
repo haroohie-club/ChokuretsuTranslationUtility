@@ -4,6 +4,7 @@ using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using HaruhiChokuretsuLib.Archive.Event;
 using HaruhiChokuretsuLib.Font;
+using HaruhiChokuretsuLib.Util;
 using Microsoft.Win32;
 using SkiaSharp;
 using System;
@@ -32,6 +33,8 @@ namespace HaruhiChokuretsuEditor
 
         private bool _layoutDarkMode = false;
 
+        private readonly ConsoleLogger _log = new();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -45,7 +48,7 @@ namespace HaruhiChokuretsuEditor
             };
             if (openFileDialog.ShowDialog() == true)
             {
-                _evtFile = ArchiveFile<EventFile>.FromFile(openFileDialog.FileName);
+                _evtFile = ArchiveFile<EventFile>.FromFile(openFileDialog.FileName, _log);
                 _evtFile.Files.First(f => f.Index == 580).InitializeScenarioFile();
                 _evtFile.Files.First(f => f.Index == 581).InitializeTopicFile();
                 _evtFile.Files.Where(f => f.Index is >= 359 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.Files.First(f => f.Index == 581).TopicStructs));
@@ -72,7 +75,7 @@ namespace HaruhiChokuretsuEditor
             };
             if (openFileDialog.ShowDialog() == true)
             {
-                _evtFile = ArchiveFile<EventFile>.FromFile(openFileDialog.FileName);
+                _evtFile = ArchiveFile<EventFile>.FromFile(openFileDialog.FileName, _log);
                 _evtFile.Files.ForEach(f => f.InitializeDialogueForSpecialFiles());
                 FontReplacementDictionary fontReplacementDictionary = new();
                 fontReplacementDictionary.AddRange(JsonSerializer.Deserialize<List<FontReplacement>>(File.ReadAllText("Font/font_replacement.json")));
@@ -118,7 +121,7 @@ namespace HaruhiChokuretsuEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 EventFile newEventFile = new();
-                newEventFile.Initialize(File.ReadAllBytes(openFileDialog.FileName), _evtFile.Files[eventsListBox.SelectedIndex].Offset);
+                newEventFile.Initialize(File.ReadAllBytes(openFileDialog.FileName), _evtFile.Files[eventsListBox.SelectedIndex].Offset, _log);
                 newEventFile.Index = _evtFile.Files[eventsListBox.SelectedIndex].Index;
                 newEventFile.Offset = _evtFile.Files[eventsListBox.SelectedIndex].Offset;
                 _evtFile.Files[eventsListBox.SelectedIndex] = newEventFile;
@@ -419,7 +422,7 @@ namespace HaruhiChokuretsuEditor
             };
             if (openFileDialog.ShowDialog() == true)
             {
-                _grpFile = ArchiveFile<GraphicsFile>.FromFile(openFileDialog.FileName);
+                _grpFile = ArchiveFile<GraphicsFile>.FromFile(openFileDialog.FileName, _log);
                 _grpFile.Files.First(f => f.Index == 0xE50).InitializeFontFile(); // initialize the font file
                 graphicsStatsStackPanel.Children.Clear();
                 graphicsListBox.ItemsSource = _grpFile.Files;
@@ -519,7 +522,7 @@ namespace HaruhiChokuretsuEditor
                 GraphicsFile newGraphicsFile = new();
                 byte[] compressedData = File.ReadAllBytes(openFileDialog.FileName);
                 newGraphicsFile.CompressedData = compressedData;
-                newGraphicsFile.Initialize(compressedData, _grpFile.Files[graphicsListBox.SelectedIndex].Offset);
+                newGraphicsFile.Initialize(compressedData, _grpFile.Files[graphicsListBox.SelectedIndex].Offset, _log);
                 newGraphicsFile.Index = _grpFile.Files[graphicsListBox.SelectedIndex].Index;
                 _grpFile.Files[graphicsListBox.SelectedIndex] = newGraphicsFile;
                 _grpFile.Files[graphicsListBox.SelectedIndex].Edited = true;
@@ -727,7 +730,7 @@ namespace HaruhiChokuretsuEditor
             };
             if (openFileDialog.ShowDialog() == true)
             {
-                _datFile = ArchiveFile<DataFile>.FromFile(openFileDialog.FileName);
+                _datFile = ArchiveFile<DataFile>.FromFile(openFileDialog.FileName, _log);
                 if (openFileDialog.FileName.Contains("dat.bin", StringComparison.OrdinalIgnoreCase))
                 {
                     List<byte> qmapData = _datFile.Files.First(f => f.Name == "QMAPS").Data;
@@ -792,7 +795,7 @@ namespace HaruhiChokuretsuEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 DataFile newDataFile = new();
-                newDataFile.Initialize(File.ReadAllBytes(openFileDialog.FileName), _datFile.Files[dataListBox.SelectedIndex].Offset);
+                newDataFile.Initialize(File.ReadAllBytes(openFileDialog.FileName), _datFile.Files[dataListBox.SelectedIndex].Offset, _log);
                 newDataFile.Index = _datFile.Files[dataListBox.SelectedIndex].Index;
                 _datFile.Files[dataListBox.SelectedIndex] = newDataFile;
                 _datFile.Files[dataListBox.SelectedIndex].Edited = true;

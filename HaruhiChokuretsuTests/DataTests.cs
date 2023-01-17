@@ -1,6 +1,7 @@
 ﻿using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
+using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -10,12 +11,14 @@ namespace HaruhiChokuretsuTests
 {
     public class DataTests
     {
+        private readonly ConsoleLogger _log = new();
+
         [Test]
         // This file can be ripped directly from the ROM
         [TestCase(".\\inputs\\dat.bin")]
         public void DatFileParserTest(string datFile)
         {
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(datFile);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(datFile, _log);
 
             foreach (DataFile dataFile in dat.Files)
             {

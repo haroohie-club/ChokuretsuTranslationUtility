@@ -1,6 +1,7 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Event;
 using HaruhiChokuretsuLib.Font;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System;
 using System.Collections.Generic;
@@ -35,6 +36,7 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             if (_showHelp || string.IsNullOrEmpty(_inputArchive) || string.IsNullOrEmpty(_outputArchive) || string.IsNullOrEmpty(_resxDirectory) || string.IsNullOrEmpty(_langCode) || string.IsNullOrEmpty(_fontOffsetMap))
             {
@@ -74,56 +76,48 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(outputDirectory);
             }
 
-            //try
-            //{
-                var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive);
+            var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive, log);
 
-                if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase))
+            if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase))
+            {
+                evtArchive.Files.ForEach(f => f.InitializeDialogueForSpecialFiles());
+            }
+            else
+            {
+                evtArchive.Files.Where(f => f.Index is >= 580 and <= 581).ToList().ForEach(f => f.InitializeDialogueForSpecialFiles());
+                EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == 589);
+                if (evtVmFile is not null)
                 {
-                    evtArchive.Files.ForEach(f => f.InitializeDialogueForSpecialFiles());
+                    VoiceMapFile newVmFile = new();
+                    evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = evtVmFile.CastTo<VoiceMapFile>();
+                }
+            }
+
+            FontReplacementDictionary fontReplacementDictionary = new();
+            fontReplacementDictionary.AddRange(JsonSerializer.Deserialize<List<FontReplacement>>(File.ReadAllText(_fontOffsetMap)));
+            evtArchive.Files.ForEach(e => e.FontReplacementMap = fontReplacementDictionary);
+
+            string[] files = Directory.GetFiles(_resxDirectory, $"*.{_langCode}.resx");
+            CommandSet.Out.WriteLine($"Replacing strings for {files.Length} files...");
+
+            foreach (string file in files)
+            {
+                int fileIndex = int.Parse(Regex.Match(file, @"(?<index>\d{3})\.[\w-]+\.resx").Groups["index"].Value);
+                if (fileIndex == 589)
+                {
+                    EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex);
+                    VoiceMapFile vmFile = evtVmFile.CastTo<VoiceMapFile>();
+                    vmFile.FontReplacementMap = evtVmFile.FontReplacementMap;
+                    vmFile.ImportResxFile(file);
+                    evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = vmFile;
                 }
                 else
                 {
-                    evtArchive.Files.Where(f => f.Index is >= 580 and <= 581).ToList().ForEach(f => f.InitializeDialogueForSpecialFiles());
-                    EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == 589);
-                    if (evtVmFile is not null)
-                    {
-                        VoiceMapFile newVmFile = new();
-                        evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = evtVmFile.CastTo<VoiceMapFile>();
-                    }
+                    evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex).ImportResxFile(file);
                 }
-
-                FontReplacementDictionary fontReplacementDictionary = new();
-                fontReplacementDictionary.AddRange(JsonSerializer.Deserialize<List<FontReplacement>>(File.ReadAllText(_fontOffsetMap)));
-                evtArchive.Files.ForEach(e => e.FontReplacementMap = fontReplacementDictionary);
-
-                string[] files = Directory.GetFiles(_resxDirectory, $"*.{_langCode}.resx");
-                CommandSet.Out.WriteLine($"Replacing strings for {files.Length} files...");
-
-                foreach (string file in files)
-                {
-                    int fileIndex = int.Parse(Regex.Match(file, @"(?<index>\d{3})\.[\w-]+\.resx").Groups["index"].Value);
-                    if (fileIndex == 589)
-                    {
-                        EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex);
-                        VoiceMapFile vmFile = evtVmFile.CastTo<VoiceMapFile>();
-                        vmFile.FontReplacementMap = evtVmFile.FontReplacementMap;
-                        vmFile.ImportResxFile(file);
-                        evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = vmFile;
-                    }
-                    else
-                    {
-                        evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex).ImportResxFile(file);
-                    }
-                }
-                File.WriteAllBytes(_outputArchive, evtArchive.GetBytes());
-                CommandSet.Out.WriteLine("Done.");
-            //}
-            //catch (Exception e)
-            //{
-            //    CommandSet.Out.WriteLine($"Fatal exception: {e.Message}\n{e.StackTrace}");
-            //    return 1;
-            //}
+            }
+            File.WriteAllBytes(_outputArchive, evtArchive.GetBytes());
+            CommandSet.Out.WriteLine("Done.");
 
             return 0;
         }

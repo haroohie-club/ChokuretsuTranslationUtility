@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System.Collections.Generic;
 using System.IO;
@@ -25,6 +26,7 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             if (string.IsNullOrEmpty(_inputArchive) && !_commands)
             {
@@ -54,7 +56,7 @@ namespace HaruhiChokuretsuCLI
             }
             else
             {
-                ArchiveFile<FileInArchive> arc = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
+                ArchiveFile<FileInArchive> arc = ArchiveFile<FileInArchive>.FromFile(_inputArchive, log);
                 File.WriteAllText(outputSourceFile, arc.GetSourceInclude());
             }
 

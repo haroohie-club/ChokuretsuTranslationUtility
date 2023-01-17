@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using HaruhiChokuretsuLib.Util;
 
 namespace HaruhiChokuretsuLib.Archive
 {
@@ -13,10 +14,12 @@ namespace HaruhiChokuretsuLib.Archive
         public List<byte> Data { get; set; }
         public byte[] CompressedData { get; set; }
         public bool Edited { get; set; } = false;
+        protected ILogger _log { get; set; }
 
-        public virtual void Initialize(byte[] decompressedData, int offset)
+        public virtual void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
             Data = decompressedData.ToList();
+            _log = log;
         }
         public virtual byte[] GetBytes()
         {
@@ -44,7 +47,7 @@ namespace HaruhiChokuretsuLib.Archive
                 CompressedData = CompressedData,
                 Edited = Edited
             };
-            newFile.Initialize(Data.ToArray(), Offset);
+            newFile.Initialize(Data.ToArray(), Offset, _log);
 
             return newFile;
         }
@@ -57,11 +60,11 @@ namespace HaruhiChokuretsuLib.Archive
     public static class FileManager<T>
         where T : FileInArchive, new()
     {
-        public static T FromCompressedData(byte[] compressedData, int offset = 0, string name = null)
+        public static T FromCompressedData(byte[] compressedData, ILogger log, int offset = 0, string name = null)
         {
             T created = new();
             created.Name = name;
-            created.Initialize(Helpers.DecompressData(compressedData), offset);
+            created.Initialize(Helpers.DecompressData(compressedData), offset, log);
             return created;
         }
     }

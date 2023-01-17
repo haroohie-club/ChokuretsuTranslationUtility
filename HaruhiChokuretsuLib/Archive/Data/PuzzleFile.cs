@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HaruhiChokuretsuLib.Util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -18,8 +19,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public PuzzleHaruhiRoute HaruhiRoute { get; set; }
         public PuzzleSettings Settings { get; set; }
 
-        public override void Initialize(byte[] decompressedData, int offset)
+        public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
+            _log = log;
             Offset = offset;
             Data = decompressedData.ToList();
 

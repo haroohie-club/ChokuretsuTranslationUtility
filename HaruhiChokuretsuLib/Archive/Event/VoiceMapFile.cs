@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HaruhiChokuretsuLib.Util;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,8 +13,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public int DialogueLinesPointer { get; set; }
         public List<VoiceMapStruct> VoiceMapStructs { get; set; } = new();
 
-        public override void Initialize(byte[] decompressedData, int offset = 0)
+        public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
+            _log = log;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Offset = offset;
             Data = decompressedData.ToList();
@@ -197,7 +199,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             if (DialogueLines[index].Text.Contains('\n'))
             {
-                Console.WriteLine($"File {Index} has subtitle too long ({index}) (starting with: {DialogueLines[index].Text[4..20]})");
+                _log.LogWarning($"File {Index} has subtitle too long ({index}) (starting with: {DialogueLines[index].Text[4..20]})");
             }
 
             string actualText = newText[4..];

@@ -1,4 +1,5 @@
 ﻿using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,7 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             if (_showHelp || string.IsNullOrEmpty(_archive) || _hexString.Count == 0)
             {
@@ -54,7 +56,7 @@ namespace HaruhiChokuretsuCLI
                 return returnValue;
             }
 
-            ArchiveFile<FileInArchive> archive = ArchiveFile<FileInArchive>.FromFile(_archive);
+            ArchiveFile<FileInArchive> archive = ArchiveFile<FileInArchive>.FromFile(_archive, log);
 
             Dictionary<int, List<int>> matches = new();
             foreach (FileInArchive file in archive.Files)

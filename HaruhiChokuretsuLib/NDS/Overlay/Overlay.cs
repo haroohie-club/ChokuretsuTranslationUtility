@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HaruhiChokuretsuLib.Util;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,8 +15,11 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
         public uint Address { get; set; }
         public int Length => Data.Count;
 
-        public Overlay(string file, string romInfoPath)
+        private ILogger _log;
+
+        public Overlay(string file, string romInfoPath, ILogger log)
         {
+            _log = log;
             XDocument romInfo = XDocument.Load(romInfoPath);
 
             Name = Path.GetFileNameWithoutExtension(file);
@@ -45,7 +49,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
         {
             Data.AddRange(appendData);
             XDocument ndsProjectFileDocument = XDocument.Load(ndsProjectFile);
-            Console.WriteLine($"Expanding RAM size in overlay table for overlay {Id}...");
+            _log.Log($"Expanding RAM size in overlay table for overlay {Id}...");
             var overlayTableEntry = ndsProjectFileDocument.Root.Element("RomInfo").Element("ARM9Ovt").Elements()
                 .First(o => o.Attribute("Id").Value == $"{Id}");
             overlayTableEntry.Element("RamSize").Value = $"{Data.Count}";

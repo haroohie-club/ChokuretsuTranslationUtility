@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HaruhiChokuretsuLib
+namespace HaruhiChokuretsuLib.Util
 {
     public static class Helpers
     {
@@ -118,17 +118,17 @@ namespace HaruhiChokuretsuLib
 
         public static SKColor Rgb555ToSKColor(short rgb555)
         {
-            return new SKColor((byte)((rgb555 & 0x1F) << 3), (byte)(((rgb555 >> 5) & 0x1F) << 3), (byte)(((rgb555 >> 10) & 0x1F) << 3));
+            return new SKColor((byte)((rgb555 & 0x1F) << 3), (byte)((rgb555 >> 5 & 0x1F) << 3), (byte)((rgb555 >> 10 & 0x1F) << 3));
         }
 
         public static short SKColorToRgb555(SKColor color)
         {
-            return (short)((color.Red >> 3) | (color.Green << 2) | (color.Blue << 7));
+            return (short)(color.Red >> 3 | color.Green << 2 | color.Blue << 7);
         }
 
         public static bool AddWillCauseCarry(int x, int y)
         {
-            return (((x & 0xFFFFFFFFFL) + (y & 0xFFFFFFFFL)) & 0x1000000000) > 0;
+            return ((x & 0xFFFFFFFFFL) + (y & 0xFFFFFFFFL) & 0x1000000000) > 0;
         }
 
         public static int IndexOfSequence<T>(this IEnumerable<T> items, IEnumerable<T> search)
@@ -311,7 +311,7 @@ namespace HaruhiChokuretsuLib
 
                 List<byte> nextBytes = decompressedData.Skip(i).Take(numNext).ToList();
                 LookbackEntry nextEntry = new(nextBytes, i);
-                if (lookbackDictionary.ContainsKey(nextEntry) && (i - lookbackDictionary[nextEntry].Max()) <= 0x1FFF)
+                if (lookbackDictionary.ContainsKey(nextEntry) && i - lookbackDictionary[nextEntry].Max() <= 0x1FFF)
                 {
                     if (directBytesToWrite > 0)
                     {
@@ -347,7 +347,7 @@ namespace HaruhiChokuretsuLib
                         remainingEncodedLength = encodedLength - 3;
                         encodedLength = 3;
                     }
-                    byte firstByte = (byte)((encodedLookbackIndex / 0x100) | (encodedLength << 5) | 0x80);
+                    byte firstByte = (byte)(encodedLookbackIndex / 0x100 | encodedLength << 5 | 0x80);
                     byte secondByte = (byte)(encodedLookbackIndex & 0xFF);
                     compressedData.AddRange(new byte[] { firstByte, secondByte });
                     if (remainingEncodedLength > 0)
@@ -375,13 +375,13 @@ namespace HaruhiChokuretsuLib
                     int numRepeatedBytes = Math.Min(0x1F3, repeatedBytes.Count);
                     if (numRepeatedBytes <= 0x13)
                     {
-                        compressedData.Add((byte)(0x40 | (numRepeatedBytes - 4))); // 0x40 -- repeated byte, 4-bit length
+                        compressedData.Add((byte)(0x40 | numRepeatedBytes - 4)); // 0x40 -- repeated byte, 4-bit length
                     }
                     else
                     {
                         int numToEncode = numRepeatedBytes - 4;
                         int msb = numToEncode & 0xF00;
-                        byte firstByte = (byte)(0x50 | (msb / 0x100));
+                        byte firstByte = (byte)(0x50 | msb / 0x100);
                         byte secondByte = (byte)(numToEncode - msb); // 0x50 -- repeated byte, 12-bit length
                         compressedData.AddRange(new byte[] { firstByte, secondByte });
                     }
@@ -435,7 +435,7 @@ namespace HaruhiChokuretsuLib
                 bool equals = true;
                 for (int i = 0; i < Bytes.Length; i++)
                 {
-                    equals = equals && (Bytes[i] == other.Bytes[i]);
+                    equals = equals && Bytes[i] == other.Bytes[i];
                 }
                 return equals;
             }
@@ -460,7 +460,7 @@ namespace HaruhiChokuretsuLib
             else
             {
                 int msb = 0x1F00 & numBytesToWrite;
-                byte firstByte = (byte)(0x20 | (msb / 0x100));
+                byte firstByte = (byte)(0x20 | msb / 0x100);
                 byte secondByte = (byte)(numBytesToWrite - msb);
                 writeTo.AddRange(new byte[] { firstByte, secondByte });
             }
@@ -493,7 +493,7 @@ namespace HaruhiChokuretsuLib
                         else
                         {
                             // bit 3 == 1 --> need two bytes to indicate how much data to read
-                            numBytes = compressedData[z++] + ((blockByte & 0x1F) * 0x100);
+                            numBytes = compressedData[z++] + (blockByte & 0x1F) * 0x100;
                         }
                         for (int i = 0; i < numBytes; i++)
                         {
@@ -510,7 +510,7 @@ namespace HaruhiChokuretsuLib
                         }
                         else
                         {
-                            numBytes = compressedData[z++] + ((blockByte & 0x0F) * 0x100) + 4;
+                            numBytes = compressedData[z++] + (blockByte & 0x0F) * 0x100 + 4;
                         }
                         byte repeatedByte = compressedData[z++];
                         for (int i = 0; i < numBytes; i++)
@@ -523,7 +523,7 @@ namespace HaruhiChokuretsuLib
                 {
                     // bit 1 == 1 --> backreference
                     int numBytes = ((blockByte & 0x60) >> 0x05) + 4;
-                    int backReferenceIndex = decompressedData.Count - (compressedData[z++] + ((blockByte & 0x1F) * 0x100));
+                    int backReferenceIndex = decompressedData.Count - (compressedData[z++] + (blockByte & 0x1F) * 0x100);
                     for (int i = backReferenceIndex; i < backReferenceIndex + numBytes; i++)
                     {
                         decompressedData.Add(decompressedData[i]);

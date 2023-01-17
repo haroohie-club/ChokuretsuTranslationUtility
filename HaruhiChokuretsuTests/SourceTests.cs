@@ -1,6 +1,7 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ namespace HaruhiChokuretsuTests
 {
     public class SourceTests
     {
+        private ConsoleLogger _log = new();
+
         private static string[] _mapFileNames = new string[]
         {
             "BUND0S",
@@ -107,7 +110,7 @@ namespace HaruhiChokuretsuTests
         public async Task MapSourceTest(string mapFileName)
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin");
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
             MapFile mapFile = dat.Files.First(f => f.Name == mapFileName).CastTo<MapFile>();
 
             byte[] newBytes = await CompileFromSource(mapFile.GetSource(new()));
@@ -126,7 +129,7 @@ namespace HaruhiChokuretsuTests
         public async Task EvtSourceTest(int evtFileIndex)
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin");
+            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
             EventFile eventFile = evt.Files.First(f => f.Index == evtFileIndex);
 
             byte[] newBytes = await CompileFromSource(eventFile.GetSource(new()));

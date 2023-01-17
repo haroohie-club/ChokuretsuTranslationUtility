@@ -11,12 +11,11 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
 {
 	public class ARM9AsmHack
 	{
-		public static bool Insert(string path, ARM9 arm9, uint arenaLoOffset)
+		public static bool Insert(string path, ARM9 arm9, uint arenaLoOffset, DataReceivedEventHandler outputDataReceived = null, DataReceivedEventHandler errorDataReceived = null)
 		{
 			uint arenaLo = arm9.ReadU32LE(arenaLoOffset);
-            if (!Compile(path, arenaLo))
+            if (!Compile(path, arenaLo, outputDataReceived, errorDataReceived))
             {
-                Console.ReadLine();
                 return false;
             }
 			if (!File.Exists(Path.Combine(path, "newcode.bin")))
@@ -103,7 +102,7 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
 			return true;
 		}
 
-		private static bool Compile(string path, uint arenaLo, DataReceivedEventHandler outputDataReceived = null, DataReceivedEventHandler errorDataReceived = null)
+		private static bool Compile(string path, uint arenaLo, DataReceivedEventHandler outputDataReceived, DataReceivedEventHandler errorDataReceived)
 		{
 			ProcessStartInfo psi = new()
 			{

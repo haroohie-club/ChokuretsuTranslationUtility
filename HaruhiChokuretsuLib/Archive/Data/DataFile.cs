@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using HaruhiChokuretsuLib.Util;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
     public class DataFile : FileInArchive, ISourceFile
     {
-        public override void Initialize(byte[] decompressedData, int offset)
+        public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
+            _log = log;
             Offset = offset;
             Data = decompressedData.ToList();
         }

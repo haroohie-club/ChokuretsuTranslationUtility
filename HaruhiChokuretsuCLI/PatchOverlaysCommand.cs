@@ -1,6 +1,8 @@
 ﻿using HaruhiChokuretsuLib.NDS.Overlay;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
@@ -30,6 +32,7 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             if (_showHelp || string.IsNullOrEmpty(_inputOverlaysDirectory) || string.IsNullOrEmpty(_outputOverlaysDirectory) || string.IsNullOrEmpty(_overlaySourceDir) || string.IsNullOrEmpty(_romInfoPath))
             {
@@ -66,14 +69,16 @@ namespace HaruhiChokuretsuCLI
             List<Overlay> overlays = new();
             foreach (string file in Directory.GetFiles(_inputOverlaysDirectory))
             {
-                overlays.Add(new(file, _romInfoPath));
+                overlays.Add(new(file, _romInfoPath, log));
             }
 
             foreach (Overlay overlay in overlays)
             {
                 if (Directory.GetDirectories(_overlaySourceDir).Contains(Path.Combine(_overlaySourceDir, overlay.Name)))
                 {
-                    OverlayAsmHack.Insert(_overlaySourceDir, overlay, _romInfoPath);
+                    OverlayAsmHack.Insert(_overlaySourceDir, overlay, _romInfoPath,
+                        (object sender, DataReceivedEventArgs e) => log.Log(e.Data),
+                        (object sender, DataReceivedEventArgs e) => log.LogError(e.Data));
                 }
             }
 

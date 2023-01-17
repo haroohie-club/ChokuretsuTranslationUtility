@@ -1,7 +1,9 @@
 ﻿using HaruhiChokuretsuLib.NDS.Nitro;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
@@ -25,6 +27,7 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             if (string.IsNullOrEmpty(_inputDir))
             {
@@ -45,7 +48,9 @@ namespace HaruhiChokuretsuCLI
             }
 
             ARM9 arm9 = new(File.ReadAllBytes(Path.Combine(_inputDir, "arm9.bin")), 0x02000000);
-            if (!ARM9AsmHack.Insert(_inputDir, arm9, _arenaLoOffset))
+            if (!ARM9AsmHack.Insert(_inputDir, arm9, _arenaLoOffset,
+                (object sender, DataReceivedEventArgs e) => log.Log(e.Data),
+                (object sender, DataReceivedEventArgs e) => log.LogError(e.Data)))
             {
                 Console.WriteLine("ERROR: ASM hack insertion failed!");
                 return 1;

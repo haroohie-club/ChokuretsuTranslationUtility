@@ -1,6 +1,6 @@
-﻿using HaruhiChokuretsuLib;
-using HaruhiChokuretsuLib.Archive;
+﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using SkiaSharp;
 using System;
@@ -55,6 +55,7 @@ namespace HaruhiChokuretsuCLI
         public async Task<int> InvokeAsync(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             if (_showHelp || string.IsNullOrEmpty(_inputArchive) || string.IsNullOrEmpty(_outputArchive) || string.IsNullOrEmpty(_replacement))
             {
@@ -95,94 +96,80 @@ namespace HaruhiChokuretsuCLI
                 filePaths.AddRange(Directory.EnumerateFiles(_replacement, "*.*", SearchOption.AllDirectories));
             }
 
-            //try
-            //{
-                var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
-                CommandSet.Out.WriteLine($"Beginning file replacement in {archive.FileName}...");
+            var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive, log);
+            CommandSet.Out.WriteLine($"Beginning file replacement in {archive.FileName}...");
 
-                Dictionary<int, List<string>> filesWithSharedPalettes = new();
-                for (int i = 0; i < filePaths.Count; i++)
+            Dictionary<int, List<string>> filesWithSharedPalettes = new();
+            for (int i = 0; i < filePaths.Count; i++)
+            {
+                Match match = Regex.Match(filePaths[i], @"sharedpal(?<index>\d+)", RegexOptions.IgnoreCase);
+                if (match.Success)
                 {
-                    Match match = Regex.Match(filePaths[i], @"sharedpal(?<index>\d+)", RegexOptions.IgnoreCase);
-                    if (match.Success)
+                    int index = int.Parse(match.Groups["index"].Value);
+                    if (!_palettes.ContainsKey(index))
                     {
-                        int index = int.Parse(match.Groups["index"].Value);
-                        if (!_palettes.ContainsKey(index))
+                        if (!filesWithSharedPalettes.ContainsKey(index))
                         {
-                            if (!filesWithSharedPalettes.ContainsKey(index))
-                            {
-                                filesWithSharedPalettes.Add(index, new List<string>());
-                            }
-                            filesWithSharedPalettes[index].Add(filePaths[i]);
+                            filesWithSharedPalettes.Add(index, new List<string>());
                         }
+                        filesWithSharedPalettes[index].Add(filePaths[i]);
                     }
                 }
+            }
 
-                foreach (int key in filesWithSharedPalettes.Keys)
-                {
-                    CommandSet.Out.WriteLine($"Generating shared palette for set {key}...");
-                    List<SKBitmap> images = filesWithSharedPalettes[key].Select(f => SKBitmap.Decode(f)).ToList();
-                    _palettes.Add(key, Helpers.GetPaletteFromImages(images, 256));
-                }
+            foreach (int key in filesWithSharedPalettes.Keys)
+            {
+                CommandSet.Out.WriteLine($"Generating shared palette for set {key}...");
+                List<SKBitmap> images = filesWithSharedPalettes[key].Select(f => SKBitmap.Decode(f)).ToList();
+                _palettes.Add(key, Helpers.GetPaletteFromImages(images, 256));
+            }
 
-                foreach (string filePath in filePaths)
+            foreach (string filePath in filePaths)
+            {
+                int? index = GetIndexByFileName(filePath);
+                if (index is not null)
                 {
-                    int? index = GetIndexByFileName(filePath);
-                    if (index is not null)
+                    if (index >= 0)
                     {
-                        if (index >= 0)
-                        {
-                            CommandSet.Out.Write($"Replacing #{index:X3}... ");
-                        }
-                        else
-                        {
-                            CommandSet.Out.Write($"Adding new file from {Path.GetFileName(filePath)}... ");
-                        }
-
-                        //try
-                        //{
-                            if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
-                            {
-                                AddNewFile(archive, filePath);
-                            }
-                            else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
-                            {
-                                ReplaceSingleGraphicsFile(archive, filePath, index.Value, _palettes);
-                            }
-                            else if (Path.GetExtension(filePath).Equals(".s", StringComparison.OrdinalIgnoreCase))
-                            {
-                                if (string.IsNullOrEmpty(_devkitArm))
-                                {
-                                    CommandSet.Error.WriteLine("ERROR: DevkitARM must be supplied for replacing with source files");
-                                    return 1;
-                                }
-                                await ReplaceSingleSourceFileAsync(archive, filePath, index.Value, _devkitArm);
-                            }
-                            else if (Path.GetExtension(filePath).Equals(".bin", StringComparison.OrdinalIgnoreCase))
-                            {
-                                ReplaceSingleFile(archive, filePath, index.Value);
-                            }
-                            else
-                            {
-                                throw new ArgumentException($"Unsure what to do with file '{Path.GetFileName(filePath)}'");
-                            }
-
-                            CommandSet.Out.WriteLine("OK");
-                        //}
-                        //catch (Exception e)
-                        //{
-                        //    CommandSet.Out.WriteLine($"NOT OK: {e.Message}");
-                        //}
-
+                        CommandSet.Out.Write($"Replacing #{index:X3}... ");
                     }
+                    else
+                    {
+                        CommandSet.Out.Write($"Adding new file from {Path.GetFileName(filePath)}... ");
+                    }
+
+
+                    if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
+                    {
+                        AddNewFile(archive, filePath);
+                    }
+                    else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ReplaceSingleGraphicsFile(archive, filePath, index.Value, _palettes);
+                    }
+                    else if (Path.GetExtension(filePath).Equals(".s", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (string.IsNullOrEmpty(_devkitArm))
+                        {
+                            CommandSet.Error.WriteLine("ERROR: DevkitARM must be supplied for replacing with source files");
+                            return 1;
+                        }
+                        await ReplaceSingleSourceFileAsync(archive, filePath, index.Value, _devkitArm);
+                    }
+                    else if (Path.GetExtension(filePath).Equals(".bin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ReplaceSingleFile(archive, filePath, index.Value);
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Unsure what to do with file '{Path.GetFileName(filePath)}'");
+                    }
+
+                    CommandSet.Out.WriteLine("OK");
+
                 }
-                File.WriteAllBytes(_outputArchive, archive.GetBytes());
-            //}
-            //catch (Exception e)
-            //{
-            //    CommandSet.Out.WriteLine($"Fatal exception: {e.Message}\n{e.StackTrace}");
-            //    return 1;
-            //}
+            }
+            File.WriteAllBytes(_outputArchive, archive.GetBytes());
 
             CommandSet.Out.WriteLine("Done.");
             return 0;

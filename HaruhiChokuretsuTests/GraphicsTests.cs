@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -10,12 +11,14 @@ namespace HaruhiChokuretsuTests
 {
     public class GraphicsTests
     {
+        private static readonly ConsoleLogger _log = new();
+
         [Test]
         // This file can be ripped directly from the ROM
         [TestCase(".\\inputs\\grp.bin")]
         public void GrpFileParserTest(string grpFile)
         {
-            ArchiveFile<GraphicsFile> grp = ArchiveFile<GraphicsFile>.FromFile(grpFile);
+            ArchiveFile<GraphicsFile> grp = ArchiveFile<GraphicsFile>.FromFile(grpFile, _log);
             grp.Files.First(f => f.Index == 0xE50).InitializeFontFile();
 
             foreach (GraphicsFile graphicsFile in grp.Files)

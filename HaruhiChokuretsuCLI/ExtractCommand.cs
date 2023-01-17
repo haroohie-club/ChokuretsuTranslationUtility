@@ -1,6 +1,7 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using SkiaSharp;
 using System;
@@ -41,6 +42,7 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             if (_showHelp || string.IsNullOrEmpty(_inputArchive) || string.IsNullOrEmpty(_outputFile))
             {
@@ -74,7 +76,7 @@ namespace HaruhiChokuretsuCLI
 
             if (Path.GetExtension(_outputFile).Equals(".png", StringComparison.OrdinalIgnoreCase))
             {
-                var grpArchive = ArchiveFile<GraphicsFile>.FromFile(_inputArchive);
+                var grpArchive = ArchiveFile<GraphicsFile>.FromFile(_inputArchive, log);
 
                 int fileIndex = _fileIndex;
                 if (fileIndex < 0)
@@ -96,7 +98,7 @@ namespace HaruhiChokuretsuCLI
             }
             else if (Path.GetExtension(_outputFile).Equals(".resx", StringComparison.OrdinalIgnoreCase))
             {
-                var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive);
+                var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive, log);
                 int fileIndex = _fileIndex;
                 if (fileIndex < 0)
                 {
@@ -119,7 +121,7 @@ namespace HaruhiChokuretsuCLI
             }
             else if (Path.GetExtension(_outputFile).Equals(".s", StringComparison.OrdinalIgnoreCase))
             {
-                var archive = ArchiveFile<DataFile>.FromFile(_inputArchive);
+                var archive = ArchiveFile<DataFile>.FromFile(_inputArchive, log);
                 int fileIndex = _fileIndex;
                 if (fileIndex < 0)
                 {
@@ -182,7 +184,7 @@ namespace HaruhiChokuretsuCLI
             }
             else
             {
-                var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
+                var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive, log);
                 int fileIndex = _fileIndex;
                 if (fileIndex < 0)
                 {

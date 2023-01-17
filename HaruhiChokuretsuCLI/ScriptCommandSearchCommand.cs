@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System;
 using System.Collections.Generic;
@@ -50,8 +51,9 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
-            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(_evt);
+            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(_evt, log);
 
             foreach (EventFile eventFile in evt.Files)
             {

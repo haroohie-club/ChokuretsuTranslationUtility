@@ -1,4 +1,5 @@
 ﻿using HaruhiChokuretsuLib.Font;
+using HaruhiChokuretsuLib.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Dictionary<int, string> DramatisPersonae { get; set; } = new();
         public List<DialogueLine> DialogueLines { get; set; } = new();
         public List<ScriptSection> ScriptSections { get; private set; } = new();
+
         public static List<ScriptCommand> CommandsAvailable { get; set; } = new()
         {
             new(0x00, "INIT_READ_FLAG", Array.Empty<string>()),
@@ -100,8 +102,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         private const int DIALOGUE_LINE_LENGTH = 230;
 
-        public override void Initialize(byte[] decompressedData, int offset = 0)
+        public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
+            _log = log;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Offset = offset;
             Data = decompressedData.ToList();
@@ -645,7 +648,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     {
                         type = "choice";
                     }
-                    Console.WriteLine($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[0..Math.Min(15, dialogueText.Length - 1)]})");
+                    _log.LogWarning($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[0..Math.Min(15, dialogueText.Length - 1)]})");
                 }
 
                 EditDialogueLine(dialogueIndex, dialogueText);

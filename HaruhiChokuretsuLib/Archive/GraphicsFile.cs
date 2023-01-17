@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using HaruhiChokuretsuLib.Util;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,8 +49,9 @@ namespace HaruhiChokuretsuLib.Archive
             TILE,
         }
 
-        public override void Initialize(byte[] decompressedData, int offset)
+        public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
+            _log = log;
             Offset = offset;
             Data = decompressedData.ToList();
             byte[] magicBytes = Data.Take(4).ToArray();
@@ -399,7 +401,7 @@ namespace HaruhiChokuretsuLib.Archive
             PaletteData = new();
             if (!suppressOutput)
             {
-                Console.Write($"Using provided palette for #{Index:X3}... ");
+                _log.Log($"Using provided palette for #{Index:X3}... ");
             }
 
             for (int i = 0; i < Palette.Count; i++)
@@ -460,7 +462,7 @@ namespace HaruhiChokuretsuLib.Archive
             }
 
             PaletteData = new();
-            Console.Write($"Generating new palette for #{Index:X3}... ");
+            _log.Log($"Generating new palette for #{Index:X3}... ");
 
             for (int i = 0; i < Palette.Count; i++)
             {
@@ -506,7 +508,7 @@ namespace HaruhiChokuretsuLib.Archive
             int calculatedHeight = PixelData.Count / (bitmap.Width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
             if (newSize)
             {
-                Console.Write("Warning: Resizing... ");
+                _log.LogWarning("Resizing... ");
                 PixelData = new(new byte[bitmap.Width * bitmap.Height]);
             }
             else if (bitmap.Height != calculatedHeight)

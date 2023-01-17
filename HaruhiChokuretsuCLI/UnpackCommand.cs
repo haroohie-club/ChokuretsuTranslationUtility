@@ -1,4 +1,5 @@
 ﻿using HaruhiChokuretsuLib.Archive;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System.Collections.Generic;
 using System.IO;
@@ -29,6 +30,7 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             if (string.IsNullOrEmpty(_inputArchive) || string.IsNullOrEmpty(_outputDirectory))
             {
@@ -52,7 +54,7 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(_outputDirectory);
             }
 
-            var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive);
+            var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive, log);
 
             archive.Files.ForEach(x => File.WriteAllBytes(Path.Combine(_outputDirectory, 
                 (_decimal ? $"{x.Index:D3}" : $"{x.Index:X3}") + (_useNames ? $" - {x.Name}" : "") + ".bin"), 

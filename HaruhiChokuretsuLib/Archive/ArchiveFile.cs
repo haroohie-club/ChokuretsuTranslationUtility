@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using HaruhiChokuretsuLib.Util;
 
 namespace HaruhiChokuretsuLib.Archive
 {
@@ -25,8 +26,9 @@ namespace HaruhiChokuretsuLib.Archive
         public List<byte> FileNamesSection { get; set; }
         public List<T> Files { get; set; } = new();
         public Dictionary<int, int> LengthToMagicIntegerMap { get; private set; } = new();
+        private ILogger _log { get; set; }
 
-        public static ArchiveFile<T> FromFile(string fileName)
+        public static ArchiveFile<T> FromFile(string fileName, ILogger log)
         {
             byte[] archiveBytes = File.ReadAllBytes(fileName);
             return new ArchiveFile<T>(archiveBytes) { FileName = Path.GetFileName(fileName) };
@@ -105,11 +107,11 @@ namespace HaruhiChokuretsuLib.Archive
                     T file = new();
                     try
                     {
-                        file = FileManager<T>.FromCompressedData(fileBytes, offset, filenames[i]);
+                        file = FileManager<T>.FromCompressedData(fileBytes, _log, offset, filenames[i]);
                     }
                     catch (IndexOutOfRangeException)
                     {
-                        Console.WriteLine($"Failed to parse file at 0x{i:X8} due to index out of range exception (most likely during decompression)");
+                        _log.LogWarning($"Failed to parse file at 0x{i:X8} due to index out of range exception (most likely during decompression)");
                     }
                     file.Offset = offset;
                     file.MagicInteger = MagicIntegers[i];
@@ -206,7 +208,7 @@ namespace HaruhiChokuretsuLib.Archive
         public void AddFile(string filename)
         {
             T file = new();
-            Console.WriteLine($"Creating new file from {Path.GetFileName(filename)}... ");
+            _log.Log($"Creating new file from {Path.GetFileName(filename)}... ");
             file.NewFile(filename);
             AddFile(file);
         }
@@ -218,7 +220,7 @@ namespace HaruhiChokuretsuLib.Archive
             file.Offset = GetBytes().Length;
             NumFiles++;
             file.Index = Files.Max(f => f.Index) + 1;
-            Console.Write($"New file #{file.Index:X3} will be placed at offset 0x{file.Offset:X8}... ");
+            _log.Log($"New file #{file.Index:X3} will be placed at offset 0x{file.Offset:X8}... ");
             file.Length = file.CompressedData.Length + (0x800 - (file.CompressedData.Length % 0x800) == 0 ? 0 : 0x800 - (file.CompressedData.Length % 0x800));
             file.MagicInteger = GetNewMagicInteger(file, file.CompressedData.Length);
             uint secondHeaderNumber = 0xC0C0C0C0;

@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using HaruhiChokuretsuLib.Util;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +20,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public List<InteractableObject> InteractableObjects { get; set; } = new();
         public byte[][] PathingMap { get; set; }
 
-        public override void Initialize(byte[] decompressedData, int offset)
+        public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
+            _log = log;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             Offset = offset;

@@ -1,8 +1,8 @@
 ﻿using FFMpegCore;
 using FFMpegCore.Pipes;
-using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
+using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using SkiaSharp;
 using System;
@@ -39,13 +39,14 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             if (string.IsNullOrEmpty(_dat))
             {
                 CommandSet.Out.WriteLine("ERROR: DAT archive must be provided with -d or --dat.");
                 return 1;
             }
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(_dat);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(_dat, log);
             List<byte> qmapData = dat.Files.First(f => f.Name == "QMAPS").Data;
             List<string> mapFileNames = new();
             for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
@@ -85,7 +86,7 @@ namespace HaruhiChokuretsuCLI
                 return 1;
             }
 
-            ArchiveFile<GraphicsFile> grp = ArchiveFile<GraphicsFile>.FromFile(_grp);
+            ArchiveFile<GraphicsFile> grp = ArchiveFile<GraphicsFile>.FromFile(_grp, log);
 
             for (int i = 1; i < dat.Files.Count + 1; i++)
             {
