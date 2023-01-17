@@ -78,7 +78,7 @@ namespace HaruhiChokuretsuCLI
                 {
                     OverlayAsmHack.Insert(_overlaySourceDir, overlay, _romInfoPath,
                         (object sender, DataReceivedEventArgs e) => log.Log(e.Data),
-                        (object sender, DataReceivedEventArgs e) => log.LogError(e.Data));
+                        (object sender, DataReceivedEventArgs e) => log.LogWarning(e.Data, lookForErrors: true));
                 }
             }
 

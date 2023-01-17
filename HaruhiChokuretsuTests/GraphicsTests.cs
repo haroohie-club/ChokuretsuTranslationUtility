@@ -11,7 +11,7 @@ namespace HaruhiChokuretsuTests
 {
     public class GraphicsTests
     {
-        private static readonly ConsoleLogger _log = new();
+        private readonly ConsoleLogger _log = new();
 
         [Test]
         // This file can be ripped directly from the ROM
