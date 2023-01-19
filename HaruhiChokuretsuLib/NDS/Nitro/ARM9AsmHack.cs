@@ -1,11 +1,14 @@
 ﻿// This code is heavily based on code Gericom wrote for ErmiiBuild
 
+using HaruhiChokuretsuLib.NDS.Overlay;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace HaruhiChokuretsuLib.NDS.Nitro
 {
@@ -25,7 +28,42 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
 			byte[] newCode = File.ReadAllBytes(Path.Combine(path, "newcode.bin"));
 
 			StreamReader r = new(Path.Combine(path, "newcode.sym"));
-			string currentLine;
+			string[] newSymLines = File.ReadAllLines(Path.Combine(path, "newcode.sym"));
+            List<string> newSymbolsFile = new();
+            foreach (string line in newSymLines)
+            {
+                Match match = Regex.Match(line, @"(?<address>[\da-f]{8}) \w\s+.text\s+\d{8} (?<name>.+)");
+                if (match.Success)
+                {
+                    newSymbolsFile.Add($"{match.Groups["name"].Value} = 0x{match.Groups["address"].Value.ToUpper()};");
+                }
+            }
+            File.WriteAllLines(Path.Combine(path, "newcode.x"), newSymbolsFile);
+
+            // Each repl should be compiled separately since they all have their own entry points
+            // That's why each one lives in its own separate directory
+            List<string> replFiles = new();
+            if (Directory.Exists(Path.Combine(path, "replSource")))
+            {
+                foreach (string subdir in Directory.GetDirectories(Path.Combine(path, "replSource")))
+                {
+                    replFiles.Add($"repl_{Path.GetFileNameWithoutExtension(subdir)}");
+                    if (!CompileReplace(Path.GetRelativePath(path, subdir), path, outputDataReceived, errorDataReceived))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            foreach (string replFile in replFiles)
+            {
+                if (!File.Exists(Path.Combine(path, $"{replFile}.bin")))
+                {
+                    return false;
+                }
+            }
+
+            string currentLine;
 			while ((currentLine = r.ReadLine()) != null)
 			{
 				string[] lines = currentLine.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -34,9 +72,9 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
 					if (lines[3].Length < 7) continue;
 					switch (lines[3].Remove(6))
 					{
-						case "arepl_":
+						case "ahook_":
 							{
-								string replaceOffsetString = lines[3].Replace("arepl_", "");
+								string replaceOffsetString = lines[3].Replace("ahook_", "");
 								uint replaceOffset = uint.Parse(replaceOffsetString, NumberStyles.HexNumber);
 								uint replace = 0xEB000000; //BL Instruction
 								uint destinationOffset = uint.Parse(lines[0], NumberStyles.HexNumber);
@@ -68,7 +106,7 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
                                 }
 								break;
 							}
-						case "trepl_":
+						case "thook_":
 							{
 								string replaceOffsetString = lines[3].Replace("trepl_", "");
 								uint replaceOffset = uint.Parse(replaceOffsetString, NumberStyles.HexNumber);
@@ -95,7 +133,16 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
 			r.Close();
 			arm9.WriteU32LE(arenaLoOffset, arenaLo + (uint)newCode.Length);
 			arm9.AddAutoLoadEntry(arenaLo, newCode);
-			File.Delete(Path.Combine(path, "newcode.bin"));
+
+            // Perform the replacements for each of the replacement hacks we assembled
+            foreach (string replFile in replFiles)
+            {
+                byte[] replCode = File.ReadAllBytes(Path.Combine(path, $"{replFile}.bin"));
+                uint replaceAddress = uint.Parse(replFile.Split('_')[1], NumberStyles.HexNumber);
+                arm9.WriteBytes(replaceAddress, replCode);
+            }
+
+            File.Delete(Path.Combine(path, "newcode.bin"));
 			File.Delete(Path.Combine(path, "newcode.elf"));
 			File.Delete(Path.Combine(path, "newcode.sym"));
 			Directory.Delete(Path.Combine(path, "build"), true);
@@ -107,7 +154,7 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
 			ProcessStartInfo psi = new()
 			{
 				FileName = "make",
-				Arguments = $"CODEADDR=0x{arenaLo:X8}",
+				Arguments = $"TARGET=newcode SOURCES=source BUILD=build CODEADDR=0x{arenaLo:X8}",
 				WorkingDirectory = path,
                 CreateNoWindow = true,
                 UseShellExecute = false,
@@ -126,6 +173,32 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
             p.BeginErrorReadLine();
 			p.WaitForExit();
             return p.ExitCode == 0;
-		}
-	}
+        }
+
+        private static bool CompileReplace(string subdir, string path, DataReceivedEventHandler outputDataReceived, DataReceivedEventHandler errorDataReceived)
+        {
+            uint address = uint.Parse(Path.GetFileNameWithoutExtension(subdir), NumberStyles.HexNumber);
+            ProcessStartInfo psi = new()
+            {
+                FileName = "make",
+                Arguments = $"TARGET=repl_{Path.GetFileNameWithoutExtension(subdir)} SOURCES={subdir} BUILD=build NEWSYM=newcode.x BUILD=build CODEADDR=0x{address:X7}",
+                WorkingDirectory = path,
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+            };
+            Process p = new() { StartInfo = psi };
+            static void func(object sender, DataReceivedEventArgs e)
+            {
+                Console.WriteLine(e.Data);
+            }
+            p.OutputDataReceived += outputDataReceived is not null ? outputDataReceived : func;
+            p.ErrorDataReceived += errorDataReceived is not null ? errorDataReceived : func;
+            p.Start();
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            p.WaitForExit();
+            return p.ExitCode == 0;
+        }
+    }
 }

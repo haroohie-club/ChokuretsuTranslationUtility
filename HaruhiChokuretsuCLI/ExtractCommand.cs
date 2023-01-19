@@ -164,6 +164,9 @@ namespace HaruhiChokuretsuCLI
                             case "BGTBLS":
                                 file = file.CastTo<BgTableFile>();
                                 break;
+                            case "SYSTEXS":
+                                file = file.CastTo<SystemTextureFile>();
+                                break;
                         }
                     }
                     sourceFile = file;

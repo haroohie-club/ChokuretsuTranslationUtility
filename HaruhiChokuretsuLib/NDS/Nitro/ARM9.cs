@@ -76,6 +76,12 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
             _autoLoadList.Add(new CRT0.AutoLoadEntry(address, data));
         }
 
+        public void WriteBytes(uint address, IEnumerable<byte> bytes)
+        {
+            _staticData.RemoveRange((int)(address - _ramAddress), bytes.Count());
+            _staticData.InsertRange((int)(address - _ramAddress), bytes);
+        }
+
         public bool WriteU16LE(uint address, ushort value)
         {
             if (address > _ramAddress && address < _start_ModuleParams.AutoLoadStart)

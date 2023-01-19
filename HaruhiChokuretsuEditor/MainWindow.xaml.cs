@@ -769,6 +769,8 @@ namespace HaruhiChokuretsuEditor
                         PuzzleFile puzzleFile = oldPuzzleFile.CastTo<PuzzleFile>();
                         _datFile.Files[_datFile.Files.IndexOf(oldPuzzleFile)] = puzzleFile;
                     }
+                    DataFile sysTexFile = _datFile.Files.First(f => f.Index == 0x9B);
+                    _datFile.Files[_datFile.Files.IndexOf(sysTexFile)] = sysTexFile.CastTo<SystemTextureFile>();
                 }
                 dataListBox.ItemsSource = _datFile.Files;
                 dataListBox.Items.Refresh();
@@ -912,6 +914,34 @@ namespace HaruhiChokuretsuEditor
                     displayLayoutStackPanel.Children.Add(lengthBox);
                     displayLayoutStackPanel.Children.Add(displayLayoutButton);
                     dataEditStackPanel.Children.Add(displayLayoutStackPanel);
+                }
+                else if (selectedFile.GetType() == typeof(SystemTextureFile))
+                {
+                    SystemTextureFile sysTexFile = (SystemTextureFile)selectedFile;
+
+                    foreach (SystemTexture sysTex in sysTexFile.SystemTextures)
+                    {
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Screen)}: {sysTex.Screen}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.GrpIndex)}: {_grpFile?.Files.FirstOrDefault(f => f.Index == sysTex.GrpIndex)?.Name ?? $"{sysTex.GrpIndex}"} (0x{sysTex.GrpIndex:X3})" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Tpage)}: {sysTex.Tpage}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.GraphicType)}: {sysTex.GraphicType}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.ValidateTex)}: {sysTex.ValidateTex}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.LoadMethod)}: {sysTex.LoadMethod}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown0E)}: {sysTex.Unknown0E}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.MaxVram)}: {sysTex.MaxVram}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown12)}: {sysTex.Unknown12}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown14)}: {sysTex.Unknown14}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown16)}: {sysTex.Unknown16}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.AnimationIndex)}: {_grpFile.Files.FirstOrDefault(f => f.Index == sysTex.AnimationIndex)?.Name ?? $"{sysTex.AnimationIndex}"}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown1A)}: {sysTex.Unknown1A}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown1C)}: {sysTex.Unknown1C}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown1E)}: {sysTex.Unknown1E}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown20)}: {sysTex.Unknown20}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown22)}: {sysTex.Unknown22}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown24)}: {sysTex.Unknown24}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown28)}: {sysTex.Unknown28}" });
+                        dataEditStackPanel.Children.Add(new Separator());
+                    }
                 }
             }
         }
