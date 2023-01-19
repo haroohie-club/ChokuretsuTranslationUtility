@@ -924,7 +924,7 @@ namespace HaruhiChokuretsuEditor
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Screen)}: {sysTex.Screen}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.GrpIndex)}: {_grpFile?.Files.FirstOrDefault(f => f.Index == sysTex.GrpIndex)?.Name ?? $"{sysTex.GrpIndex}"} (0x{sysTex.GrpIndex:X3})" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Tpage)}: {sysTex.Tpage}" });
-                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.GraphicType)}: {sysTex.GraphicType}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.TexturePaletteNum)}: {sysTex.TexturePaletteNum}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.ValidateTex)}: {sysTex.ValidateTex}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.LoadMethod)}: {sysTex.LoadMethod}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown0E)}: {sysTex.Unknown0E}" });
@@ -933,8 +933,8 @@ namespace HaruhiChokuretsuEditor
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown14)}: {sysTex.Unknown14}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown16)}: {sysTex.Unknown16}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.AnimationIndex)}: {_grpFile.Files.FirstOrDefault(f => f.Index == sysTex.AnimationIndex)?.Name ?? $"{sysTex.AnimationIndex}"}" });
-                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown1A)}: {sysTex.Unknown1A}" });
-                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown1C)}: {sysTex.Unknown1C}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.TileWidth)}: {sysTex.TileWidth}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.TileHeight)}: {sysTex.TileHeight}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown1E)}: {sysTex.Unknown1E}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown20)}: {sysTex.Unknown20}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown22)}: {sysTex.Unknown22}" });

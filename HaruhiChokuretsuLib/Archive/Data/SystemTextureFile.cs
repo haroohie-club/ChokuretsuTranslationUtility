@@ -70,7 +70,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 sb.AppendLine($"{Helpers.Indent(3)}.word {SystemTextures[i].Screen}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {includes["GRPBIN"].FirstOrDefault(index => index.Value == SystemTextures[i].GrpIndex)?.Name ?? $"{SystemTextures[i].GrpIndex}"}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Tpage}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].GraphicType}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].TexturePaletteNum}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].ValidateTex}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].LoadMethod}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown0E}");
@@ -79,8 +79,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown14}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown16}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {includes["GRPBIN"].FirstOrDefault(index => index.Value == SystemTextures[i].AnimationIndex)?.Name ?? $"{SystemTextures[i].AnimationIndex}"}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown1A}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown1C}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].TileWidth}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].TileHeight}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown1E}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown20}");
                 sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown22}");
@@ -108,7 +108,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public SysTexScreen Screen { get; set; }
         public short GrpIndex { get; set; }
         public short Tpage { get; set; }
-        public short GraphicType { get; set; }
+        public short TexturePaletteNum { get; set; }
         public short ValidateTex { get; set; }
         public short LoadMethod { get; set; }
         public short Unknown0E { get; set; }
@@ -117,8 +117,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public short Unknown14 { get; set; }
         public short Unknown16 { get; set; }
         public short AnimationIndex { get; set; }
-        public short Unknown1A { get; set; }
-        public short Unknown1C { get; set; }
+        public short TileWidth { get; set; }
+        public short TileHeight { get; set; }
         public short Unknown1E { get; set; }
         public short Unknown20 { get; set; }
         public short Unknown22 { get; set; }
@@ -130,7 +130,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             Screen = (SysTexScreen)IO.ReadInt(data, 0x00);
             GrpIndex = IO.ReadShort(data, 0x04);
             Tpage = IO.ReadShort(data, 0x06);
-            GraphicType = IO.ReadShort(data, 0x08);
+            TexturePaletteNum = IO.ReadShort(data, 0x08);
             ValidateTex = IO.ReadShort(data, 0x0A);
             LoadMethod = IO.ReadShort(data, 0x0C);
             Unknown0E = IO.ReadShort(data, 0x0E);
@@ -139,8 +139,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
             Unknown14 = IO.ReadShort(data, 0x14);
             Unknown16 = IO.ReadShort(data, 0x16);
             AnimationIndex = IO.ReadShort(data, 0x18);
-            Unknown1A = IO.ReadShort(data, 0x1A);
-            Unknown1C = IO.ReadShort(data, 0x1C);
+            TileWidth = IO.ReadShort(data, 0x1A);
+            TileHeight = IO.ReadShort(data, 0x1C);
             Unknown1E = IO.ReadShort(data, 0x1E);
             Unknown20 = IO.ReadShort(data, 0x20);
             Unknown22 = IO.ReadShort(data, 0x22);

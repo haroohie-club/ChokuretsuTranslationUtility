@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -145,7 +146,18 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
             File.Delete(Path.Combine(path, "newcode.bin"));
 			File.Delete(Path.Combine(path, "newcode.elf"));
 			File.Delete(Path.Combine(path, "newcode.sym"));
-			Directory.Delete(Path.Combine(path, "build"), true);
+            foreach (string overlayDirectory in Directory.GetDirectories(Path.Combine(path, "overlays")))
+            {
+                File.Copy(Path.Combine(path, "newcode.x"), Path.Combine(overlayDirectory, "arm9_newcode.x"));
+            }
+            File.Delete(Path.Combine(path, "newcode.x"));
+            foreach (string replFile in replFiles)
+            {
+                File.Delete(Path.Combine(path, $"{replFile}.bin"));
+                File.Delete(Path.Combine(path, $"{replFile}.elf"));
+                File.Delete(Path.Combine(path, $"{replFile}.sym"));
+            }
+            Directory.Delete(Path.Combine(path, "build"), true);
 			return true;
 		}
 

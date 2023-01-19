@@ -93,6 +93,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             File.Delete(Path.Combine(path, overlay.Name, "newcode.elf"));
             File.Delete(Path.Combine(path, overlay.Name, "newcode.sym"));
             File.Delete(Path.Combine(path, overlay.Name, "newcode.x"));
+            File.Delete(Path.Combine(path, overlay.Name, "arm9_newcode.x"));
             foreach (string replFile in replFiles)
             {
                 File.Delete(Path.Combine(path, overlay.Name, $"{replFile}.bin"));
