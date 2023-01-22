@@ -924,7 +924,7 @@ namespace HaruhiChokuretsuEditor
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Screen)}: {sysTex.Screen}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.GrpIndex)}: {_grpFile?.Files.FirstOrDefault(f => f.Index == sysTex.GrpIndex)?.Name ?? $"{sysTex.GrpIndex}"} (0x{sysTex.GrpIndex:X3})" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Tpage)}: {sysTex.Tpage}" });
-                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.TexturePaletteNum)}: {sysTex.TexturePaletteNum}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.PaletteNumber)}: {sysTex.PaletteNumber}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.ValidateTex)}: {sysTex.ValidateTex}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.LoadMethod)}: {sysTex.LoadMethod}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown0E)}: {sysTex.Unknown0E}" });

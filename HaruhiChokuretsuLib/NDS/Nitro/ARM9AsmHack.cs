@@ -148,7 +148,7 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
 			File.Delete(Path.Combine(path, "newcode.sym"));
             foreach (string overlayDirectory in Directory.GetDirectories(Path.Combine(path, "overlays")))
             {
-                File.Copy(Path.Combine(path, "newcode.x"), Path.Combine(overlayDirectory, "arm9_newcode.x"));
+                File.Copy(Path.Combine(path, "newcode.x"), Path.Combine(overlayDirectory, "arm9_newcode.x"), overwrite: true);
             }
             File.Delete(Path.Combine(path, "newcode.x"));
             foreach (string replFile in replFiles)

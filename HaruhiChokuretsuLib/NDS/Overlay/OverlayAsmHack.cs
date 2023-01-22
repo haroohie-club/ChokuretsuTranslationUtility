@@ -109,7 +109,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             ProcessStartInfo psi = new()
             {
                 FileName = "make",
-                Arguments = $"TARGET={overlay.Name}/newcode SOURCES={overlay.Name}/source BUILD=build CODEADDR=0x{overlay.Address + overlay.Length:X7}",
+                Arguments = $"TARGET={overlay.Name}/newcode SOURCES={overlay.Name}/source INCLUDES={overlay.Name}/source BUILD=build CODEADDR=0x{overlay.Address + overlay.Length:X7}",
                 WorkingDirectory = path,
                 UseShellExecute = false,
                 RedirectStandardError = true,
@@ -135,7 +135,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             ProcessStartInfo psi = new()
             {
                 FileName = "make",
-                Arguments = $"TARGET={overlay.Name}/repl_{Path.GetFileNameWithoutExtension(subdir)} SOURCES={subdir} NEWSYM={overlay.Name}/newcode.x BUILD=build CODEADDR=0x{address:X7}",
+                Arguments = $"TARGET={overlay.Name}/repl_{Path.GetFileNameWithoutExtension(subdir)} SOURCES={subdir} INCLUDES={subdir} NEWSYM={overlay.Name}/newcode.x BUILD=build CODEADDR=0x{address:X7}",
                 WorkingDirectory = path,
                 UseShellExecute = false,
                 RedirectStandardError = true,
