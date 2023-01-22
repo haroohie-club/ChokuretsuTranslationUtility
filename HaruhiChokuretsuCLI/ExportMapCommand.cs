@@ -48,13 +48,10 @@ namespace HaruhiChokuretsuCLI
                 return 1;
             }
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(_dat, log);
-            List<byte> qmapData = dat.Files.First(f => f.Name == "QMAPS").Data;
-            List<string> mapFileNames = new();
-            for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
-            {
-                mapFileNames.Add(Encoding.ASCII.GetString(qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + i * 8).Take(4).ToArray())).TakeWhile(b => b != 0).ToArray()).Replace(".", ""));
-            }
-            mapFileNames = mapFileNames.Take(mapFileNames.Count - 1).ToList();
+            DataFile qmapDataFile = dat.Files.First(f => f.Name == "QMAPS");
+            QMapFile qmapFile = qmapDataFile.CastTo<QMapFile>();
+            dat.Files[dat.Files.IndexOf(qmapDataFile)] = qmapFile;
+            List<string> mapFileNames = qmapFile.QMaps.Select(q => q.Name).ToList();
 
             if (_listMaps)
             {

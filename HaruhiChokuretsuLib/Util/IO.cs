@@ -27,5 +27,15 @@ namespace HaruhiChokuretsuLib.Util
         {
             return BitConverter.ToUInt16(data.Skip(offset).Take(2).ToArray());
         }
+
+        public static string ReadShiftJisString(IEnumerable<byte> data, int offset)
+        {
+            return Encoding.GetEncoding("Shift-JIS").GetString(data.Skip(offset).TakeWhile(b => b != 0x00).ToArray());
+        }
+
+        public static string ReadAsciiString(IEnumerable<byte> data, int offset)
+        {
+            return Encoding.ASCII.GetString(data.Skip(offset).TakeWhile(b => b != 0x00).ToArray());
+        }
     }
 }

@@ -29,9 +29,9 @@ namespace HaruhiChokuretsuLib.Util
             return Encoding.GetEncoding("Shift-JIS").GetByteCount(shiftJisString) + 1; // +1 for trailing \x00
         }
 
-        public static void AsmPadShiftJISString(this string shiftJisString, StringBuilder sb)
+        public static void AsmPadString(this StringBuilder sb, string str, Encoding encoding)
         {
-            int neededPadding = 4 - Encoding.GetEncoding("Shift-JIS").GetByteCount(shiftJisString) % 4 - 1;
+            int neededPadding = 4 - encoding.GetByteCount(str) % 4 - 1;
             if (neededPadding > 0)
             {
                 sb.AppendLine($".skip {neededPadding}");

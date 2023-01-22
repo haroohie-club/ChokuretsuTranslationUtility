@@ -764,7 +764,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 if (Objects[i].Id > 0)
                 {
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}CHOICE{i:D2}: .string \"{Objects[i].Text.EscapeShiftJIS()}\"");
-                    Objects[i].Text.AsmPadShiftJISString(sb);
+                    sb.AsmPadString(Objects[i].Text, Encoding.GetEncoding("Shift-JIS"));
                 }
             }
             sb.AppendLine();
@@ -1041,7 +1041,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 if (Objects[i].Id > 0)
                 {
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}LABEL{i:D2}: .string \"{Objects[i].Name}\"");
-                    Objects[i].Name.AsmPadShiftJISString(sb);
+                    sb.AsmPadString(Objects[i].Name, Encoding.ASCII);
                 }
             }
             sb.AppendLine();
@@ -1095,8 +1095,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
             sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.string \"{Objects[0].EscapeShiftJIS()}\"");
-            int neededPadding = 4 - Encoding.GetEncoding("Shift-JIS").GetByteCount(Objects[0]) % 4 - 1;
-            Objects[0].AsmPadShiftJISString(sb);
+            sb.AsmPadString(Objects[0], Encoding.GetEncoding("Shift-JIS"));
             sb.AppendLine();
 
             return sb.ToString();
@@ -1171,7 +1170,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 if ((int)Objects[i].Speaker > 0 && Objects[i].Pointer > 0)
                 {
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}DIALOGUELINE{i:D3}: .string \"{Objects[i].Text.EscapeShiftJIS()}\"");
-                    Objects[i].Text.AsmPadShiftJISString(sb);
+                    sb.AsmPadString(Objects[i].Text, Encoding.GetEncoding("Shift-JIS"));
                 }
             }
             sb.AppendLine();
@@ -1237,7 +1236,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 if (!string.IsNullOrEmpty(Objects[i]))
                 {
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}CONDITIONAL_{i:D2}: .string \"{Objects[i]}\"");
-                    Objects[i].AsmPadShiftJISString(sb);
+                    sb.AsmPadString(Objects[i], Encoding.ASCII);
                 }
             }
             sb.AppendLine();
@@ -1388,7 +1387,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}: .string \"{Objects[0]}\"");
-            Objects[0].AsmPadShiftJISString(sb);
+            sb.AsmPadString(Objects[0], Encoding.ASCII);
             sb.AppendLine();
 
             return sb.ToString();

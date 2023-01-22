@@ -150,5 +150,22 @@ namespace HaruhiChokuretsuTests
 
             Assert.AreEqual(eventFile.Data, newBytesList);
         }
+
+        [Test]
+        public async Task QmapSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            QMapFile qmapFile = dat.Files.First(f => f.Name == "QMAPS").CastTo<QMapFile>();
+
+            byte[] newBytes = await CompileFromSource(qmapFile.GetSource(new()));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            Assert.AreEqual(qmapFile.Data, newBytesList);
+        }
     }
 }

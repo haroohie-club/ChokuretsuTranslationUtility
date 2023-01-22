@@ -145,15 +145,11 @@ namespace HaruhiChokuretsuCLI
                 ISourceFile sourceFile;
                 if (archive.FileName.StartsWith("dat", StringComparison.OrdinalIgnoreCase))
                 {
-                    List<byte> qmapData = archive.Files.First(f => f.Name == "QMAPS").Data;
-                    List<string> mapFileNames = new();
-                    for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
-                    {
-                        mapFileNames.Add(Encoding.ASCII.GetString(qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + i * 8).Take(4).ToArray())).TakeWhile(b => b != 0).ToArray()).Replace(".", ""));
-                    }
-                    mapFileNames = mapFileNames.Take(mapFileNames.Count - 1).ToList();
+                    DataFile qmapDataFile = archive.Files.First(f => f.Name == "QMAPS");
+                    QMapFile qmapFile = qmapDataFile.CastTo<QMapFile>();
+                    archive.Files[archive.Files.IndexOf(qmapDataFile)] = qmapFile;
 
-                    if (mapFileNames.Contains(file.Name))
+                    if (qmapFile.QMaps.Select(q => q.Name).Contains(file.Name))
                     {
                         file = file.CastTo<MapFile>();
                     }
@@ -163,6 +159,9 @@ namespace HaruhiChokuretsuCLI
                         {
                             case "BGTBLS":
                                 file = file.CastTo<BgTableFile>();
+                                break;
+                            case "QMAPS":
+                                file = qmapFile;
                                 break;
                             case "SYSTEXS":
                                 file = file.CastTo<SystemTextureFile>();
