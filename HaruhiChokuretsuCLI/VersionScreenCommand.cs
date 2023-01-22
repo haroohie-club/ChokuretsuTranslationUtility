@@ -1,9 +1,9 @@
 ﻿using HaruhiChokuretsuLib.Archive.Graphics;
 using Mono.Options;
 using SkiaSharp;
-using SkiaTextRenderer;
 using System.Collections.Generic;
 using System.IO;
+using Topten.RichTextKit;
 
 namespace HaruhiChokuretsuCLI
 {
@@ -41,13 +41,34 @@ namespace HaruhiChokuretsuCLI
             int y = semVers.Length <= 3 ? 556 : 526;
             int height = semVers.Length <= 3 ? 9 : 27;
             SKRect bounds = new(0, y, 64, y + height);
-            TextRendererSk.DrawText(canvas, _version, new Font(SKTypeface.FromFile(_fontFile), 11.0f), bounds, SKColors.Black, TextFormatFlags.Left);
+
+            CustomFontMapper fontMapper = new();
+            SKTypeface font = SKTypeface.FromFile(_fontFile);
+            fontMapper.AddFont(font);
+            TextBlock textBlock = new() { Alignment = TextAlignment.Left, FontMapper = fontMapper };
+            textBlock.AddText(_version, new Style() { TextColor = SKColors.Black, FontFamily = font.FamilyName, FontSize = 11.0f });
+            textBlock.Paint(canvas, new SKPoint(0, y), new TextPaintOptions() { Edging = SKFontEdging.Antialias });
 
             using FileStream fileStream = new(_outputPath, FileMode.Create);
             splashScreenVersionless.Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
 
             CommandSet.Out.WriteLine($"Generated new splash screen with version '{_version}'.");
             return 0;
+        }
+
+        private class CustomFontMapper : FontMapper
+        {
+            private static Dictionary<string, SKTypeface> _fonts = new();
+
+            public void AddFont(SKTypeface typeface)
+            {
+                _fonts.Add(typeface.FamilyName, typeface);
+            }
+
+            public override SKTypeface TypefaceFromStyle(IStyle style, bool ignoreFontVariants)
+            {
+                return _fonts[style.FontFamily];
+            }
         }
     }
 }

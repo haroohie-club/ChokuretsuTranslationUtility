@@ -6,10 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="2.8.2.3" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-    <PackageReference Include="SkiaTextRenderer" Version="2.0.0" />
     <PackageReference Include="System.IO.Hashing" Version="7.0.0" />
     <PackageReference Include="System.Text.Json" Version="7.0.1" />
+    <PackageReference Include="Topten.RichTextKit" Version="0.4.165" />
   </ItemGroup>
 
   <ItemGroup>
