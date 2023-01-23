@@ -160,6 +160,9 @@ namespace HaruhiChokuretsuCLI
                             case "BGTBLS":
                                 file = file.CastTo<BgTableFile>();
                                 break;
+                            case "MESSINFOS":
+                                file = file.CastTo<MessageInfoFile>();
+                                break;
                             case "QMAPS":
                                 file = qmapFile;
                                 break;
