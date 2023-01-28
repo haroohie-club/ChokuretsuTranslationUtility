@@ -47,7 +47,7 @@ namespace HaruhiChokuretsuCLI
             fontMapper.AddFont(font);
             TextBlock textBlock = new() { Alignment = TextAlignment.Left, FontMapper = fontMapper };
             textBlock.AddText(_version, new Style() { TextColor = SKColors.Black, FontFamily = font.FamilyName, FontSize = 11.0f });
-            textBlock.Paint(canvas, new SKPoint(0, y), new TextPaintOptions() { Edging = SKFontEdging.Antialias });
+            textBlock.Paint(canvas, new SKPoint(5, y), new TextPaintOptions() { Edging = SKFontEdging.Antialias });
 
             using FileStream fileStream = new(_outputPath, FileMode.Create);
             splashScreenVersionless.Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);

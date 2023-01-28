@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HaruhiChokuretsuLib.Util;
+using System;
 using System.Collections.Generic;
 
 namespace HaruhiChokuretsuLib.Archive.Event
@@ -13,7 +14,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset);
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset);
         public string GetAsm(int indentation, ref int currentPointer);
         public IEventSection<object> GetGeneric();
     }

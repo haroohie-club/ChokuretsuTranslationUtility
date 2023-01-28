@@ -42,7 +42,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             for (int i = 0; i < SectionPointersAndCounts.Count - 2; i++)
             {
-                VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH)));
+                VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH), _log));
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset, @override: true);
@@ -274,11 +274,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
             }
 
-            public VoiceMapStruct(IEnumerable<byte> data)
+            public VoiceMapStruct(IEnumerable<byte> data, ILogger log)
             {
                 if (data.Count() != VOICE_MAP_STRUCT_LENGTH)
                 {
-                    throw new ArgumentException($"Voice map struct data length must be 0x{VOICE_MAP_STRUCT_LENGTH:X2}, was 0x{data.Count():X2}");
+                    log.LogError($"Voice map struct data length must be 0x{VOICE_MAP_STRUCT_LENGTH:X2}, was 0x{data.Count():X2}");
+                    return;
                 }
 
                 VoiceFileNamePointer = BitConverter.ToInt32(data.Take(4).ToArray());

@@ -1,6 +1,7 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Archive.Graphics;
 using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
 using System;
@@ -93,6 +94,7 @@ namespace HaruhiChokuretsuTests
         [OneTimeSetUp]
         public static void Setup()
         {
+            ConsoleLogger log = new();
             if (!File.Exists("COMMANDS.INC"))
             {
                 StringBuilder sb = new();
@@ -102,6 +104,11 @@ namespace HaruhiChokuretsuTests
                 }
                 File.WriteAllText("COMMANDS.INC", sb.ToString());
             }
+            if (!File.Exists("GRPBIN.INC"))
+            {
+                var grp = ArchiveFile<GraphicsFile>.FromFile(@".\inputs\grp.bin", log);
+                File.WriteAllText("GRPBIN.INC", grp.GetSourceInclude());
+            }
         }
 
         [OneTimeTearDown]
@@ -110,6 +117,10 @@ namespace HaruhiChokuretsuTests
             if (File.Exists("COMMANDS.INC"))
             {
                 File.Delete("COMMANDS.INC");
+            }
+            if (File.Exists("GRPBIN.INC"))
+            {
+                File.Delete("GRPBIN.INC");
             }
         }
 
@@ -183,6 +194,24 @@ namespace HaruhiChokuretsuTests
             }
 
             Assert.AreEqual(messageInfoFile.Data, newBytesList);
+        }
+
+        [Test]
+        public async Task PlaceSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            PlaceFile placeFile = dat.Files.First(f => f.Name == "PLACES").CastTo<PlaceFile>();
+            
+
+            byte[] newBytes = await CompileFromSource(placeFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            Assert.AreEqual(placeFile.Data, newBytesList);
         }
     }
 }

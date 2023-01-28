@@ -2,6 +2,7 @@
 using HaruhiChokuretsuLib.Archive.Event;
 using System.Collections.Generic;
 using System.Text;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
@@ -13,10 +14,10 @@ namespace HaruhiChokuretsuLib.Archive.Data
         {
             _log = log;
 
-            int sectionLength = IO.ReadInt(decompressedData, 0);
-            if (sectionLength != 1)
+            int numSections = IO.ReadInt(decompressedData, 0);
+            if (numSections != 1)
             {
-                _log.LogError($"Section length is not 1 is {sectionLength}.");
+                _log.LogError($"MESSAGEINFO file should only have 1 section; {numSections} specified.");
                 return;
             }
 

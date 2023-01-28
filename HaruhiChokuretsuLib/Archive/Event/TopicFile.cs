@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HaruhiChokuretsuLib.Util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,7 +14,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             InitializeDialogueForSpecialFiles();
             for (int i = 0; i < DialogueLines.Count; i += 2)
             {
-                TopicStructs.Add(new(i, DialogueLines[i].Text, Data.Skip(0x18 + i / 2 * 0x24).Take(0x24).ToArray()));
+                TopicStructs.Add(new(i, DialogueLines[i].Text, Data.Skip(0x18 + i / 2 * 0x24).Take(0x24).ToArray(), _log));
             }
         }
     }
@@ -27,11 +28,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public short EventIndex { get; set; }
         public short[] UnknownShorts = new short[16];
 
-        public TopicStruct(int dialogueIndex, string dialogueLine, byte[] data)
+        public TopicStruct(int dialogueIndex, string dialogueLine, byte[] data, ILogger log)
         {
             if (data.Length != 0x24)
             {
-                throw new ArgumentException($"Topic struct data length must be 0x24, was 0x{data.Length:X2}");
+                log.LogError($"Topic struct data length must be 0x24, was 0x{data.Length:X2}");
+                return;
             }
 
             TopicDialogueIndex = dialogueIndex;

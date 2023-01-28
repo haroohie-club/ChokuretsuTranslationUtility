@@ -163,6 +163,9 @@ namespace HaruhiChokuretsuCLI
                             case "MESSINFOS":
                                 file = file.CastTo<MessageInfoFile>();
                                 break;
+                            case "PLACES":
+                                file = file.CastTo<PlaceFile>();
+                                break;
                             case "QMAPS":
                                 file = qmapFile;
                                 break;

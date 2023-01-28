@@ -36,9 +36,11 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                                     texture.Data = texture.GetBytes().ToList();
                                     break;
                                 case 3:
-                                    throw new NotImplementedException();
+                                    _log.LogError($"Case 3 animation frames not implemented.");
+                                    break;
                                 default:
-                                    throw new ArgumentException($"Invalid animation type on palette rotation animation entry ({animationEntry.AnimationType})");
+                                    _log.LogError($"Invalid animation type on palette rotation animation entry ({animationEntry.AnimationType})");
+                                    break;
                             }
                         }
                     }

@@ -16,7 +16,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
         }
 
@@ -153,7 +153,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -228,7 +228,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -236,7 +236,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 12;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(PointerSection);
             ObjectType = typeof(PointerStruct);
@@ -252,14 +253,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
-        public static (int sectionIndex, PointerSection section) ParseSection(List<EventFileSection> eventFileSections, int pointer, string name, IEnumerable<byte> data)
+        public static (int sectionIndex, PointerSection section) ParseSection(List<EventFileSection> eventFileSections, int pointer, string name, IEnumerable<byte> data, ILogger log)
         {
             int sectionIndex = eventFileSections.FindIndex(s => s.Pointer == pointer);
             PointerSection section = new();
             section.Initialize(data.Skip(eventFileSections[sectionIndex].Pointer)
                 .Take(eventFileSections[sectionIndex + 1].Pointer - eventFileSections[sectionIndex].Pointer),
                 eventFileSections[sectionIndex].ItemCount,
-                $"{name}_POINTER", eventFileSections[sectionIndex].Pointer);
+                $"{name}_POINTER", log, eventFileSections[sectionIndex].Pointer);
             return (sectionIndex, section);
         }
 
@@ -306,7 +307,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -314,7 +315,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 4;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(IntegerSection);
             ObjectType = typeof(int);
@@ -354,7 +356,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -362,7 +364,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 6;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(Unknown02Section);
             ObjectType = typeof(Unknown02SectionEntry);
@@ -425,7 +428,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -433,7 +436,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 12;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(Unknown03Section);
             ObjectType = typeof(Unknown03SectionEntry);
@@ -492,7 +496,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -500,7 +504,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 12;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(StartingChibisSection);
             ObjectType = typeof(StartingChibiEntry);
@@ -568,7 +573,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -576,7 +581,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 14;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(MapCharactersSection);
             ObjectType = typeof(MapCharactersSectionEntry);
@@ -648,7 +654,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -656,7 +662,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 4;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(Unknown07Section);
             ObjectType = typeof(Unknown07SectionEntry);
@@ -712,7 +719,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset = -1)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset = -1)
         {
             Name = name;
             Data = data.ToList();
@@ -797,7 +804,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -805,7 +812,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 16;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(Unknown08Section);
             ObjectType = typeof(Unknown08SectionEntry);
@@ -867,7 +875,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -875,7 +883,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 8;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(Unknown09Section);
             ObjectType = typeof(Unknown09SectionEntry);
@@ -931,7 +940,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -940,7 +949,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ObjectLength = 8;
             if (NumObjects != Data.Count / ObjectLength)
             {
-                throw new ArgumentException($"{Name} section in event file has mismatch in number of arguments.");
+                log.LogError($"{Name} section in event file has mismatch in number of arguments.");
+                return;
             }
             SectionType = typeof(Unknown10Section);
 
@@ -995,7 +1005,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -1073,7 +1083,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public int Offset { get; set; }
         public int Index { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -1112,7 +1122,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -1189,7 +1199,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -1256,7 +1266,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -1322,7 +1332,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type ObjectType { get; set; }
         public List<ScriptCommand> CommandsAvailable { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();
@@ -1367,7 +1377,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, int offset)
+        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
             Data = data.ToList();

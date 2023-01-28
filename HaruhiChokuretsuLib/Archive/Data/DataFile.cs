@@ -22,7 +22,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
         public virtual string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
-            throw new System.NotImplementedException();
+            _log.LogError("Attempting to get source of a generic data file; not supported.");
+            return null;
         }
     }
 

@@ -120,7 +120,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
 
             SettingsSection settingsSection = new();
-            settingsSection.Initialize(decompressedData.Skip(SectionPointersAndCounts[0].Pointer).Take(EventFileSettings.SETTINGS_LENGTH), 1, "SETTINGS", SectionPointersAndCounts[0].Pointer);
+            settingsSection.Initialize(decompressedData.Skip(SectionPointersAndCounts[0].Pointer).Take(EventFileSettings.SETTINGS_LENGTH), 1, "SETTINGS", log, SectionPointersAndCounts[0].Pointer);
             Settings = settingsSection.Objects[0];
             SectionPointersAndCounts[0].Section = settingsSection.GetGeneric();
             int dialogueSectionPointerIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
@@ -131,7 +131,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "UNKNOWNSECTION01";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection01Pointer, name, Data);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection01Pointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int unknownSection01Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
@@ -139,7 +139,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     unknown01Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection01Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection01Index + 1].Pointer - SectionPointersAndCounts[unknownSection01Index].Pointer),
                         SectionPointersAndCounts[unknownSection01Index].ItemCount,
-                        name, SectionPointersAndCounts[unknownSection01Index].Pointer);
+                        name, log, SectionPointersAndCounts[unknownSection01Index].Pointer);
                     SectionPointersAndCounts[unknownSection01Index].Section = unknown01Section.GetGeneric();
                 }
 
@@ -147,7 +147,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "UNKNOWNSECTION02";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection02Pointer, name, Data);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection02Pointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int unknownSection02Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
@@ -155,7 +155,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     unknown02Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection02Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection02Index + 1].Pointer - SectionPointersAndCounts[unknownSection02Index].Pointer),
                         SectionPointersAndCounts[unknownSection02Index].ItemCount,
-                        name, SectionPointersAndCounts[unknownSection02Index].Pointer);
+                        name, log, SectionPointersAndCounts[unknownSection02Index].Pointer);
                     SectionPointersAndCounts[unknownSection02Index].Section = unknown02Section.GetGeneric();
                 }
 
@@ -163,7 +163,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "UNKNOWNSECTION03";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection03Pointer, name, Data);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection03Pointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int unknownSection03Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
@@ -171,7 +171,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     unknown03Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection03Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection03Index + 1].Pointer - SectionPointersAndCounts[unknownSection03Index].Pointer),
                         SectionPointersAndCounts[unknownSection03Index].ItemCount,
-                        name, SectionPointersAndCounts[unknownSection03Index].Pointer);
+                        name, log, SectionPointersAndCounts[unknownSection03Index].Pointer);
                     SectionPointersAndCounts[unknownSection03Index].Section = unknown03Section.GetGeneric();
                 }
 
@@ -179,7 +179,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "STARTINGCHIBIS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.StartingChibisSectionPointer, name, Data);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.StartingChibisSectionPointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int startingChibisSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
@@ -187,7 +187,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     startingChibisSection.Initialize(Data.Skip(SectionPointersAndCounts[startingChibisSectionIndex].Pointer)
                         .Take(SectionPointersAndCounts[startingChibisSectionIndex + 1].Pointer - SectionPointersAndCounts[startingChibisSectionIndex].Pointer),
                         SectionPointersAndCounts[startingChibisSectionIndex].ItemCount,
-                        name, SectionPointersAndCounts[startingChibisSectionIndex].Pointer);
+                        name, log, SectionPointersAndCounts[startingChibisSectionIndex].Pointer);
                     SectionPointersAndCounts[startingChibisSectionIndex].Section = startingChibisSection.GetGeneric();
                 }
 
@@ -195,7 +195,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "MAPCHARACTERS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.MapCharactersSectionPointer, name, Data);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.MapCharactersSectionPointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int mapCharactersSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
@@ -203,7 +203,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     mapCharactersSection.Initialize(Data.Skip(SectionPointersAndCounts[mapCharactersSectionIndex].Pointer)
                         .Take(SectionPointersAndCounts[mapCharactersSectionIndex + 1].Pointer - SectionPointersAndCounts[mapCharactersSectionIndex].Pointer),
                         SectionPointersAndCounts[mapCharactersSectionIndex].ItemCount,
-                        name, SectionPointersAndCounts[mapCharactersSectionIndex].Pointer);
+                        name, log, SectionPointersAndCounts[mapCharactersSectionIndex].Pointer);
                     SectionPointersAndCounts[mapCharactersSectionIndex].Section = mapCharactersSection.GetGeneric();
                 }
 
@@ -211,7 +211,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "UNKNOWNSECTION06";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection06Pointer, name, Data);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection06Pointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int unknownSection06Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
@@ -219,7 +219,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     unknown06Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection06Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection06Index + 1].Pointer - SectionPointersAndCounts[unknownSection06Index].Pointer),
                         SectionPointersAndCounts[unknownSection06Index].ItemCount,
-                        name, SectionPointersAndCounts[unknownSection06Index].Pointer);
+                        name, log, SectionPointersAndCounts[unknownSection06Index].Pointer);
                     SectionPointersAndCounts[unknownSection06Index].Section = unknown06Section.GetGeneric();
                 }
 
@@ -227,7 +227,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "UNKNOWNSECTION07";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection07Pointer, name, Data);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection07Pointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int unknownSection07Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
@@ -235,7 +235,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     unknown07Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection07Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection07Index + 1].Pointer - SectionPointersAndCounts[unknownSection07Index].Pointer),
                         SectionPointersAndCounts[unknownSection07Index].ItemCount,
-                        name, SectionPointersAndCounts[unknownSection07Index].Pointer);
+                        name, log, SectionPointersAndCounts[unknownSection07Index].Pointer);
                     SectionPointersAndCounts[unknownSection07Index].Section = unknown07Section.GetGeneric();
                 }
 
@@ -248,7 +248,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     choicesSection.Initialize(Data.Skip(SectionPointersAndCounts[choicesSectionIndex].Pointer)
                         .Take(SectionPointersAndCounts[choicesSectionIndex + 1].Pointer - SectionPointersAndCounts[choicesSectionIndex].Pointer),
                         SectionPointersAndCounts[choicesSectionIndex].ItemCount,
-                        name, SectionPointersAndCounts[choicesSectionIndex].Pointer);
+                        name, log, SectionPointersAndCounts[choicesSectionIndex].Pointer);
                     SectionPointersAndCounts[choicesSectionIndex].Section = choicesSection.GetGeneric();
                 }
 
@@ -257,14 +257,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "UNKNOWNSECTION08";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, SectionPointersAndCounts[choicesSectionIndex + 2].Pointer, name, Data);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, SectionPointersAndCounts[choicesSectionIndex + 2].Pointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     Unknown08Section unknown08Section = new();
                     unknown08Section.Initialize(Data.Skip(SectionPointersAndCounts[choicesSectionIndex + 1].Pointer)
                         .Take(SectionPointersAndCounts[choicesSectionIndex + 2].Pointer - SectionPointersAndCounts[choicesSectionIndex + 1].Pointer),
                         SectionPointersAndCounts[choicesSectionIndex + 1].ItemCount,
-                        name, SectionPointersAndCounts[choicesSectionIndex + 1].Pointer);
+                        name, log, SectionPointersAndCounts[choicesSectionIndex + 1].Pointer);
                     SectionPointersAndCounts[choicesSectionIndex + 1].Section = unknown08Section.GetGeneric();
                 }
 
@@ -276,7 +276,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     unknown09Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection09Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection09Index + 1].Pointer - SectionPointersAndCounts[unknownSection09Index].Pointer),
                         SectionPointersAndCounts[unknownSection09Index].ItemCount,
-                        name, SectionPointersAndCounts[unknownSection09Index].Pointer);
+                        name, log, SectionPointersAndCounts[unknownSection09Index].Pointer);
                     SectionPointersAndCounts[unknownSection09Index].Section = unknown09Section.GetGeneric();
                 }
 
@@ -289,7 +289,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     unknown10Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection10Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection10Index + 1].Pointer - SectionPointersAndCounts[unknownSection10Index].Pointer),
                         SectionPointersAndCounts[unknownSection10Index].ItemCount,
-                        name, SectionPointersAndCounts[unknownSection10Index].Pointer);
+                        name, log, SectionPointersAndCounts[unknownSection10Index].Pointer);
                     SectionPointersAndCounts[unknownSection10Index].Section = unknown10Section.GetGeneric();
                 }
 
@@ -302,7 +302,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     labelsSection.Initialize(Data.Skip(SectionPointersAndCounts[labelsSectionPointerIndex].Pointer)
                         .Take(SectionPointersAndCounts[labelsSectionPointerIndex + 1].Pointer - SectionPointersAndCounts[labelsSectionPointerIndex].Pointer),
                         SectionPointersAndCounts[labelsSectionPointerIndex].ItemCount,
-                        name, SectionPointersAndCounts[labelsSectionPointerIndex].Pointer);
+                        name, log, SectionPointersAndCounts[labelsSectionPointerIndex].Pointer);
                     SectionPointersAndCounts[labelsSectionPointerIndex].Section = labelsSection.GetGeneric();
                 }
 
@@ -317,7 +317,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                         dramatisPersonaeSection.Initialize(Data.Skip(SectionPointersAndCounts[i].Pointer)
                             .Take(SectionPointersAndCounts[i + 1].Pointer - SectionPointersAndCounts[i].Pointer),
                             SectionPointersAndCounts[i].ItemCount,
-                            name, SectionPointersAndCounts[i].Pointer);
+                            name, log, SectionPointersAndCounts[i].Pointer);
                         SectionPointersAndCounts[i].Section = dramatisPersonaeSection.GetGeneric();
                         dramatisPersonae.Add(dramatisPersonaeSection);
                     }
@@ -330,7 +330,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     DialogueSection dialogueSection = new();
                     dialogueSection.Initialize(Data,
                         SectionPointersAndCounts[dialogueSectionPointerIndex].ItemCount,
-                        name, SectionPointersAndCounts[dialogueSectionPointerIndex].Pointer);
+                        name, log, SectionPointersAndCounts[dialogueSectionPointerIndex].Pointer);
                     dialogueSection.InitializeDramatisPersonaeIndices(dramatisPersonae);
                     SectionPointersAndCounts[dialogueSectionPointerIndex].Section = dialogueSection.GetGeneric();
                 }
@@ -343,7 +343,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     ConditionalSection conditionalSection = new();
                     conditionalSection.Initialize(Data,
                         SectionPointersAndCounts[conditionalSectionIndex].ItemCount,
-                        name, SectionPointersAndCounts[conditionalSectionIndex].Pointer);
+                        name, log, SectionPointersAndCounts[conditionalSectionIndex].Pointer);
                     SectionPointersAndCounts[conditionalSectionIndex].Section = conditionalSection.GetGeneric();
                 }
 
@@ -356,7 +356,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     scriptSectionDefinitionsSection.Initialize(Data
                         .Skip(SectionPointersAndCounts[scriptSectionDefinitionsSectionIndex].Pointer),
                         Settings.NumScriptSections,
-                        name,
+                        name, log,
                         SectionPointersAndCounts[scriptSectionDefinitionsSectionIndex].Pointer);
                     SectionPointersAndCounts[scriptSectionDefinitionsSectionIndex].Section = scriptSectionDefinitionsSection.GetGeneric();
                 }
@@ -369,7 +369,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                         scriptSection.Initialize(Data.Skip(scriptSectionDefinitionsSection.Objects[i].Pointer).Take(scriptSectionDefinitionsSection.Objects[i].NumCommands * 0x24),
                             scriptSectionDefinitionsSection.Objects[i].NumCommands,
                             string.IsNullOrEmpty(labelsSection.Objects[i].Name) ? $"SCRIPT{i:D2}" : labelsSection.Objects[i].Name.Replace("/", ""),
-                            scriptSectionDefinitionsSection.Objects[i].Pointer);
+                            log, scriptSectionDefinitionsSection.Objects[i].Pointer);
                         SectionPointersAndCounts[SectionPointersAndCounts.IndexOf(SectionPointersAndCounts.First(s => s.Pointer == scriptSectionDefinitionsSection.Objects[i].Pointer))].Section = scriptSection.GetGeneric();
                         ScriptSections.Add(scriptSection);
                     }
@@ -382,7 +382,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                     EventNameSection eventNameSection = new();
                     eventNameSection.Initialize(Data.Skip(SectionPointersAndCounts[eventNameSectionIndex].Pointer).TakeWhile(b => b != 0),
-                        SectionPointersAndCounts[eventNameSectionIndex].ItemCount, name, SectionPointersAndCounts[eventNameSectionIndex].Pointer);
+                        SectionPointersAndCounts[eventNameSectionIndex].ItemCount, name, log, SectionPointersAndCounts[eventNameSectionIndex].Pointer);
                     SectionPointersAndCounts[eventNameSectionIndex].Section = eventNameSection.GetGeneric();
                 }
             }
