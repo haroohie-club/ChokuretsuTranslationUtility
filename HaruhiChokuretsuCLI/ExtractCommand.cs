@@ -160,6 +160,9 @@ namespace HaruhiChokuretsuCLI
                             case "BGTBLS":
                                 file = file.CastTo<BgTableFile>();
                                 break;
+                            case "CHIBIS":
+                                file = file.CastTo<ChibiFile>();
+                                break;
                             case "MESSINFOS":
                                 file = file.CastTo<MessageInfoFile>();
                                 break;

@@ -213,5 +213,23 @@ namespace HaruhiChokuretsuTests
 
             Assert.AreEqual(placeFile.Data, newBytesList);
         }
+
+        [Test]
+        public async Task ChibiSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ChibiFile chibiFile = dat.Files.First(f => f.Name == "CHIBIS").CastTo<ChibiFile>();
+
+
+            byte[] newBytes = await CompileFromSource(chibiFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            Assert.AreEqual(chibiFile.Data, newBytesList);
+        }
     }
 }
