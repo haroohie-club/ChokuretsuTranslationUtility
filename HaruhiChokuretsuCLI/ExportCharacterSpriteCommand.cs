@@ -49,7 +49,15 @@ namespace HaruhiChokuretsuCLI
 
             if (_lipFlap)
             {
-                List<(SKBitmap frame, int timing)> animationFrames = sprite.GetLipFlapAnimation(grp, dat.Files.First(f => f.Name == "MESSINFOS").CastTo<MessageInfoFile>());
+                List<(SKBitmap frame, int timing)> animationFrames;
+                if (_lipFlap)
+                {
+                    animationFrames = sprite.GetLipFlapAnimation(grp, dat.Files.First(f => f.Name == "MESSINFOS").CastTo<MessageInfoFile>());
+                }
+                else
+                {
+                    animationFrames = sprite.GetClosedMouthAnimation(grp, dat.Files.First(f => f.Name == "MESSINFOS").CastTo<MessageInfoFile>());
+                }
                 List<SKBitmap> frames = new();
                 foreach (var frame in animationFrames)
                 {

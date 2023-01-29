@@ -105,7 +105,17 @@ namespace HaruhiChokuretsuLib.Archive.Data
             MouthAnimationIndex = IO.ReadShort(data, 0x16);
         }
 
+        public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
+        {
+            return GetAnimation(grp, messageInfoFile, false);
+        }
+
         public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
+        {
+            return GetAnimation(grp, messageInfoFile, true);
+        }
+
+        private List<(SKBitmap frame, int timing)> GetAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile, bool lipFlap)
         {
             List<(SKBitmap, int)> frames = new();
 
@@ -136,7 +146,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 SKCanvas canvas = new(frame);
                 canvas.DrawBitmap(spriteBitmap, new SKPoint(0, 0));
                 canvas.DrawBitmap(eyeFrames[e], new SKPoint(eyeAnimation.AnimationX, eyeAnimation.AnimationY));
-                canvas.DrawBitmap(mouthFrames[m], new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
+                if (lipFlap)
+                {
+                    canvas.DrawBitmap(mouthFrames[m], new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
+                }
+                else
+                {
+                    canvas.DrawBitmap(mouthFrames[0], new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
+                }
                 int time;
 
                 if (currentEyeTime == currentMouthTime)
