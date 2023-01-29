@@ -5,6 +5,7 @@ using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
@@ -29,6 +30,49 @@ namespace HaruhiChokuretsuLib.Archive.Data
             {
                 Sprites.Add(new(decompressedData.Skip(sectionStart + 0x18 * i).Take(0x18)));
             }
+        }
+
+        public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
+        {
+            if (!includes.ContainsKey("GRPBIN"))
+            {
+                _log.LogError("Includes needs GRPBIN to be present.");
+                return null;
+            }
+
+            StringBuilder sb = new();
+
+            sb.AppendLine(".include \"GRPBIN.INC\"");
+            sb.AppendLine();
+            sb.AppendLine($".word 1");
+            sb.AppendLine(".word END_POINTERS");
+            sb.AppendLine(".word FILE_START");
+            sb.AppendLine(".word SPRITE_LIST");
+            sb.AppendLine($".word {Sprites.Count}");
+
+            sb.AppendLine();
+            sb.AppendLine("FILE_START:");
+            sb.AppendLine("SPRITE_LIST:");
+
+            foreach (CharacterSprite sprite in Sprites)
+            {
+                sb.AppendLine($".word {sprite.SpriteType}");
+                sb.AppendLine($".short {(int)sprite.Character}");
+                sb.AppendLine($".short {sprite.TextureIndex1}");
+                sb.AppendLine($".short {sprite.TextureIndex2}");
+                sb.AppendLine($".short {sprite.LayoutIndex}");
+                sb.AppendLine($".short {sprite.TextureIndex3}");
+                sb.AppendLine($".short {sprite.Padding}");
+                sb.AppendLine($".short {sprite.EyeTextureIndex}");
+                sb.AppendLine($".short {sprite.MouthTextureIndex}");
+                sb.AppendLine($".short {sprite.EyeAnimationIndex}");
+                sb.AppendLine($".short {sprite.MouthAnimationIndex}");
+            }
+
+            sb.AppendLine("END_POINTERS:");
+            sb.AppendLine(".word 0");
+
+            return sb.ToString();
         }
     }
 

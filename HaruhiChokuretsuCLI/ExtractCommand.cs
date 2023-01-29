@@ -163,6 +163,9 @@ namespace HaruhiChokuretsuCLI
                             case "CHIBIS":
                                 file = file.CastTo<ChibiFile>();
                                 break;
+                            case "CHRDATAS":
+                                file = file.CastTo<CharacterDataFile>();
+                                break;
                             case "MESSINFOS":
                                 file = file.CastTo<MessageInfoFile>();
                                 break;

@@ -203,7 +203,6 @@ namespace HaruhiChokuretsuTests
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
             PlaceFile placeFile = dat.Files.First(f => f.Name == "PLACES").CastTo<PlaceFile>();
             
-
             byte[] newBytes = await CompileFromSource(placeFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
             List<byte> newBytesList = new(newBytes);
             if (newBytes.Length % 16 > 0)
@@ -221,7 +220,6 @@ namespace HaruhiChokuretsuTests
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
             ChibiFile chibiFile = dat.Files.First(f => f.Name == "CHIBIS").CastTo<ChibiFile>();
 
-
             byte[] newBytes = await CompileFromSource(chibiFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
             List<byte> newBytesList = new(newBytes);
             if (newBytes.Length % 16 > 0)
@@ -230,6 +228,23 @@ namespace HaruhiChokuretsuTests
             }
 
             Assert.AreEqual(chibiFile.Data, newBytesList);
+        }
+
+        [Test]
+        public async Task ChrDataSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            CharacterDataFile characterDataFile = dat.Files.First(f => f.Name == "CHRDATAS").CastTo<CharacterDataFile>();
+
+            byte[] newBytes = await CompileFromSource(characterDataFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            Assert.AreEqual(characterDataFile.Data, newBytesList);
         }
     }
 }
