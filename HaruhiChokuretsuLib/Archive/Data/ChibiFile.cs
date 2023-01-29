@@ -110,6 +110,11 @@ namespace HaruhiChokuretsuLib.Archive.Data
     public class Chibi
     {
         public List<ChibiEntry> ChibiEntries { get; set; } = new();
+        public ChibiEntry this[ChibiEntryName entryName]
+        {
+            get => ChibiEntries[(int)entryName];
+            set { ChibiEntries[(int)entryName] = value; }
+        }
 
         public Chibi(IEnumerable<byte> data, int numChibiEntries)
         {
@@ -124,5 +129,70 @@ namespace HaruhiChokuretsuLib.Archive.Data
     {
         public short Texture { get; set; }
         public short Animation { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Texture}, {Animation}";
+        }
+    }
+
+    public enum ChibiEntryName
+    {
+        IDLE_BOTTOM_LEFT,
+        IDLE_BOTTOM_RIGHT,
+        IDLE_UPPER_LEFT,
+        IDLE_UPPER_RIGHT,
+        WALK_BOTTOM_LEFT,
+        WALK_BOTTOM_RIGHT,
+        WALK_UPPER_LEFT,
+        WALK_UPPER_RIGHT,
+        INVESTIGATE_BOTTOM_LEFT,
+        INVESTIGATE_BOTTOM_RIGHT,
+        INVESTIGATE_UPPER_LEFT,
+        INVESTIGATE_UPPER_RIGHT,
+        ERASE_BOTTOM_LEFT,
+        ERASE_BOTTOM_RIGHT,
+        ERASE_UPPER_LEFT,
+        ERASE_UPPER_RIGHT,
+        FAILURE_BOTTOM_LEFT,
+        FAILURE_BOTTOM_RIGHT,
+        FAILURE_UPPER_LEFT,
+        FAILURE_UPPER_RIGHT,
+        SUCCESS_BOTTOM_LEFT,
+        SUCCESS_BOTTOM_RIGHT,
+        SUCCESS_UPPER_LEFT,
+        SUCCESS_UPPER_RIGHT,
+        ABILITY_BOTTOM_LEFT,
+        ABILITY_BOTTOM_RIGHT,
+        ABILITY_UPPER_LEFT,
+        ABILITY_UPPER_RIGHT,
+        NERVOUS_BOTTOM_LEFT,
+        NERVOUS_BOTTOM_RIGHT,
+        NERVOUS_UPPER_LEFT,
+        NERVOUS_UPPER_RIGHT,
+        RUN_BOTTOM_LEFT,
+        RUN_BOTTOM_RIGHT,
+        RUN_UPPER_LEFT,
+        RUN_UPPER_RIGHT,
+        UNKNONW09_BOTTOM_LEFT,
+        UNKNOWN09_BOTTOM_RIGHT,
+        UNKNOWN09_UPPER_LEFT,
+        UNKNOWN09_UPPER_RIGHT,
+        LOOK_BOTTOM_LEFT,
+        LOOK_BOTTOM_RIGHT,
+        LOOK_UPPER_LEFT,
+        LOOK_UPPER_RIGHT,
+        STATICPOSE97_BOTTOM_LEFT,
+        STATICPOSE97_BOTTOM_RIGHT,
+        STATICPOSE97_UPPER_LEFT,
+        STATICPOSE97_UPPER_RIGHT,
+        STATICPOSE98_BOTTOM_LEFT,
+        STATICPOSE98_BOTTOM_RIGHT,
+        STATICPOSE98_UPPER_LEFT,
+        STATICPOSE98_UPPER_RIGHT,
+        STATICPOSE99_BOTTOM_LEFT,
+        STATICPOSE99_BOTTOM_RIGHT,
+        STATICPOSE99_UPPER_LEFT,
+        STATICPOSE99_UPPER_RIGHT,
     }
 }

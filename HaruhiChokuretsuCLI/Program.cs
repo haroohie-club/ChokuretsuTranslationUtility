@@ -21,6 +21,7 @@ namespace HaruhiChokuretsuCLI
                 new HexSearchCommand(),
                 new VersionScreenCommand(),
                 new ConvertAudioCommand(),
+                new ExportChibiCommand(),
                 new ExportMapCommand(),
                 new ExportLayoutCommand(),
                 new ExportIncludeCommand(),

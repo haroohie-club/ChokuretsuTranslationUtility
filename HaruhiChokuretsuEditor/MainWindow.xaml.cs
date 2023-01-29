@@ -667,6 +667,14 @@ namespace HaruhiChokuretsuEditor
                             tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.FramesPerTick)}: {firstAnimEntry.FramesPerTick}" });
                             tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(firstAnimEntry.AnimationType)}: {firstAnimEntry.AnimationType}" });
                         }
+                        else if (selectedFile.AnimationEntries[0].GetType() == typeof(FrameAnimationEntry))
+                        {
+                            List<GraphicsFile> animationFrames = selectedFile.GetAnimationFrames(_grpFile.Files.First(f => f.Index == selectedFile.Index + 1));
+                            foreach (GraphicsFile animationFrame in animationFrames)
+                            {
+                                tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(animationFrame.GetImage()), MaxWidth = animationFrame.Width });
+                            }
+                        }
                     }
                 }
             }

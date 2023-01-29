@@ -118,6 +118,16 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                         AnimationEntries.Add(new PaletteColorAnimationEntry(Data.Skip(i).Take(0xCC)));
                     }
                 }
+                else if (IO.ReadShort(Data, 0xE) == -1)
+                {
+                    for (int i = 0x10; i <= Data.Count - 0x0A; i += 0x0A)
+                    {
+                        if (IO.ReadShort(Data, i + 8) != 0)
+                        {
+                            AnimationEntries.Add(new FrameAnimationEntry(Data.Skip(i).Take(10)));
+                        }
+                    }
+                }
             }
             else
             {

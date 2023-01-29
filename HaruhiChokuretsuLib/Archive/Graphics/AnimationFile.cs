@@ -13,8 +13,37 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         public List<GraphicsFile> GetAnimationFrames(GraphicsFile texture)
         {
             List<GraphicsFile> graphicFrames = new();
+            if (texture.FileFunction != Function.SHTX)
+            {
+                return graphicFrames;
+            }
 
-            if (AnimationEntries[0].GetType() == typeof(PaletteRotateAnimationEntry))
+            if (AnimationEntries[0].GetType() == typeof(FrameAnimationEntry))
+            {
+                foreach (FrameAnimationEntry animationEntry in AnimationEntries.Cast<FrameAnimationEntry>())
+                {
+                    GraphicsFile frame = new();
+                    frame.FileFunction = Function.SHTX;
+                    frame.ImageForm = Form.TEXTURE;
+                    frame.ImageTileForm = TileForm.GBA_8BPP;
+                    frame._log = _log;
+                    frame.Palette = texture.Palette;
+                    if (frame.Palette.Count > 0)
+                    {
+                        frame.Palette[0] = SKColors.Transparent;
+                    }
+                    frame.PaletteData = texture.PaletteData;
+                    frame.Width = animationEntry.FrameXAdjustment;
+                    frame.PixelData = new();
+                    for (int i = animationEntry.FrameOffset; i < (texture.PixelData?.Count ?? 0); i += AnimationEntries.DistinctBy(a => ((FrameAnimationEntry)a).FrameOffset).Count() * animationEntry.FrameXAdjustment)
+                    {
+                        frame.Height++;
+                        frame.PixelData.AddRange(texture.PixelData.Skip(i).Take(animationEntry.FrameXAdjustment));
+                    }
+                    graphicFrames.Add(frame);
+                }
+            }
+            else if (AnimationEntries[0].GetType() == typeof(PaletteRotateAnimationEntry))
             {
                 int numFrames = Helpers.LeastCommonMultiple(AnimationEntries
                     .Where(a => ((PaletteRotateAnimationEntry)a).FramesPerTick * ((PaletteRotateAnimationEntry)a).SwapAreaSize != 0)
@@ -188,6 +217,22 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
     {
     }
 
+    public class FrameAnimationEntry : AnimationEntry
+    {
+        public int FrameOffset { get; set; }
+        public short FrameXAdjustment { get; set; }
+        public short FrameYAdjustment { get; set; }
+        public short Time { get; set; }
+
+        public FrameAnimationEntry(IEnumerable<byte> data)
+        {
+            FrameOffset = IO.ReadInt(data, 0);
+            FrameXAdjustment = IO.ReadShort(data, 4);
+            FrameYAdjustment = IO.ReadShort(data, 6);
+            Time = IO.ReadShort(data, 8);
+        }
+    }
+
     public class PaletteColorAnimationEntry : AnimationEntry
     {
         public short PaletteOffset { get; set; }
@@ -203,17 +248,17 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 
         public PaletteColorAnimationEntry(IEnumerable<byte> data)
         {
-            PaletteOffset = BitConverter.ToInt16(data.Take(2).ToArray());
+            PaletteOffset = IO.ReadShort(data, 0);
             Determinant = data.ElementAt(0x02);
             ColorIndexer = data.ElementAt(0x03);
             for (int i = 0; i < 96; i++)
             {
-                ColorArray.Add(BitConverter.ToInt16(data.Skip(0x04 + i * 2).Take(2).ToArray()));
+                ColorArray.Add(IO.ReadShort(data, 0x04 + i * 2));
             }
-            RedComponent = BitConverter.ToInt16(data.Skip(0xC4).Take(2).ToArray());
-            GreenComponent = BitConverter.ToInt16(data.Skip(0xC6).Take(2).ToArray());
-            BlueComponent = BitConverter.ToInt16(data.Skip(0xC8).Take(2).ToArray());
-            Color = BitConverter.ToInt16(data.Skip(0xCA).Take(2).ToArray());
+            RedComponent = IO.ReadShort(data, 0xC4);
+            GreenComponent = IO.ReadShort(data, 0xC6);
+            BlueComponent = IO.ReadShort(data, 0xC8);
+            Color = IO.ReadShort(data, 0xCA);
         }
 
         public void Prepare(GraphicsFile texture)
@@ -250,11 +295,11 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 
         public PaletteRotateAnimationEntry(IEnumerable<byte> data)
         {
-            PaletteOffset = BitConverter.ToInt16(data.Take(2).ToArray());
-            SwapSize = BitConverter.ToInt16(data.Skip(0x02).Take(2).ToArray());
+            PaletteOffset = IO.ReadShort(data, 0);
+            SwapSize = IO.ReadShort(data, 0x02);
             SwapAreaSize = data.ElementAt(0x04);
             FramesPerTick = data.ElementAt(0x05);
-            AnimationType = BitConverter.ToInt16(data.Skip(0x06).Take(2).ToArray());
+            AnimationType = IO.ReadShort(data, 0x06);
         }
 
         public override string ToString()
