@@ -120,6 +120,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 }
                 else if (IO.ReadShort(Data, 0xE) == -1)
                 {
+                    AnimationX = IO.ReadShort(Data, 0x02);
+                    AnimationY = IO.ReadShort(Data, 0x04);
                     for (int i = 0x10; i <= Data.Count - 0x0A; i += 0x0A)
                     {
                         if (IO.ReadShort(Data, i + 8) != 0)

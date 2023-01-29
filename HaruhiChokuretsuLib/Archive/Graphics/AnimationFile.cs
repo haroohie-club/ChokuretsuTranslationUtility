@@ -9,6 +9,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
     public partial class GraphicsFile
     {
         public List<AnimationEntry> AnimationEntries { get; set; } = new();
+        public short AnimationX { get; set; }
+        public short AnimationY { get; set; }
 
         public List<GraphicsFile> GetAnimationFrames(GraphicsFile texture)
         {

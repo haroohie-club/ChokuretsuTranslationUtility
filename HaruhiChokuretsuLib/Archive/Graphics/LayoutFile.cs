@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using HaruhiChokuretsuLib.Util;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -138,19 +139,24 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Layout entry must be of width 0x1C (was {data.Count()}");
             }
 
-            UnknownShort1 = BitConverter.ToInt16(data.Take(2).ToArray());
-            RelativeShtxIndex = BitConverter.ToInt16(data.Skip(0x02).Take(2).ToArray());
-            UnknownShort2 = BitConverter.ToInt16(data.Skip(0x04).Take(2).ToArray());
-            ScreenX = BitConverter.ToInt16(data.Skip(0x06).Take(2).ToArray());
-            ScreenY = BitConverter.ToInt16(data.Skip(0x08).Take(2).ToArray());
-            TextureW = BitConverter.ToInt16(data.Skip(0x0A).Take(2).ToArray());
-            TextureH = BitConverter.ToInt16(data.Skip(0x0C).Take(2).ToArray());
-            TextureX = BitConverter.ToInt16(data.Skip(0x0E).Take(2).ToArray());
-            TextureY = BitConverter.ToInt16(data.Skip(0x10).Take(2).ToArray());
-            ScreenW = BitConverter.ToInt16(data.Skip(0x12).Take(2).ToArray());
-            ScreenH = BitConverter.ToInt16(data.Skip(0x14).Take(2).ToArray());
-            UnknownShort3 = BitConverter.ToInt16(data.Skip(0x16).Take(2).ToArray());
-            Tint = new(BitConverter.ToUInt32(data.Skip(0x18).Take(4).ToArray()));
+            UnknownShort1 = IO.ReadShort(data, 0);
+            RelativeShtxIndex = IO.ReadShort(data, 0x02);
+            UnknownShort2 = IO.ReadShort(data, 0x04);
+            ScreenX = IO.ReadShort(data, 0x06);
+            ScreenY = IO.ReadShort(data, 0x08);
+            TextureW = IO.ReadShort(data, 0x0A);
+            TextureH = IO.ReadShort(data, 0x0C);
+            TextureX = IO.ReadShort(data, 0x0E);
+            TextureY = IO.ReadShort(data, 0x10);
+            ScreenW = IO.ReadShort(data, 0x12);
+            ScreenH = IO.ReadShort(data, 0x14);
+            UnknownShort3 = IO.ReadShort(data, 0x16);
+            uint tint = IO.ReadUInt(data, 0x18);
+            if (tint == 0x80808080)
+            {
+                tint = 0xFFFFFFFF;
+            }
+            Tint = new(tint);
         }
 
         public byte[] GetBytes()

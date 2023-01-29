@@ -72,7 +72,7 @@ namespace HaruhiChokuretsuCLI
                 _layoutEnd = layout.LayoutEntries.Count;
             }
 
-            (SKBitmap layoutImage, List<LayoutEntry> _) = layout.GetLayout(layoutTextures, _layoutStart, _layoutEnd - _layoutStart, darkMode: false, preprocessedList: true);
+            (SKBitmap layoutImage, _) = layout.GetLayout(layoutTextures, _layoutStart, _layoutEnd - _layoutStart, darkMode: false, preprocessedList: true);
 
             using FileStream layoutStream = new(_outputFile, FileMode.Create);
             layoutImage.Encode(layoutStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
