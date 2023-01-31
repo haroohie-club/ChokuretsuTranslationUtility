@@ -10,6 +10,7 @@
     <PackageReference Include="FFMpegCore" Version="4.8.0" />
     <PackageReference Include="ResXResourceReader.NetStandard" Version="1.1.0" />
     <PackageReference Include="SkiaSharp" Version="2.88.3" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.3" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
   
