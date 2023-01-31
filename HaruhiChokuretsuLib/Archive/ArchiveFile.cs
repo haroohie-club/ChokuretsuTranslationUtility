@@ -14,9 +14,9 @@ namespace HaruhiChokuretsuLib.Archive
 
         public string FileName { get; set; }
         public int NumFiles { get; set; }
-        public int MagicIntegerMsbMultiplier { get; set; }
+        public int FileSpacing { get; set; }
         public int MagicIntegerLsbMultiplier { get; set; }
-        public int MagicIntegerLsbAnd { get; set; }
+        public int MagicIntegerLsbMask { get; set; }
         public int MagicIntegerMsbShift { get; set; }
         public int FileNamesLength { get; set; }
         public uint Unknown1 { get; set; }
@@ -41,17 +41,17 @@ namespace HaruhiChokuretsuLib.Archive
             // Convert the main header components
             NumFiles = BitConverter.ToInt32(archiveBytes.Take(4).ToArray());
 
-            MagicIntegerMsbMultiplier = BitConverter.ToInt32(archiveBytes.Skip(0x04).Take(4).ToArray());
+            FileSpacing = BitConverter.ToInt32(archiveBytes.Skip(0x04).Take(4).ToArray());
             MagicIntegerLsbMultiplier = BitConverter.ToInt32(archiveBytes.Skip(0x08).Take(4).ToArray());
 
-            MagicIntegerLsbAnd = BitConverter.ToInt32(archiveBytes.Skip(0x10).Take(4).ToArray());
+            MagicIntegerLsbMask = BitConverter.ToInt32(archiveBytes.Skip(0x10).Take(4).ToArray());
             MagicIntegerMsbShift = BitConverter.ToInt32(archiveBytes.Skip(0x0C).Take(4).ToArray());
 
             Unknown1 = BitConverter.ToUInt32(archiveBytes.Skip(0x14).Take(4).ToArray());
             Unknown2 = BitConverter.ToUInt32(archiveBytes.Skip(0x18).Take(4).ToArray());
 
             // Grab all the magic integers
-            for (int i = 0; i <= MagicIntegerLsbAnd; i++)
+            for (int i = 0; i <= MagicIntegerLsbMask; i++)
             {
                 int length = GetFileLength((uint)i);
                 if (!LengthToMagicIntegerMap.ContainsKey(length))
@@ -132,13 +132,13 @@ namespace HaruhiChokuretsuLib.Archive
 
         public int GetFileOffset(uint magicInteger)
         {
-            return (int)((magicInteger >> MagicIntegerMsbShift) * MagicIntegerMsbMultiplier);
+            return (int)((magicInteger >> MagicIntegerMsbShift) * FileSpacing);
         }
 
         public int GetFileLength(uint magicInteger)
         {
             // absolutely unhinged routine
-            int magicLengthInt = 0x7FF + (int)((magicInteger & (uint)MagicIntegerLsbAnd) * (uint)MagicIntegerLsbMultiplier);
+            int magicLengthInt = 0x7FF + (int)((magicInteger & (uint)MagicIntegerLsbMask) * (uint)MagicIntegerLsbMultiplier);
             int standardLengthIncrement = 0x800;
             if (magicLengthInt < standardLengthIncrement)
             {
@@ -200,7 +200,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         public uint GetNewMagicInteger(T file, int compressedLength)
         {
-            uint offsetComponent = (uint)(file.Offset / MagicIntegerMsbMultiplier) << MagicIntegerMsbShift;
+            uint offsetComponent = (uint)(file.Offset / FileSpacing) << MagicIntegerMsbShift;
             int newLength = (compressedLength + 0x7FF) & ~0x7FF; // round to nearest 0x800
             int newLengthComponent = LengthToMagicIntegerMap[newLength];
 
@@ -237,10 +237,10 @@ namespace HaruhiChokuretsuLib.Archive
             List<byte> bytes = new();
 
             bytes.AddRange(BitConverter.GetBytes(NumFiles));
-            bytes.AddRange(BitConverter.GetBytes(MagicIntegerMsbMultiplier));
+            bytes.AddRange(BitConverter.GetBytes(FileSpacing));
             bytes.AddRange(BitConverter.GetBytes(MagicIntegerLsbMultiplier));
             bytes.AddRange(BitConverter.GetBytes(MagicIntegerMsbShift));
-            bytes.AddRange(BitConverter.GetBytes(MagicIntegerLsbAnd));
+            bytes.AddRange(BitConverter.GetBytes(MagicIntegerLsbMask));
             bytes.AddRange(BitConverter.GetBytes(Unknown1));
             bytes.AddRange(BitConverter.GetBytes(Unknown2));
 
@@ -310,12 +310,12 @@ namespace HaruhiChokuretsuLib.Archive
                     // the next file’s offset, that means we need to adjust the next file’s offset
                     if (bytes.Count > Files[i + 1].Offset)
                     {
-                        pointerShift = ((bytes.Count - Files[i + 1].Offset) / MagicIntegerMsbMultiplier) + 1;
+                        pointerShift = ((bytes.Count - Files[i + 1].Offset) / FileSpacing) + 1;
                     }
                     if (pointerShift > 0)
                     {
                         // Calculate the new magic integer factoring in pointer shift
-                        Files[i + 1].Offset = ((Files[i + 1].Offset / MagicIntegerMsbMultiplier) + pointerShift) * MagicIntegerMsbMultiplier;
+                        Files[i + 1].Offset = ((Files[i + 1].Offset / FileSpacing) + pointerShift) * FileSpacing;
                         int magicIntegerOffset = FirstMagicIntegerOffset + (i + 1) * 4;
                         uint newMagicInteger = GetNewMagicInteger(Files[i + 1], Files[i + 1].Length);
                         Files[i + 1].MagicInteger = newMagicInteger;
