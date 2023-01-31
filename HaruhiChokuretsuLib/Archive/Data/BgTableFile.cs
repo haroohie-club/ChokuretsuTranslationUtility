@@ -7,7 +7,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
 {
     public enum BgType
     { 
-        KINETIC_VECTOR = 0,
+        KINETIC_SCREEN = 0,
         TEX_TOP_BOTTOM = 1,
         TEX_TOP_BOTTOM_0A = 0x0A,
         TEX_BOTTOM_TILE_TOP = 0x0B,
@@ -43,7 +43,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         {
             HashSet<string> names = new();
             string source = ".include \"GRPBIN.INC\"\n\n";
-            source += $".set {nameof(BgType.KINETIC_VECTOR)}, {(int)BgType.KINETIC_VECTOR}\n";
+            source += $".set {nameof(BgType.KINETIC_SCREEN)}, {(int)BgType.KINETIC_SCREEN}\n";
             source += $".set {nameof(BgType.TEX_TOP_BOTTOM)}, {(int)BgType.TEX_TOP_BOTTOM}\n";
             source += $".set {nameof(BgType.TEX_TOP_BOTTOM_0A)}, {(int)BgType.TEX_TOP_BOTTOM_0A}\n";
             source += $".set {nameof(BgType.TEX_BOTTOM_TILE_TOP)}, {(int)BgType.TEX_BOTTOM_TILE_TOP}\n";
