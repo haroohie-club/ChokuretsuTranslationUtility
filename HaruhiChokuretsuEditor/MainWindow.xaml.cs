@@ -859,7 +859,10 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown16)}: {puzzle.Settings.Unknown16}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown17)}: {puzzle.Settings.Unknown17}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown18)}: {puzzle.Settings.Unknown18}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = puzzle.HaruhiRoute.ToString() });
+                    foreach (PuzzleHaruhiRoute haruhiRoute in puzzle.HaruhiRoutes)
+                    {
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = haruhiRoute.ToString() });
+                    }
                     GraphicsFile singularityLayout = _grpFile.Files.First(f => f.Index == puzzle.Settings.SingularityLayout);
                     GraphicsFile singularityTexture = _grpFile.Files.First(f => f.Index == puzzle.Settings.SingularityTexture);
                     SKBitmap singularityImage = singularityLayout.GetLayout(

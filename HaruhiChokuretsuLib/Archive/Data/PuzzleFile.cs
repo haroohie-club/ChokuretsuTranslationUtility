@@ -8,13 +8,10 @@ namespace HaruhiChokuretsuLib.Archive.Data
 {
     public class PuzzleFile : DataFile
     {
-        public int NumSections { get; set; }
-        public int EndPointersOffset { get; set; }
-        public int HeaderEndPointer { get; set; }
         public List<(int Offset, int ItemCount)> SectionOffsetsAndCounts { get; set; } = new();
 
         public List<(int Topic, int Unknown)> AssociatedTopics { get; set; } = new();
-        public PuzzleHaruhiRoute HaruhiRoute { get; set; }
+        public List<PuzzleHaruhiRoute> HaruhiRoutes { get; set; } = new();
         public PuzzleSettings Settings { get; set; }
 
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
@@ -23,21 +20,37 @@ namespace HaruhiChokuretsuLib.Archive.Data
             Offset = offset;
             Data = decompressedData.ToList();
 
-            NumSections = BitConverter.ToInt32(Data.Take(4).ToArray());
-            EndPointersOffset = BitConverter.ToInt32(Data.Skip(0x04).Take(4).ToArray());
-            HeaderEndPointer = BitConverter.ToInt32(Data.Skip(0x08).Take(4).ToArray());
-            for (int i = 0x0C; i < HeaderEndPointer; i += 0x08)
+            int numSections = IO.ReadInt(decompressedData, 0x00);
+            if (numSections != 13)
             {
-                SectionOffsetsAndCounts.Add((BitConverter.ToInt32(Data.Skip(i).Take(4).ToArray()), BitConverter.ToInt32(Data.Skip(i + 4).Take(4).ToArray())));
+                _log.LogError($"Detected more than 13 sections in a puzzle file ({numSections} detected)");
+                return;
+            }
+            int fileStart = IO.ReadInt(decompressedData, 0x08);
+            for (int i = 0x0C; i < fileStart; i += 0x08)
+            {
+                SectionOffsetsAndCounts.Add((IO.ReadInt(decompressedData, i), IO.ReadInt(decompressedData, i + 4)));
             }
 
             Settings = new(Data.Skip(SectionOffsetsAndCounts[0].Offset).Take(0x48));
-            HaruhiRoute = new(Data.Skip(SectionOffsetsAndCounts[3].Offset).Take(SectionOffsetsAndCounts[3].ItemCount * 2).ToArray());
+            for (int i = 1; i < 11; i++)
+            {
+                HaruhiRoutes.Add(new(Data.Skip(SectionOffsetsAndCounts[i].Offset).Take(SectionOffsetsAndCounts[i].ItemCount * 2).ToArray()));
+            }
             for (int i = 0; i < SectionOffsetsAndCounts[12].ItemCount; i++)
             {
                 AssociatedTopics.Add((BitConverter.ToInt32(Data.Skip(SectionOffsetsAndCounts[12].Offset + i * 8).Take(4).ToArray()),
                     BitConverter.ToInt32(Data.Skip(SectionOffsetsAndCounts[12].Offset + i * 8 + 4).Take(4).ToArray())));
             }
+        }
+
+        public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
+        {
+            StringBuilder sb = new();
+
+            sb.AppendLine("N")
+
+            return sb.ToString();
         }
     }
 
