@@ -858,7 +858,7 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown15)}: {puzzle.Settings.Unknown15}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown16)}: {puzzle.Settings.Unknown16}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown17)}: {puzzle.Settings.Unknown17}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown18)}: {puzzle.Settings.Unknown18}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.PointersSectionOffset)}: {puzzle.Settings.PointersSectionOffset}" });
                     foreach (PuzzleHaruhiRoute haruhiRoute in puzzle.HaruhiRoutes)
                     {
                         dataEditStackPanel.Children.Add(new TextBlock { Text = haruhiRoute.ToString() });

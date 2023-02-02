@@ -19,7 +19,7 @@ namespace HaruhiChokuretsuTests
     {
         private ConsoleLogger _log = new();
 
-        private static string[] _mapFileNames = new string[]
+        private static readonly string[] _mapFileNames = new string[]
         {
             "BUND0S",
             "BUNN0S",
@@ -53,6 +53,20 @@ namespace HaruhiChokuretsuTests
             "AKID0S",
             "XTRD0S",
             "SL8D0S",
+        };
+
+        private static readonly string[] _puzzleFileNames = new string[]
+        {
+            "SLG01S",
+            "SLG10S",
+            "SLG11S",
+            "SLG20S",
+            "SLG30S",
+            "SLG40S",
+            "SLG50S",
+            "SLG60S",
+            "SLG70S",
+            "SLG80S",
         };
 
         private static int[] GetEvtFileIndices()
@@ -125,7 +139,7 @@ namespace HaruhiChokuretsuTests
         }
 
         [Test]
-        [TestCaseSource("_mapFileNames")]
+        [TestCaseSource(nameof(_mapFileNames))]
         [Parallelizable(ParallelScope.All)]
         public async Task MapSourceTest(string mapFileName)
         {
@@ -144,7 +158,26 @@ namespace HaruhiChokuretsuTests
         }
 
         [Test]
-        [TestCaseSource("GetEvtFileIndices")]
+        [TestCaseSource(nameof(_puzzleFileNames))]
+        [Parallelizable(ParallelScope.All)]
+        public async Task PuzzleSourceTest(string puzzleFileName)
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            PuzzleFile puzzleFile = dat.Files.First(f => f.Name == puzzleFileName).CastTo<PuzzleFile>();
+
+            byte[] newBytes = await CompileFromSource(puzzleFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            Assert.AreEqual(puzzleFile.Data, newBytesList);
+        }
+
+        [Test]
+        [TestCaseSource(nameof(GetEvtFileIndices))]
         [Parallelizable(ParallelScope.All)]
         public async Task EvtSourceTest(int evtFileIndex)
         {

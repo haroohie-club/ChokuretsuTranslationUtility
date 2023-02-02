@@ -153,6 +153,10 @@ namespace HaruhiChokuretsuCLI
                     {
                         file = file.CastTo<MapFile>();
                     }
+                    else if (file.Name.StartsWith("SLG"))
+                    {
+                        file = file.CastTo<PuzzleFile>();
+                    }
                     else
                     {
                         switch (file.Name)

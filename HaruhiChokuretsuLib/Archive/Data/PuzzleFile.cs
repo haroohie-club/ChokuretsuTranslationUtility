@@ -39,16 +39,103 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
             for (int i = 0; i < SectionOffsetsAndCounts[12].ItemCount; i++)
             {
-                AssociatedTopics.Add((BitConverter.ToInt32(Data.Skip(SectionOffsetsAndCounts[12].Offset + i * 8).Take(4).ToArray()),
-                    BitConverter.ToInt32(Data.Skip(SectionOffsetsAndCounts[12].Offset + i * 8 + 4).Take(4).ToArray())));
+                AssociatedTopics.Add((IO.ReadInt(Data, SectionOffsetsAndCounts[12].Offset + i * 8), IO.ReadInt(Data, SectionOffsetsAndCounts[12].Offset + i * 8 + 4)));
             }
         }
 
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
+            if (!includes.ContainsKey("GRPBIN"))
+            {
+                _log.LogError("Includes needs GRPBIN to be present.");
+                return null;
+            }
+
             StringBuilder sb = new();
 
-            sb.AppendLine("N")
+            sb.AppendLine(".set KYON, 1");
+            sb.AppendLine(".set HARUHI, 2");
+            sb.AppendLine(".set MIKURU, 3");
+            sb.AppendLine(".set NAGATO, 4");
+            sb.AppendLine(".set KOIZUMI, 5");
+            sb.AppendLine(".set ANY, 22");
+            sb.AppendLine(".include \"GRPBIN.INC\"");
+            sb.AppendLine();
+
+            sb.AppendLine(".word 13");
+            sb.AppendLine(".word END_POINTERS");
+            sb.AppendLine(".word FILE_START");
+            sb.AppendLine(".word PUZZLE_SETTINGS");
+            sb.AppendLine(".word 1");
+            for (int i = 0; i < HaruhiRoutes.Count; i++)
+            {
+                sb.AppendLine($".word HARUHI_ROUTE{i:D2}");
+                sb.AppendLine($".word {HaruhiRoutes[i].HaruhiRoute.Count}");
+            }
+            sb.AppendLine(".word POINTERS");
+            sb.AppendLine(".word 1");
+            sb.AppendLine(".word MAIN_TOPICS");
+            sb.AppendLine($".word {AssociatedTopics.Count}");
+            sb.AppendLine();
+
+            sb.AppendLine("FILE_START:");
+            sb.AppendLine("MAIN_TOPICS:");
+
+            foreach (var mainTopic in AssociatedTopics)
+            {
+                sb.AppendLine($"   .word {mainTopic.Topic}");
+                sb.AppendLine($"   .word {mainTopic.Unknown}");
+            }
+            sb.AppendLine();
+
+            for (int i = 0; i < HaruhiRoutes.Count; i++)
+            {
+                sb.AppendLine($"HARUHI_ROUTE{i:D2}:");
+                foreach (PuzzleHaruhiRoute.RouteEvent routeEvent in HaruhiRoutes[i].HaruhiRoute)
+                {
+                    sb.AppendLine($"   .byte {(byte)routeEvent.EventType}");
+                    sb.AppendLine($"   .byte {routeEvent.AssociatedTopicIndex}");
+                }
+                sb.AppendLine(".skip 2");
+            }
+            sb.AppendLine();
+
+            sb.AppendLine("POINTERS:");
+            int numPointers = 0;
+            sb.AppendLine($"   POINTER{numPointers++}: .word MAIN_TOPICS");
+            for (int i = 0; i < HaruhiRoutes.Count; i++)
+            {
+                sb.AppendLine($"   POINTER{numPointers++}: .word HARUHI_ROUTE{i:D2}");
+            }
+            sb.AppendLine();
+
+            sb.AppendLine("PUZZLE_SETTINGS:");
+            sb.AppendLine($"   .word {Settings.MapId}");
+            sb.AppendLine($"   .word {Settings.BaseTime}");
+            sb.AppendLine($"   .word {Settings.NumSingularities}");
+            sb.AppendLine($"   .word {Settings.Unknown04}");
+            sb.AppendLine($"   .word {Settings.TargetNumber}");
+            sb.AppendLine($"   .word {(Settings.ContinueOnFailure ? 1 : 0)}");
+            sb.AppendLine($"   .word {(Settings.AccompanyingCharacter.StartsWith("UNKNOWN") ? Settings.AccompanyingCharacter[(Settings.AccompanyingCharacter.IndexOf('(') + 1)..(Settings.AccompanyingCharacter.LastIndexOf(')'))] : Settings.AccompanyingCharacter)}");
+            sb.AppendLine($"   .word {(Settings.PowerCharacter1.StartsWith("UNKNOWN") ? Settings.AccompanyingCharacter[(Settings.PowerCharacter1.IndexOf('(') + 1)..(Settings.PowerCharacter1.LastIndexOf(')'))] : Settings.PowerCharacter1)}");
+            sb.AppendLine($"   .word {(Settings.PowerCharacter2.StartsWith("UNKNOWN") ? Settings.AccompanyingCharacter[(Settings.PowerCharacter2.IndexOf('(') + 1)..(Settings.PowerCharacter1.LastIndexOf(')'))] : Settings.PowerCharacter2)}");
+            sb.AppendLine($"   .word {includes["GRPBIN"].First(i => i.Value == Settings.SingularityTexture).Name}");
+            sb.AppendLine($"   .word {includes["GRPBIN"].First(i => i.Value == Settings.SingularityLayout).Name}");
+            sb.AppendLine($"   .word {(Settings.SingularityAnim1 - 1 > 0 ? includes["GRPBIN"].First(i => i.Value == Settings.SingularityAnim1).Name : 0)}");
+            sb.AppendLine($"   .word {(Settings.SingularityAnim2 - 1 > 0 ? includes["GRPBIN"].First(i => i.Value == Settings.SingularityAnim2).Name : 0)}");
+            sb.AppendLine($"   .word {Settings.TopicSet}");
+            sb.AppendLine($"   .word {Settings.Unknown15}");
+            sb.AppendLine($"   .word {Settings.Unknown16}");
+            sb.AppendLine($"   .word {Settings.Unknown17}");
+            sb.AppendLine($"   POINTER{numPointers++}: .word POINTERS");
+            sb.AppendLine();
+
+            sb.AppendLine("END_POINTERS:");
+            sb.AppendLine($".word {numPointers}");
+            for (int i = 0; i < numPointers; i++)
+            {
+                sb.AppendLine($"   .word POINTER{i}");
+            }
 
             return sb.ToString();
         }
@@ -56,7 +143,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
     public class PuzzleHaruhiRoute
     {
-        public enum RouteEventType
+        public enum RouteEventType : byte
         {
             NOTHING,
             TOPIC,
@@ -66,7 +153,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public struct RouteEvent
         {
             public RouteEventType EventType;
-            public int AssociatedTopicIndex;
+            public byte AssociatedTopicIndex;
         }
 
         public List<RouteEvent> HaruhiRoute { get; set; } = new();
@@ -122,28 +209,28 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public int Unknown15 { get; set; }
         public int Unknown16 { get; set; }
         public int Unknown17 { get; set; }
-        public int Unknown18 { get; set; }
+        public int PointersSectionOffset { get; set; }
 
         public PuzzleSettings(IEnumerable<byte> data)
         {
-            MapId = BitConverter.ToInt32(data.Take(4).ToArray());
-            BaseTime = BitConverter.ToInt32(data.Skip(0x04).Take(4).ToArray());
-            NumSingularities = BitConverter.ToInt32(data.Skip(0x08).Take(4).ToArray());
-            Unknown04 = BitConverter.ToInt32(data.Skip(0x0C).Take(4).ToArray());
-            TargetNumber = BitConverter.ToInt32(data.Skip(0x10).Take(4).ToArray());
-            ContinueOnFailure = BitConverter.ToInt32(data.Skip(0x14).Take(4).ToArray()) > 0;
-            AccompanyingCharacter = CharacterSwitch(BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray()));
-            PowerCharacter1 = CharacterSwitch(BitConverter.ToInt32(data.Skip(0x1C).Take(4).ToArray()));
-            PowerCharacter2 = CharacterSwitch(BitConverter.ToInt32(data.Skip(0x20).Take(4).ToArray()));
-            SingularityTexture = BitConverter.ToInt32(data.Skip(0x24).Take(4).ToArray());
-            SingularityLayout = BitConverter.ToInt32(data.Skip(0x28).Take(4).ToArray());
-            SingularityAnim1 = BitConverter.ToInt32(data.Skip(0x2C).Take(4).ToArray());
-            SingularityAnim2 = BitConverter.ToInt32(data.Skip(0x30).Take(4).ToArray());
-            TopicSet = BitConverter.ToInt32(data.Skip(0x34).Take(4).ToArray());
-            Unknown15 = BitConverter.ToInt32(data.Skip(0x38).Take(4).ToArray());
-            Unknown16 = BitConverter.ToInt32(data.Skip(0x3C).Take(4).ToArray());
-            Unknown17 = BitConverter.ToInt32(data.Skip(0x40).Take(4).ToArray());
-            Unknown18 = BitConverter.ToInt32(data.Skip(0x44).Take(4).ToArray());
+            MapId = IO.ReadInt(data, 0);
+            BaseTime = IO.ReadInt(data, 0x04);
+            NumSingularities = IO.ReadInt(data, 0x08);
+            Unknown04 = IO.ReadInt(data, 0x0C);
+            TargetNumber = IO.ReadInt(data, 0x10);
+            ContinueOnFailure = IO.ReadInt(data, 0x14) > 0;
+            AccompanyingCharacter = CharacterSwitch(IO.ReadInt(data, 0x18));
+            PowerCharacter1 = CharacterSwitch(IO.ReadInt(data, 0x1C));
+            PowerCharacter2 = CharacterSwitch(IO.ReadInt(data, 0x20));
+            SingularityTexture = IO.ReadInt(data, 0x24);
+            SingularityLayout = IO.ReadInt(data, 0x28);
+            SingularityAnim1 = IO.ReadInt(data, 0x2C);
+            SingularityAnim2 = IO.ReadInt(data, 0x30);
+            TopicSet = IO.ReadInt(data, 0x34);
+            Unknown15 = IO.ReadInt(data, 0x38);
+            Unknown16 = IO.ReadInt(data, 0x3C);
+            Unknown17 = IO.ReadInt(data, 0x40);
+            PointersSectionOffset = IO.ReadInt(data, 0x44);
         }
 
         public string GetMapName(List<byte> qmapData)
