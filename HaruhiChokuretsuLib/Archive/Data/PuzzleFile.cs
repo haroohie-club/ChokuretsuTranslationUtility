@@ -81,10 +81,10 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine("FILE_START:");
             sb.AppendLine("MAIN_TOPICS:");
 
-            foreach (var mainTopic in AssociatedTopics)
+            foreach (var (topic, unknown) in AssociatedTopics)
             {
-                sb.AppendLine($"   .word {mainTopic.Topic}");
-                sb.AppendLine($"   .word {mainTopic.Unknown}");
+                sb.AppendLine($"   .word {topic}");
+                sb.AppendLine($"   .word {unknown}");
             }
             sb.AppendLine();
 

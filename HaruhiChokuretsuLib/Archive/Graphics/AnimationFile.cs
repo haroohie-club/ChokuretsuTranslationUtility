@@ -24,12 +24,14 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             {
                 foreach (FrameAnimationEntry animationEntry in AnimationEntries.Cast<FrameAnimationEntry>())
                 {
-                    GraphicsFile frame = new();
-                    frame.FileFunction = Function.SHTX;
-                    frame.ImageForm = Form.TEXTURE;
-                    frame.ImageTileForm = TileForm.GBA_8BPP;
-                    frame._log = _log;
-                    frame.Palette = texture.Palette;
+                    GraphicsFile frame = new()
+                    {
+                        FileFunction = Function.SHTX,
+                        ImageForm = Form.TEXTURE,
+                        ImageTileForm = TileForm.GBA_8BPP,
+                        _log = _log,
+                        Palette = texture.Palette
+                    };
                     if (frame.Palette.Count > 0)
                     {
                         frame.Palette[0] = SKColors.Transparent;
