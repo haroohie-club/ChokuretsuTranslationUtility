@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using static System.Collections.Specialized.BitVector32;
 
 namespace HaruhiChokuretsuCLI
 {

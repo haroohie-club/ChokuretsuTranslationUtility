@@ -414,11 +414,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "CONDITIONALS";
 
-                    ConditionalSection conditionalSection = new();
-                    conditionalSection.Initialize(Data,
+                    ConditionalsSection = new();
+                    ConditionalsSection.Initialize(Data,
                         SectionPointersAndCounts[conditionalSectionIndex].ItemCount,
                         name, log, SectionPointersAndCounts[conditionalSectionIndex].Pointer);
-                    SectionPointersAndCounts[conditionalSectionIndex].Section = conditionalSection.GetGeneric();
+                    SectionPointersAndCounts[conditionalSectionIndex].Section = ConditionalsSection.GetGeneric();
                 }
 
                 int scriptSectionDefinitionsSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.ScriptSectionDefinitionsSectionPointer);
