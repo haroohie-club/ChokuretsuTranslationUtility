@@ -87,7 +87,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x38, "NOOP3", Array.Empty<string>()),
             new(0x39, "CONFETTI", new string[] { "on" }),
             new(0x3A, "BG_DISPTEMP", new string[] { "bgIndex", "unknown1" }),
-            new(0x3B, "UNKNOWN3B", Array.Empty<string>()),
+            new(0x3B, "BG_SCROLL", Array.Empty<string>()),
             new(0x3C, "OP_MODE", Array.Empty<string>()),
             new(0x3D, "WAIT_CANCEL", new string[] { "frames" }),
             new(0x3E, "BG_REVERT", Array.Empty<string>()),
