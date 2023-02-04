@@ -112,7 +112,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (conversionType == typeof(LabelsSection))
             {
-                return new LabelsSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (FlagsSectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
+                return new LabelsSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (LabelsSectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
             }
             else if (conversionType == typeof(DramatisPersonaeSection))
             {
@@ -995,13 +995,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public class LabelsSection : IEventSection<FlagsSectionEntry>
+    public class LabelsSection : IEventSection<LabelsSectionEntry>
     {
         public string Name { get; set; }
         public List<byte> Data { get; set; }
         public int NumObjects { get; set; }
         public int ObjectLength { get; set; }
-        public List<FlagsSectionEntry> Objects { get; set; } = new();
+        public List<LabelsSectionEntry> Objects { get; set; } = new();
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
@@ -1011,7 +1011,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Data = data.ToList();
             NumObjects = numObjects;
             SectionType = typeof(LabelsSection);
-            ObjectType = typeof(FlagsSectionEntry);
+            ObjectType = typeof(LabelsSectionEntry);
 
             for (int i = 0; i < NumObjects; i++)
             {
@@ -1060,7 +1060,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct FlagsSectionEntry
+    public struct LabelsSectionEntry
     {
         public short Id { get; set; }
         public string Name { get; set; }

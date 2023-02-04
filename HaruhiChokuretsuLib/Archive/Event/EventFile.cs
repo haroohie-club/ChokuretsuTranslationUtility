@@ -24,75 +24,149 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public EventFileSettings Settings { get; set; }
         public Dictionary<int, string> DramatisPersonae { get; set; } = new();
         public List<DialogueLine> DialogueLines { get; set; } = new();
+
+        public ChoicesSection ChoicesSection { get; set; }
+        public StartingChibisSection StartingChibisSection { get; set; }
+        public MapCharactersSection MapCharactersSection { get; set; }
+        public LabelsSection LabelsSection { get; set; }
+        public ConditionalSection ConditionalsSection { get; set; }
         public List<ScriptSection> ScriptSections { get; private set; } = new();
 
         public static List<ScriptCommand> CommandsAvailable { get; set; } = new()
         {
-            new(0x00, "INIT_READ_FLAG", Array.Empty<string>()),
-            new(0x01, "DIALOGUE", new string[] { "dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition", "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed", "unknown8", "unknown9", "unknown10", "unknown11" }),
-            new(0x02, "KBG_DISP", new string[] { "kbgIndex" }),
-            new(0x03, "PIN_MNL", new string[] { "dialogueIndex" }),
-            new(0x04, "BG_DISP", new string[] { "bgIndex" }),
-            new(0x05, "SCREEN_FADEIN", new string[] { "timeToFade", "unused", "fadeLocation", "fadeColor" }),
-            new(0x06, "SCREEN_FADEOUT", new string[] { "timeToFade", "unknown1", "fadeColorRed", "fadeColorGreen", "fadeColorBlue", "fadeLocation", "unknown6" }),
-            new(0x07, "SCREEN_FLASH", new string[] { "fadeInTime", "holdTime", "fadeOutTime", "flashColorRed", "flashColorGreen", "flashColorBlue" }),
-            new(0x08, "SND_PLAY", new string[] { "soundIndex", "mode", "volume", "crossfadeDupe", "crossfadeTime" }),
-            new(0x09, "REMOVED", Array.Empty<string>()),
-            new(0x0A, "UNKNOWN0A", Array.Empty<string>()),
-            new(0x0B, "BGM_PLAY", new string[] { "bgmIndex", "mode", "volume", "fadeInTime", "fadeOutTime" }),
-            new(0x0C, "VCE_PLAY", new string[] { "vceIndex" }),
-            new(0x0D, "FLAG", new string[] { "flag", "set" }),
-            new(0x0E, "TOPIC_GET", new string[] { "topicId" }),
-            new(0x0F, "TOGGLE_DIALOGUE", new string[] { "show" }),
-            new(0x10, "SELECT", new string[] { "option1", "option2", "option3", "option4", "unknown04", "unknown05", "unknown06", "unknown07" }),
-            new(0x11, "SCREEN_SHAKE", new string[] { "duration", "horizontalIntensity", "verticalIntensity" }),
-            new(0x12, "SCREEN_SHAKE_STOP", Array.Empty<string>()),
-            new(0x13, "GOTO", new string[] { "blockId" }),
-            new(0x14, "SCENE_GOTO", new string[] { "conditionalIndex" }),
-            new(0x15, "WAIT", new string[] { "frames" }),
-            new(0x16, "HOLD", Array.Empty<string>()),
-            new(0x17, "NOOP1", Array.Empty<string>()),
-            new(0x18, "VGOTO", new string[] { "conditionalIndex", "unused", "gotoId" }),
-            new(0x19, "HARUHI_METER", new string[] { "unused", "addValue", "setValue" }),
-            new(0x1A, "HARUHI_METER_NOSHOW", new string[] { "addValue" }),
-            new(0x1B, "BG_PALEFFECT", new string[] { "paletteMode", "transitionTime", "unknownBool" }),
-            new(0x1C, "BG_FADE", new string[] { "bgIndex", "bgIndexSuper", "fadeTime" }),
-            new(0x1D, "TRANS_OUT", new string[] { "index" }),
-            new(0x1E, "TRANS_IN", new string[] { "index" }),
-            new(0x1F, "SET_PLACE", new string[] { "display", "placeIndex" }),
-            new(0x20, "ITEM_DISPIMG", new string[] { "itemIndex", "x", "y" }),
-            new(0x21, "SET_READ_FLAG", Array.Empty<string>()),
-            new(0x22, "STOP", Array.Empty<string>()),
-            new(0x23, "NOOP2", Array.Empty<string>()),
-            new(0x24, "LOAD_ISOMAP", new string[] { "mapFileIndex" }),
-            new(0x25, "INVEST_START", new string[] { "unknown00", "unknown01", "unknown02", "unknown03", "endScriptBlock" }),
-            new(0x26, "INVEST_END", Array.Empty<string>()),
-            new(0x27, "CHIBI_EMOTE", new string[] { "chibiIndex", "emoteIndex" }),
-            new(0x28, "NEXT_SCENE", Array.Empty<string>()),
-            new(0x29, "SKIP_SCENE", new string[] { "scenesToSkip" }),
-            new(0x2A, "GLOBAL", new string[] { "globalIndex", "value" }),
-            new(0x2B, "CHIBI_ENTEREXIT", new string[] { "chibiIndex", "mode", "delay" }),
-            new(0x2C, "AVOID_DISP", Array.Empty<string>()),
-            new(0x2D, "GLOBAL2D", new string[] { "value" }),
-            new(0x2E, "CHESS_LOAD", new string[] { "chessFileIndex" }),
-            new(0x2F, "CHESS_VGOTO", new string[] { "clearBlock", "missBlock" , "miss2Block" }),
-            new(0x30, "CHESS_MOVE", new string[] { "whiteSpaceBegin", "whiteSpaceEnd", "blackSpaceBegin", "blackSpaceEnd" }),
-            new(0x31, "CHESS_TOGGLE_GUIDE", new string[] { "piece1", "piece2", "piece3", "piece4" }),
-            new(0x32, "CHESS_TOGGLE_HIGHLIGHT", new string[] { "space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16" }),
-            new(0x33, "CHESS_TOGGLE_CROSS", new string[] { "space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16" }),
-            new(0x34, "CHESS_CLEAR_ANNOTATIONS", Array.Empty<string>()),
-            new(0x35, "CHESS_RESET", Array.Empty<string>()),
-            new(0x36, "SCENE_GOTO2", new string[] { "conditionalIndex" }),
-            new(0x37, "EPHEADER", new string[] { "headerIndex" }),
-            new(0x38, "NOOP3", Array.Empty<string>()),
-            new(0x39, "CONFETTI", new string[] { "on" }),
-            new(0x3A, "BG_DISPTEMP", new string[] { "bgIndex", "unknown1" }),
-            new(0x3B, "BG_SCROLL", Array.Empty<string>()),
-            new(0x3C, "OP_MODE", Array.Empty<string>()),
-            new(0x3D, "WAIT_CANCEL", new string[] { "frames" }),
-            new(0x3E, "BG_REVERT", Array.Empty<string>()),
-            new(0x3F, "BG_DISP2", new string[] { "bgIndex" }),
+            new(0x00, nameof(CommandVerb.INIT_READ_FLAG), Array.Empty<string>()),
+            new(0x01, nameof(CommandVerb.DIALOGUE), new string[] { "dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition", "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed", "unknown8", "unknown9", "unknown10", "unknown11" }),
+            new(0x02, nameof(CommandVerb.KBG_DISP), new string[] { "kbgIndex" }),
+            new(0x03, nameof(CommandVerb.PIN_MNL), new string[] { "dialogueIndex" }),
+            new(0x04, nameof(CommandVerb.BG_DISP), new string[] { "bgIndex" }),
+            new(0x05, nameof(CommandVerb.SCREEN_FADEIN), new string[] { "timeToFade", "unused", "fadeLocation", "fadeColor" }),
+            new(0x06, nameof(CommandVerb.SCREEN_FADEOUT), new string[] { "timeToFade", "unknown1", "fadeColorRed", "fadeColorGreen", "fadeColorBlue", "fadeLocation", "unknown6" }),
+            new(0x07, nameof(CommandVerb.SCREEN_FLASH), new string[] { "fadeInTime", "holdTime", "fadeOutTime", "flashColorRed", "flashColorGreen", "flashColorBlue" }),
+            new(0x08, nameof(CommandVerb.SND_PLAY), new string[] { "soundIndex", "mode", "volume", "crossfadeDupe", "crossfadeTime" }),
+            new(0x09, nameof(CommandVerb.REMOVED), Array.Empty<string>()),
+            new(0x0A, nameof(CommandVerb.UNKNOWN0A), Array.Empty<string>()),
+            new(0x0B, nameof(CommandVerb.BGM_PLAY), new string[] { "bgmIndex", "mode", "volume", "fadeInTime", "fadeOutTime" }),
+            new(0x0C, nameof(CommandVerb.VCE_PLAY), new string[] { "vceIndex" }),
+            new(0x0D, nameof(CommandVerb.FLAG), new string[] { "flag", "set" }),
+            new(0x0E, nameof(CommandVerb.TOPIC_GET), new string[] { "topicId" }),
+            new(0x0F, nameof(CommandVerb.TOGGLE_DIALOGUE), new string[] { "show" }),
+            new(0x10, nameof(CommandVerb.SELECT), new string[] { "option1", "option2", "option3", "option4", "unknown04", "unknown05", "unknown06", "unknown07" }),
+            new(0x11, nameof(CommandVerb.SCREEN_SHAKE), new string[] { "duration", "horizontalIntensity", "verticalIntensity" }),
+            new(0x12, nameof(CommandVerb.SCREEN_SHAKE_STOP), Array.Empty<string>()),
+            new(0x13, nameof(CommandVerb.GOTO), new string[] { "blockId" }),
+            new(0x14, nameof(CommandVerb.SCENE_GOTO), new string[] { "conditionalIndex" }),
+            new(0x15, nameof(CommandVerb.WAIT), new string[] { "frames" }),
+            new(0x16, nameof(CommandVerb.HOLD), Array.Empty<string>()),
+            new(0x17, nameof(CommandVerb.NOOP1), Array.Empty<string>()),
+            new(0x18, nameof(CommandVerb.VGOTO), new string[] { "conditionalIndex", "unused", "gotoId" }),
+            new(0x19, nameof(CommandVerb.HARUHI_METER), new string[] { "unused", "addValue", "setValue" }),
+            new(0x1A, nameof(CommandVerb.HARUHI_METER_NOSHOW), new string[] { "addValue" }),
+            new(0x1B, nameof(CommandVerb.BG_PALEFFECT), new string[] { "paletteMode", "transitionTime", "unknownBool" }),
+            new(0x1C, nameof(CommandVerb.BG_FADE), new string[] { "bgIndex", "bgIndexSuper", "fadeTime" }),
+            new(0x1D, nameof(CommandVerb.TRANS_OUT), new string[] { "index" }),
+            new(0x1E, nameof(CommandVerb.TRANS_IN), new string[] { "index" }),
+            new(0x1F, nameof(CommandVerb.SET_PLACE), new string[] { "display", "placeIndex" }),
+            new(0x20, nameof(CommandVerb.ITEM_DISPIMG), new string[] { "itemIndex", "x", "y" }),
+            new(0x21, nameof(CommandVerb.SET_READ_FLAG), Array.Empty<string>()),
+            new(0x22, nameof(CommandVerb.STOP), Array.Empty<string>()),
+            new(0x23, nameof(CommandVerb.NOOP2), Array.Empty<string>()),
+            new(0x24, nameof(CommandVerb.LOAD_ISOMAP), new string[] { "mapFileIndex" }),
+            new(0x25, nameof(CommandVerb.INVEST_START), new string[] { "unknown00", "unknown01", "unknown02", "unknown03", "endScriptBlock" }),
+            new(0x26, nameof(CommandVerb.INVEST_END), Array.Empty<string>()),
+            new(0x27, nameof(CommandVerb.CHIBI_EMOTE), new string[] { "chibiIndex", "emoteIndex" }),
+            new(0x28, nameof(CommandVerb.NEXT_SCENE), Array.Empty<string>()),
+            new(0x29, nameof(CommandVerb.SKIP_SCENE), new string[] { "scenesToSkip" }),
+            new(0x2A, nameof(CommandVerb.GLOBAL), new string[] { "globalIndex", "value" }),
+            new(0x2B, nameof(CommandVerb.CHIBI_ENTEREXIT), new string[] { "chibiIndex", "mode", "delay" }),
+            new(0x2C, nameof(CommandVerb.AVOID_DISP), Array.Empty<string>()),
+            new(0x2D, nameof(CommandVerb.GLOBAL2D), new string[] { "value" }),
+            new(0x2E, nameof(CommandVerb.CHESS_LOAD), new string[] { "chessFileIndex" }),
+            new(0x2F, nameof(CommandVerb.CHESS_VGOTO), new string[] { "clearBlock", "missBlock" , "miss2Block" }),
+            new(0x30, nameof(CommandVerb.CHESS_MOVE), new string[] { "whiteSpaceBegin", "whiteSpaceEnd", "blackSpaceBegin", "blackSpaceEnd" }),
+            new(0x31, nameof(CommandVerb.CHESS_TOGGLE_GUIDE), new string[] { "piece1", "piece2", "piece3", "piece4" }),
+            new(0x32, nameof(CommandVerb.CHESS_TOGGLE_HIGHLIGHT), new string[] { "space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16" }),
+            new(0x33, nameof(CommandVerb.CHESS_TOGGLE_CROSS), new string[] { "space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16" }),
+            new(0x34, nameof(CommandVerb.CHESS_CLEAR_ANNOTATIONS), Array.Empty<string>()),
+            new(0x35, nameof(CommandVerb.CHESS_RESET), Array.Empty<string>()),
+            new(0x36, nameof(CommandVerb.SCENE_GOTO2), new string[] { "conditionalIndex" }),
+            new(0x37, nameof(CommandVerb.EPHEADER), new string[] { "headerIndex" }),
+            new(0x38, nameof(CommandVerb.NOOP3), Array.Empty<string>()),
+            new(0x39, nameof(CommandVerb.CONFETTI), new string[] { "on" }),
+            new(0x3A, nameof(CommandVerb.BG_DISPTEMP), new string[] { "bgIndex", "unknown1" }),
+            new(0x3B, nameof(CommandVerb.BG_SCROLL), Array.Empty<string>()),
+            new(0x3C, nameof(CommandVerb.OP_MODE), Array.Empty<string>()),
+            new(0x3D, nameof(CommandVerb.WAIT_CANCEL), new string[] { "frames" }),
+            new(0x3E, nameof(CommandVerb.BG_REVERT), Array.Empty<string>()),
+            new(0x3F, nameof(CommandVerb.BG_DISP2), new string[] { "bgIndex" }),
         };
+
+        public enum CommandVerb
+        {
+            INIT_READ_FLAG,
+            DIALOGUE,
+            KBG_DISP,
+            PIN_MNL,
+            BG_DISP,
+            SCREEN_FADEIN,
+            SCREEN_FADEOUT,
+            SCREEN_FLASH,
+            SND_PLAY,
+            REMOVED,
+            UNKNOWN0A,
+            BGM_PLAY,
+            VCE_PLAY,
+            FLAG,
+            TOPIC_GET,
+            TOGGLE_DIALOGUE,
+            SELECT,
+            SCREEN_SHAKE,
+            SCREEN_SHAKE_STOP,
+            GOTO,
+            SCENE_GOTO,
+            WAIT,
+            HOLD,
+            NOOP1,
+            VGOTO,
+            HARUHI_METER,
+            HARUHI_METER_NOSHOW,
+            BG_PALEFFECT,
+            BG_FADE,
+            TRANS_OUT,
+            TRANS_IN,
+            SET_PLACE,
+            ITEM_DISPIMG,
+            SET_READ_FLAG,
+            STOP,
+            NOOP2,
+            LOAD_ISOMAP,
+            INVEST_START,
+            INVEST_END,
+            CHIBI_EMOTE,
+            NEXT_SCENE,
+            SKIP_SCENE,
+            GLOBAL,
+            CHIBI_ENTEREXIT,
+            AVOID_DISP,
+            GLOBAL2D,
+            CHESS_LOAD,
+            CHESS_VGOTO,
+            CHESS_MOVE,
+            CHESS_TOGGLE_GUIDE,
+            CHESS_TOGGLE_HIGHLIGHT,
+            CHESS_TOGGLE_CROSS,
+            CHESS_CLEAR_ANNOTATIONS,
+            CHESS_RESET,
+            SCENE_GOTO2,
+            EPHEADER,
+            NOOP3,
+            CONFETTI,
+            BG_DISPTEMP,
+            BG_SCROLL,
+            OP_MODE,
+            WAIT_CANCEL,
+            BG_REVERT,
+            BG_DISP2
+        }
 
         public EventFile()
         {
@@ -183,12 +257,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int startingChibisSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
-                    StartingChibisSection startingChibisSection = new();
-                    startingChibisSection.Initialize(Data.Skip(SectionPointersAndCounts[startingChibisSectionIndex].Pointer)
+                    StartingChibisSection = new();
+                    StartingChibisSection.Initialize(Data.Skip(SectionPointersAndCounts[startingChibisSectionIndex].Pointer)
                         .Take(SectionPointersAndCounts[startingChibisSectionIndex + 1].Pointer - SectionPointersAndCounts[startingChibisSectionIndex].Pointer),
                         SectionPointersAndCounts[startingChibisSectionIndex].ItemCount,
                         name, log, SectionPointersAndCounts[startingChibisSectionIndex].Pointer);
-                    SectionPointersAndCounts[startingChibisSectionIndex].Section = startingChibisSection.GetGeneric();
+                    SectionPointersAndCounts[startingChibisSectionIndex].Section = StartingChibisSection.GetGeneric();
                 }
 
                 if (Settings.MapCharactersSectionPointer > 0)
@@ -199,12 +273,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int mapCharactersSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
-                    MapCharactersSection mapCharactersSection = new();
-                    mapCharactersSection.Initialize(Data.Skip(SectionPointersAndCounts[mapCharactersSectionIndex].Pointer)
+                    MapCharactersSection = new();
+                    MapCharactersSection.Initialize(Data.Skip(SectionPointersAndCounts[mapCharactersSectionIndex].Pointer)
                         .Take(SectionPointersAndCounts[mapCharactersSectionIndex + 1].Pointer - SectionPointersAndCounts[mapCharactersSectionIndex].Pointer),
                         SectionPointersAndCounts[mapCharactersSectionIndex].ItemCount,
                         name, log, SectionPointersAndCounts[mapCharactersSectionIndex].Pointer);
-                    SectionPointersAndCounts[mapCharactersSectionIndex].Section = mapCharactersSection.GetGeneric();
+                    SectionPointersAndCounts[mapCharactersSectionIndex].Section = MapCharactersSection.GetGeneric();
                 }
 
                 if (Settings.UnknownSection06Pointer > 0)
@@ -244,12 +318,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "CHOICES";
 
-                    ChoicesSection choicesSection = new();
-                    choicesSection.Initialize(Data.Skip(SectionPointersAndCounts[choicesSectionIndex].Pointer)
+                    ChoicesSection = new();
+                    ChoicesSection.Initialize(Data.Skip(SectionPointersAndCounts[choicesSectionIndex].Pointer)
                         .Take(SectionPointersAndCounts[choicesSectionIndex + 1].Pointer - SectionPointersAndCounts[choicesSectionIndex].Pointer),
                         SectionPointersAndCounts[choicesSectionIndex].ItemCount,
                         name, log, SectionPointersAndCounts[choicesSectionIndex].Pointer);
-                    SectionPointersAndCounts[choicesSectionIndex].Section = choicesSection.GetGeneric();
+                    SectionPointersAndCounts[choicesSectionIndex].Section = ChoicesSection.GetGeneric();
                 }
 
                 int unknownSection09Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.UnknownSection09Pointer);
@@ -294,16 +368,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 }
 
                 int labelsSectionPointerIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.LabelsSectionPointer);
-                LabelsSection labelsSection = new();
+                LabelsSection = new();
                 if (Settings.LabelsSectionPointer > 0)
                 {
                     string name = "LABELS";
 
-                    labelsSection.Initialize(Data.Skip(SectionPointersAndCounts[labelsSectionPointerIndex].Pointer)
+                    LabelsSection.Initialize(Data.Skip(SectionPointersAndCounts[labelsSectionPointerIndex].Pointer)
                         .Take(SectionPointersAndCounts[labelsSectionPointerIndex + 1].Pointer - SectionPointersAndCounts[labelsSectionPointerIndex].Pointer),
                         SectionPointersAndCounts[labelsSectionPointerIndex].ItemCount,
                         name, log, SectionPointersAndCounts[labelsSectionPointerIndex].Pointer);
-                    SectionPointersAndCounts[labelsSectionPointerIndex].Section = labelsSection.GetGeneric();
+                    SectionPointersAndCounts[labelsSectionPointerIndex].Section = LabelsSection.GetGeneric();
                 }
 
                 List<DramatisPersonaeSection> dramatisPersonae = new();
@@ -348,7 +422,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 }
 
                 int scriptSectionDefinitionsSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.ScriptSectionDefinitionsSectionPointer);
-                ScriptSectionDefinitionsSection scriptSectionDefinitionsSection = new() { Labels = labelsSection.Objects.Select(l => l.Name.Replace("/", "")).ToList() };
+                ScriptSectionDefinitionsSection scriptSectionDefinitionsSection = new() { Labels = LabelsSection.Objects.Select(l => l.Name.Replace("/", "")).ToList() };
                 if (Settings.ScriptSectionDefinitionsSectionPointer > 0)
                 {
                     string name = "SCRIPTDEFINITIONS";
@@ -368,7 +442,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                         ScriptSection scriptSection = new() { CommandsAvailable = CommandsAvailable };
                         scriptSection.Initialize(Data.Skip(scriptSectionDefinitionsSection.Objects[i].Pointer).Take(scriptSectionDefinitionsSection.Objects[i].NumCommands * 0x24),
                             scriptSectionDefinitionsSection.Objects[i].NumCommands,
-                            string.IsNullOrEmpty(labelsSection.Objects[i].Name) ? $"SCRIPT{i:D2}" : labelsSection.Objects[i].Name.Replace("/", ""),
+                            string.IsNullOrEmpty(LabelsSection.Objects[i].Name) ? $"SCRIPT{i:D2}" : LabelsSection.Objects[i].Name.Replace("/", ""),
                             log, scriptSectionDefinitionsSection.Objects[i].Pointer);
                         SectionPointersAndCounts[SectionPointersAndCounts.IndexOf(SectionPointersAndCounts.First(s => s.Pointer == scriptSectionDefinitionsSection.Objects[i].Pointer))].Section = scriptSection.GetGeneric();
                         ScriptSections.Add(scriptSection);
