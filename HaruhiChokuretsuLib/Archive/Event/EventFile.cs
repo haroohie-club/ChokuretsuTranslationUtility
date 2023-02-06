@@ -905,8 +905,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Speaker Speaker { get; set; }
         public string SpeakerName { get; set; }
 
-        public int CorrectedIndex { get; set; }
-
         public DialogueLine(Speaker speaker, string speakerName, int speakerPointer, int pointer, byte[] file)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -914,7 +912,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
             SpeakerName = speakerName;
             SpeakerPointer = speakerPointer;
             Pointer = pointer;
-            Data = file.Skip(pointer).TakeWhile(b => b != 0x00).ToArray();
+            if (pointer > 0)
+            {
+                Data = file.Skip(pointer).TakeWhile(b => b != 0x00).ToArray();
+            }
+            else
+            {
+                Data = Array.Empty<byte>();
+            }
             NumPaddingZeroes = 4 - Length % 4;
         }
 

@@ -1130,7 +1130,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
             SectionType = typeof(DialogueSection);
             ObjectType = typeof(DialogueLine);
 
-            int realLines = 0;
             for (int i = 0; i < NumObjects; i++)
             {
                 int dramatisPersonaeOffset = BitConverter.ToInt32(data.Skip(offset + i * 12 + 4).Take(4).ToArray());
@@ -1139,12 +1138,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     Encoding.GetEncoding("Shift-JIS").GetString(data.Skip(dramatisPersonaeOffset).TakeWhile(b => b != 0x00).ToArray()),
                     dramatisPersonaeOffset,
                     dialoguePointer,
-                    data.ToArray())
-                { CorrectedIndex = realLines });
-                if (dialoguePointer > 0)
-                {
-                    realLines++;
-                }
+                    data.ToArray()));
             }
         }
 
