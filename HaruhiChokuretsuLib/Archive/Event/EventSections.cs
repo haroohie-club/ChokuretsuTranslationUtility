@@ -1060,7 +1060,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct LabelsSectionEntry
+    public class LabelsSectionEntry
     {
         public short Id { get; set; }
         public string Name { get; set; }
