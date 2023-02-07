@@ -1,8 +1,10 @@
 ﻿using HaruhiChokuretsuLib.Archive.Data;
+using HaruhiChokuretsuLib.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Web;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
@@ -19,7 +21,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public ScenarioStruct(List<byte> data, int commandOffset, int selectsOffset)
         {
             Commands.Add(new(data.Skip(commandOffset).Take(4)));
-            for (int i = 4; Commands.Last().Verb != "END"; i += 4)
+            for (int i = 4; Commands.Last().Verb != ScenarioCommand.ScenarioVerb.END; i += 4)
             {
                 Commands.Add(new(data.Skip(commandOffset + i).Take(4)));
             }
@@ -28,27 +30,26 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
     public class ScenarioCommand
     {
-        private static string[] VERBS = new string[]
+        public enum ScenarioVerb : short
         {
-            "NEW_GAME",
-            "SAVE",
-            "LOAD_SCENE",
-            "PUZZLE_PHASE",
-            "ROUTE_SELECT",
-            "STOP",
-            "SAVE2",
-            "TOPICS",
-            "COMPANION_SELECT",
-            "PLAY_VIDEO",
-            "NOP",
-            "UNKNOWN0B",
-            "UNLOCK",
-            "END",
-
+            NEW_GAME,
+            SAVE,
+            LOAD_SCENE,
+            PUZZLE_PHASE,
+            ROUTE_SELECT,
+            STOP,
+            SAVE2,
+            TOPICS,
+            COMPANION_SELECT,
+            PLAY_VIDEO,
+            NOP,
+            UNKNOWN0B,
+            UNLOCK,
+            END,
         };
         private short _verbIndex;
 
-        public string Verb => VERBS[_verbIndex];
+        public ScenarioVerb Verb => (ScenarioVerb)_verbIndex;
         public int Parameter { get; set; } = new();
 
         public ScenarioCommand(IEnumerable<byte> data)
@@ -59,7 +60,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public string GetAsm(int indentation, ArchiveFile<EventFile> evt, ArchiveFile<DataFile> dat)
         {
-            return $"{string.Join(" ", new string[indentation + 1])}{Verb} {GetParameterString(evt, dat)}";
+            return $"{Helpers.Indent(indentation + 1)}{Verb} {GetParameterString(evt, dat)}";
         }
 
         public static string GetMacros()
@@ -71,10 +72,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine(".set MOVIE00, 0");
             sb.AppendLine(".set MOVIE01, 1");
 
-            for (int i = 0; i < VERBS.Length; i++)
+            foreach (ScenarioVerb verb in Enum.GetValues<ScenarioVerb>())
             {
-                sb.AppendLine($".macro {VERBS[i]} p");
-                sb.AppendLine($"   .short {i}");
+                sb.AppendLine($".macro {verb} p");
+                sb.AppendLine($"   .short {(short)verb}");
                 sb.AppendLine("   .short \\p");
                 sb.AppendLine(".endm");
                 sb.AppendLine();

@@ -269,7 +269,7 @@ namespace HaruhiChokuretsuCLI
             await Task.Delay(50); // ensures process is actually complete
             ProcessStartInfo objcopy = new(Path.Combine(devkitArm, "bin/arm-none-eabi-objcopy.exe"), $"-O binary \"{objFile}\" \"{binFile}");
             await Process.Start(objcopy).WaitForExitAsync();
-            await Task.Delay(50); // ensures process is actually copmlete
+            await Task.Delay(50); // ensures process is actually complete
             ReplaceSingleFile(archive, binFile, index);
             File.Delete(objFile);
             File.Delete(binFile);
