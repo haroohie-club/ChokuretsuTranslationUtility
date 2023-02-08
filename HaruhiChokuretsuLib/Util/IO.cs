@@ -5,7 +5,7 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Util
 {
-    internal static class IO
+    public static class IO
     {
         public static int ReadInt(IEnumerable<byte> data, int offset)
         {
@@ -38,7 +38,7 @@ namespace HaruhiChokuretsuLib.Util
         }
     }
 
-    internal static class BigEndianIO
+    public static class BigEndianIO
     {
         public static int ReadInt(IEnumerable<byte> data, int offset)
         {
@@ -58,6 +58,34 @@ namespace HaruhiChokuretsuLib.Util
         public static ushort ReadUShort(IEnumerable<byte> data, int offset)
         {
             return BitConverter.ToUInt16(data.Skip(offset).Take(2).Reverse().ToArray());
+        }
+
+        public static uint ReadBits(IEnumerable<byte> data, int offset, int bitOffset, int numBits)
+        {
+            if (numBits > 32)
+            {
+                return 0;
+            }
+
+            offset += bitOffset / 8;
+            bitOffset %= 8;
+
+            uint result = 0;
+
+            while (numBits > 0)
+            {
+                byte currentBit = (byte)((data.ElementAt(offset) & (1 << (7 - bitOffset))) >> (7 - bitOffset));
+                result |= (uint)currentBit << (numBits - 1);
+                numBits--;
+                bitOffset++;
+                if (bitOffset == 8)
+                {
+                    bitOffset = 0;
+                    offset++;
+                }
+            }
+
+            return result;
         }
 
         public static IEnumerable<byte> GetBytes(int int32)

@@ -1,9 +1,10 @@
-﻿using Mono.Options;
+﻿using HaruhiChokuretsuLib.Audio;
+using HaruhiChokuretsuLib.Util;
+using Mono.Options;
+using NAudio.Wave;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace HaruhiChokuretsuCLI
 {
@@ -27,20 +28,41 @@ namespace HaruhiChokuretsuCLI
         public override int Invoke(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
+            ConsoleLogger log = new();
 
             foreach (string file in Directory.GetFiles(_directory, "*.bin"))
             {
-                if (Encoding.ASCII.GetString(File.ReadAllBytes(file).TakeLast(12).ToArray()).StartsWith("AHXE(c)CRI"))
+                byte[] bytes = File.ReadAllBytes(file);
+                if (bytes[0x04] < 0x10) // file is ADX
                 {
-                    Process p = Process.Start(_ahx2wav, file);
-                    p.WaitForExit();
+                    AdxDecoder adxDecoder = new(bytes, log);
+                    using WaveFileWriter wavWriter = new(Path.Combine(Path.GetDirectoryName(file), $"{Path.GetFileNameWithoutExtension(file)}.wav"), new((int)adxDecoder.Header.SampleRate, adxDecoder.Header.ChannelCount));
+
+                    Sample nextSample = adxDecoder.NextSample();
+                    while (nextSample is not null)
+                    {
+                        wavWriter.Write(nextSample.SelectMany(s => BigEndianIO.GetBytes(s)).ToArray());
+                        nextSample = adxDecoder.NextSample();
+                    }
                 }
-                else
+                else // file is AHX
                 {
-                    Process p = Process.Start(_adx2wav, file);
-                    p.WaitForExit();
+
                 }
+
+                //if (Encoding.ASCII.GetString(File.ReadAllBytes(file).TakeLast(12).ToArray()).StartsWith("AHXE(c)CRI"))
+                //{
+                //    Process p = Process.Start(_ahx2wav, file);
+                //    p.WaitForExit();
+                //}
+                //else
+                //{
+                //    Process p = Process.Start(_adx2wav, file);
+                //    p.WaitForExit();
+                //}
             }
+
+
 
             return 0;
         }

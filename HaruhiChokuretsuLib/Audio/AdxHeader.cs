@@ -21,6 +21,7 @@ namespace HaruhiChokuretsuLib.Audio
         public byte Flags { get; set; }
 
         public AdxVersion3LoopInfo LoopInfo = new();
+        public int HeaderSize { get; private set; }
 
         public AdxHeader(IEnumerable<byte> data, ILogger log)
         {
@@ -51,6 +52,8 @@ namespace HaruhiChokuretsuLib.Audio
                 log.LogError("ADX file had bad copyright string.");
                 return;
             }
+
+            HeaderSize = dataOffset + 4;
         }
 
         public List<byte> GetBytes(int headerSize)

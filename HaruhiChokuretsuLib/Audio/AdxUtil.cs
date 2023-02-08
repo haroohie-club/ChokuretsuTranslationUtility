@@ -28,7 +28,7 @@ namespace HaruhiChokuretsuLib.Audio
         }
     }
 
-    public class AdxUtil
+    public static class AdxUtil
     {
         public static (int, int) GenerateCoefficients(uint highpassFrequency, uint sampleRate)
         {
@@ -41,6 +41,12 @@ namespace HaruhiChokuretsuLib.Audio
             double coeff2 = -Math.Pow(c, 2);
 
             return ((int)((coeff1 * 4096.0) + 0.5), (int)((coeff2 * 4096.0) + 0.5));
+        }
+
+        public static int SignExtend(uint num, uint bits)
+        {
+            int bitsToShift = (int)(32 - bits);
+            return (int)(num << bitsToShift) >> bitsToShift;
         }
     }
 }
