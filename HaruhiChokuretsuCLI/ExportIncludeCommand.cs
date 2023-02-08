@@ -4,7 +4,6 @@ using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace HaruhiChokuretsuCLI
