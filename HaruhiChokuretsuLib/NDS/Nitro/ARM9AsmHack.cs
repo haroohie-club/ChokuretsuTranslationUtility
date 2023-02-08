@@ -1,19 +1,15 @@
 ﻿// This code is heavily based on code Gericom wrote for ErmiiBuild
 
-using HaruhiChokuretsuLib.NDS.Overlay;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace HaruhiChokuretsuLib.NDS.Nitro
 {
-	public class ARM9AsmHack
+    public class ARM9AsmHack
 	{
 		public static bool Insert(string path, ARM9 arm9, uint arenaLoOffset, DataReceivedEventHandler outputDataReceived = null, DataReceivedEventHandler errorDataReceived = null)
 		{

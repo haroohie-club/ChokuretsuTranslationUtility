@@ -37,4 +37,47 @@ namespace HaruhiChokuretsuLib.Util
             return Encoding.ASCII.GetString(data.Skip(offset).TakeWhile(b => b != 0x00).ToArray());
         }
     }
+
+    internal static class BigEndianIO
+    {
+        public static int ReadInt(IEnumerable<byte> data, int offset)
+        {
+            return BitConverter.ToInt32(data.Skip(offset).Take(4).Reverse().ToArray());
+        }
+
+        public static uint ReadUInt(IEnumerable<byte> data, int offset)
+        {
+            return BitConverter.ToUInt32(data.Skip(offset).Take(4).Reverse().ToArray());
+        }
+
+        public static short ReadShort(IEnumerable<byte> data, int offset)
+        {
+            return BitConverter.ToInt16(data.Skip(offset).Take(2).Reverse().ToArray());
+        }
+
+        public static ushort ReadUShort(IEnumerable<byte> data, int offset)
+        {
+            return BitConverter.ToUInt16(data.Skip(offset).Take(2).Reverse().ToArray());
+        }
+
+        public static IEnumerable<byte> GetBytes(int int32)
+        {
+            return BitConverter.GetBytes(int32).Reverse();
+        }
+
+        public static IEnumerable<byte> GetBytes(uint uint32)
+        {
+            return BitConverter.GetBytes(uint32).Reverse();
+        }
+
+        public static IEnumerable<byte> GetBytes(short int16)
+        {
+            return BitConverter.GetBytes(int16).Reverse();
+        }
+
+        public static IEnumerable<byte> GetBytes(ushort uint16)
+        {
+            return BitConverter.GetBytes(uint16).Reverse();
+        }
+    }
 }
