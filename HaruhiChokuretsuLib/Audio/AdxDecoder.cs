@@ -1,9 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Util;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio
@@ -13,7 +10,6 @@ namespace HaruhiChokuretsuLib.Audio
         public AdxHeader Header { get; set; }
         public List<byte> Data { get; set; }
         public List<Sample> Samples { get; set; } = new();
-        public int SampleListIndex { get; set; }
         public Sample PreviousSample { get; set; }
         public Sample PrevPrevSample { get; set; }
         public int Coeff1 { get; set; }
@@ -96,7 +92,6 @@ namespace HaruhiChokuretsuLib.Audio
 
             if (AlignmentSamples != 0)
             {
-                SampleListIndex = (int)AlignmentSamples;
                 CurrentSample = AlignmentSamples;
                 AlignmentSamples = 0;
             }
@@ -114,12 +109,11 @@ namespace HaruhiChokuretsuLib.Audio
                 if (CurrentSample == LoopReadInfo?.EndSample)
                 {
                     _currentOffset = LoopReadInfo?.BeginByte ?? 0;
-                    SampleListIndex = Samples.Count;
                     CurrentSample = (uint)LoopReadInfo?.BeginSample;
                 }
             }
 
-            if (SampleListIndex == Samples.Count)
+            if (CurrentSample == Samples.Count)
             {
                 List<Sample> nextFrame = ReadFrame();
                 if (nextFrame is not null)
@@ -130,16 +124,14 @@ namespace HaruhiChokuretsuLib.Audio
                 {
                     return null;
                 }
-                SampleListIndex = 0;
             }
 
             if (CurrentSample == Header.TotalSamples)
             {
                 return null;
             }
-
-            CurrentSample++;
-            return Samples[SampleListIndex++];
+            
+            return Samples[(int)(CurrentSample++)];
         }
     }
 

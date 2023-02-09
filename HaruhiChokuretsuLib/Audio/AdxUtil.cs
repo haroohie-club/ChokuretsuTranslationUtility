@@ -35,7 +35,7 @@ namespace HaruhiChokuretsuLib.Audio
             double highpassSamples = (double)highpassFrequency / sampleRate;
             double a = Math.Sqrt(2) - Math.Cos(2 * Math.PI * highpassSamples);
             double b = Math.Sqrt(2) - 1.0;
-            double c = Math.Sqrt(a - ((a + b) * (a - b))) / b;
+            double c = (a - Math.Sqrt((a + b) * (a - b))) / b;
 
             double coeff1 = c * 2.0;
             double coeff2 = -Math.Pow(c, 2);

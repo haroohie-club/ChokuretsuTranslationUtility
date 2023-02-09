@@ -1359,11 +1359,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             return sb.ToString();
         }
-
-        public override bool Equals(object obj)
-        {
-            return Name.Equals(((ScriptSection)obj).Name);
-        }
     }
 
     public class EventNameSection : IEventSection<string>
