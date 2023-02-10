@@ -107,11 +107,11 @@ namespace HaruhiChokuretsuLib.Audio
                 return null;
             }
 
-            // peak next 10 bytes to see if they're zero; we know to skip this frame if so
+            //peak next 10 bytes to see if they're zero; we know to skip this frame if so
             if (Data.Skip(_currentOffset).Take(10).All(b => b == 0))
             {
                 _currentOffset += 10;
-                return ReadFrame();
+                return new short[1152].Select(s => new Sample(new short[] { s })).ToArray();
             }
 
             uint[] allocations = new uint[30];
@@ -124,8 +124,11 @@ namespace HaruhiChokuretsuLib.Audio
             uint[] scfsi = new uint[30];
             for (int sb = 0; sb < scfsi.Length; sb++)
             {
-                scfsi[sb] = BigEndianIO.ReadBits(Data, _currentOffset, _currentBit, 2);
-                _currentBit += 2;
+                if (allocations[sb] != 0)
+                {
+                    scfsi[sb] = BigEndianIO.ReadBits(Data, _currentOffset, _currentBit, 2);
+                    _currentBit += 2;
+                }
             }
 
             uint[][] scaleFactors = new uint[30][];
@@ -197,7 +200,7 @@ namespace HaruhiChokuretsuLib.Audio
                             long[] longSamples = ReadSamples(quant);
                             for (int i = 0; i < longSamples.Length; i++)
                             {
-                                sbSamples[sb][i] = (longSamples[i] * _sfTable[scaleFactors[sb][part] - 1]) >> FRAC_BITS;
+                                sbSamples[sb][i] = (longSamples[i] * _sfTable[scaleFactors[sb][part]]) >> FRAC_BITS;
                             }
                         }
                     }
@@ -256,7 +259,6 @@ namespace HaruhiChokuretsuLib.Audio
                     }
                 }
             }
-
             _currentOffset += _currentBit / 8;
             if (_currentBit > 0)
             {
@@ -335,7 +337,7 @@ namespace HaruhiChokuretsuLib.Audio
             new() { NLevels = 32767, Group = 0, Bits = 15, C = 0x10002000, D = 0x00004000 },
             new() { NLevels = 65535, Group = 0, Bits = 16, C = 0x10001000, D = 0x00002000 },
         };
-        private static readonly long[] _sfTable = new long[63]
+        private static readonly long[] _sfTable = new long[64]
         {
             0x20000000,
             0x1965fea5,
@@ -400,6 +402,7 @@ namespace HaruhiChokuretsuLib.Audio
             0x00000200,
             0x00000196,
             0x00000143,
+            0,
         };
         private readonly long[][] _n;
         private static readonly long[] _d = new long[512]
