@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-// This code is ported from https://github.com/LemonHaze420/ahx2wav
+// This code is ported from https://github.com/Isaac-Lozano/radx
+// But modified to work with more AHX files and to fix some bugs
 namespace HaruhiChokuretsuLib.Audio
 {
     public struct QuantizeSpec
