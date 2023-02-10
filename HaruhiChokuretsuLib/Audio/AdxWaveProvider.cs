@@ -22,15 +22,7 @@ namespace HaruhiChokuretsuLib.Audio
             int i = 0;
             while (i < count)
             {
-                Sample nextSample;
-                try
-                {
-                    nextSample = _decoder.NextSample();
-                }
-                catch
-                {
-                    nextSample = null;
-                }
+                Sample nextSample = _decoder.NextSample();
                 if (nextSample is null)
                 {
                     return i;
