@@ -170,6 +170,9 @@ namespace HaruhiChokuretsuCLI
                             case "CHRDATAS":
                                 file = file.CastTo<CharacterDataFile>();
                                 break;
+                            case "EXTRAS":
+                                file = file.CastTo<ExtraFile>();
+                                break;
                             case "MESSINFOS":
                                 file = file.CastTo<MessageInfoFile>();
                                 break;

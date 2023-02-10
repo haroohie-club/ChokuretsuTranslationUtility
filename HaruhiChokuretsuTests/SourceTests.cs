@@ -279,5 +279,22 @@ namespace HaruhiChokuretsuTests
 
             Assert.AreEqual(characterDataFile.Data, newBytesList);
         }
+
+        [Test]
+        public async Task ExtraSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ExtraFile extraFile = dat.Files.First(f => f.Name == "EXTRAS").CastTo<ExtraFile>();
+
+            byte[] newBytes = await CompileFromSource(extraFile.GetSource(new()));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            Assert.AreEqual(extraFile.Data, newBytesList);
+        }
     }
 }
