@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib.Audio
 {
-    public interface IAudioDecoder
+    public interface IAdxDecoder
     {
         public uint Channels { get; }
         public uint SampleRate { get; }

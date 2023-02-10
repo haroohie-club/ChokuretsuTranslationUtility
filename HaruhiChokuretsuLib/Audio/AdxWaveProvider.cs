@@ -7,12 +7,12 @@ namespace HaruhiChokuretsuLib.Audio
     public class AdxWaveProvider : IWaveProvider
     {
         private readonly WaveFormat _waveFormat;
-        private readonly AdxDecoder _decoder;
+        private readonly IAdxDecoder _decoder;
 
-        public AdxWaveProvider(AdxDecoder adx)
+        public AdxWaveProvider(IAdxDecoder decoder)
         {
-            _waveFormat = new((int)adx.SampleRate, (int)adx.Channels);
-            _decoder = adx;
+            _waveFormat = new((int)decoder.SampleRate, (int)decoder.Channels);
+            _decoder = decoder;
         }
 
         public WaveFormat WaveFormat => _waveFormat;
@@ -22,10 +22,18 @@ namespace HaruhiChokuretsuLib.Audio
             int i = 0;
             while (i < count)
             {
-                Sample nextSample = _decoder.NextSample();
+                Sample nextSample;
+                try
+                {
+                    nextSample = _decoder.NextSample();
+                }
+                catch
+                {
+                    nextSample = null;
+                }
                 if (nextSample is null)
                 {
-                    return 0;
+                    return i;
                 }
                 byte[] bytes = nextSample.SelectMany(s => BitConverter.GetBytes(s)).ToArray();
                 Array.Copy(bytes, 0, buffer, offset + i, bytes.Length);

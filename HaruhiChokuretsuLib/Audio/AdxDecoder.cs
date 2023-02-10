@@ -5,7 +5,7 @@ using System.Linq;
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio
 {
-    public class AdxDecoder : IAudioDecoder
+    public class AdxDecoder : IAdxDecoder
     {
         public AdxHeader Header { get; set; }
         public List<byte> Data { get; set; }
@@ -131,7 +131,7 @@ namespace HaruhiChokuretsuLib.Audio
                 return null;
             }
             
-            return Samples[(int)(CurrentSample++)];
+            return Samples[(int)CurrentSample++];
         }
     }
 
