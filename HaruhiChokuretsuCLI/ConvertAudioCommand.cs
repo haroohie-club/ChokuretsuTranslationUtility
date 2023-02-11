@@ -3,7 +3,6 @@ using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using NAudio.Wave;
 using System.Collections.Generic;
-using System.Formats.Asn1;
 using System.IO;
 
 namespace HaruhiChokuretsuCLI
