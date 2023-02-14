@@ -10,6 +10,10 @@ namespace HaruhiChokuretsuEditor
         public static BitmapImage GetBitmapImageFromBitmap(SKBitmap bitmap)
         {
             BitmapImage bitmapImage = new();
+            if (bitmap.Pixels.Length == 0)
+            {
+                return null;
+            }
             using (MemoryStream memoryStream = new())
             {
                 bitmap.Encode(memoryStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);

@@ -235,6 +235,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 && (Index < 0x41B || Index > 0x42C)
                 && (Index < 0x50E || Index > 0x516)
                 && (Index < 0x8B4 || Index > 0x8B7)
+                && (Index < 0xB3E || Index > 0xB51)
                 && (Index < 0xB61 || Index > 0xB6F)
                 && (Index < 0xBC9 || Index > 0xC1B)
                 && (Index < 0xC70 || Index > 0xC78)
@@ -377,7 +378,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             int i = 0;
 
             SKBitmap bmp = new(width, height);
-            for (int y = 0; y < height && i < PixelData.Count; y++)
+            for (int y = 0; y < height && i < (PixelData?.Count ?? 0); y++)
             {
                 for (int x = 0; x < width && i < PixelData.Count; x++)
                 {

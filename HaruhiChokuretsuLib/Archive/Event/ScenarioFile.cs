@@ -49,8 +49,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         };
         private short _verbIndex;
 
-        public ScenarioVerb Verb => (ScenarioVerb)_verbIndex;
+        public ScenarioVerb Verb { get => (ScenarioVerb)_verbIndex; set => _verbIndex = (short)value; }
         public int Parameter { get; set; } = new();
+
+        public ScenarioCommand(ScenarioVerb verb, int Parameter)
+        {
+
+        }
 
         public ScenarioCommand(IEnumerable<byte> data)
         {

@@ -20,7 +20,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 return graphicFrames;
             }
 
-            if (AnimationEntries[0].GetType() == typeof(FrameAnimationEntry))
+            if (AnimationEntries[0].GetType() == typeof(FrameAnimationEntry) && AnimationEntries.Cast<FrameAnimationEntry>().All(f => f.FrameOffset > 0))
             {
                 foreach (FrameAnimationEntry animationEntry in AnimationEntries.Cast<FrameAnimationEntry>())
                 {
