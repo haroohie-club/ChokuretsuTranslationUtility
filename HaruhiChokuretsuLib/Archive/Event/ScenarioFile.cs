@@ -18,12 +18,26 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public List<ScenarioCommand> Commands { get; set; } = new();
         public List<ScenarioSelectionStruct> Selects { get; set; } = new();
 
-        public ScenarioStruct(List<byte> data, int commandOffset, int selectsOffset)
+        public ScenarioStruct(IEnumerable<byte> data, List<DialogueLine> lines, List<EventFileSection> sections)
         {
-            Commands.Add(new(data.Skip(commandOffset).Take(4)));
-            for (int i = 4; Commands.Last().Verb != ScenarioCommand.ScenarioVerb.END; i += 4)
+            int commandsOffset = IO.ReadInt(data, sections[0].Pointer);
+            int commandsCount = IO.ReadInt(data, sections[0].Pointer + 0x08);
+            int selectionsOffset = IO.ReadInt(data, sections[0].Pointer + 0x04);
+            int selectionsCount = IO.ReadInt(data, sections[0].Pointer + 0x0C);
+
+            for (int i = 0; i <= commandsCount; i++)
             {
-                Commands.Add(new(data.Skip(commandOffset + i).Take(4)));
+                Commands.Add(new(data.Skip(commandsOffset + i * 4).Take(4)));
+            }
+
+            for (int i = 0; i < selectionsCount; i++)
+            {
+                int[] routeSelectionOffsets = new int[IO.ReadInt(data, selectionsOffset + i * 0x14)];
+                for (int j = 0; j < routeSelectionOffsets.Length; j++)
+                {
+                    routeSelectionOffsets[j] = IO.ReadInt(data, selectionsOffset + i * 0x14 + (j + 1) * 4);
+                }
+                Selects.Add(new(routeSelectionOffsets, lines, data));
             }
         }
     }
@@ -52,9 +66,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public ScenarioVerb Verb { get => (ScenarioVerb)_verbIndex; set => _verbIndex = (short)value; }
         public int Parameter { get; set; } = new();
 
-        public ScenarioCommand(ScenarioVerb verb, int Parameter)
+        public ScenarioCommand(ScenarioVerb verb, int parameter)
         {
-
+            _verbIndex = (short)verb;
+            Parameter = parameter;
         }
 
         public ScenarioCommand(IEnumerable<byte> data)
@@ -110,7 +125,21 @@ namespace HaruhiChokuretsuLib.Archive.Event
     public class ScenarioSelectionStruct
     {
         public List<ScenarioRouteSelectionStruct> RouteSelections { get; set; } = new();
-        public int NumRoutes { get; set; }
+
+        public ScenarioSelectionStruct(int[] routeSelectionOffsets, List<DialogueLine> lines, IEnumerable<byte> data)
+        {
+            for (int i = 0; i < routeSelectionOffsets.Length; i++)
+            {
+                if (routeSelectionOffsets[i] == 0)
+                {
+                    RouteSelections.Add(null);
+                }
+                else
+                {
+                    RouteSelections.Add(new(routeSelectionOffsets[i], lines, data));
+                }
+            }
+        }
     }
 
     public class ScenarioRouteSelectionStruct
@@ -132,22 +161,22 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public string RequiredBrigadeMember { get; set; }
         public bool HaruhiPresent { get; set; }
 
-        public ScenarioRouteSelectionStruct(int dataStartIndex, List<DialogueLine> lines, List<byte> data)
+        public ScenarioRouteSelectionStruct(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
         {
-            TitleIndex = lines.IndexOf(lines.First(l => l.Pointer == BitConverter.ToInt32(data.Skip(dataStartIndex).Take(4).ToArray())));
-            FutureDescIndex = lines.IndexOf(lines.First(l => l.Pointer == BitConverter.ToInt32(data.Skip(dataStartIndex + 0x04).Take(4).ToArray())));
-            PastDescIndex = lines.IndexOf(lines.First(l => l.Pointer == BitConverter.ToInt32(data.Skip(dataStartIndex + 0x08).Take(4).ToArray())));
+            TitleIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex)));
+            FutureDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x04)));
+            PastDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x08)));
             Title = lines[TitleIndex].Text;
             FutureDesc = lines[FutureDescIndex].Text;
             PastDesc = lines[PastDescIndex].Text;
 
-            UnknownInt1 = BitConverter.ToInt32(data.Skip(dataStartIndex + 0x0C).Take(4).ToArray());
-            UnknownInt2 = BitConverter.ToInt32(data.Skip(dataStartIndex + 0x10).Take(4).ToArray());
-            UnknownInt3 = BitConverter.ToInt32(data.Skip(dataStartIndex + 0x14).Take(4).ToArray());
-            UnknownInt4 = BitConverter.ToInt32(data.Skip(dataStartIndex + 0x18).Take(4).ToArray());
-            UnknownInt5 = BitConverter.ToInt32(data.Skip(dataStartIndex + 0x1C).Take(4).ToArray());
-            UnknownInt6 = BitConverter.ToInt32(data.Skip(dataStartIndex + 0x20).Take(4).ToArray());
-            switch (BitConverter.ToInt32(data.Skip(dataStartIndex + 0x24).Take(4).ToArray()))
+            UnknownInt1 = IO.ReadInt(data, dataStartIndex + 0x0C);
+            UnknownInt2 = IO.ReadInt(data,dataStartIndex + 0x10);
+            UnknownInt3 = IO.ReadInt(data, dataStartIndex + 0x14);
+            UnknownInt4 = IO.ReadInt(data, dataStartIndex + 0x18);
+            UnknownInt5 = IO.ReadInt(data, dataStartIndex + 0x1C);
+            UnknownInt6 = IO.ReadInt(data, dataStartIndex + 0x20);
+            switch (IO.ReadInt(data, dataStartIndex + 0x24))
             {
                 case -1:
                     RequiredBrigadeMember = "ANY";
@@ -165,9 +194,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     RequiredBrigadeMember = "NONE";
                     break;
             }
-            HaruhiPresent = BitConverter.ToInt32(data.Skip(dataStartIndex + 0x28).Take(4).ToArray()) > 0;
+            HaruhiPresent = IO.ReadInt(data, dataStartIndex + 0x28) > 0;
 
-            for (int i = 0x2C; BitConverter.ToInt32(data.Skip(dataStartIndex + i).Take(4).ToArray()) > 0; i += 0x10)
+            for (int i = 0x2C; IO.ReadInt(data, dataStartIndex + i) > 0; i += 0x10)
             {
                 Routes.Add(new(dataStartIndex + i, lines, data));
             }
@@ -198,9 +227,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             KOIZUMI = 0b0010_0000,
         }
 
-        public ScenarioRouteStruct(int dataStartIndex, List<DialogueLine> lines, List<byte> data)
+        public ScenarioRouteStruct(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
         {
-            CharacterMask charactersInvolved = (CharacterMask)BitConverter.ToInt32(data.Skip(dataStartIndex).Take(4).ToArray());
+            CharacterMask charactersInvolved = (CharacterMask)IO.ReadInt(data, dataStartIndex);
 
             if (charactersInvolved.HasFlag(CharacterMask.KYON))
             {
@@ -223,12 +252,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 CharactersInvolved.Add(Speaker.KOIZUMI);
             }
 
-            ScriptIndex = BitConverter.ToInt16(data.Skip(dataStartIndex + 4).Take(2).ToArray());
-            UnknownShort = BitConverter.ToInt16(data.Skip(dataStartIndex + 6).Take(2).ToArray());
-            UnknownPointer = BitConverter.ToInt32(data.Skip(dataStartIndex + 8).Take(4).ToArray());
+            ScriptIndex = IO.ReadShort(data, dataStartIndex + 4);
+            UnknownShort = IO.ReadShort(data, dataStartIndex + 6);
+            UnknownPointer = IO.ReadInt(data, dataStartIndex + 8);
             RouteTitleIndex = lines.IndexOf(lines.First(l => l.Pointer == BitConverter.ToInt32(data.Skip(dataStartIndex + 12).Take(4).ToArray())));
             Title = lines[RouteTitleIndex].Text;
-
         }
 
         public override string ToString()

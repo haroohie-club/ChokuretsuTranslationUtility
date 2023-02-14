@@ -542,7 +542,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public void InitializeScenarioFile()
         {
             InitializeDialogueForSpecialFiles();
-            Scenario = new(Data, SectionPointersAndCounts[^2].Pointer, SectionPointersAndCounts[^3].Pointer);
+            Scenario = new(Data, DialogueLines, SectionPointersAndCounts);
         }
 
         public override byte[] GetBytes() => Data.ToArray();
