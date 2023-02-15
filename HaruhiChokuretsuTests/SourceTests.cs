@@ -118,6 +118,16 @@ namespace HaruhiChokuretsuTests
                 }
                 File.WriteAllText("COMMANDS.INC", sb.ToString());
             }
+            if (!File.Exists("DATBIN.INC"))
+            {
+                var grp = ArchiveFile<GraphicsFile>.FromFile(@".\inputs\dat.bin", log);
+                File.WriteAllText("DATBIN.INC", grp.GetSourceInclude());
+            }
+            if (!File.Exists("EVTBIN.INC"))
+            {
+                var grp = ArchiveFile<GraphicsFile>.FromFile(@".\inputs\evt.bin", log);
+                File.WriteAllText("EVTBIN.INC", grp.GetSourceInclude());
+            }
             if (!File.Exists("GRPBIN.INC"))
             {
                 var grp = ArchiveFile<GraphicsFile>.FromFile(@".\inputs\grp.bin", log);
@@ -131,6 +141,14 @@ namespace HaruhiChokuretsuTests
             if (File.Exists("COMMANDS.INC"))
             {
                 File.Delete("COMMANDS.INC");
+            }
+            if (File.Exists("DATBIN.INC"))
+            {
+                File.Delete("DATBIN.INC");
+            }
+            if (File.Exists("EVTBIN.INC"))
+            {
+                File.Delete("EVTBIN.INC");
             }
             if (File.Exists("GRPBIN.INC"))
             {
@@ -295,6 +313,23 @@ namespace HaruhiChokuretsuTests
             }
 
             Assert.AreEqual(extraFile.Data, newBytesList);
+        }
+
+        [Test]
+        public async Task ScenarioSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
+            EventFile scenarioFile = evt.Files.First(f => f.Name == "SCENARIOS").CastTo<EventFile>();
+
+            byte[] newBytes = await CompileFromSource(scenarioFile.GetSource(new() { { "DATBIN", File.ReadAllLines("DATBIN.INC").Select(i => new IncludeEntry(i)).ToArray() }, { "EVTBIN", File.ReadAllLines("EVTBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            Assert.AreEqual(scenarioFile.Data, newBytesList);
         }
     }
 }

@@ -746,6 +746,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "SCENARIOS")
             {
+                InitializeScenarioFile();
                 return Scenario.GetSource(includes, _log);
             }
             else if (Name == "TOPICS")

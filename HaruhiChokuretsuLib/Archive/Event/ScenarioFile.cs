@@ -67,8 +67,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             sb.AppendLine(ScenarioCommand.GetMacros());
 
-            int numSections = Selects.Sum(s => s.RouteSelections.Sum(rs => rs.Routes.Sum(r => r.UnknownShortsHeader.Count))) // all route shorts headers
-                + Selects.Sum(s => s.RouteSelections.Count) // all route selections
+            int numSections = Selects.Sum(s => s.RouteSelections.Where(rs => rs is not null).Sum(rs => rs.Routes.Count)) // all route shorts headers
+                + Selects.Sum(s => s.RouteSelections.Where(rs => rs is not null).Count()) // all route selections
                 + 3; // scenario holder + commands holder + settings
             sb.AppendLine($".word {numSections}");
             sb.AppendLine(".word END_POINTERS");
@@ -78,16 +78,25 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine(".word SETTINGS");
             sb.AppendLine(".word 1");
 
-            foreach (ScenarioRouteStruct route in Selects.SelectMany(s => s.RouteSelections.SelectMany(rs => rs.Routes)).Skip(1))
+            bool first = true;
+            foreach (ScenarioSelectionStruct select in Selects)
             {
-                sb.AppendLine($".word SHORTSHEADER{route.RouteTitleIndex:D2}");
-                sb.AppendLine($".word {route.UnknownShortsHeader.Count + 1}");
-            }
-
-            foreach (ScenarioRouteSelectionStruct routeSelection in Selects.SelectMany(s => s.RouteSelections))
-            {
-                sb.AppendLine($".word ROUTESELECTION{routeSelection.TitleIndex:D2}");
-                sb.AppendLine(".word 1");
+                foreach (ScenarioRouteStruct route in select.RouteSelections.Where(rs => rs is not null).SelectMany(rs => rs.Routes))
+                {
+                    if (first)
+                    {
+                        first = false;
+                        continue;
+                    }
+                    sb.AppendLine($".word SHORTSHEADER{route.RouteTitleIndex:D2}");
+                    sb.AppendLine($".word {route.UnknownShortsHeader.Count}");
+                }
+                
+                foreach (ScenarioRouteSelectionStruct routeSelection in select.RouteSelections.Where(rs => rs is not null))
+                {
+                    sb.AppendLine($".word ROUTESELECTION{routeSelection.TitleIndex:D2}");
+                    sb.AppendLine(".word 1");
+                }
             }
 
             sb.AppendLine(".word SELECTS");
@@ -95,7 +104,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine(".word COMMANDS");
             sb.AppendLine($".word {Commands.Count}");
             sb.AppendLine($".word SHORTSHEADER{Selects[0].RouteSelections[0].Routes[0].RouteTitleIndex:D2}");
-            sb.AppendLine($".word {Selects[0].RouteSelections[0].Routes[0].UnknownShortsHeader.Count + 1}");
+            sb.AppendLine($".word {Selects[0].RouteSelections[0].Routes[0].UnknownShortsHeader.Count}");
             sb.AppendLine();
 
             sb.AppendLine("FILE_START:");
@@ -118,7 +127,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     }
                     else
                     {
-                        sb.AppendLine($".word ROUTESELECTION{selection.RouteSelections[i].TitleIndex:D2}");
+                        sb.AppendLine($"POINTER{currentPointer++:D2}: .word ROUTESELECTION{selection.RouteSelections[i].TitleIndex:D2}");
                     }
                 }
             }
@@ -128,8 +137,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine(string.Join("\n", Commands.Select(c => c.GetAsm(3, includes))));
 
             sb.AppendLine("SETTINGS:");
-            sb.AppendLine(".word COMMANDS");
-            sb.AppendLine(".word SELECTS");
+            sb.AppendLine($"POINTER{currentPointer++:D2}: .word COMMANDS");
+            sb.AppendLine($"POINTER{currentPointer++:D2}: .word SELECTS");
             sb.AppendLine($".word {Commands.Count - 1}");
             sb.AppendLine($".word {Selects.Count}");
 
@@ -194,8 +203,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
 
-            sb.AppendLine(".include DATBIN.INC");
-            sb.AppendLine(".include EVTBIN.INC");
+            sb.AppendLine(".include \"DATBIN.INC\"");
+            sb.AppendLine(".include \"EVTBIN.INC\"");
             sb.AppendLine(".set MOVIE00, 0");
             sb.AppendLine(".set MOVIE01, 1");
 
@@ -222,7 +231,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 2 => $"\"{evt.Files.First(f => f.Index == Parameter).Name[0..^1]}\" ({Parameter})", // LOAD_SCENE
                 3 => $"\"{dat.Files.First(f => f.Index == Parameter).Name[0..^1]}\"", // PUZZLE_PHASE
-                9 => $"\"MOVIE{Parameter}\"", // PLAY_VIDEO
+                9 => $"\"MOVIE{Parameter:D2}\"", // PLAY_VIDEO
                 _ => Parameter.ToString(),
             };
             return $"{Verb}({parameterString})";
@@ -233,10 +242,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 2 => $"\"{includes["EVTBIN"].First(i => i.Value == Parameter).Name}\"", // LOAD_SCENE
                 3 => $"\"{includes["DATBIN"].First(i => i.Value == Parameter).Name}\"", // PUZZLE_PHASE
-                9 => $"\"MOVIE{Parameter}\"", // PLAY_VIDEO
+                9 => $"\"MOVIE{Parameter:D2}\"", // PLAY_VIDEO
                 _ => Parameter.ToString(),
             };
-            return $"{Verb}({parameterString})";
+            return parameterString;
         }
     }
 
@@ -263,7 +272,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
 
-            foreach (ScenarioRouteSelectionStruct routeSelection in RouteSelections)
+            foreach (ScenarioRouteStruct route in RouteSelections.Where(rs => rs is not null).SelectMany(rs => rs.Routes))
+            {
+                sb.AppendLine($"SHORTSHEADER{route.RouteTitleIndex:D2}:");
+                foreach (short s in route.UnknownShortsHeader)
+                {
+                    sb.AppendLine($"   .short {s}");
+                }
+                if (route.UnknownShortsHeader.Count % 2 > 0)
+                {
+                    sb.AppendLine("   .skip 2");
+                }
+            }
+
+            foreach (ScenarioRouteSelectionStruct routeSelection in RouteSelections.Where(rs => rs is not null))
             {
                 sb.AppendLine(routeSelection.GetSource(includes, ref currentPointer));
                 sb.AppendLine();
@@ -320,19 +342,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
 
-            foreach (ScenarioRouteStruct route in Routes)
-            {
-                sb.AppendLine($"SHORTSHEADER{route.RouteTitleIndex:D2}:");
-                foreach (short s in route.UnknownShortsHeader)
-                {
-                    sb.AppendLine($"   .short {s}");
-                }
-                if (route.UnknownShortsHeader.Count % 2 > 0)
-                {
-                    sb.AppendLine("   .skip 2");
-                }
-            }
-
             sb.AppendLine($"ROUTESELECTION{TitleIndex:D2}:");
             sb.AppendLine($"   POINTER{currentPointer++}: .word ROUTESELECTIONTITLE{TitleIndex:D2}");
             sb.AppendLine($"   POINTER{currentPointer++}: .word ROUTESELECTIONFUTUREDESC{TitleIndex:D2}");
@@ -354,16 +363,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine(".word -1");
             sb.AppendLine($".skip {0x100 - Routes.Count * 0x10 - 4}");
 
-            sb.AppendLine($"ROUTESELECTIONTITLE{TitleIndex:D2}: .string {Title.EscapeShiftJIS()}");
+            sb.AppendLine($"ROUTESELECTIONTITLE{TitleIndex:D2}: .string \"{Title.EscapeShiftJIS()}\"");
             sb.AsmPadString(Title, Encoding.GetEncoding("Shift-JIS"));
-            sb.AppendLine($"ROUTESELECTIONFUTUREDESC{TitleIndex:D2}: .string {FutureDesc.EscapeShiftJIS()}");
+            sb.AppendLine($"ROUTESELECTIONFUTUREDESC{TitleIndex:D2}: .string \"{FutureDesc.EscapeShiftJIS()}\"");
             sb.AsmPadString(FutureDesc, Encoding.GetEncoding("Shift-JIS"));
-            sb.AppendLine($"ROUTESELECTIONPASTDESC{TitleIndex:D2}: .string {PastDesc.EscapeShiftJIS()}");
+            sb.AppendLine($"ROUTESELECTIONPASTDESC{TitleIndex:D2}: .string \"{PastDesc.EscapeShiftJIS()}\"");
             sb.AsmPadString(PastDesc, Encoding.GetEncoding("Shift-JIS"));
 
             foreach (ScenarioRouteStruct route in Routes)
             {
-                sb.AppendLine($"ROUTETITLE{route.RouteTitleIndex:D2}: .string {route.Title.EscapeShiftJIS()}");
+                sb.AppendLine($"ROUTETITLE{route.RouteTitleIndex:D2}: .string \"{route.Title.EscapeShiftJIS()}\"");
                 sb.AsmPadString(route.Title, Encoding.GetEncoding("Shift-JIS"));
             }
 
