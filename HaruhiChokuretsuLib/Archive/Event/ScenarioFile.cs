@@ -2,9 +2,10 @@
 using HaruhiChokuretsuLib.Util;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using System.Web;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
@@ -17,6 +18,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
     {
         public List<ScenarioCommand> Commands { get; set; } = new();
         public List<ScenarioSelectionStruct> Selects { get; set; } = new();
+        public List<short> UnknownShorts { get; set; } = new();
 
         public ScenarioStruct(IEnumerable<byte> data, List<DialogueLine> lines, List<EventFileSection> sections)
         {
@@ -39,6 +41,111 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 }
                 Selects.Add(new(routeSelectionOffsets, lines, data));
             }
+
+            for (int i = 0; i < 6; i++)
+            {
+                UnknownShorts.Add(IO.ReadShort(data, sections[0].Pointer + 0x10 + i * 2));
+            }
+        }
+
+        public string GetSource(Dictionary<string, IncludeEntry[]> includes, ILogger log)
+        {
+            if (!includes.ContainsKey("EVTBIN"))
+            {
+                log.LogError("Includes needs EVTBIN to be present.");
+                return null;
+            }
+            if (!includes.ContainsKey("DATBIN"))
+            {
+                log.LogError("Includes needs DATBIN to be present.");
+                return null;
+            }
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            StringBuilder sb = new();
+
+            sb.AppendLine(ScenarioCommand.GetMacros());
+
+            int numSections = Selects.Sum(s => s.RouteSelections.Sum(rs => rs.Routes.Sum(r => r.UnknownShortsHeader.Count))) // all route shorts headers
+                + Selects.Sum(s => s.RouteSelections.Count) // all route selections
+                + 3; // scenario holder + commands holder + settings
+            sb.AppendLine($".word {numSections}");
+            sb.AppendLine(".word END_POINTERS");
+            sb.AppendLine(".word FILE_START");
+
+            // Define sections
+            sb.AppendLine(".word SETTINGS");
+            sb.AppendLine(".word 1");
+
+            foreach (ScenarioRouteStruct route in Selects.SelectMany(s => s.RouteSelections.SelectMany(rs => rs.Routes)).Skip(1))
+            {
+                sb.AppendLine($".word SHORTSHEADER{route.RouteTitleIndex:D2}");
+                sb.AppendLine($".word {route.UnknownShortsHeader.Count + 1}");
+            }
+
+            foreach (ScenarioRouteSelectionStruct routeSelection in Selects.SelectMany(s => s.RouteSelections))
+            {
+                sb.AppendLine($".word ROUTESELECTION{routeSelection.TitleIndex:D2}");
+                sb.AppendLine(".word 1");
+            }
+
+            sb.AppendLine(".word SELECTS");
+            sb.AppendLine($".word {Selects.Count + 1}");
+            sb.AppendLine(".word COMMANDS");
+            sb.AppendLine($".word {Commands.Count}");
+            sb.AppendLine($".word SHORTSHEADER{Selects[0].RouteSelections[0].Routes[0].RouteTitleIndex:D2}");
+            sb.AppendLine($".word {Selects[0].RouteSelections[0].Routes[0].UnknownShortsHeader.Count + 1}");
+            sb.AppendLine();
+
+            sb.AppendLine("FILE_START:");
+
+            int currentPointer = 0;
+            foreach (ScenarioSelectionStruct selection in Selects)
+            {
+                sb.AppendLine(selection.GetSource(includes, ref currentPointer));
+            }
+
+            sb.AppendLine("SELECTS:");
+            foreach (ScenarioSelectionStruct selection in Selects)
+            {
+                sb.AppendLine($".word {selection.RouteSelections.Count}");
+                for (int i = 0; i < 4; i++)
+                {
+                    if (i >= selection.RouteSelections.Count || selection.RouteSelections[i] is null)
+                    {
+                        sb.AppendLine(".word 0");
+                    }
+                    else
+                    {
+                        sb.AppendLine($".word ROUTESELECTION{selection.RouteSelections[i].TitleIndex:D2}");
+                    }
+                }
+            }
+            sb.AppendLine(".skip 0x14");
+
+            sb.AppendLine("COMMANDS:");
+            sb.AppendLine(string.Join("\n", Commands.Select(c => c.GetAsm(3, includes))));
+
+            sb.AppendLine("SETTINGS:");
+            sb.AppendLine(".word COMMANDS");
+            sb.AppendLine(".word SELECTS");
+            sb.AppendLine($".word {Commands.Count - 1}");
+            sb.AppendLine($".word {Selects.Count}");
+
+            foreach (short unknownShort in UnknownShorts)
+            {
+                sb.AppendLine($".short {unknownShort}");
+            }
+
+            sb.AppendLine("END_POINTERS:");
+            sb.AppendLine($".word {currentPointer}");
+            for (int i = 0; i < currentPointer; i++)
+            {
+                sb.AppendLine($".word POINTER{i}");
+            }
+
+            return sb.ToString();
         }
     }
 
@@ -78,9 +185,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Parameter = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
         }
 
-        public string GetAsm(int indentation, ArchiveFile<EventFile> evt, ArchiveFile<DataFile> dat)
+        public string GetAsm(int indentation, Dictionary<string, IncludeEntry[]> includes)
         {
-            return $"{Helpers.Indent(indentation + 1)}{Verb} {GetParameterString(evt, dat)}";
+            return $"{Helpers.Indent(indentation + 1)}{Verb} {GetParameterString(includes)}";
         }
 
         public static string GetMacros()
@@ -120,6 +227,17 @@ namespace HaruhiChokuretsuLib.Archive.Event
             };
             return $"{Verb}({parameterString})";
         }
+        public string GetParameterString(Dictionary<string, IncludeEntry[]> includes)
+        {
+            string parameterString = _verbIndex switch
+            {
+                2 => $"\"{includes["EVTBIN"].First(i => i.Value == Parameter).Name}\"", // LOAD_SCENE
+                3 => $"\"{includes["DATBIN"].First(i => i.Value == Parameter).Name}\"", // PUZZLE_PHASE
+                9 => $"\"MOVIE{Parameter}\"", // PLAY_VIDEO
+                _ => Parameter.ToString(),
+            };
+            return $"{Verb}({parameterString})";
+        }
     }
 
     public class ScenarioSelectionStruct
@@ -140,6 +258,19 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 }
             }
         }
+
+        public string GetSource(Dictionary<string, IncludeEntry[]> includes, ref int currentPointer)
+        {
+            StringBuilder sb = new();
+
+            foreach (ScenarioRouteSelectionStruct routeSelection in RouteSelections)
+            {
+                sb.AppendLine(routeSelection.GetSource(includes, ref currentPointer));
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
     }
 
     public class ScenarioRouteSelectionStruct
@@ -158,7 +289,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public int UnknownInt4 { get; set; }
         public int UnknownInt5 { get; set; }
         public int UnknownInt6 { get; set; }
-        public string RequiredBrigadeMember { get; set; }
+        public BrigadeMember RequiredBrigadeMember { get; set; }
         public bool HaruhiPresent { get; set; }
 
         public ScenarioRouteSelectionStruct(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
@@ -176,24 +307,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             UnknownInt4 = IO.ReadInt(data, dataStartIndex + 0x18);
             UnknownInt5 = IO.ReadInt(data, dataStartIndex + 0x1C);
             UnknownInt6 = IO.ReadInt(data, dataStartIndex + 0x20);
-            switch (IO.ReadInt(data, dataStartIndex + 0x24))
-            {
-                case -1:
-                    RequiredBrigadeMember = "ANY";
-                    break;
-                case 3:
-                    RequiredBrigadeMember = "MIKURU";
-                    break;
-                case 4:
-                    RequiredBrigadeMember = "NAGATO";
-                    break;
-                case 5:
-                    RequiredBrigadeMember = "KOIZUMI";
-                    break;
-                case 22:
-                    RequiredBrigadeMember = "NONE";
-                    break;
-            }
+            RequiredBrigadeMember = (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x24);
             HaruhiPresent = IO.ReadInt(data, dataStartIndex + 0x28) > 0;
 
             for (int i = 0x2C; IO.ReadInt(data, dataStartIndex + i) > 0; i += 0x10)
@@ -202,9 +316,72 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        public string GetSource(Dictionary<string, IncludeEntry[]> includes, ref int currentPointer)
+        {
+            StringBuilder sb = new();
+
+            foreach (ScenarioRouteStruct route in Routes)
+            {
+                sb.AppendLine($"SHORTSHEADER{route.RouteTitleIndex:D2}:");
+                foreach (short s in route.UnknownShortsHeader)
+                {
+                    sb.AppendLine($"   .short {s}");
+                }
+                if (route.UnknownShortsHeader.Count % 2 > 0)
+                {
+                    sb.AppendLine("   .skip 2");
+                }
+            }
+
+            sb.AppendLine($"ROUTESELECTION{TitleIndex:D2}:");
+            sb.AppendLine($"   POINTER{currentPointer++}: .word ROUTESELECTIONTITLE{TitleIndex:D2}");
+            sb.AppendLine($"   POINTER{currentPointer++}: .word ROUTESELECTIONFUTUREDESC{TitleIndex:D2}");
+            sb.AppendLine($"   POINTER{currentPointer++}: .word ROUTESELECTIONPASTDESC{TitleIndex:D2}");
+            sb.AppendLine($"   .word {UnknownInt1}");
+            sb.AppendLine($"   .word {UnknownInt2}");
+            sb.AppendLine($"   .word {UnknownInt3}");
+            sb.AppendLine($"   .word {UnknownInt4}");
+            sb.AppendLine($"   .word {UnknownInt5}");
+            sb.AppendLine($"   .word {UnknownInt6}");
+            sb.AppendLine($"   .word {(int)RequiredBrigadeMember}");
+            sb.AppendLine($"   .word {(HaruhiPresent ? 1 : 0)}");
+
+            foreach (ScenarioRouteStruct route in Routes)
+            {
+                sb.AppendLine(route.GetSource(includes, ref currentPointer));
+            }
+
+            sb.AppendLine(".word -1");
+            sb.AppendLine($".skip {0x100 - Routes.Count * 0x10 - 4}");
+
+            sb.AppendLine($"ROUTESELECTIONTITLE{TitleIndex:D2}: .string {Title.EscapeShiftJIS()}");
+            sb.AsmPadString(Title, Encoding.GetEncoding("Shift-JIS"));
+            sb.AppendLine($"ROUTESELECTIONFUTUREDESC{TitleIndex:D2}: .string {FutureDesc.EscapeShiftJIS()}");
+            sb.AsmPadString(FutureDesc, Encoding.GetEncoding("Shift-JIS"));
+            sb.AppendLine($"ROUTESELECTIONPASTDESC{TitleIndex:D2}: .string {PastDesc.EscapeShiftJIS()}");
+            sb.AsmPadString(PastDesc, Encoding.GetEncoding("Shift-JIS"));
+
+            foreach (ScenarioRouteStruct route in Routes)
+            {
+                sb.AppendLine($"ROUTETITLE{route.RouteTitleIndex:D2}: .string {route.Title.EscapeShiftJIS()}");
+                sb.AsmPadString(route.Title, Encoding.GetEncoding("Shift-JIS"));
+            }
+
+            return sb.ToString();
+        }
+
         public override string ToString()
         {
             return Title;
+        }
+
+        public enum BrigadeMember
+        {
+            ANY = -1,
+            MIKURU = 3,
+            NAGATO = 4,
+            KOIZUMI = 5,
+            NONE = 22,
         }
     }
 
@@ -212,7 +389,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
     {
         public short ScriptIndex { get; set; }
         public short UnknownShort { get; set; }
-        public int UnknownPointer { get; set; }
+        public List<short> UnknownShortsHeader { get; set; } = new();
         public int RouteTitleIndex { get; set; }
         public string Title { get; }
         public List<Speaker> CharactersInvolved { get; set; } = new();
@@ -254,9 +431,42 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             ScriptIndex = IO.ReadShort(data, dataStartIndex + 4);
             UnknownShort = IO.ReadShort(data, dataStartIndex + 6);
-            UnknownPointer = IO.ReadInt(data, dataStartIndex + 8);
+
+            int pointerToShortArray = IO.ReadInt(data, dataStartIndex + 8);
+            int currentShortOffset = 0;
+            do
+            {
+                UnknownShortsHeader.Add(IO.ReadShort(data, pointerToShortArray + currentShortOffset));
+                currentShortOffset += 2;
+            } while (UnknownShortsHeader.Last() > 0);
+
             RouteTitleIndex = lines.IndexOf(lines.First(l => l.Pointer == BitConverter.ToInt32(data.Skip(dataStartIndex + 12).Take(4).ToArray())));
             Title = lines[RouteTitleIndex].Text;
+        }
+
+        private int GetCharactersInvolvedFlag()
+        {
+            int flag = 0;
+
+            foreach (Speaker character in CharactersInvolved)
+            {
+                flag |= (byte)Enum.Parse<CharacterMask>(character.ToString());
+            }
+
+            return flag;
+        }
+
+        public string GetSource(Dictionary<string, IncludeEntry[]> includes, ref int currentPointer)
+        {
+            StringBuilder sb = new();
+
+            sb.AppendLine($".word {GetCharactersInvolvedFlag()}");
+            sb.AppendLine($".short {includes["EVTBIN"].First(i => i.Value == ScriptIndex).Name}");
+            sb.AppendLine($".short {UnknownShort}");
+            sb.AppendLine($"POINTER{currentPointer++}: .word SHORTSHEADER{RouteTitleIndex:D2}");
+            sb.AppendLine($"POINTER{currentPointer++}: .word ROUTETITLE{RouteTitleIndex:D2}");
+
+            return sb.ToString();
         }
 
         public override string ToString()

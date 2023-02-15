@@ -746,7 +746,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "SCENARIOS")
             {
-                return "";
+                return Scenario.GetSource(includes, _log);
             }
             else if (Name == "TOPICS")
             {
@@ -758,25 +758,21 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else
             {
-                StringBuilder builder = new();
-                builder.AppendLine(".include \"COMMANDS.INC\"");
-                //builder.AppendLine(".include \"DATBIN.INC\"");
-                //builder.AppendLine(".include \"EVTBIN.INC\"");
-                //builder.AppendLine(".include"GRPBIN.INC\"");
-                //builder.AppendLine(".include \"BGTBL.S\"");
-                builder.AppendLine();
-                builder.AppendLine($".word {NumSections}");
-                builder.AppendLine(".word END_POINTERS");
-                builder.AppendLine(".word FILE_START");
+                StringBuilder sb = new();
+                sb.AppendLine(".include \"COMMANDS.INC\"");
+                sb.AppendLine();
+                sb.AppendLine($".word {NumSections}");
+                sb.AppendLine(".word END_POINTERS");
+                sb.AppendLine(".word FILE_START");
 
                 foreach (EventFileSection section in SectionPointersAndCounts)
                 {
-                    builder.AppendLine($".word {section.Section?.Name ?? "UNRECOGNIZED_SECTION"}");
-                    builder.AppendLine($".word {section.ItemCount}");
+                    sb.AppendLine($".word {section.Section?.Name ?? "UNRECOGNIZED_SECTION"}");
+                    sb.AppendLine($".word {section.ItemCount}");
                 }
 
-                builder.AppendLine();
-                builder.AppendLine("FILE_START:");
+                sb.AppendLine();
+                sb.AppendLine("FILE_START:");
 
                 int currentPointer = 0;
                 foreach (EventFileSection section in SectionPointersAndCounts.OrderBy(s => s.Pointer))
@@ -784,22 +780,22 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     if (section.Section is not null)
                     {
                         dynamic typedSection = Convert.ChangeType(section.Section, section.Section.SectionType);
-                        builder.AppendLine(typedSection.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(typedSection.GetAsm(0, ref currentPointer));
                     }
                     else
                     {
-                        builder.AppendLine();
+                        sb.AppendLine();
                     }
                 }
 
-                builder.AppendLine("END_POINTERS:");
-                builder.AppendLine($"   .word {currentPointer}");
+                sb.AppendLine("END_POINTERS:");
+                sb.AppendLine($"   .word {currentPointer}");
                 for (int i = 0; i < currentPointer; i++)
                 {
-                    builder.AppendLine($"   .word POINTER{i}");
+                    sb.AppendLine($"   .word POINTER{i}");
                 }
 
-                return builder.ToString();
+                return sb.ToString();
             }
         }
     }
