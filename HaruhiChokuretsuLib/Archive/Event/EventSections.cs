@@ -74,9 +74,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 return new IntegerSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (int)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
             }
-            else if (conversionType == typeof(Unknown02Section))
+            else if (conversionType == typeof(InteractableObjectsSection))
             {
-                return new Unknown02Section() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (Unknown02SectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
+                return new InteractableObjectsSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (InteractableObjectEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
             }
             else if (conversionType == typeof(Unknown03Section))
             {
@@ -179,8 +179,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].EventNamePointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word EVENTNAME");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown01}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection01Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION01_POINTER");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown02}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection02Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION02_POINTER");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumInteractableObjects}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].InteractableObjectsPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word INTERACTABLEOBJECTS_POINTER");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown03}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection03Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION03_POINTER");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumStartingChibisSections}");
@@ -346,13 +346,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public class Unknown02Section : IEventSection<Unknown02SectionEntry>
+    public class InteractableObjectsSection : IEventSection<InteractableObjectEntry>
     {
         public string Name { get; set; }
         public List<byte> Data { get; set; }
         public int NumObjects { get; set; }
         public int ObjectLength { get; set; }
-        public List<Unknown02SectionEntry> Objects { get; set; } = new();
+        public List<InteractableObjectEntry> Objects { get; set; } = new();
         public Type SectionType { get; set; }
         public Type ObjectType { get; set; }
 
@@ -367,16 +367,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(Unknown02Section);
-            ObjectType = typeof(Unknown02SectionEntry);
+            SectionType = typeof(InteractableObjectsSection);
+            ObjectType = typeof(InteractableObjectEntry);
 
             for (int i = 0; i < NumObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    UnknownShort1 = BitConverter.ToInt16(data.Skip(i * 6).Take(2).ToArray()),
-                    UnknownShort2 = BitConverter.ToInt16(data.Skip(i * 6 + 2).Take(2).ToArray()),
-                    UnknownShort3 = BitConverter.ToInt16(data.Skip(i * 6 + 4).Take(2).ToArray()),
+                    ObjectId = BitConverter.ToInt16(data.Skip(i * 6).Take(2).ToArray()),
+                    ScriptBlock = BitConverter.ToInt16(data.Skip(i * 6 + 2).Take(2).ToArray()),
+                    Padding = BitConverter.ToInt16(data.Skip(i * 6 + 4).Take(2).ToArray()),
                 });
             }
         }
@@ -392,9 +392,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
             for (int i = 0; i < NumObjects; i++)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort1}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort2}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort3}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].ObjectId}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].ScriptBlock}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].Padding}");
             }
             if (NumObjects * ObjectLength % 4 > 0)
             {
@@ -406,15 +406,15 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct Unknown02SectionEntry
+    public struct InteractableObjectEntry
     {
-        public short UnknownShort1 { get; set; }
-        public short UnknownShort2 { get; set; }
-        public short UnknownShort3 { get; set; }
+        public short ObjectId { get; set; }
+        public short ScriptBlock { get; set; }
+        public short Padding { get; set; }
 
         public override string ToString()
         {
-            return $"({UnknownShort1}, {UnknownShort2}, {UnknownShort3})";
+            return $"({ObjectId}, {ScriptBlock}, {Padding})";
         }
     }
 

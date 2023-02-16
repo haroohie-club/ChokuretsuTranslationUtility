@@ -25,6 +25,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Dictionary<int, string> DramatisPersonae { get; set; } = new();
         public List<DialogueLine> DialogueLines { get; set; } = new();
 
+        public InteractableObjectsSection InteractableObjectsSection { get; set; }
         public ChoicesSection ChoicesSection { get; set; }
         public StartingChibisSection StartingChibisSection { get; set; }
         public MapCharactersSection MapCharactersSection { get; set; }
@@ -217,20 +218,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[unknownSection01Index].Section = unknown01Section.GetGeneric();
                 }
 
-                if (Settings.UnknownSection02Pointer > 0)
+                if (Settings.InteractableObjectsPointer > 0)
                 {
-                    string name = "UNKNOWNSECTION02";
+                    string name = "INTERACTABLEOBJECTS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection02Pointer, name, Data, log);
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.InteractableObjectsPointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    int unknownSection02Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
-                    Unknown02Section unknown02Section = new();
-                    unknown02Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection02Index].Pointer)
-                        .Take(SectionPointersAndCounts[unknownSection02Index + 1].Pointer - SectionPointersAndCounts[unknownSection02Index].Pointer),
-                        SectionPointersAndCounts[unknownSection02Index].ItemCount,
-                        name, log, SectionPointersAndCounts[unknownSection02Index].Pointer);
-                    SectionPointersAndCounts[unknownSection02Index].Section = unknown02Section.GetGeneric();
+                    int interactableObjectsPointer = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    InteractableObjectsSection = new();
+                    InteractableObjectsSection.Initialize(Data.Skip(SectionPointersAndCounts[interactableObjectsPointer].Pointer)
+                        .Take(SectionPointersAndCounts[interactableObjectsPointer + 1].Pointer - SectionPointersAndCounts[interactableObjectsPointer].Pointer),
+                        SectionPointersAndCounts[interactableObjectsPointer].ItemCount,
+                        name, log, SectionPointersAndCounts[interactableObjectsPointer].Pointer);
+                    SectionPointersAndCounts[interactableObjectsPointer].Section = InteractableObjectsSection.GetGeneric();
                 }
 
                 if (Settings.UnknownSection03Pointer > 0)
@@ -820,8 +821,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public int EventNamePointer { get; set; }
         public int NumUnknown01 { get; set; }
         public int UnknownSection01Pointer { get; set; } // probably straight up unused
-        public int NumUnknown02 { get; set; }
-        public int UnknownSection02Pointer { get; set; } // potentially something to do with flag setting after you've investigated something
+        public int NumInteractableObjects { get; set; }
+        public int InteractableObjectsPointer { get; set; } // potentially something to do with flag setting after you've investigated something
         public int NumUnknown03 { get; set; }
         public int UnknownSection03Pointer { get; set; } // probably straight up unused
         public int NumStartingChibisSections { get; set; }
@@ -858,8 +859,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             EventNamePointer = BitConverter.ToInt32(data.Take(4).ToArray());
             NumUnknown01 = BitConverter.ToInt32(data.Skip(0x004).Take(4).ToArray());
             UnknownSection01Pointer = BitConverter.ToInt32(data.Skip(0x008).Take(4).ToArray());
-            NumUnknown02 = BitConverter.ToInt32(data.Skip(0x00C).Take(4).ToArray());
-            UnknownSection02Pointer = BitConverter.ToInt32(data.Skip(0x010).Take(4).ToArray());
+            NumInteractableObjects = BitConverter.ToInt32(data.Skip(0x00C).Take(4).ToArray());
+            InteractableObjectsPointer = BitConverter.ToInt32(data.Skip(0x010).Take(4).ToArray());
             NumUnknown03 = BitConverter.ToInt32(data.Skip(0x014).Take(4).ToArray());
             UnknownSection03Pointer = BitConverter.ToInt32(data.Skip(0x018).Take(4).ToArray());
             NumStartingChibisSections = BitConverter.ToInt32(data.Skip(0x01C).Take(4).ToArray());

@@ -18,7 +18,7 @@ namespace HaruhiChokuretsuCLI
         private static readonly List<string> SECTIONS = new()
         {
             "Unknown01Section", // 0
-            nameof(Unknown02Section), // 1
+            nameof(InteractableObjectsSection), // 1
             nameof(Unknown03Section), // 2
             "Unknown06Section", // 3
             nameof(Unknown07Section), // 4
@@ -141,11 +141,11 @@ namespace HaruhiChokuretsuCLI
                             }
                             break;
                         case 1:
-                            var genericSection2 = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION02");
-                            if (genericSection2 is not null)
+                            var genericInteractableObjectsSection = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "INTERACTABLEOBJECTS");
+                            if (genericInteractableObjectsSection is not null)
                             {
-                                var unknown02Section = (Unknown02Section)Convert.ChangeType(genericSection2.Section, typeof(Unknown02Section));
-                                foreach (var unknown02 in unknown02Section.Objects)
+                                var interactableObjectsSection = (InteractableObjectsSection)Convert.ChangeType(genericInteractableObjectsSection.Section, typeof(InteractableObjectsSection));
+                                foreach (var interactableObject in interactableObjectsSection.Objects)
                                 {
                                     bool match = true;
                                     if ((_parameters?.Length ?? 0) > 0)
@@ -167,19 +167,19 @@ namespace HaruhiChokuretsuCLI
                                             switch (param)
                                             {
                                                 case 1:
-                                                    if ((!not && unknown02.UnknownShort1 != value) || (not && unknown02.UnknownShort1 == value))
+                                                    if ((!not && interactableObject.ObjectId != value) || (not && interactableObject.ObjectId == value))
                                                     {
                                                         match = false;
                                                     }
                                                     break;
                                                 case 2:
-                                                    if ((!not && unknown02.UnknownShort2 != value) || (not && unknown02.UnknownShort2 == value))
+                                                    if ((!not && interactableObject.ScriptBlock != value) || (not && interactableObject.ScriptBlock == value))
                                                     {
                                                         match = false;
                                                     }
                                                     break;
                                                 case 3:
-                                                    if ((!not && unknown02.UnknownShort3 != value) || (not && unknown02.UnknownShort3 == value))
+                                                    if ((!not && interactableObject.Padding != value) || (not && interactableObject.Padding == value))
                                                     {
                                                         match = false;
                                                     }
@@ -193,7 +193,7 @@ namespace HaruhiChokuretsuCLI
                                     }
                                     if (match)
                                     {
-                                        CommandSet.Out.WriteLine($"{eventFile.Name} ({eventFile.Index}) has Unknown Section 02: {unknown02.UnknownShort1} {unknown02.UnknownShort2} {unknown02.UnknownShort3}");
+                                        CommandSet.Out.WriteLine($"{eventFile.Name} ({eventFile.Index}) has Unknown Section 02: {interactableObject.ObjectId} {interactableObject.ScriptBlock} {interactableObject.Padding}");
                                     }
                                 }
                             }
