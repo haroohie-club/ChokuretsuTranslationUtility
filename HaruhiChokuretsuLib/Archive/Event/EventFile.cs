@@ -93,7 +93,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x37, nameof(CommandVerb.EPHEADER), new string[] { "headerIndex" }),
             new(0x38, nameof(CommandVerb.NOOP3), Array.Empty<string>()),
             new(0x39, nameof(CommandVerb.CONFETTI), new string[] { "on" }),
-            new(0x3A, nameof(CommandVerb.BG_DISPTEMP), new string[] { "bgIndex", "unknown1" }),
+            new(0x3A, nameof(CommandVerb.BG_DISPTEMP), new string[] { "bgIndex", "displayBottom" }),
             new(0x3B, nameof(CommandVerb.BG_SCROLL), Array.Empty<string>()),
             new(0x3C, nameof(CommandVerb.OP_MODE), Array.Empty<string>()),
             new(0x3D, nameof(CommandVerb.WAIT_CANCEL), new string[] { "frames" }),
