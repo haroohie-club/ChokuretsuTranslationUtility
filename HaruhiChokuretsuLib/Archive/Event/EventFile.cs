@@ -449,6 +449,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
                         ScriptSections.Add(scriptSection);
                     }
                 }
+                if (Name.StartsWith("CHS_") && ScriptSections.Count == 5)
+                {
+                    for (int i = 4; i > 1; i--)
+                    {
+                        SectionPointersAndCounts[SectionPointersAndCounts.IndexOf(SectionPointersAndCounts.First(s => s.Section.Name == ScriptSections[i].Name))].Section.Name = ScriptSections[i - 1].Name;
+                        ScriptSections[i].Name = ScriptSections[i - 1].Name;
+                    }
+                    SectionPointersAndCounts[SectionPointersAndCounts.IndexOf(SectionPointersAndCounts.First(s => s.Section.Name == ScriptSections[1].Name))].Section.Name = "SCRIPT01";
+                    ScriptSections[1].Name = "SCRIPT01";
+                }
 
                 int eventNameSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.EventNamePointer);
                 if (Settings.EventNamePointer > 0)
