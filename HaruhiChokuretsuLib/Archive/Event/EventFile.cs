@@ -35,7 +35,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public static List<ScriptCommand> CommandsAvailable { get; set; } = new()
         {
-            new(0x00, nameof(CommandVerb.BACK), Array.Empty<string>()),
+            new(0x00, nameof(CommandVerb.INIT_READ_FLAG), Array.Empty<string>()),
             new(0x01, nameof(CommandVerb.DIALOGUE), new string[] { "dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition", "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed", "unknown8", "unknown9", "unknown10", "unknown11" }),
             new(0x02, nameof(CommandVerb.KBG_DISP), new string[] { "kbgIndex" }),
             new(0x03, nameof(CommandVerb.PIN_MNL), new string[] { "dialogueIndex" }),
@@ -68,7 +68,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x1E, nameof(CommandVerb.TRANS_IN), new string[] { "index" }),
             new(0x1F, nameof(CommandVerb.SET_PLACE), new string[] { "display", "placeIndex" }),
             new(0x20, nameof(CommandVerb.ITEM_DISPIMG), new string[] { "itemIndex", "x", "y" }),
-            new(0x21, nameof(CommandVerb.SET_READ_FLAG), Array.Empty<string>()),
+            new(0x21, nameof(CommandVerb.BACK), Array.Empty<string>()),
             new(0x22, nameof(CommandVerb.STOP), Array.Empty<string>()),
             new(0x23, nameof(CommandVerb.NOOP2), Array.Empty<string>()),
             new(0x24, nameof(CommandVerb.LOAD_ISOMAP), new string[] { "mapFileIndex" }),
@@ -103,7 +103,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public enum CommandVerb
         {
-            BACK,
+            INIT_READ_FLAG,
             DIALOGUE,
             KBG_DISP,
             PIN_MNL,
@@ -136,7 +136,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             TRANS_IN,
             SET_PLACE,
             ITEM_DISPIMG,
-            SET_READ_FLAG,
+            BACK,
             STOP,
             NOOP2,
             LOAD_ISOMAP,
