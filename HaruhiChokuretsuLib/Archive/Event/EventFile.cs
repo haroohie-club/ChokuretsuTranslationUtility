@@ -35,7 +35,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public static List<ScriptCommand> CommandsAvailable { get; set; } = new()
         {
-            new(0x00, nameof(CommandVerb.INIT_READ_FLAG), Array.Empty<string>()),
+            new(0x00, nameof(CommandVerb.BACK), Array.Empty<string>()),
             new(0x01, nameof(CommandVerb.DIALOGUE), new string[] { "dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition", "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed", "unknown8", "unknown9", "unknown10", "unknown11" }),
             new(0x02, nameof(CommandVerb.KBG_DISP), new string[] { "kbgIndex" }),
             new(0x03, nameof(CommandVerb.PIN_MNL), new string[] { "dialogueIndex" }),
@@ -103,7 +103,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public enum CommandVerb
         {
-            INIT_READ_FLAG,
+            BACK,
             DIALOGUE,
             KBG_DISP,
             PIN_MNL,
