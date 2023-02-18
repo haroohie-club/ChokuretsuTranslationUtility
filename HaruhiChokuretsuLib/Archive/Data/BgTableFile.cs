@@ -8,10 +8,10 @@ namespace HaruhiChokuretsuLib.Archive.Data
     public enum BgType
     { 
         KINETIC_SCREEN = 0,
-        TEX_TOP_BOTTOM = 1,
-        TEX_TOP_BOTTOM_0A = 0x0A,
-        TEX_BOTTOM_TILE_TOP = 0x0B,
-        TEX_BOTTOM_TOP_WIDE = 0x0C,
+        TEX_BOTTOM = 1,
+        TEX_BOTTOM_TEMP = 0x0A,
+        TEX_DUAL = 0x0B,
+        TEX_WIDE = 0x0C,
         SINGLE_TEX = 0x0E,
     }
 
@@ -44,10 +44,10 @@ namespace HaruhiChokuretsuLib.Archive.Data
             HashSet<string> names = new();
             string source = ".include \"GRPBIN.INC\"\n\n";
             source += $".set {nameof(BgType.KINETIC_SCREEN)}, {(int)BgType.KINETIC_SCREEN}\n";
-            source += $".set {nameof(BgType.TEX_TOP_BOTTOM)}, {(int)BgType.TEX_TOP_BOTTOM}\n";
-            source += $".set {nameof(BgType.TEX_TOP_BOTTOM_0A)}, {(int)BgType.TEX_TOP_BOTTOM_0A}\n";
-            source += $".set {nameof(BgType.TEX_BOTTOM_TILE_TOP)}, {(int)BgType.TEX_BOTTOM_TILE_TOP}\n";
-            source += $".set {nameof(BgType.TEX_BOTTOM_TOP_WIDE)}, {(int)BgType.TEX_BOTTOM_TOP_WIDE}\n";
+            source += $".set {nameof(BgType.TEX_BOTTOM)}, {(int)BgType.TEX_BOTTOM}\n";
+            source += $".set {nameof(BgType.TEX_BOTTOM_TEMP)}, {(int)BgType.TEX_BOTTOM_TEMP}\n";
+            source += $".set {nameof(BgType.TEX_DUAL)}, {(int)BgType.TEX_DUAL}\n";
+            source += $".set {nameof(BgType.TEX_WIDE)}, {(int)BgType.TEX_WIDE}\n";
             source += $".set {nameof(BgType.SINGLE_TEX)}, {(int)BgType.SINGLE_TEX}\n";
             source += "\n";
 
