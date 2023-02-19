@@ -30,6 +30,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public StartingChibisSection StartingChibisSection { get; set; }
         public MapCharactersSection MapCharactersSection { get; set; }
         public LabelsSection LabelsSection { get; set; }
+        public DialogueSection DialogueSection { get; set; }
         public ConditionalSection ConditionalsSection { get; set; }
         public List<ScriptSection> ScriptSections { get; private set; } = new();
 
@@ -402,12 +403,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "DIALOGUESECTION";
 
-                    DialogueSection dialogueSection = new();
-                    dialogueSection.Initialize(Data,
+                    DialogueSection = new();
+                    DialogueSection.Initialize(Data,
                         SectionPointersAndCounts[dialogueSectionPointerIndex].ItemCount,
                         name, log, SectionPointersAndCounts[dialogueSectionPointerIndex].Pointer);
-                    dialogueSection.InitializeDramatisPersonaeIndices(dramatisPersonae);
-                    SectionPointersAndCounts[dialogueSectionPointerIndex].Section = dialogueSection.GetGeneric();
+                    DialogueSection.InitializeDramatisPersonaeIndices(dramatisPersonae);
+                    SectionPointersAndCounts[dialogueSectionPointerIndex].Section = DialogueSection.GetGeneric();
                 }
 
                 int conditionalSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.ConditionalsSectionPointer);
