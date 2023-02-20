@@ -26,7 +26,22 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public short Id { get; set; }
         public short EventIndex { get; set; }
-        public short[] UnknownShorts = new short[16];
+        public short UnknownShort00 { get; set; }
+        public short UnknownShort01 { get; set; }
+        public short BaseTimeGain { get; set; }
+        public short UnknownShort03 { get; set; }
+        public short UnknownShort04 { get; set; }
+        public short KyonTimePercentage { get; set; }
+        public short MikuruTimePercentage { get; set; }
+        public short NagatoTimePercentage { get; set; }
+        public short KoizumiTimePercentage { get; set; }
+        public short UnknownShort09 { get; set; }
+        public short UnknownShort10 { get; set; }
+        public short UnknownShort11 { get; set; }
+        public short UnknownShort12 { get; set; }
+        public short UnknownShort13 { get; set; }
+        public short UnknownShort14 { get; set; }
+        public short UnknownShort15 { get; set; }
 
         public TopicStruct(int dialogueIndex, string dialogueLine, byte[] data, ILogger log)
         {
@@ -38,12 +53,24 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             TopicDialogueIndex = dialogueIndex;
             Title = dialogueLine;
-            Id = BitConverter.ToInt16(data.Take(2).ToArray());
-            EventIndex = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
-            for (int i = 0; i < UnknownShorts.Length; i++)
-            {
-                UnknownShorts[i] = BitConverter.ToInt16(data.Skip((i + 2) * 2).Take(2).ToArray());
-            }
+            Id = IO.ReadShort(data, 0);
+            EventIndex = IO.ReadShort(data, 0x02);
+            UnknownShort00 = IO.ReadShort(data, 0x04);
+            UnknownShort01 = IO.ReadShort(data, 0x06);
+            BaseTimeGain = IO.ReadShort(data, 0x08);
+            UnknownShort03 = IO.ReadShort(data, 0x0A);
+            UnknownShort04 = IO.ReadShort(data, 0x0C);
+            KyonTimePercentage = IO.ReadShort(data, 0x0E);
+            MikuruTimePercentage = IO.ReadShort(data, 0x10);
+            NagatoTimePercentage = IO.ReadShort(data, 0x12);
+            KoizumiTimePercentage = IO.ReadShort(data, 0x14);
+            UnknownShort09 = IO.ReadShort(data, 0x16);
+            UnknownShort10 = IO.ReadShort(data, 0x18);
+            UnknownShort11 = IO.ReadShort(data, 0x1A);
+            UnknownShort12 = IO.ReadShort(data, 0x1C);
+            UnknownShort13 = IO.ReadShort(data, 0x1E);
+            UnknownShort14 = IO.ReadShort(data, 0x20);
+            UnknownShort15 = IO.ReadShort(data, 0x22);
         }
 
         public override string ToString()
