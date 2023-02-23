@@ -406,7 +406,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct InteractableObjectEntry
+    public class InteractableObjectEntry
     {
         public short ObjectId { get; set; }
         public short ScriptBlock { get; set; }
@@ -474,7 +474,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct Unknown03SectionEntry
+    public class Unknown03SectionEntry
     {
         public int UnknownInt1 { get; set; }
         public int UnknownInt2 { get; set; }
@@ -548,7 +548,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct StartingChibiEntry
+    public class StartingChibiEntry
     {
         public short ChibiIndex { get; set; }
         public short UnknownShort2 { get; set; }
@@ -629,7 +629,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct MapCharactersSectionEntry
+    public class MapCharactersSectionEntry
     {
         public int CharacterIndex { get; set; }
         public short FacingDirection { get; set; }
@@ -698,7 +698,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct Unknown07SectionEntry
+    public class Unknown07SectionEntry
     {
         public short UnknownShort1 { get; set; }
         public short UnknownShort2 { get; set; }
@@ -780,7 +780,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct ChoicesSectionEntry
+    public class ChoicesSectionEntry
     {
         public int Id { get; set; }
         public int Padding1 { get; set; }
@@ -852,7 +852,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct Unknown08SectionEntry
+    public class Unknown08SectionEntry
     {
         public int UnknownInt1 { get; set; }
         public int UnknownInt2 { get; set; }
@@ -919,7 +919,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct Unknown09SectionEntry
+    public class Unknown09SectionEntry
     {
         public int UnknownInt1 { get; set; }
         public int UnknownInt2 { get; set; }
@@ -984,7 +984,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct Unknown10SectionEntry
+    public class Unknown10SectionEntry
     {
         public int UnknownInt1 { get; set; }
         public int UnknownInt2 { get; set; }
@@ -1308,7 +1308,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public struct ScriptSectionDefinition
+    public class ScriptSectionDefinition
     {
         public string Name { get; set; }
         public int NumCommands { get; set; }
