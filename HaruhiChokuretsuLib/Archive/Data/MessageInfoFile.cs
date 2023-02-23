@@ -30,7 +30,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 {
                     Character = (Speaker)IO.ReadShort(decompressedData, sectionStart + i * 0x08),
                     VoiceFont = IO.ReadShort(decompressedData, sectionStart + i * 0x08 + 2),
-                    TextTimer = IO.ReadInt(decompressedData, sectionStart + i * 0x08 + 4),
+                    TextTimer = IO.ReadShort(decompressedData, sectionStart + i * 0x08 + 4),
+                    Unknown = IO.ReadShort(decompressedData, sectionStart + i * 0x08 + 6),
                 });
             }
         }
@@ -57,8 +58,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
             for (int i = 0; i < MessageInfos.Count; i++)
             {
                 sb.AppendLine($".short {MessageInfos[i].Character}");
-                sb.AppendLine($".short {MessageInfos[i].VoiceFont}");
-                sb.AppendLine($".word {MessageInfos[i].TextTimer}");
+                sb.AppendLine($"   .short {MessageInfos[i].VoiceFont}");
+                sb.AppendLine($"   .short {MessageInfos[i].TextTimer}");
+                sb.AppendLine($"   .short {MessageInfos[i].Unknown}");
             }
             sb.AppendLine(".word 0");
             sb.AppendLine(".word 0");
@@ -75,6 +77,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     {
         public Speaker Character { get; set; }
         public short VoiceFont { get; set; }
-        public int TextTimer { get; set; }
+        public short TextTimer { get; set; }
+        public short Unknown { get; set; }
     }
 }
