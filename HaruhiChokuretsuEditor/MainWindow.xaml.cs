@@ -543,7 +543,7 @@ namespace HaruhiChokuretsuEditor
                 };
                 if (saveFileDialog.ShowDialog() == true)
                 {
-                    if (selectedFile.ImageForm == GraphicsFile.Form.TEXTURE || selectedFile.ImageForm == GraphicsFile.Form.TILE)
+                    if (selectedFile.FileFunction != GraphicsFile.Function.SCREEN)
                     {
                         SKBitmap bitmap = selectedFile.GetImage(_currentImageWidth);
                         using FileStream fileStream = new(saveFileDialog.FileName, FileMode.Create);
