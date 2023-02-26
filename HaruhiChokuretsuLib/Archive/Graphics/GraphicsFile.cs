@@ -215,7 +215,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             };
             PixelData = Data;
             Width = 16;
-            Height = PixelData.Count / 32;
+            Height = PixelData.Count / 8;
         }
 
         // Hardcoding these until we figure out how the game knows what to do lol
