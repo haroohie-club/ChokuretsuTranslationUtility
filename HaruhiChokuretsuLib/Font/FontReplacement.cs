@@ -109,7 +109,16 @@ namespace HaruhiChokuretsuLib.Font
 
         public bool TryGetValue(char key, [MaybeNullWhen(false)] out FontReplacement value)
         {
-            throw new NotImplementedException();
+            if (ContainsKey(key))
+            {
+                value = this[key];
+                return true;
+            }
+            else
+            {
+                value = null;
+                return false;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
