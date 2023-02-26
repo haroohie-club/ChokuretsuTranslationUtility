@@ -305,7 +305,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             if (transparentIndex >= 0)
             {
                 originalColor = Palette[transparentIndex];
-                Palette[transparentIndex] = SKColors.White;
+                Palette[transparentIndex] = SKColors.Transparent;
             }
             int height;
             if (width == -1)
