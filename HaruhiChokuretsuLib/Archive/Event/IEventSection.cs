@@ -15,7 +15,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Type ObjectType { get; set; }
 
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset);
-        public string GetAsm(int indentation, ref int currentPointer);
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt);
         public IEventSection<object> GetGeneric();
     }
 }
