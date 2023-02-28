@@ -95,7 +95,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x38, nameof(CommandVerb.NOOP3), Array.Empty<string>()),
             new(0x39, nameof(CommandVerb.CONFETTI), new string[] { "on" }),
             new(0x3A, nameof(CommandVerb.BG_DISPTEMP), new string[] { "bgIndex", "displayBottom" }),
-            new(0x3B, nameof(CommandVerb.BG_SCROLL), Array.Empty<string>()),
+            new(0x3B, nameof(CommandVerb.BG_SCROLL), new string[] { "scrollDirection", "scrollSpeed" }),
             new(0x3C, nameof(CommandVerb.OP_MODE), Array.Empty<string>()),
             new(0x3D, nameof(CommandVerb.WAIT_CANCEL), new string[] { "frames" }),
             new(0x3E, nameof(CommandVerb.BG_REVERT), Array.Empty<string>()),
