@@ -179,19 +179,19 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].EventNamePointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word EVENTNAME");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown01}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection01Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION01_POINTER");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.InteractableObjectsSection.Objects.Count}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.InteractableObjectsSection?.Objects.Count ?? 0}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].InteractableObjectsPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word INTERACTABLEOBJECTS_POINTER");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown03}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection03Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION03_POINTER");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.StartingChibisSection.Objects.Count}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {((evt.StartingChibisSection?.Objects.Count ?? 0) > 0 ? 1 : 0)}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].StartingChibisSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word STARTINGCHIBIS_POINTER");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.MapCharactersSection.Objects.Count}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {((evt.MapCharactersSection?.Objects.Count ?? 0) > 0 ? 1 : 0)}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].MapCharactersSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word MAPCHARACTERS_POINTER");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown06}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection06Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION06_POINTER");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown07}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection07Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION07_POINTER");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.ChoicesSection.Objects.Count}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {(evt.ChoicesSection?.Objects.Count ?? 1) - 1}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].ChoicesSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word CHOICES");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Unused44}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Unused48}");
@@ -199,11 +199,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection09Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION09");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown10}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection10Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION10");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.LabelsSection.Objects.Count}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {(evt.LabelsSection?.Objects.Count ?? 1) - 1}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].LabelsSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word LABELS");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumDialogueEntries}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.DialogueSection.Objects.Count - 1}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].DialogueSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word DIALOGUESECTION");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.ConditionalsSection.Objects.Count}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {(evt.ConditionalsSection?.Objects.Count ?? 1) - 1}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].ConditionalsSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word CONDITIONALS");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.ScriptSections.Count}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].ScriptSectionDefinitionsSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word SCRIPTDEFINITIONS");
@@ -683,7 +683,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
@@ -747,11 +747,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Id}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Padding1}");
@@ -766,7 +766,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 }
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Padding3}");
             }
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 if (Objects[i].Id > 0)
                 {
@@ -835,7 +835,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
@@ -904,7 +904,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
@@ -969,7 +969,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
@@ -1029,11 +1029,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip 2");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].Id}");
@@ -1046,7 +1046,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word 0");
                 }
             }
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 if (Objects[i].Id > 0)
                 {
@@ -1100,7 +1100,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
@@ -1144,7 +1144,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public void InitializeDramatisPersonaeIndices(List<DramatisPersonaeSection> dramatisPersonae)
         {
-            for (int i = 0; i < Objects.Count; i++)
+            for (int i = 0; i < NumObjects; i++)
             {
                 if ((int)Objects[i].Speaker > 0)
                 {
@@ -1158,18 +1158,18 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 int speakerInt = (int)Objects[i].Speaker;
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.int {speakerInt}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(speakerInt > 0 ? $"POINTER{currentPointer++}: .word DRAMATISPERSONAE{Objects[i].SpeakerIndex}" : ".word 0")}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(speakerInt > 0 && Objects[i].Pointer > 0 ? $"POINTER{currentPointer++}: .word DIALOGUELINE{i:D3}" : ".word 0")}");
             }
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 if ((int)Objects[i].Speaker > 0 && Objects[i].Pointer > 0)
                 {
@@ -1220,11 +1220,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 if (!string.IsNullOrEmpty(Objects[i]))
                 {
@@ -1235,7 +1235,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word 0");
                 }
             }
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 if (!string.IsNullOrEmpty(Objects[i]))
                 {
@@ -1285,16 +1285,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{Helpers.Indent(indentation)}{Name}:");
-            for (int i = 0; i < Objects.Count; i++)
+            for (int i = 0; i < evt.ScriptSections.Count; i++)
             {
-                sb.AppendLine($"{Helpers.Indent(indentation + 3)}.word {Objects[i].NumCommands}");
+                sb.AppendLine($"{Helpers.Indent(indentation + 3)}.word {evt.ScriptSections[i].Objects.Count}");
                 if (Objects[i].Pointer > 0)
                 {
-                    sb.AppendLine($"{Helpers.Indent(indentation + 3)}POINTER{currentPointer++}: .word {Objects[i].Name}");
+                    sb.AppendLine($"{Helpers.Indent(indentation + 3)}POINTER{currentPointer++}: .word {evt.ScriptSections[i].Name}");
                 }
                 else
                 {
@@ -1345,12 +1345,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{Objects[i].Command.Mnemonic} {string.Join(", ", Objects[i].Parameters.Take(Objects[i].Command.Parameters.Length))}");
             }
@@ -1387,7 +1387,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
-        public string GetAsm(int indentation, ref int currentPointer)
+        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}: .string \"{Objects[0]}\"");

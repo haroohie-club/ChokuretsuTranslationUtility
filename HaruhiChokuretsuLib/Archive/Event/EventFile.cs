@@ -781,7 +781,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 foreach (EventFileSection section in SectionPointersAndCounts)
                 {
                     sb.AppendLine($".word {section.Section?.Name ?? "UNRECOGNIZED_SECTION"}");
-                    sb.AppendLine($".word {section.ItemCount}");
+                    sb.AppendLine($".word {((section.Section?.Name.StartsWith("DRAMATIS") ?? false) ? 0 : ((section.Section?.SectionType == typeof(ScriptSection) || section.Section?.SectionType == typeof(ScriptSectionDefinitionsSection)) ? section.Section?.Objects.Count + 1 : section.Section?.Objects.Count))}");
                 }
 
                 sb.AppendLine();
@@ -793,7 +793,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     if (section.Section is not null)
                     {
                         dynamic typedSection = Convert.ChangeType(section.Section, section.Section.SectionType);
-                        sb.AppendLine(typedSection.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(typedSection.GetAsm(0, ref currentPointer, this));
                     }
                     else
                     {
