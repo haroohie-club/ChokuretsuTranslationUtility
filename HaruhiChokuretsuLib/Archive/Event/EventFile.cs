@@ -8,6 +8,7 @@ using System.Linq;
 using System.Resources.NetStandard;
 using System.Text;
 using System.Text.RegularExpressions;
+using static System.Collections.Specialized.BitVector32;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
@@ -787,10 +788,110 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine(".word END_POINTERS");
                 sb.AppendLine(".word FILE_START");
 
-                foreach (EventFileSection section in SectionPointersAndCounts)
+                sb.AppendLine($".word {SettingsSection.Name}");
+                sb.AppendLine($".word {SettingsSection.Objects.Count}");
+                if (UnknownSection01 is not null)
                 {
-                    sb.AppendLine($".word {section.Section?.Name ?? "UNRECOGNIZED_SECTION"}");
-                    sb.AppendLine($".word {((section.Section?.Name.StartsWith("DRAMATIS") ?? false) ? 0 : ((section.Section?.SectionType == typeof(ScriptSection) || section.Section?.SectionType == typeof(ScriptSectionDefinitionsSection)) ? section.Section?.Objects.Count + 1 : section.Section?.Objects.Count))}");
+                    sb.AppendLine($".word {UnknownSection01.Name}");
+                    sb.AppendLine($".word {UnknownSection01.Objects.Count}");
+                    sb.AppendLine($".word {UnknownSection01.Name}_POINTER");
+                    sb.AppendLine($".word 2");
+                }
+                if (InteractableObjectsSection is not null)
+                {
+                    sb.AppendLine($".word {InteractableObjectsSection.Name}");
+                    sb.AppendLine($".word {InteractableObjectsSection.Objects.Count}");
+                    sb.AppendLine($".word {InteractableObjectsSection.Name}_POINTER");
+                    sb.AppendLine($".word 2");
+                }
+                if (UnknownSection03 is not null)
+                {
+                    sb.AppendLine($".word {UnknownSection03.Name}");
+                    sb.AppendLine($".word {UnknownSection03.Objects.Count}");
+                    sb.AppendLine($".word {UnknownSection03.Name}_POINTER");
+                    sb.AppendLine($".word 2");
+                }
+                if (StartingChibisSection is not null)
+                {
+                    sb.AppendLine($".word {StartingChibisSection.Name}");
+                    sb.AppendLine($".word {StartingChibisSection.Objects.Count}");
+                    sb.AppendLine($".word {StartingChibisSection.Name}_POINTER");
+                    sb.AppendLine($".word 2");
+                }
+                if (MapCharactersSection is not null)
+                {
+                    sb.AppendLine($".word {MapCharactersSection.Name}");
+                    sb.AppendLine($".word {MapCharactersSection.Objects.Count}");
+                    sb.AppendLine($".word {MapCharactersSection.Name}_POINTER");
+                    sb.AppendLine($".word 2");
+                }
+                if (UnknownSection06 is not null)
+                {
+                    sb.AppendLine($".word {UnknownSection06.Name}");
+                    sb.AppendLine($".word {UnknownSection06.Objects.Count}");
+                    sb.AppendLine($".word {UnknownSection06.Name}_POINTER");
+                    sb.AppendLine($".word 2");
+                }
+                if (UnknownSection07 is not null)
+                {
+                    sb.AppendLine($".word {UnknownSection07.Name}");
+                    sb.AppendLine($".word {UnknownSection07.Objects.Count}");
+                    sb.AppendLine($".word {UnknownSection07.Name}_POINTER");
+                    sb.AppendLine($".word 2");
+                }
+                if (ChoicesSection is not null)
+                {
+                    sb.AppendLine($".word {ChoicesSection.Name}");
+                    sb.AppendLine($".word {ChoicesSection.Objects.Count}");
+                }
+                if (UnknownSection08 is not null)
+                {
+                    sb.AppendLine($".word {UnknownSection08.Name}");
+                    sb.AppendLine($".word {UnknownSection08.Objects.Count}");
+                    sb.AppendLine($".word {UnknownSection08.Name}_POINTER");
+                    sb.AppendLine($".word 2");
+                }
+                if (UnknownSection09 is not null)
+                {
+                    sb.AppendLine($".word {UnknownSection09.Name}");
+                    sb.AppendLine($".word {UnknownSection09.Objects.Count}");
+                }
+                if (UnknownSection10 is not null)
+                {
+                    sb.AppendLine($".word {UnknownSection10.Name}");
+                    sb.AppendLine($".word {UnknownSection10.Objects.Count}");
+                }
+                if (LabelsSection is not null)
+                {
+                    sb.AppendLine($".word {LabelsSection.Name}");
+                    sb.AppendLine($".word {LabelsSection.Objects.Count}");
+                }
+                foreach (DramatisPersonaeSection dramatisPersonae in DramatisPersonaeSections)
+                {
+                    sb.AppendLine($".word {dramatisPersonae.Name}");
+                    sb.AppendLine($".word 0");
+                }
+                if (DialogueSection is not null)
+                {
+                    sb.AppendLine($".word {DialogueSection.Name}");
+                    sb.AppendLine($".word {DialogueSection.Objects.Count}");
+                }
+                if (ConditionalsSection is not null)
+                {
+                    sb.AppendLine($".word {ConditionalsSection.Name}");
+                    sb.AppendLine($".word {ConditionalsSection.Objects.Count}");
+                }
+                foreach (ScriptSection scriptSection in ScriptSections)
+                {
+                    sb.AppendLine($".word {scriptSection.Name}");
+                    sb.AppendLine($".word {scriptSection.Objects.Count + 1}");
+                }
+                sb.AppendLine($".word SCRIPTDEFINITIONS");
+                sb.AppendLine($".word {ScriptSections.Count + 1}");
+                if (EventNameSection is not null)
+                {
+                    sb.AppendLine($".word {EventNameSection.Name}");
+                    sb.AppendLine($".word {EventNameSection.Objects.Count}");
                 }
 
                 sb.AppendLine();
