@@ -1,6 +1,4 @@
 ﻿using FFMpegCore.Pipes;
-using HaruhiChokuretsuLib.Archive;
-using HaruhiChokuretsuLib.Archive.Graphics;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;

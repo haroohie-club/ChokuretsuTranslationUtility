@@ -25,14 +25,24 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public Dictionary<int, string> DramatisPersonae { get; set; } = new();
         public List<DialogueLine> DialogueLines { get; set; } = new();
 
+        public EventNameSection EventNameSection { get; set; }
+        public IntegerSection UnknownSection01 { get; set; }
         public InteractableObjectsSection InteractableObjectsSection { get; set; }
-        public ChoicesSection ChoicesSection { get; set; }
+        public Unknown03Section UnknownSection03 { get; set; }
         public StartingChibisSection StartingChibisSection { get; set; }
         public MapCharactersSection MapCharactersSection { get; set; }
+        public IntegerSection UnknownSection06 { get; set; }
+        public Unknown07Section UnknownSection07 { get; set; }
+        public ChoicesSection ChoicesSection { get; set; }
+        public Unknown08Section UnknownSection08 { get; set; }
+        public Unknown09Section UnknownSection09 { get; set; }
+        public Unknown10Section UnknownSection10 { get; set; }
         public LabelsSection LabelsSection { get; set; }
+        public List<DramatisPersonaeSection> DramatisPersonaeSections { get; set; } = new();
         public DialogueSection DialogueSection { get; set; }
         public ConditionalSection ConditionalsSection { get; set; }
         public List<ScriptSection> ScriptSections { get; private set; } = new();
+        public SettingsSection SettingsSection { get; set; }
 
         public static List<ScriptCommand> CommandsAvailable { get; set; } = new()
         {
@@ -195,10 +205,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 });
             }
 
-            SettingsSection settingsSection = new();
-            settingsSection.Initialize(decompressedData.Skip(SectionPointersAndCounts[0].Pointer).Take(EventFileSettings.SETTINGS_LENGTH), 1, "SETTINGS", log, SectionPointersAndCounts[0].Pointer);
-            Settings = settingsSection.Objects[0];
-            SectionPointersAndCounts[0].Section = settingsSection.GetGeneric();
+            SettingsSection = new();
+            SettingsSection.Initialize(decompressedData.Skip(SectionPointersAndCounts[0].Pointer).Take(EventFileSettings.SETTINGS_LENGTH), 1, "SETTINGS", log, SectionPointersAndCounts[0].Pointer);
+            Settings = SettingsSection.Objects[0];
+            SectionPointersAndCounts[0].Section = SettingsSection.GetGeneric();
             int dialogueSectionPointerIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
 
             if (Name == "BGTESTS" || Regex.IsMatch(Name, @"[MCT][AHKNTR]\d{2}S") || Regex.IsMatch(Name, @"CHS_\w{3}_\d{2}S") || Regex.IsMatch(Name, @"E[VD]\d?_[HKMNT]?\d{2,3}S"))
@@ -211,12 +221,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int unknownSection01Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
-                    IntegerSection unknown01Section = new();
-                    unknown01Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection01Index].Pointer)
+                    UnknownSection01 = new();
+                    UnknownSection01.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection01Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection01Index + 1].Pointer - SectionPointersAndCounts[unknownSection01Index].Pointer),
                         SectionPointersAndCounts[unknownSection01Index].ItemCount,
                         name, log, SectionPointersAndCounts[unknownSection01Index].Pointer);
-                    SectionPointersAndCounts[unknownSection01Index].Section = unknown01Section.GetGeneric();
+                    SectionPointersAndCounts[unknownSection01Index].Section = UnknownSection01.GetGeneric();
                 }
 
                 if (Settings.InteractableObjectsPointer > 0)
@@ -243,12 +253,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int unknownSection03Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
-                    Unknown03Section unknown03Section = new();
-                    unknown03Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection03Index].Pointer)
+                    UnknownSection03 = new();
+                    UnknownSection03.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection03Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection03Index + 1].Pointer - SectionPointersAndCounts[unknownSection03Index].Pointer),
                         SectionPointersAndCounts[unknownSection03Index].ItemCount,
                         name, log, SectionPointersAndCounts[unknownSection03Index].Pointer);
-                    SectionPointersAndCounts[unknownSection03Index].Section = unknown03Section.GetGeneric();
+                    SectionPointersAndCounts[unknownSection03Index].Section = UnknownSection03.GetGeneric();
                 }
 
                 if (Settings.StartingChibisSectionPointer > 0)
@@ -291,12 +301,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int unknownSection06Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
-                    IntegerSection unknown06Section = new();
-                    unknown06Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection06Index].Pointer)
+                    UnknownSection06 = new();
+                    UnknownSection06.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection06Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection06Index + 1].Pointer - SectionPointersAndCounts[unknownSection06Index].Pointer),
                         SectionPointersAndCounts[unknownSection06Index].ItemCount,
                         name, log, SectionPointersAndCounts[unknownSection06Index].Pointer);
-                    SectionPointersAndCounts[unknownSection06Index].Section = unknown06Section.GetGeneric();
+                    SectionPointersAndCounts[unknownSection06Index].Section = UnknownSection06.GetGeneric();
                 }
 
                 if (Settings.UnknownSection07Pointer > 0)
@@ -307,12 +317,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     int unknownSection07Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
-                    Unknown07Section unknown07Section = new();
-                    unknown07Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection07Index].Pointer)
+                    UnknownSection07 = new();
+                    UnknownSection07.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection07Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection07Index + 1].Pointer - SectionPointersAndCounts[unknownSection07Index].Pointer),
                         SectionPointersAndCounts[unknownSection07Index].ItemCount,
                         name, log, SectionPointersAndCounts[unknownSection07Index].Pointer);
-                    SectionPointersAndCounts[unknownSection07Index].Section = unknown07Section.GetGeneric();
+                    SectionPointersAndCounts[unknownSection07Index].Section = UnknownSection07.GetGeneric();
                 }
 
                 int choicesSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.ChoicesSectionPointer);
@@ -336,24 +346,24 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, SectionPointersAndCounts[choicesSectionIndex + 2].Pointer, name, Data, log);
                     SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    Unknown08Section unknown08Section = new();
-                    unknown08Section.Initialize(Data.Skip(SectionPointersAndCounts[choicesSectionIndex + 1].Pointer)
+                    UnknownSection08 = new();
+                    UnknownSection08.Initialize(Data.Skip(SectionPointersAndCounts[choicesSectionIndex + 1].Pointer)
                         .Take(SectionPointersAndCounts[choicesSectionIndex + 2].Pointer - SectionPointersAndCounts[choicesSectionIndex + 1].Pointer),
                         SectionPointersAndCounts[choicesSectionIndex + 1].ItemCount,
                         name, log, SectionPointersAndCounts[choicesSectionIndex + 1].Pointer);
-                    SectionPointersAndCounts[choicesSectionIndex + 1].Section = unknown08Section.GetGeneric();
+                    SectionPointersAndCounts[choicesSectionIndex + 1].Section = UnknownSection08.GetGeneric();
                 }
 
                 if (Settings.UnknownSection09Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION09";
 
-                    Unknown09Section unknown09Section = new();
-                    unknown09Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection09Index].Pointer)
+                    UnknownSection09 = new();
+                    UnknownSection09.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection09Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection09Index + 1].Pointer - SectionPointersAndCounts[unknownSection09Index].Pointer),
                         SectionPointersAndCounts[unknownSection09Index].ItemCount,
                         name, log, SectionPointersAndCounts[unknownSection09Index].Pointer);
-                    SectionPointersAndCounts[unknownSection09Index].Section = unknown09Section.GetGeneric();
+                    SectionPointersAndCounts[unknownSection09Index].Section = UnknownSection09.GetGeneric();
                 }
 
                 if (Settings.UnknownSection10Pointer > 0)
@@ -361,12 +371,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     string name = "UNKNOWNSECTION10";
 
                     int unknownSection10Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.UnknownSection10Pointer);
-                    Unknown10Section unknown10Section = new();
-                    unknown10Section.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection10Index].Pointer)
+                    UnknownSection10 = new();
+                    UnknownSection10.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection10Index].Pointer)
                         .Take(SectionPointersAndCounts[unknownSection10Index + 1].Pointer - SectionPointersAndCounts[unknownSection10Index].Pointer),
                         SectionPointersAndCounts[unknownSection10Index].ItemCount,
                         name, log, SectionPointersAndCounts[unknownSection10Index].Pointer);
-                    SectionPointersAndCounts[unknownSection10Index].Section = unknown10Section.GetGeneric();
+                    SectionPointersAndCounts[unknownSection10Index].Section = UnknownSection10.GetGeneric();
                 }
 
                 int labelsSectionPointerIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.LabelsSectionPointer);
@@ -382,7 +392,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SectionPointersAndCounts[labelsSectionPointerIndex].Section = LabelsSection.GetGeneric();
                 }
 
-                List<DramatisPersonaeSection> dramatisPersonae = new();
                 if (dialogueSectionPointerIndex > labelsSectionPointerIndex + 1)
                 {
                     for (int i = labelsSectionPointerIndex + 1; i < dialogueSectionPointerIndex; i++)
@@ -395,7 +404,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                             SectionPointersAndCounts[i].ItemCount,
                             name, log, SectionPointersAndCounts[i].Pointer);
                         SectionPointersAndCounts[i].Section = dramatisPersonaeSection.GetGeneric();
-                        dramatisPersonae.Add(dramatisPersonaeSection);
+                        DramatisPersonaeSections.Add(dramatisPersonaeSection);
                     }
                 }
 
@@ -407,7 +416,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     DialogueSection.Initialize(Data,
                         SectionPointersAndCounts[dialogueSectionPointerIndex].ItemCount,
                         name, log, SectionPointersAndCounts[dialogueSectionPointerIndex].Pointer);
-                    DialogueSection.InitializeDramatisPersonaeIndices(dramatisPersonae);
+                    DialogueSection.InitializeDramatisPersonaeIndices(DramatisPersonaeSections);
                     SectionPointersAndCounts[dialogueSectionPointerIndex].Section = DialogueSection.GetGeneric();
                 }
 
@@ -466,10 +475,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "EVENTNAME";
 
-                    EventNameSection eventNameSection = new();
-                    eventNameSection.Initialize(Data.Skip(SectionPointersAndCounts[eventNameSectionIndex].Pointer).TakeWhile(b => b != 0),
+                    EventNameSection = new();
+                    EventNameSection.Initialize(Data.Skip(SectionPointersAndCounts[eventNameSectionIndex].Pointer).TakeWhile(b => b != 0),
                         SectionPointersAndCounts[eventNameSectionIndex].ItemCount, name, log, SectionPointersAndCounts[eventNameSectionIndex].Pointer);
-                    SectionPointersAndCounts[eventNameSectionIndex].Section = eventNameSection.GetGeneric();
+                    SectionPointersAndCounts[eventNameSectionIndex].Section = EventNameSection.GetGeneric();
                 }
             }
 
@@ -788,18 +797,84 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine("FILE_START:");
 
                 int currentPointer = 0;
-                foreach (EventFileSection section in SectionPointersAndCounts.OrderBy(s => s.Pointer))
+                if (EventNameSection is not null)
                 {
-                    if (section.Section is not null)
-                    {
-                        dynamic typedSection = Convert.ChangeType(section.Section, section.Section.SectionType);
-                        sb.AppendLine(typedSection.GetAsm(0, ref currentPointer, this));
-                    }
-                    else
-                    {
-                        sb.AppendLine();
-                    }
+                    sb.AppendLine(EventNameSection.GetAsm(0, ref currentPointer));
                 }
+                if (UnknownSection01 is not null)
+                {
+                    sb.AppendLine(UnknownSection01.GetAsm(0, ref currentPointer));
+                    sb.AppendLine(PointerSection.GetForSection(UnknownSection01).GetAsm(0, ref currentPointer));
+                }
+                if (InteractableObjectsSection is not null)
+                {
+                    sb.AppendLine(InteractableObjectsSection.GetAsm(0, ref currentPointer));
+                    sb.AppendLine(PointerSection.GetForSection(InteractableObjectsSection).GetAsm(0, ref currentPointer));
+                }
+                if (UnknownSection03 is not null)
+                {
+                    sb.AppendLine(UnknownSection03.GetAsm(0, ref currentPointer));
+                    sb.AppendLine(PointerSection.GetForSection(UnknownSection03).GetAsm(0, ref currentPointer));
+                }
+                if (StartingChibisSection is not null)
+                {
+                    sb.AppendLine(StartingChibisSection.GetAsm(0, ref currentPointer));
+                    sb.AppendLine(PointerSection.GetForSection(StartingChibisSection).GetAsm(0, ref currentPointer));
+                }
+                if (MapCharactersSection is not null)
+                {
+                    sb.AppendLine(MapCharactersSection.GetAsm(0, ref currentPointer));
+                    sb.AppendLine(PointerSection.GetForSection(MapCharactersSection).GetAsm(0, ref currentPointer));
+                }
+                if (UnknownSection06 is not null)
+                {
+                    sb.AppendLine(UnknownSection06.GetAsm(0, ref currentPointer));
+                    sb.AppendLine(PointerSection.GetForSection(UnknownSection06).GetAsm(0, ref currentPointer));
+                }
+                if (UnknownSection07 is not null)
+                {
+                    sb.AppendLine(UnknownSection07.GetAsm(0, ref currentPointer));
+                    sb.AppendLine(PointerSection.GetForSection(UnknownSection07).GetAsm(0, ref currentPointer));
+                }
+                if (ChoicesSection is not null)
+                {
+                    sb.AppendLine(ChoicesSection.GetAsm(0, ref currentPointer));
+                }
+                if (UnknownSection08 is not null)
+                {
+                    sb.AppendLine(UnknownSection08.GetAsm(0, ref currentPointer));
+                    sb.AppendLine(PointerSection.GetForSection(UnknownSection08).GetAsm(0, ref currentPointer));
+                }
+                if (UnknownSection09 is not null)
+                {
+                    sb.AppendLine(UnknownSection09.GetAsm(0, ref currentPointer));
+                }
+                if (UnknownSection10 is not null)
+                {
+                    sb.AppendLine(UnknownSection10.GetAsm(0, ref currentPointer));
+                }
+                if (LabelsSection is not null)
+                {
+                    sb.AppendLine(LabelsSection.GetAsm(0, ref currentPointer));
+                }
+                foreach (DramatisPersonaeSection dramatisPersonae in DramatisPersonaeSections)
+                {
+                    sb.AppendLine(dramatisPersonae.GetAsm(0, ref currentPointer));
+                }
+                if (DialogueSection is not null)
+                {
+                    sb.AppendLine(DialogueSection.GetAsm(0, ref currentPointer));
+                }
+                if (ConditionalsSection is not null)
+                {
+                    sb.AppendLine(ConditionalsSection.GetAsm(0, ref currentPointer));
+                }
+                foreach (ScriptSection scriptSection in ScriptSections)
+                {
+                    sb.AppendLine(scriptSection.GetAsm(0, ref currentPointer));
+                }
+                sb.AppendLine(new ScriptSectionDefinitionsSection() { Name = "SCRIPTDEFINITIONS" }.GetAsm(0, ref currentPointer, this)); // we've basically made this into a static method. sorry.
+                sb.AppendLine(SettingsSection.GetAsm(0, ref currentPointer, this));
 
                 sb.AppendLine("END_POINTERS:");
                 sb.AppendLine($"   .word {currentPointer}");
