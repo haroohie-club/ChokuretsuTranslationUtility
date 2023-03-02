@@ -179,7 +179,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].EventNamePointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word EVENTNAME");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown01}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection01Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION01_POINTER");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.InteractableObjectsSection?.Objects.Count ?? 0}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {((evt.InteractableObjectsSection?.Objects.Count ?? 0) > 0 ? 1 : 0)}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].InteractableObjectsPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word INTERACTABLEOBJECTS_POINTER");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown03}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection03Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION03_POINTER");
@@ -191,7 +191,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection06Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION06_POINTER");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].NumUnknown07}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].UnknownSection07Pointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word UNKNOWNSECTION07_POINTER");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {(evt.ChoicesSection?.Objects.Count ?? 1) - 1}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {(evt.ChoicesSection?.Objects.Count ?? 0) - 1}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].ChoicesSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word CHOICES");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Unused44}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Unused48}");
