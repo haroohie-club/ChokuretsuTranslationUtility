@@ -61,7 +61,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             int currentPathingByte = 0;
             byte[] pathingBytes = Data.Skip(SectionOffsetsAndCounts[4].Offset).Take(SectionOffsetsAndCounts[4].ItemCount).ToArray();
             SectionOffsetsAndCounts[4].Name = "PATHING_MAP";
-            if (Settings.YOriented)
+            if (Settings.SlgMode)
             {
                 PathingMap = new byte[Settings.MapWidth][];
                 for (int x = 0; x < Settings.MapWidth; x++)
@@ -100,7 +100,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
             int mapEndIndex = maxLayoutIndex >= 0 ? maxLayoutIndex : (Settings.BackgroundLayoutStartIndex == 0 ? layout.Length : Settings.BackgroundLayoutStartIndex);
 
-            SKBitmap mapBitmap = layout.GetLayout(textures, Settings.ForegroundLayoutStartIndex, mapEndIndex, false, true).bitmap;
+            SKBitmap mapBitmap = layout.GetLayout(textures, Settings.LayoutSizeDefinitionIndex, mapEndIndex, false, true).bitmap;
             SKBitmap bgBitmap = null;
 
             if (Settings.BackgroundLayoutStartIndex != 0 || Settings.BackgroundLayoutEndIndex != 0)
@@ -128,7 +128,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             SKPathEffect rotatePathEffect = SKPathEffect.Create1DPath(
                 SKPath.ParseSvgPathData("M -5 0 L 0 -5, 5 0, 0 5 Z"), 20, 0, SKPath1DPathEffectStyle.Rotate);
             
-            if (Settings.YOriented)
+            if (Settings.SlgMode)
             {
                 for (int x = 0; x < PathingMap.Length; x++)
                 {
@@ -174,6 +174,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
             return bgGradient;
         }
 
+        public (int X, int Y) GetGridOrigin(ArchiveFile<GraphicsFile> grp)
+        {
+            GraphicsFile layout = grp.Files.First(f => f.Index == Settings.LayoutFileIndex);
+            return (layout.LayoutEntries[Settings.LayoutSizeDefinitionIndex].ScreenX / 2, layout.LayoutEntries[Settings.LayoutSizeDefinitionIndex].ScreenY / 2);
+        }
+
         private SKPaint GetPathingSpacePaint(int x, int y, SKPathEffect rotatePathEffect)
         {
             return PathingMap[x][y] switch
@@ -204,7 +210,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine("FILE_START:");
 
             sb.AppendLine($"{SectionOffsetsAndCounts[4].Name}:");
-            if (Settings.YOriented)
+            if (Settings.SlgMode)
             {
                 for (int x = 0; x < Settings.MapWidth; x++)
                 {
@@ -273,12 +279,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
     public class MapFileSettings
     {
-        public bool YOriented { get; set; }
+        public bool SlgMode { get; set; }
         public int MapWidth { get; set; }
         public int MapHeight { get; set; }
         public List<short> TextureFileIndices { get; set; } = new();
         public short LayoutFileIndex { get; set; }
-        public int ForegroundLayoutStartIndex { get; set; }
+        public int LayoutSizeDefinitionIndex { get; set; }
         public int Unknown18 { get; set; }
         public int UnknownLayoutIndex1C { get; set; }
         public int UnknownLayoutIndex20 { get; set; }
@@ -306,14 +312,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
         public MapFileSettings(IEnumerable<byte> data)
         {
-            YOriented = BitConverter.ToInt32(data.Take(4).ToArray()) > 0;
+            SlgMode = BitConverter.ToInt32(data.Take(4).ToArray()) > 0;
             MapWidth = BitConverter.ToInt32(data.Skip(0x04).Take(4).ToArray());
             MapHeight = BitConverter.ToInt32(data.Skip(0x08).Take(4).ToArray());
             TextureFileIndices.Add(BitConverter.ToInt16(data.Skip(0x0C).Take(2).ToArray()));
             TextureFileIndices.Add(BitConverter.ToInt16(data.Skip(0x10).Take(2).ToArray()));
             TextureFileIndices.Add(BitConverter.ToInt16(data.Skip(0x0E).Take(2).ToArray()));
             LayoutFileIndex = BitConverter.ToInt16(data.Skip(0x12).Take(2).ToArray());
-            ForegroundLayoutStartIndex = BitConverter.ToInt32(data.Skip(0x14).Take(4).ToArray());
+            LayoutSizeDefinitionIndex = BitConverter.ToInt32(data.Skip(0x14).Take(4).ToArray());
             Unknown18 = BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray());
             UnknownLayoutIndex1C = BitConverter.ToInt32(data.Skip(0x1C).Take(4).ToArray());
             UnknownLayoutIndex20 = BitConverter.ToInt32(data.Skip(0x20).Take(4).ToArray());
@@ -343,14 +349,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public string GetAsm(int indent, List<DataFileSection> sections, ref int currentPointer)
         {
             StringBuilder sb = new();
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {(YOriented ? 1 : 0)}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {(SlgMode ? 1 : 0)}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {MapWidth}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {MapHeight}");
             sb.AppendLine($"{Helpers.Indent(indent)}.short {TextureFileIndices[0]}");
             sb.AppendLine($"{Helpers.Indent(indent)}.short {TextureFileIndices[2]}");
             sb.AppendLine($"{Helpers.Indent(indent)}.short {TextureFileIndices[1]}");
             sb.AppendLine($"{Helpers.Indent(indent)}.short {LayoutFileIndex}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {ForegroundLayoutStartIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutSizeDefinitionIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown18}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex1C}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex20}");

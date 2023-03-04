@@ -882,12 +882,12 @@ namespace HaruhiChokuretsuEditor
                 {
                     MapFile map = (MapFile)selectedFile;
 
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.YOriented)}: {map.Settings.YOriented}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.SlgMode)}: {map.Settings.SlgMode}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.MapWidth)}: {map.Settings.MapWidth}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.MapHeight)}: {map.Settings.MapHeight}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TextureFileIndices)}: {string.Join(", ", map.Settings.TextureFileIndices.Select(i => $"0x{i:X3}"))}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutFileIndex)}: 0x{map.Settings.LayoutFileIndex:X3} ({_grpFile.Files.First(f => f.Index == map.Settings.LayoutFileIndex).LayoutEntries.Count} entries)" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ForegroundLayoutStartIndex)}: {map.Settings.ForegroundLayoutStartIndex}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutSizeDefinitionIndex)}: {map.Settings.LayoutSizeDefinitionIndex}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown18)}: {map.Settings.Unknown18}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.UnknownLayoutIndex1C)}: {map.Settings.UnknownLayoutIndex1C}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.UnknownLayoutIndex20)}: {map.Settings.UnknownLayoutIndex20}" });

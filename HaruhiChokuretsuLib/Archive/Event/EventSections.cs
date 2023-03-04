@@ -658,7 +658,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public short Y { get; set; }
         public short TalkScriptBlock { get; set; }
         public short Padding { get; set; }
-
+        
         public override string ToString()
         {
             return $"{CharacterIndex}: ({FacingDirection}, {X}, {Y}, {TalkScriptBlock}, {Padding})";
