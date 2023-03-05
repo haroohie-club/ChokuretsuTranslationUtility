@@ -174,12 +174,6 @@ namespace HaruhiChokuretsuLib.Archive.Data
             return bgGradient;
         }
 
-        public (int X, int Y) GetGridOrigin(ArchiveFile<GraphicsFile> grp)
-        {
-            GraphicsFile layout = grp.Files.First(f => f.Index == Settings.LayoutFileIndex);
-            return (layout.LayoutEntries[Settings.LayoutSizeDefinitionIndex].ScreenX / 2, layout.LayoutEntries[Settings.LayoutSizeDefinitionIndex].ScreenY / 2);
-        }
-
         private SKPaint GetPathingSpacePaint(int x, int y, SKPathEffect rotatePathEffect)
         {
             return PathingMap[x][y] switch
