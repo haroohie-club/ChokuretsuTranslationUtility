@@ -26,8 +26,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         public short Id { get; set; }
         public short EventIndex { get; set; }
-        public short UnknownShort00 { get; set; }
-        public short UnknownShort01 { get; set; }
+        public byte EpisodeGroup { get; set; }
+        public byte GroupSelection { get; set; }
+        public TopicType Type { get; set; }
         public short BaseTimeGain { get; set; }
         public short UnknownShort03 { get; set; }
         public short UnknownShort04 { get; set; }
@@ -55,8 +56,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Title = dialogueLine;
             Id = IO.ReadShort(data, 0);
             EventIndex = IO.ReadShort(data, 0x02);
-            UnknownShort00 = IO.ReadShort(data, 0x04);
-            UnknownShort01 = IO.ReadShort(data, 0x06);
+            EpisodeGroup = data[0x04];
+            GroupSelection = data[0x05];
+            Type = (TopicType)IO.ReadShort(data, 0x06);
             BaseTimeGain = IO.ReadShort(data, 0x08);
             UnknownShort03 = IO.ReadShort(data, 0x0A);
             UnknownShort04 = IO.ReadShort(data, 0x0C);
@@ -82,5 +84,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             return $"{TopicDialogueIndex},{Title},{Id:X4},{EventIndex}";
         }
+    }
+
+    public enum TopicType : short
+    {
+        Main = 0x00,
+        Sub = 0x01,
+        Character = 0x03,
+        Haruhi = 0x04,
     }
 }
