@@ -91,10 +91,11 @@ namespace HaruhiChokuretsuTests
             string objFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.o";
             string binFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.bin";
 
-            ProcessStartInfo gcc = new(Path.Combine(devkitArm, "bin/arm-none-eabi-gcc.exe"), $"-c -nostdlib -static \"{filePath}\" -o \"{objFile}");
+            string exe = OperatingSystem.IsWindows() ? ".exe" : "";
+            ProcessStartInfo gcc = new(Path.Combine(devkitArm, $"bin/arm-none-eabi-gcc{exe}"), $"-c -nostdlib -static \"{filePath}\" -o \"{objFile}");
             await Process.Start(gcc).WaitForExitAsync();
             await Task.Delay(50); // ensures process is actually complete
-            ProcessStartInfo objcopy = new(Path.Combine(devkitArm, "bin/arm-none-eabi-objcopy.exe"), $"-O binary \"{objFile}\" \"{binFile}");
+            ProcessStartInfo objcopy = new(Path.Combine(devkitArm, $"bin/arm-none-eabi-objcopy{exe}"), $"-O binary \"{objFile}\" \"{binFile}");
             await Process.Start(objcopy).WaitForExitAsync();
             await Task.Delay(50); // ensures process is actually copmlete
             byte[] bytes = File.ReadAllBytes(binFile);
