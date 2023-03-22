@@ -4,7 +4,7 @@ using System.Collections.Generic;
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio
 {
-    public struct LoopInfo
+    public class LoopInfo
     {
         public uint StartSample { get; set; }
         public uint EndSample { get; set; }

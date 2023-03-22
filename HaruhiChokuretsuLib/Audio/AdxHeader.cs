@@ -9,6 +9,7 @@ namespace HaruhiChokuretsuLib.Audio
     public class AdxHeader
     {
         public const ushort ADX_MAGIC = 0x8000; // big endian
+        public const int ADX_HEADER_LENGTH = 0x32;
 
         public AdxEncoding AdxEncoding { get; set; }
         public byte BlockSize { get; set; }
@@ -54,6 +55,9 @@ namespace HaruhiChokuretsuLib.Audio
             }
 
             HeaderSize = dataOffset + 4;
+        }
+        public AdxHeader()
+        {
         }
 
         public List<byte> GetBytes(int headerSize)
