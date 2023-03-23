@@ -61,7 +61,7 @@ namespace HaruhiChokuretsuLib.Audio
         public static void EncodeWav(string wavFile, string outputAdx)
         {
             WaveFileReader wav = new(wavFile);
-            BinaryWriter writer = new(File.Create(outputAdx));
+            using BinaryWriter writer = new(File.Create(outputAdx));
             AdxEncoder encoder = new(writer, new AdxSpec()
             {
                 Channels = (uint)wav.WaveFormat.Channels,
@@ -87,6 +87,7 @@ namespace HaruhiChokuretsuLib.Audio
 
             encoder.EncodeData(samples);
             encoder.Finish();
+            writer.Flush();
         }
     }
 
