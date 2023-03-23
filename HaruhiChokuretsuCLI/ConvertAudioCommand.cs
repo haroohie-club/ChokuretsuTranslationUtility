@@ -9,7 +9,7 @@ namespace HaruhiChokuretsuCLI
 {
     public class ConvertAudioCommand : Command
     {
-        private string _directory;
+        private string _directory, _encode;
 
         public ConvertAudioCommand() : base("convert-audio", "Converts all the audio files in a directory")
         {
@@ -18,7 +18,8 @@ namespace HaruhiChokuretsuCLI
                 "Converts all ADX/AHX files in a directory to WAV.",
                 "Usage: HaruhiChokuretsuCLI convert-audio -d [AUDIO_DIRECTORY]",
                 "",
-                { "d|directory=", "The directory of audio files to convert", d => _directory = d }
+                { "d|directory=", "The directory of audio files to convert", d => _directory = d },
+                { "e|encode=", "WAV file to encode as ADX", e => _encode = e },
             };
         }
 
@@ -26,6 +27,12 @@ namespace HaruhiChokuretsuCLI
         {
             Options.Parse(arguments);
             ConsoleLogger log = new();
+
+            if (!string.IsNullOrEmpty(_encode))
+            {
+                AdxUtil.EncodeWav(_encode, Path.Combine(Path.GetDirectoryName(_encode), $"{Path.GetFileNameWithoutExtension(_encode)}.bin"));
+                return 0;
+            }
 
             foreach (string file in Directory.GetFiles(_directory, "*.bin"))
             {

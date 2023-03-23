@@ -1,9 +1,9 @@
-﻿using NAudio.Wave;
-using System;
+﻿using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
+using System.Linq;
 
+// This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio
 {
     public class AdxEncoder
@@ -49,12 +49,19 @@ namespace HaruhiChokuretsuLib.Audio
             SamplesEncoded = 0;
             CurrentFrame = new(spec.Channels);
 
-            List<Sample> samples = new();
-            for (int i = 0; i < AlignmentSamples; i++)
+            if (spec.LoopInfo is not null)
             {
-                samples.Add(new(new short[spec.Channels]));
+                List<Sample> samples = new();
+                for (int i = 0; i < AlignmentSamples; i++)
+                {
+                    samples.Add(new(new short[spec.Channels]));
+                }
+                EncodeData(samples);
             }
-            EncodeData(samples);
+            else
+            {
+                Writer.Write(new byte[HeaderSize]);
+            }
         }
 
         public void EncodeData(IEnumerable<Sample> samples)
@@ -78,9 +85,9 @@ namespace HaruhiChokuretsuLib.Audio
                 CurrentFrame.Write(Writer, Coefficients);
             }
 
-            Writer.Write((ushort)0x8001);
-            Writer.Write((ushort)0x000E);
-            Writer.Write(new byte[13]);
+            Writer.Write(BigEndianIO.GetBytes((ushort)0x8001).ToArray());
+            Writer.Write(BigEndianIO.GetBytes((ushort)0x000E).ToArray());
+            Writer.Write(new byte[14]);
 
             Writer.Seek(0, SeekOrigin.Begin);
 
@@ -109,6 +116,7 @@ namespace HaruhiChokuretsuLib.Audio
                 Flags = 0,
             };
             Writer.Write(header.GetBytes((int)HeaderSize).ToArray());
+            Writer.Flush();
         }
 
         public uint SampleToByte(uint startSample, uint channels)

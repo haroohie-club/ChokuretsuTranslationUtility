@@ -1,6 +1,9 @@
-﻿using System;
+﻿using HaruhiChokuretsuLib.Util;
+using NAudio.Wave;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio
@@ -27,6 +30,11 @@ namespace HaruhiChokuretsuLib.Audio
         public Sample(IEnumerable<short> collection) : base(collection)
         {
         }
+
+        public override string ToString()
+        {
+            return $"({string.Join(',', this)})";
+        }
     }
 
     public static class AdxUtil
@@ -48,6 +56,37 @@ namespace HaruhiChokuretsuLib.Audio
         {
             int bitsToShift = (int)(32 - bits);
             return (int)(num << bitsToShift) >> bitsToShift;
+        }
+
+        public static void EncodeWav(string wavFile, string outputAdx)
+        {
+            WaveFileReader wav = new(wavFile);
+            BinaryWriter writer = new(File.Create(outputAdx));
+            AdxEncoder encoder = new(writer, new AdxSpec()
+            {
+                Channels = (uint)wav.WaveFormat.Channels,
+                SampleRate = (uint)wav.WaveFormat.SampleRate,
+            });
+
+
+            byte[] bytes = new byte[wav.Length];
+            wav.Read(bytes);
+            List<Sample> samples = new();
+            for (int i = 0; i < bytes.Length; i += 2)
+            {
+                if (wav.WaveFormat.Channels == 1)
+                {
+                    samples.Add(new Sample(new short[] { IO.ReadShort(bytes, i) }));
+                }
+                else
+                {
+                    samples.Add(new Sample(new short[] { IO.ReadShort(bytes, i), IO.ReadShort(bytes, i + 2) }));
+                    i += 2;
+                }
+            }
+
+            encoder.EncodeData(samples);
+            encoder.Finish();
         }
     }
 
@@ -77,8 +116,8 @@ namespace HaruhiChokuretsuLib.Audio
         {
             return new()
             {
-                Prev = other.Prev,
-                OriginalPrev = other.Prev,
+                Prev = new() { First = other.Prev.First, Second = other.Prev.Second },
+                OriginalPrev = new() { First = other.Prev.First, Second = other.Prev.Second }, // it's a class, so we have to instantiate a new one
                 Min = 0,
                 Max = 0,
                 Samples = new short[32],
@@ -108,7 +147,7 @@ namespace HaruhiChokuretsuLib.Audio
         {
             if (Min == 0 && Max == 0)
             {
-                writer.Write(new byte[17]);
+                writer.Write(new byte[18]);
                 return;
             }
 
@@ -120,12 +159,12 @@ namespace HaruhiChokuretsuLib.Audio
 
             Prev = OriginalPrev;
 
-            writer.Write(BitConverter.GetBytes(scale));
+            writer.Write(BigEndianIO.GetBytes(scale).ToArray());
             for (int i = 0; i < Samples.Length; i += 2)
             {
                 byte upperNibble = GetNibble(Samples[i], scale, coefficients);
                 byte lowerNibble = GetNibble(Samples[i + 1], scale, coefficients);
-                byte @byte = (byte)(upperNibble << 4 | lowerNibble | 0xF);
+                byte @byte = (byte)(upperNibble << 4 | lowerNibble & 0xF);
                 writer.Write(new byte[] { @byte });
             }
         }
@@ -135,14 +174,14 @@ namespace HaruhiChokuretsuLib.Audio
             int delta = ((sample << 12) - coefficients.Coeff1 * Prev.First - coefficients.Coeff2 * Prev.Second) >> 12;
             int unclipped = delta > 0 ? (delta + (scale >> 1)) / scale : (delta - (scale >> 1)) / scale;
 
-            byte nibble = (byte)Math.Min(Math.Max(unclipped, -8), 7);
+            sbyte nibble = (sbyte)Math.Min(Math.Max(unclipped, -8), 7);
             int unclippedSimulatedSample = (((nibble) << 12) * scale + coefficients.Coeff1 * Prev.First + coefficients.Coeff2 * Prev.Second) >> 12;
-            short simulatedSample = (short)Math.Min(Math.Max(unclippedSimulatedSample, int.MinValue), int.MaxValue);
+            short simulatedSample = (short)Math.Min(Math.Max(unclippedSimulatedSample, short.MinValue), short.MaxValue);
 
             Prev.Second = Prev.First;
             Prev.First = simulatedSample;
 
-            return nibble;
+            return (byte)nibble;
         }
     }
 
@@ -188,12 +227,9 @@ namespace HaruhiChokuretsuLib.Audio
 
         public void Write(BinaryWriter writer, (int Coeff1, int Coeff2) coefficients)
         {
-            for (int i = 0; i < Blocks.Count; i++)
+            foreach (Block block in Blocks)
             {
-                foreach (Block block in Blocks)
-                {
-                    block.Write(writer, coefficients);
-                }
+                block.Write(writer, coefficients);
             }
         }
     }

@@ -9,7 +9,7 @@ namespace HaruhiChokuretsuLib.Audio
     public class AdxHeader
     {
         public const ushort ADX_MAGIC = 0x8000; // big endian
-        public const int ADX_HEADER_LENGTH = 0x32;
+        public const int ADX_HEADER_LENGTH = 0x800;
 
         public AdxEncoding AdxEncoding { get; set; }
         public byte BlockSize { get; set; }
@@ -65,7 +65,7 @@ namespace HaruhiChokuretsuLib.Audio
             List<byte> bytes = new();
 
             bytes.AddRange(BigEndianIO.GetBytes(ADX_MAGIC));
-            bytes.AddRange(BigEndianIO.GetBytes(headerSize - 0x04));
+            bytes.AddRange(BigEndianIO.GetBytes((short)(headerSize - 0x04)));
             bytes.Add((byte)AdxEncoding);
             bytes.Add(BlockSize);
             bytes.Add(SampleBitdepth);
