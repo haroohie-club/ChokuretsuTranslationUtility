@@ -58,10 +58,6 @@ namespace HaruhiChokuretsuLib.Audio
                 }
                 EncodeData(samples);
             }
-            else
-            {
-                Writer.Write(new byte[HeaderSize]);
-            }
         }
 
         public void EncodeData(IEnumerable<Sample> samples)
