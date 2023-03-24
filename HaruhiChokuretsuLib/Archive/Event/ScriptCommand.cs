@@ -52,6 +52,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public ScriptCommand Command { get; set; }
         public List<short> Parameters { get; set; } = new();
 
+        public ScriptCommandInvocation(ScriptCommand command)
+        {
+            Command = command;
+            Parameters.AddRange(new short[16]);
+        }
+
         public ScriptCommandInvocation(IEnumerable<byte> data, List<ScriptCommand> commandsAvailable)
         {
             Command = commandsAvailable.FirstOrDefault(c => c.CommandId == BitConverter.ToInt32(data.Take(4).ToArray()));
