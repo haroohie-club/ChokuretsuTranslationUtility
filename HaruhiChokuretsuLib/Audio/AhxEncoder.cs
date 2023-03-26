@@ -33,7 +33,7 @@ namespace HaruhiChokuretsuLib.Audio
                 _n[i] = new long[32];
                 for (int j = 0; j < _n[i].Length; j++)
                 {
-                    _n[i][j] = (long)(Math.Cos((16 + i) * ((j << 1) + 1) * 0.0490873852123405) * 268435456.0);
+                    _n[i][j] = (long)((Math.Cos((float)((16 + i) * ((j << 1) + 1)) * 0.0490873852123405)) * 268435456.0);
                 }
             }
         }
@@ -273,7 +273,7 @@ namespace HaruhiChokuretsuLib.Audio
 
             AdxHeader header = new()
             {
-                AdxEncoding = AdxEncoding.Ahx11,
+                AdxEncoding = AdxEncoding.Ahx10,
                 BlockSize = 0,
                 SampleBitdepth = 0,
                 ChannelCount = (byte)Spec.Channels,
@@ -300,6 +300,12 @@ namespace HaruhiChokuretsuLib.Audio
                 Index = 0;
             }
 
+            public short this[int index]
+            {
+                get => Values[(Index + index) % 512];
+                set => Values[(Index + index) % 512] = value;
+            }
+
             public void AddSamples(short[] samples)
             {
                 samples.CopyTo(Values, Index);
@@ -314,14 +320,18 @@ namespace HaruhiChokuretsuLib.Audio
 
                 long[] y = new long[64];
 
+                // Precompute Y since it doesn't rely on subband
                 for (int i = 0; i < 64; i++)
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        y[i] = (Values[i + 64 * j] * ENWINDOW[i + 64 * j]) >> 15;
+                        // Window the sample
+                        // (15b * 28b) >> 15 = 28b
+                        y[i] += (this[i + 64 * j] * ENWINDOW[i + 64 * j]) >> 15;
                     }
                 }
 
+                // Now do polyphase filter
                 for (int sb = 0; sb < 32; sb++)
                 {
                     for (int i = 0; i < 64; i++)
