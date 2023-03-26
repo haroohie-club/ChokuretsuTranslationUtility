@@ -58,16 +58,25 @@ namespace HaruhiChokuretsuLib.Audio
             return (int)(num << bitsToShift) >> bitsToShift;
         }
 
-        public static void EncodeWav(string wavFile, string outputAdx)
+        public static void EncodeWav(string wavFile, string outputAdx, bool ahx)
         {
             WaveFileReader wav = new(wavFile);
             using BinaryWriter writer = new(File.Create(outputAdx));
-            AdxEncoder encoder = new(writer, new AdxSpec()
+            AdxSpec spec = new()
             {
                 Channels = (uint)wav.WaveFormat.Channels,
                 SampleRate = (uint)wav.WaveFormat.SampleRate,
-            });
+            };
+            IAdxEncoder encoder;
 
+            if (ahx)
+            {
+                encoder = new AhxEncoder(writer, spec);
+            }
+            else
+            {
+                encoder = new AdxEncoder(writer, spec);
+            }
 
             byte[] bytes = new byte[wav.Length];
             wav.Read(bytes);
@@ -84,9 +93,9 @@ namespace HaruhiChokuretsuLib.Audio
                     i += 2;
                 }
             }
-
             encoder.EncodeData(samples);
             encoder.Finish();
+
             writer.Flush();
         }
     }
@@ -232,6 +241,58 @@ namespace HaruhiChokuretsuLib.Audio
             {
                 block.Write(writer, coefficients);
             }
+        }
+    }
+
+    public class BitWriter
+    {
+        public BinaryWriter Writer { get; set; }
+        public byte Byte { get; set; }
+        public int Bit { get; set; }
+
+        public BitWriter(BinaryWriter writer)
+        {
+            Writer = writer;
+            Byte = 0;
+            Bit = 0;
+        }
+
+        public void Reset()
+        {
+            if (Bit != 0)
+            {
+                Bit = 8;
+            }
+        }
+
+        public void WriteBit(uint bit)
+        {
+            if (Bit == 8)
+            {
+                Writer.Write(Byte);
+                Byte = 0;
+                Bit = 0;
+            }
+            Byte |= (byte)(bit << (7 - Bit));
+            Bit++;
+        }
+
+        public void Write(uint num, int bits)
+        {
+            bits--;
+            for (; bits >= 0; bits--)
+            {
+                WriteBit((num >> bits) & 1);
+            }
+        }
+
+        public BinaryWriter Inner()
+        {
+            if (Bit != 0)
+            {
+                Writer.Write(Byte);
+            }
+            return Writer;
         }
     }
 }

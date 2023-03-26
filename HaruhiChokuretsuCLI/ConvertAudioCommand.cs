@@ -30,7 +30,7 @@ namespace HaruhiChokuretsuCLI
 
             if (!string.IsNullOrEmpty(_encode))
             {
-                AdxUtil.EncodeWav(_encode, Path.Combine(Path.GetDirectoryName(_encode), $"{Path.GetFileNameWithoutExtension(_encode)}.bin"));
+                AdxUtil.EncodeWav(_encode, Path.Combine(Path.GetDirectoryName(_encode), $"{Path.GetFileNameWithoutExtension(_encode)}.bin"), true);
                 return 0;
             }
 
@@ -47,7 +47,7 @@ namespace HaruhiChokuretsuCLI
                     decoder = new AhxDecoder(bytes, log);
                 }
                 AdxWaveProvider waveProvider = new(decoder);
-                WaveFileWriter.CreateWaveFile($"{Path.GetFileNameWithoutExtension(file)}.wav", waveProvider);
+                WaveFileWriter.CreateWaveFile(Path.Combine(Path.GetDirectoryName(file), $"{Path.GetFileNameWithoutExtension(file)}.wav"), waveProvider);
             }
 
             return 0;

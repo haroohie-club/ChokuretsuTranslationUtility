@@ -6,7 +6,7 @@ using System.Linq;
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio
 {
-    public class AdxEncoder
+    public class AdxEncoder : IAdxEncoder
     {
         public const uint HIGHPASS_FREQ = 0x01F4;
 
