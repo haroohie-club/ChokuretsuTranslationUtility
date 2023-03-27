@@ -60,12 +60,30 @@ namespace HaruhiChokuretsuLib.Audio
 
         public static void EncodeWav(string wavFile, string outputAdx, bool ahx)
         {
-            WaveFileReader wav = new(wavFile);
+            using WaveFileReader wav = new(wavFile);
+            EncodeWav(wav, outputAdx, ahx);
+        }
+
+        public static void EncodeWav(string wavFile, string outputAdx, double loopStartSecond, double loopEndSecond)
+        {
+            using WaveFileReader wav = new(wavFile);
+            LoopInfo loopInfo = new()
+            {
+                StartSample = (uint)(wav.WaveFormat.SampleRate * loopStartSecond),
+                EndSample = (uint)(wav.WaveFormat.SampleRate * loopEndSecond),
+            };
+            EncodeWav(wav, outputAdx, false, loopInfo);
+        }
+
+        public static void EncodeWav(WaveFileReader wav, string outputAdx, bool ahx, LoopInfo loopInfo = null)
+        {
             using BinaryWriter writer = new(File.Create(outputAdx));
+
             AdxSpec spec = new()
             {
                 Channels = (uint)wav.WaveFormat.Channels,
                 SampleRate = (uint)wav.WaveFormat.SampleRate,
+                LoopInfo = loopInfo,
             };
             IAdxEncoder encoder;
 
