@@ -9,10 +9,15 @@ namespace HaruhiChokuretsuLib.Audio
         private readonly WaveFormat _waveFormat;
         private readonly IAdxDecoder _decoder;
 
-        public AdxWaveProvider(IAdxDecoder decoder)
+        public uint LoopStartSample { get; }
+        public uint LoopEndSample { get; }
+
+        public AdxWaveProvider(IAdxDecoder decoder, uint loopStartSample = 0, uint loopEndSample = 0)
         {
             _waveFormat = new((int)decoder.SampleRate, (int)decoder.Channels);
             _decoder = decoder;
+            LoopStartSample = loopStartSample;
+            LoopEndSample = loopEndSample;
         }
 
         public WaveFormat WaveFormat => _waveFormat;
