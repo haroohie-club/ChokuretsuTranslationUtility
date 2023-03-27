@@ -51,9 +51,8 @@ namespace HaruhiChokuretsuLib.Audio
                 }
                 else
                 {
-
+                    LoopInfo = new(data.Skip(0x14).Take(0x18));
                 }
-                LoopInfo = new(data.Skip(0x14).Take(0x18));
             }
 
             if (Encoding.ASCII.GetString(data.Skip(dataOffset - 2).Take(6).ToArray()) != "(c)CRI")
