@@ -64,14 +64,22 @@ namespace HaruhiChokuretsuLib.Audio
             EncodeWav(wav, outputAdx, ahx);
         }
 
-        public static void EncodeWav(string wavFile, string outputAdx, uint loopStartSample, uint loopEndSample)
+        public static void EncodeWav(string wavFile, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample)
         {
             using WaveFileReader wav = new(wavFile);
-            LoopInfo loopInfo = new()
+            LoopInfo loopInfo;
+            if (loopEnabled)
             {
-                StartSample = loopStartSample,
-                EndSample = loopEndSample,
-            };
+                loopInfo = new()
+                {
+                    StartSample = loopStartSample,
+                    EndSample = loopEndSample,
+                };
+            }
+            else
+            {
+                loopInfo = null;
+            }
             EncodeWav(wav, outputAdx, false, loopInfo);
         }
 
