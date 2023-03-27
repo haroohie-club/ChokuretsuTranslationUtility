@@ -17,10 +17,11 @@ namespace HaruhiChokuretsuLib.Audio
         public uint AlignmentSamples { get; set; }
         public uint CurrentSample { get; set; }
         public LoopReadInfo? LoopReadInfo { get; set; }
+        public bool DoLoop { get; set; } = true;
 
         public uint Channels => Header.ChannelCount;
         public uint SampleRate => Header.SampleRate;
-        public LoopInfo? LoopInfo => Header.Version == 3 ? new()
+        public LoopInfo LoopInfo => Header.Version == 3 ? new()
         {
             StartSample = Header.LoopInfo.BeginSample - Header.LoopInfo.AlignmentSamples,  
             EndSample = Header.LoopInfo.EndSample - Header.LoopInfo.AlignmentSamples,
@@ -106,7 +107,7 @@ namespace HaruhiChokuretsuLib.Audio
         {
             if (LoopReadInfo is not null)
             {
-                if (CurrentSample == LoopReadInfo?.EndSample)
+                if (CurrentSample == LoopReadInfo?.EndSample && DoLoop)
                 {
                     _currentOffset = LoopReadInfo?.BeginByte ?? 0;
                     CurrentSample = (uint)LoopReadInfo?.BeginSample;
