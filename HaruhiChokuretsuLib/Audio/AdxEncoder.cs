@@ -90,8 +90,8 @@ namespace HaruhiChokuretsuLib.Audio
             AdxVersion3LoopInfo loopInfo = new()
             {
                 AlignmentSamples = (ushort)AlignmentSamples,
-                EnabledShort = 1,
-                EnabledInt = 1,
+                EnabledShort = 0,
+                EnabledInt = 0,
                 BeginSample = Spec.LoopInfo?.StartSample ?? 0,
                 BeginByte = SampleToByte(Spec.LoopInfo?.StartSample ?? 0, Spec.Channels) + HeaderSize,
                 EndSample = Spec.LoopInfo?.EndSample ?? 0,
