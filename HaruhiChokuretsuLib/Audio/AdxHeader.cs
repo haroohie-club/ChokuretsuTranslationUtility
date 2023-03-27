@@ -45,6 +45,14 @@ namespace HaruhiChokuretsuLib.Audio
 
             if (Version == 3 && dataOffset >= 40)
             {
+                if (BigEndianIO.ReadUShort(data, 0x22) == 1 && BigEndianIO.ReadUInt(data, 0x24) == 1)
+                {
+                    LoopInfo = new(data.Skip(0x20).Take(0x18));
+                }
+                else
+                {
+
+                }
                 LoopInfo = new(data.Skip(0x14).Take(0x18));
             }
 
