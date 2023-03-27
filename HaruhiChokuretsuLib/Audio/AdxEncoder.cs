@@ -22,7 +22,7 @@ namespace HaruhiChokuretsuLib.Audio
         {
             if (spec.LoopInfo is not null)
             {
-                AlignmentSamples = (32 - (spec.LoopInfo?.StartSample ?? 0 % 32)) % 32;
+                AlignmentSamples = (32 - (spec.LoopInfo.StartSample % 32)) % 32;
                 spec.LoopInfo.StartSample += AlignmentSamples;
                 spec.LoopInfo.EndSample += AlignmentSamples;
 
@@ -87,16 +87,33 @@ namespace HaruhiChokuretsuLib.Audio
 
             Writer.Seek(0, SeekOrigin.Begin);
 
-            AdxVersion3LoopInfo loopInfo = new()
+            AdxVersion3LoopInfo loopInfo;
+            if (Spec.LoopInfo is not null)
             {
-                AlignmentSamples = (ushort)AlignmentSamples,
-                EnabledShort = 0,
-                EnabledInt = 0,
-                BeginSample = Spec.LoopInfo?.StartSample ?? 0,
-                BeginByte = SampleToByte(Spec.LoopInfo?.StartSample ?? 0, Spec.Channels) + HeaderSize,
-                EndSample = Spec.LoopInfo?.EndSample ?? 0,
-                EndByte = SampleToByte(Spec.LoopInfo?.EndSample ?? 0, Spec.Channels) + HeaderSize,
-            };
+                loopInfo = new()
+                {
+                    AlignmentSamples = (ushort)AlignmentSamples,
+                    EnabledShort = 1,
+                    EnabledInt = 1,
+                    BeginSample = Spec.LoopInfo.StartSample,
+                    BeginByte = SampleToByte(Spec.LoopInfo.StartSample, Spec.Channels) + HeaderSize,
+                    EndSample = Spec.LoopInfo.EndSample,
+                    EndByte = SampleToByte(Spec.LoopInfo.EndSample, Spec.Channels) + HeaderSize,
+                };
+            }
+            else
+            {
+                loopInfo = new()
+                {
+                    AlignmentSamples = (ushort)AlignmentSamples,
+                    EnabledShort = 0,
+                    EnabledInt = 0,
+                    BeginSample = 0,
+                    BeginByte = SampleToByte(0, Spec.Channels) + HeaderSize,
+                    EndSample = 0,
+                    EndByte = SampleToByte(0, Spec.Channels) + HeaderSize,
+                };
+            }
 
             AdxHeader header = new()
             {
@@ -115,14 +132,14 @@ namespace HaruhiChokuretsuLib.Audio
             Writer.Flush();
         }
 
-        public uint SampleToByte(uint startSample, uint channels)
+        public static uint SampleToByte(uint startSample, uint channels)
         {
             uint frames = startSample / 32;
             if (startSample % 32 != 32)
             {
                 frames++;
             }
-            return (uint)(frames * 18 * channels);
+            return frames * 18 * channels;
         }
     }
 }
