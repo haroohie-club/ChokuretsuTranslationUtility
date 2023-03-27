@@ -21,7 +21,7 @@ namespace HaruhiChokuretsuLib.Audio
 
         public uint Channels => Header.ChannelCount;
         public uint SampleRate => Header.SampleRate;
-        public LoopInfo LoopInfo => Header.Version == 3 ? new()
+        public LoopInfo LoopInfo => Header.Version == 3 || Header.Version == 4 ? new()
         {
             StartSample = Header.LoopInfo.BeginSample - Header.LoopInfo.AlignmentSamples,  
             EndSample = Header.LoopInfo.EndSample - Header.LoopInfo.AlignmentSamples,
@@ -39,7 +39,7 @@ namespace HaruhiChokuretsuLib.Audio
             PreviousSample = new(new short[Header.ChannelCount]);
             PrevPrevSample = new(new short[Header.ChannelCount]);
 
-            if (Header.Version == 3)
+            if (Header.Version == 3 || Header.Version == 4)
             {
                 AlignmentSamples = Header.LoopInfo.AlignmentSamples;
                 LoopReadInfo = new()

@@ -18,7 +18,7 @@ namespace HaruhiChokuretsuLib.Audio
     {
         public uint Channels { get; set; }
         public uint SampleRate { get; set; }
-        public LoopInfo? LoopInfo { get; set; }
+        public LoopInfo LoopInfo { get; set; }
     }
 
     public class Sample : List<short>
@@ -64,13 +64,13 @@ namespace HaruhiChokuretsuLib.Audio
             EncodeWav(wav, outputAdx, ahx);
         }
 
-        public static void EncodeWav(string wavFile, string outputAdx, double loopStartSecond, double loopEndSecond)
+        public static void EncodeWav(string wavFile, string outputAdx, uint loopStartSample, uint loopEndSample)
         {
             using WaveFileReader wav = new(wavFile);
             LoopInfo loopInfo = new()
             {
-                StartSample = (uint)(wav.WaveFormat.SampleRate * loopStartSecond),
-                EndSample = (uint)(wav.WaveFormat.SampleRate * loopEndSecond),
+                StartSample = loopStartSample,
+                EndSample = loopEndSample,
             };
             EncodeWav(wav, outputAdx, false, loopInfo);
         }
