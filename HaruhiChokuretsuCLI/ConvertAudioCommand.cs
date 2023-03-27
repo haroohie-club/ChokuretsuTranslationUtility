@@ -42,7 +42,7 @@ namespace HaruhiChokuretsuCLI
                 IAdxDecoder decoder;
                 if (bytes[0x04] < 0x10) // file is ADX
                 {
-                    decoder = new AdxDecoder(bytes, log);
+                    decoder = new AdxDecoder(bytes, log) { DoLoop = false };
                 }
                 else
                 {
