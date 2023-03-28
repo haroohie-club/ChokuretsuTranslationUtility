@@ -17,7 +17,7 @@ namespace HaruhiChokuretsuLib.Audio
         public uint AlignmentSamples { get; set; }
         public uint CurrentSample { get; set; }
         public LoopReadInfo? LoopReadInfo { get; set; }
-        public bool DoLoop { get; set; } = true;
+        public bool DoLoop { get; set; }
 
         public uint Channels => Header.ChannelCount;
         public uint SampleRate => Header.SampleRate;
@@ -33,6 +33,7 @@ namespace HaruhiChokuretsuLib.Audio
         public AdxDecoder(IEnumerable<byte> data, ILogger log)
         {
             Header = new(data, log);
+            DoLoop = Header.LoopInfo.EnabledInt == 1;
             Data = data.ToList();
             (Coeff1, Coeff2) = AdxUtil.GenerateCoefficients(Header.HighpassFrequency, Header.SampleRate);
             Samples = new();
