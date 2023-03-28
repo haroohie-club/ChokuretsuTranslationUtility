@@ -18,7 +18,7 @@ namespace HaruhiChokuretsuLib.Audio
         public uint SamplesEncoded { get; set; }
         public Frame CurrentFrame { get; set; }
 
-        public AdxEncoder(BinaryWriter writer, AdxSpec spec)
+        public AdxEncoder(BinaryWriter writer, AdxSpec spec, IProgressTracker tracker)
         {
             if (spec.LoopInfo is not null)
             {
@@ -56,16 +56,18 @@ namespace HaruhiChokuretsuLib.Audio
                 {
                     samples.Add(new(new short[spec.Channels]));
                 }
-                EncodeData(samples);
+                EncodeData(samples, tracker);
             }
         }
 
-        public void EncodeData(IEnumerable<Sample> samples)
+        public void EncodeData(IEnumerable<Sample> samples, IProgressTracker tracker)
         {
+            tracker.Focus("Encoding ADX samples", samples.Count());
             foreach (Sample sample in samples)
             {
                 CurrentFrame.Push(sample, Coefficients);
                 SamplesEncoded++;
+                tracker.Finished++;
                 if (CurrentFrame.IsFull)
                 {
                     CurrentFrame.Write(Writer, Coefficients);
@@ -74,16 +76,19 @@ namespace HaruhiChokuretsuLib.Audio
             }
         }
 
-        public void Finish()
+        public void Finish(IProgressTracker tracker)
         {
+            tracker.Focus("Finalizing ADX", 3);
             if (!CurrentFrame.IsEmpty)
             {
                 CurrentFrame.Write(Writer, Coefficients);
             }
+            tracker.Finished++;
 
             Writer.Write(BigEndianIO.GetBytes((ushort)0x8001).ToArray());
             Writer.Write(BigEndianIO.GetBytes((ushort)0x000E).ToArray());
             Writer.Write(new byte[14]);
+            tracker.Finished++;
 
             Writer.Seek(0, SeekOrigin.Begin);
 
@@ -129,6 +134,7 @@ namespace HaruhiChokuretsuLib.Audio
                 Flags = 0,
             };
             Writer.Write(header.GetBytes((int)HeaderSize).ToArray());
+            tracker.Finished++;
             Writer.Flush();
         }
 

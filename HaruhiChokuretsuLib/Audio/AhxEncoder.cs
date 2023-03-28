@@ -1,6 +1,8 @@
-﻿using System;
+﻿using HaruhiChokuretsuLib.Util;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio
@@ -239,8 +241,9 @@ namespace HaruhiChokuretsuLib.Audio
             }
         }
 
-        public void EncodeData(IEnumerable<Sample> samples)
+        public void EncodeData(IEnumerable<Sample> samples, IProgressTracker tracker)
         {
+            tracker.Focus("Encoding AHX samples", samples.Count());
             foreach (Sample sample in samples)
             {
                 foreach (short channelSample in sample)
@@ -253,12 +256,14 @@ namespace HaruhiChokuretsuLib.Audio
                         BufferIndex = 0;
                     }
                     SamplesEncoded++;
+                    tracker.Finished++;
                 }
             }
         }
 
-        public void Finish()
+        public void Finish(IProgressTracker tracker)
         {
+            tracker.Focus("Finalizing AHX", 3);
             if (BufferIndex != 0)
             {
                 for (uint i = BufferIndex; i < Buffer.Length; i++)
@@ -267,9 +272,11 @@ namespace HaruhiChokuretsuLib.Audio
                 }
                 EncodeFrame();
             }
+            tracker.Finished++;
 
             BinaryWriter w = Writer.Inner();
             w.Write("\x00\x80\x01\x00\x0000AHXE(c)CRI\x00\x00");
+            tracker.Finished++;
 
             AdxHeader header = new()
             {
@@ -286,6 +293,7 @@ namespace HaruhiChokuretsuLib.Audio
 
             w.Seek(0, SeekOrigin.Begin);
             w.Write(header.GetBytes(0x24).ToArray());
+            tracker.Finished++;
             w.Flush();
         }
 

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using HaruhiChokuretsuLib.Util;
+using System.Collections.Generic;
 
 namespace HaruhiChokuretsuLib.Audio
 {
     public interface IAdxEncoder
     {
-        public void EncodeData(IEnumerable<Sample> samples);
-        public void Finish();
+        public void EncodeData(IEnumerable<Sample> samples, IProgressTracker tracker);
+        public void Finish(IProgressTracker tracker);
     }
 }
