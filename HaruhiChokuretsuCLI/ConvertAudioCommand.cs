@@ -32,7 +32,7 @@ namespace HaruhiChokuretsuCLI
 
             if (!string.IsNullOrEmpty(_encode))
             {
-                AdxUtil.EncodeWav(_encode, Path.Combine(Path.GetDirectoryName(_encode), $"{Path.GetFileNameWithoutExtension(_encode)}.bin"), _ahx, new ConsoleProgressTracker());
+                AdxUtil.EncodeWav(_encode, Path.Combine(Path.GetDirectoryName(_encode), $"{Path.GetFileNameWithoutExtension(_encode)}.bin"), _ahx);
                 return 0;
             }
 

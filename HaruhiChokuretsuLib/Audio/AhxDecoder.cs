@@ -27,7 +27,7 @@ namespace HaruhiChokuretsuLib.Audio
         public List<Sample> Samples { get; set; } = new();
         public uint Channels => Header.ChannelCount;
         public uint SampleRate => Header.SampleRate;
-        public LoopInfo LoopInfo => null;
+        public LoopInfo? LoopInfo => null;
 
         private int _currentOffset = 0;
         private int _currentBit = 0;
@@ -104,7 +104,7 @@ namespace HaruhiChokuretsuLib.Audio
             }
             else if (frameHeader != 0xfff5e0c0)
             {
-                _log.LogError($"Bad AHX frame header detected (0x{frameHeader:X8}).");
+                _log.LogError("Bad AHX frame header detected.");
                 return null;
             }
 

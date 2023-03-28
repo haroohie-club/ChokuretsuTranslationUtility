@@ -58,19 +58,19 @@ namespace HaruhiChokuretsuLib.Audio
             return (int)(num << bitsToShift) >> bitsToShift;
         }
 
-        public static void EncodeWav(string wavFile, string outputAdx, bool ahx, IProgressTracker tracker)
+        public static void EncodeWav(string wavFile, string outputAdx, bool ahx)
         {
             using WaveFileReader wav = new(wavFile);
-            EncodeAudio(wav, outputAdx, ahx, tracker);
+            EncodeAudio(wav, outputAdx, ahx);
         }
 
-        public static void EncodeWav(string wavFile, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample, IProgressTracker tracker)
+        public static void EncodeWav(string wavFile, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample)
         {
             using WaveFileReader wav = new(wavFile);
-            EncodeAudio(wav, outputAdx, loopEnabled, loopStartSample, loopEndSample, tracker);
+            EncodeAudio(wav, outputAdx, loopEnabled, loopStartSample, loopEndSample);
         }
 
-        public static void EncodeAudio(WaveStream wav, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample, IProgressTracker tracker)
+        public static void EncodeAudio(WaveStream wav, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample)
         {
             LoopInfo loopInfo;
             if (loopEnabled)
@@ -85,10 +85,10 @@ namespace HaruhiChokuretsuLib.Audio
             {
                 loopInfo = null;
             }
-            EncodeAudio(wav, outputAdx, false, tracker, loopInfo);
+            EncodeAudio(wav, outputAdx, false, loopInfo);
         }
 
-        public static void EncodeAudio(WaveStream wav, string outputAdx, bool ahx, IProgressTracker tracker, LoopInfo loopInfo = null)
+        public static void EncodeAudio(WaveStream wav, string outputAdx, bool ahx, LoopInfo loopInfo = null)
         {
             using BinaryWriter writer = new(File.Create(outputAdx));
 
@@ -106,7 +106,7 @@ namespace HaruhiChokuretsuLib.Audio
             }
             else
             {
-                encoder = new AdxEncoder(writer, spec, tracker);
+                encoder = new AdxEncoder(writer, spec);
             }
 
             byte[] bytes = new byte[wav.Length];
@@ -124,8 +124,8 @@ namespace HaruhiChokuretsuLib.Audio
                     i += 2;
                 }
             }
-            encoder.EncodeData(samples, tracker);
-            encoder.Finish(tracker);
+            encoder.EncodeData(samples);
+            encoder.Finish();
 
             writer.Flush();
         }
