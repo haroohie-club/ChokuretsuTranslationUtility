@@ -61,12 +61,17 @@ namespace HaruhiChokuretsuLib.Audio
         public static void EncodeWav(string wavFile, string outputAdx, bool ahx)
         {
             using WaveFileReader wav = new(wavFile);
-            EncodeWav(wav, outputAdx, ahx);
+            EncodeAudio(wav, outputAdx, ahx);
         }
 
         public static void EncodeWav(string wavFile, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample)
         {
             using WaveFileReader wav = new(wavFile);
+            EncodeAudio(wav, outputAdx, loopEnabled, loopStartSample, loopEndSample);
+        }
+
+        public static void EncodeAudio(WaveStream wav, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample)
+        {
             LoopInfo loopInfo;
             if (loopEnabled)
             {
@@ -80,10 +85,10 @@ namespace HaruhiChokuretsuLib.Audio
             {
                 loopInfo = null;
             }
-            EncodeWav(wav, outputAdx, false, loopInfo);
+            EncodeAudio(wav, outputAdx, false, loopInfo);
         }
 
-        public static void EncodeWav(WaveFileReader wav, string outputAdx, bool ahx, LoopInfo loopInfo = null)
+        public static void EncodeAudio(WaveStream wav, string outputAdx, bool ahx, LoopInfo loopInfo = null)
         {
             using BinaryWriter writer = new(File.Create(outputAdx));
 
