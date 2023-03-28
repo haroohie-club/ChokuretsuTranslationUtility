@@ -115,14 +115,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
-    public struct BgmStruct
+    public class BgmStruct
     {
         public short Index { get; set; }
         public short Unknown02 { get; set; }
         public string Name { get; set; }
     }
 
-    public struct CgStruct
+    public class CgStruct
     {
         public short BgId { get; set; }
         public short Unknown02 { get; set; }
