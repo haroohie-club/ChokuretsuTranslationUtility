@@ -269,7 +269,7 @@ namespace HaruhiChokuretsuLib.Audio
             }
 
             BinaryWriter w = Writer.Inner();
-            w.Write("\x00\x80\x01\x00\x000cAHXE(c)CRI\x00\x00");
+            w.Write("\x00\x80\x01\x00\x0000AHXE(c)CRI\x00\x00");
 
             AdxHeader header = new()
             {
