@@ -287,8 +287,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return $"{Index:X3} {Index:D4} 0x{Offset:X8} ({FileFunction}) - {Name}";
         }
 
-        public SKBitmap GetImage(int width = -1, int transparentIndex = -1, int paletteOffset = 0)
+        public SKBitmap GetImage(int width = -1, int transparentIndex = -1, int paletteOffset = 0, GraphicsFile tilesGrp = null)
         {
+            if (FileFunction == Function.SCREEN)
+            {
+                return GetScreenImage(tilesGrp);
+            }
             if (IsTexture())
             {
                 return GetTexture(width, transparentIndex);
@@ -441,10 +445,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         /// <param name="bitmapFile">Path to bitmap file to import</param>
         /// <returns>Width of new bitmap image</returns>
-        public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1, bool newSize = false)
+        public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
             Edited = true;
-            return SetImage(SKBitmap.Decode(bitmapFile), setPalette, transparentIndex, newSize);
+            return SetImage(SKBitmap.Decode(bitmapFile), setPalette, transparentIndex, newSize, associatedTiles);
         }
 
         /// <summary>
@@ -452,14 +456,18 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         /// <param name="bitmap">Bitmap image in memory</param>
         /// <returns>Width of new bitmap image</returns>
-        public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false)
+        public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
-            if (setPalette)
+            if (setPalette && FileFunction != Function.SCREEN)
             {
                 SetPaletteFromImage(bitmap, transparentIndex);
             }
 
-            if (IsTexture())
+            if (FileFunction == Function.SCREEN)
+            {
+                return SetScreenImage(bitmap, associatedTiles);
+            }
+            else if (IsTexture())
             {
                 return SetTexture(bitmap, newSize);
             }

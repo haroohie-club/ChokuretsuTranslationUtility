@@ -551,7 +551,7 @@ namespace HaruhiChokuretsuEditor
                     }
                     else
                     {
-                        SKBitmap bitmap = selectedFile.GetScreenImage(selectedFile.GetAssociateScreenTiles(_grpFile));
+                        SKBitmap bitmap = selectedFile.GetScreenImage(selectedFile.GetAssociatedScreenTiles(_grpFile));
                         using FileStream fileStream = new(saveFileDialog.FileName, FileMode.Create);
                         bitmap.Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
                     }
@@ -561,7 +561,7 @@ namespace HaruhiChokuretsuEditor
 
         private void ImportGraphicsImageFileButton_Click(object sender, RoutedEventArgs e)
         {
-            if (graphicsListBox.SelectedIndex >= 0 && (((GraphicsFile)graphicsListBox.SelectedItem).PixelData?.Count ?? 0) > 0)
+            if (graphicsListBox.SelectedIndex >= 0 && ((((GraphicsFile)graphicsListBox.SelectedItem).PixelData?.Count ?? 0) > 0 || ((GraphicsFile)graphicsListBox.SelectedItem).FileFunction == GraphicsFile.Function.SCREEN))
             {
                 OpenFileDialog openFileDialog = new()
                 {
@@ -570,9 +570,14 @@ namespace HaruhiChokuretsuEditor
                 if (openFileDialog.ShowDialog() == true)
                 {
                     GraphicsFile selectedFile = (GraphicsFile)graphicsListBox.SelectedItem;
-                    int width = selectedFile.SetImage(openFileDialog.FileName);
+                    GraphicsFile tilesGrp = null;
+                    if (selectedFile.FileFunction == GraphicsFile.Function.SCREEN)
+                    {
+                        tilesGrp = selectedFile.GetAssociatedScreenTiles(_grpFile);
+                    }
+                    int width = selectedFile.SetImage(openFileDialog.FileName, associatedTiles: tilesGrp);
                     tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 1);
-                    tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetImage(width, 0)), MaxWidth = 256 });
+                    tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetImage(width, 0, tilesGrp: tilesGrp)), MaxWidth = 256 });
                     _currentImageWidth = width;
                 }
             }
@@ -632,7 +637,7 @@ namespace HaruhiChokuretsuEditor
                 }
                 else if (selectedFile.FileFunction == GraphicsFile.Function.SCREEN)
                 {
-                    tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetScreenImage(selectedFile.GetAssociateScreenTiles(_grpFile))), MaxWidth = selectedFile.Width });
+                    tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetScreenImage(selectedFile.GetAssociatedScreenTiles(_grpFile))), MaxWidth = selectedFile.Width });
                 }
                 else if (selectedFile.FileFunction == GraphicsFile.Function.LAYOUT)
                 {

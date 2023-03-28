@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using HaruhiChokuretsuLib.Util;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,13 +69,95 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return bitmap;
         }
 
-        public GraphicsFile GetAssociateScreenTiles(ArchiveFile<GraphicsFile> grp)
+        public int SetScreenImage(SKBitmap bitmap, GraphicsFile associatedTiles)
+        {
+            if (bitmap.Width != 256 || bitmap.Height != 192)
+            {
+                _log.LogError("Screen image size must be 256x192");
+                return 256;
+            }
+
+            List<SKBitmap> tiles = new();
+            for (int y = 0; y < bitmap.Height; y += 8)
+            {
+                for (int x = 0; x < bitmap.Width; x += 8)
+                {
+                    SKBitmap tile = new(8, 8);
+                    using SKCanvas tileCanvas = new(tile);
+                    SKRect boundingBox = new()
+                    {
+                        Left = x,
+                        Top = y,
+                        Right = x + 8,
+                        Bottom = y + 8,
+                    };
+                    tileCanvas.DrawBitmap(bitmap, boundingBox, new SKRect(0, 0, 8, 8));
+                    tileCanvas.Flush();
+                    tiles.Add(tile);
+                }
+            }
+
+            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16);
+            foreach (SKBitmap tile in tiles)
+            {
+                for (int y = 0; y < tile.Height; y++)
+                {
+                    for (int x = 0; x < tile.Width; x++)
+                    {
+                        tile.SetPixel(x, y, palette[Helpers.ClosestColorIndex(palette, tile.GetPixel(x, y))]);
+                    }
+                }
+            }
+
+            List<SKBitmap> distinctTiles = new();
+            foreach (SKBitmap tile in tiles)
+            {
+                if (!distinctTiles.Any(t => t.Pixels.SequenceEqual(tile.Pixels)))
+                {
+                    distinctTiles.Add(tile);
+                }
+            }
+
+            if (distinctTiles.Count > 255)
+            {
+                _log.LogError($"Error attempting to replace screen image {Name} ({Index}): more than 256 tiles ({distinctTiles.Count}) generated from image; please use a less complex image");
+                return 256;
+            }
+
+            int tileImageHeight = (distinctTiles.Count * 8 / 256 + 1) * 8;
+            SKBitmap newTileImage = new(256, tileImageHeight);
+            using SKCanvas newTileCanvas = new(newTileImage);
+
+            int currentIndex = 0;
+            for (int y = 0; y < tileImageHeight && currentIndex < distinctTiles.Count; y += 8)
+            {
+                for (int x = 0; x < 256 && currentIndex < distinctTiles.Count; x += 8)
+                {
+                    newTileCanvas.DrawBitmap(distinctTiles[currentIndex++], new SKPoint(x, y));
+                }
+            }
+            newTileCanvas.Flush();
+
+            associatedTiles.SetImage(newTileImage, newSize: true);
+            associatedTiles.SetPalette(palette);
+
+            ScreenData.Clear();
+            foreach (SKBitmap tile in tiles)
+            {
+                ScreenData.Add(new()
+                {
+                    Palette = 0,
+                    Index = (byte)(distinctTiles.FindIndex(t => t.Pixels.SequenceEqual(tile.Pixels)) + 1),
+                });
+            }
+
+            return 256;
+        }
+
+        public GraphicsFile GetAssociatedScreenTiles(ArchiveFile<GraphicsFile> grp)
         {
             GraphicsFile associatedTiles = grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[0..^3]));
-            if (associatedTiles is null)
-            {
-                associatedTiles = grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[0..^8]));
-            }
+            associatedTiles ??= grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[0..^8]));
 
             return associatedTiles;
         }
