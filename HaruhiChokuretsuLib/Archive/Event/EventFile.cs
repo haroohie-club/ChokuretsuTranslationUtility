@@ -1113,7 +1113,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Speaker = Speaker.HARUHI;
             SpeakerName = "何でもない";
             SpeakerPointer = 1;
-            SpeakerIndex = dramatisPersonae.Count;
             Pointer = 1;
             Text = line;
 
@@ -1130,6 +1129,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 dramatisPersonae.Last().Name = $"DRAMTISPERSONAE{dramatisPersonae.Last().Index}";
                 dramatisPersonae.Last().Objects.Add(SpeakerName);
             }
+            SpeakerIndex = dramatisPersonae.Count - 1;
         }
 
         public override string ToString()
