@@ -1107,6 +1107,15 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             NumPaddingZeroes = 4 - Length % 4;
         }
+        public DialogueLine(string line)
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Speaker = Speaker.HARUHI;
+            SpeakerName = "何でもない";
+            SpeakerPointer = 1;
+            Pointer = 1;
+            Text = line;
+        }
 
         public override string ToString()
         {
