@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <Company>Haroohie Translation Club</Company>
-    <Version>0.24.3</Version>
+    <Version>0.24.4</Version>
   </PropertyGroup>
   
   <ItemGroup>
