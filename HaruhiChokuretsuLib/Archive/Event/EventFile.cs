@@ -1126,7 +1126,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     dramatisPersonae.Add(new() { Index = dramatisPersonae.Max(d => d.Index) + 1 });
                 }
-                dramatisPersonae.Last().Name = $"DRAMTISPERSONAE{dramatisPersonae.Last().Index}";
+                dramatisPersonae.Last().Name = $"DRAMATISPERSONAE{dramatisPersonae.Last().Index}";
                 dramatisPersonae.Last().Objects.Add(SpeakerName);
             }
             SpeakerIndex = dramatisPersonae.Count;
