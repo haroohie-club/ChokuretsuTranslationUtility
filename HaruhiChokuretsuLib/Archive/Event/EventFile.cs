@@ -1107,7 +1107,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             NumPaddingZeroes = 4 - Length % 4;
         }
-        public DialogueLine(string line, List<DramatisPersonaeSection> dramatisPersonae)
+        public DialogueLine(string line, EventFile script)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Speaker = Speaker.HARUHI;
@@ -1116,20 +1116,21 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Pointer = 1;
             Text = line;
 
-            if (!dramatisPersonae.Any(d => d.Objects[0] == SpeakerName))
+            if (!script.DramatisPersonaeSections.Any(d => d.Objects[0] == SpeakerName))
             {
-                if (dramatisPersonae.Count == 0)
+                if (script.DramatisPersonaeSections.Count == 0)
                 {
-                    dramatisPersonae.Add(new() { Index = 1 });
+                    script.DramatisPersonaeSections.Add(new() { Index = 1 });
                 }
                 else
                 {
-                    dramatisPersonae.Add(new() { Index = dramatisPersonae.Max(d => d.Index) + 1 });
+                    script.DramatisPersonaeSections.Add(new() { Index = script.DramatisPersonaeSections.Max(d => d.Index) + 1 });
                 }
-                dramatisPersonae.Last().Name = $"DRAMATISPERSONAE{dramatisPersonae.Last().Index}";
-                dramatisPersonae.Last().Objects.Add(SpeakerName);
+                script.NumSections++;
+                script.DramatisPersonaeSections.Last().Name = $"DRAMATISPERSONAE{script.DramatisPersonaeSections.Last().Index}";
+                script.DramatisPersonaeSections.Last().Objects.Add(SpeakerName);
             }
-            SpeakerIndex = dramatisPersonae.Count;
+            SpeakerIndex = script.DramatisPersonaeSections.Count;
         }
 
         public override string ToString()
