@@ -1113,6 +1113,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Speaker = Speaker.HARUHI;
             SpeakerName = "何でもない";
             SpeakerPointer = 1;
+            SpeakerIndex = dramatisPersonae.Count;
             Pointer = 1;
             Text = line;
 
