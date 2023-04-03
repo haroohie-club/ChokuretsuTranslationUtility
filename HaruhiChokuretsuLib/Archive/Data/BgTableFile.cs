@@ -12,7 +12,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         TEX_CG = 0x0A,
         TEX_CG_DUAL_SCREEN = 0x0B,
         TEX_CG_WIDE = 0x0C,
-        TEX_CG_SCROLLABLE = 0x0E,
+        TEX_CG_SINGLE = 0x0E,
     }
 
     public class BgTableFile : DataFile
@@ -48,7 +48,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             source += $".set {nameof(BgType.TEX_CG)}, {(int)BgType.TEX_CG}\n";
             source += $".set {nameof(BgType.TEX_CG_DUAL_SCREEN)}, {(int)BgType.TEX_CG_DUAL_SCREEN}\n";
             source += $".set {nameof(BgType.TEX_CG_WIDE)}, {(int)BgType.TEX_CG_WIDE}\n";
-            source += $".set {nameof(BgType.TEX_CG_SCROLLABLE)}, {(int)BgType.TEX_CG_SCROLLABLE}\n";
+            source += $".set {nameof(BgType.TEX_CG_SINGLE)}, {(int)BgType.TEX_CG_SINGLE}\n";
             source += "\n";
 
             source += ".word 1\n";
@@ -66,7 +66,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 if (BgTableEntries[i].BgIndex1 != 0)
                 {
                     string fileName1 = includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex1).Name;
-                    string fileName2 = BgTableEntries[i].Type != BgType.TEX_CG_SCROLLABLE ? includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex2).Name : "0";
+                    string fileName2 = BgTableEntries[i].Type != BgType.TEX_CG_SINGLE ? includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex2).Name : "0";
                     string bgName = fileName1[0..fileName1.LastIndexOf('_')];
                     string bgNameBackup = bgName;
                     for (int j = 1; names.Contains(bgName); j++)
