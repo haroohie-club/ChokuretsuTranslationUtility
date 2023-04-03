@@ -1107,6 +1107,31 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             NumPaddingZeroes = 4 - Length % 4;
         }
+        public DialogueLine(string line, EventFile script)
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Speaker = Speaker.HARUHI;
+            SpeakerName = "何でもない";
+            SpeakerPointer = 1;
+            Pointer = 1;
+            Text = line;
+
+            if (!script.DramatisPersonaeSections.Any(d => d.Objects[0] == SpeakerName))
+            {
+                if (script.DramatisPersonaeSections.Count == 0)
+                {
+                    script.DramatisPersonaeSections.Add(new() { Index = 1 });
+                }
+                else
+                {
+                    script.DramatisPersonaeSections.Add(new() { Index = script.DramatisPersonaeSections.Max(d => d.Index) + 1 });
+                }
+                script.NumSections++;
+                script.DramatisPersonaeSections.Last().Name = $"DRAMATISPERSONAE{script.DramatisPersonaeSections.Last().Index}";
+                script.DramatisPersonaeSections.Last().Objects.Add(SpeakerName);
+            }
+            SpeakerIndex = script.DramatisPersonaeSections.Count;
+        }
 
         public override string ToString()
         {
