@@ -109,9 +109,10 @@ namespace HaruhiChokuretsuLib.Util
                 + Math.Pow(color1.Alpha - color2.Alpha, 2));
         }
 
-        public static int ClosestColorIndex(IList<SKColor> colors, SKColor color)
+        public static int ClosestColorIndex(IList<SKColor> colors, SKColor color, bool firstTransparent)
         {
-            var colorDistances = colors.Select(c => ColorDistance(c, color)).ToList();
+            int skip = firstTransparent ? 1 : 0;
+            var colorDistances = colors.Skip(skip).Select(c => ColorDistance(c, color)).ToList();
 
             return colorDistances.IndexOf(colorDistances.Min());
         }
