@@ -109,7 +109,7 @@ namespace HaruhiChokuretsuLib.Archive
                     T file = new();
                     try
                     {
-                        file = FileManager<T>.FromCompressedData(fileBytes, _log, offset, filenames[i]);
+                        file = FileManager<T>.FromCompressedData(fileBytes, _log, offset, i > filenames.Count ? $"FILE{i}" : filenames[i]);
                     }
                     catch (IndexOutOfRangeException)
                     {
