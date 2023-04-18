@@ -1,8 +1,7 @@
-﻿using HaruhiChokuretsuLib.Util;
-using HaruhiChokuretsuLib.Archive.Event;
+﻿using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
 using System.Text;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
