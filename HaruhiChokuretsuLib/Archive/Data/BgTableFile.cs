@@ -8,11 +8,11 @@ namespace HaruhiChokuretsuLib.Archive.Data
     public enum BgType
     { 
         KINETIC_SCREEN = 0,
-        TEX_BOTTOM = 1,
-        TEX_BOTTOM_TEMP = 0x0A,
-        TEX_DUAL = 0x0B,
-        TEX_WIDE = 0x0C,
-        SINGLE_TEX = 0x0E,
+        TEX_BG = 1,
+        TEX_CG = 0x0A,
+        TEX_CG_DUAL_SCREEN = 0x0B,
+        TEX_CG_WIDE = 0x0C,
+        TEX_CG_SINGLE = 0x0E,
     }
 
     public class BgTableFile : DataFile
@@ -44,11 +44,11 @@ namespace HaruhiChokuretsuLib.Archive.Data
             HashSet<string> names = new();
             string source = ".include \"GRPBIN.INC\"\n\n";
             source += $".set {nameof(BgType.KINETIC_SCREEN)}, {(int)BgType.KINETIC_SCREEN}\n";
-            source += $".set {nameof(BgType.TEX_BOTTOM)}, {(int)BgType.TEX_BOTTOM}\n";
-            source += $".set {nameof(BgType.TEX_BOTTOM_TEMP)}, {(int)BgType.TEX_BOTTOM_TEMP}\n";
-            source += $".set {nameof(BgType.TEX_DUAL)}, {(int)BgType.TEX_DUAL}\n";
-            source += $".set {nameof(BgType.TEX_WIDE)}, {(int)BgType.TEX_WIDE}\n";
-            source += $".set {nameof(BgType.SINGLE_TEX)}, {(int)BgType.SINGLE_TEX}\n";
+            source += $".set {nameof(BgType.TEX_BG)}, {(int)BgType.TEX_BG}\n";
+            source += $".set {nameof(BgType.TEX_CG)}, {(int)BgType.TEX_CG}\n";
+            source += $".set {nameof(BgType.TEX_CG_DUAL_SCREEN)}, {(int)BgType.TEX_CG_DUAL_SCREEN}\n";
+            source += $".set {nameof(BgType.TEX_CG_WIDE)}, {(int)BgType.TEX_CG_WIDE}\n";
+            source += $".set {nameof(BgType.TEX_CG_SINGLE)}, {(int)BgType.TEX_CG_SINGLE}\n";
             source += "\n";
 
             source += ".word 1\n";
@@ -66,7 +66,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 if (BgTableEntries[i].BgIndex1 != 0)
                 {
                     string fileName1 = includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex1).Name;
-                    string fileName2 = BgTableEntries[i].Type != BgType.SINGLE_TEX ? includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex2).Name : "0";
+                    string fileName2 = BgTableEntries[i].Type != BgType.TEX_CG_SINGLE ? includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex2).Name : "0";
                     string bgName = fileName1[0..fileName1.LastIndexOf('_')];
                     string bgNameBackup = bgName;
                     for (int j = 1; names.Contains(bgName); j++)

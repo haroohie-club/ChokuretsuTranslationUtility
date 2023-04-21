@@ -469,11 +469,11 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             else if (IsTexture())
             {
-                return SetTexture(bitmap, newSize);
+                return SetTexture(bitmap, newSize, transparentIndex == 0 ? true : false);
             }
             else
             {
-                return SetTiles(bitmap, newSize);
+                return SetTiles(bitmap, newSize, transparentIndex == 0 ? true : false);
             }
         }
 
@@ -500,7 +500,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
         }
 
-        private int SetTexture(SKBitmap bitmap, bool newSize)
+        private int SetTexture(SKBitmap bitmap, bool newSize, bool firstTransparent)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -521,14 +521,14 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             {
                 for (int x = 0; x < bitmap.Width; x++)
                 {
-                    PixelData[i++] = (byte)Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(x, y));
+                    PixelData[i++] = (byte)Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(x, y), firstTransparent);
                 }
             }
 
             return bitmap.Width;
         }
 
-        private int SetTiles(SKBitmap bitmap, bool newSize)
+        private int SetTiles(SKBitmap bitmap, bool newSize, bool firstTransparent)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -557,8 +557,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                         {
                             for (int xpix = 0; xpix < 4 && pixelData.Count < PixelData.Count; xpix++)
                             {
-                                int color1 = Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(col * 8 + xpix * 2, row * 8 + ypix));
-                                int color2 = Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(col * 8 + xpix * 2 + 1, row * 8 + ypix));
+                                int color1 = Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(col * 8 + xpix * 2, row * 8 + ypix), firstTransparent);
+                                int color2 = Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(col * 8 + xpix * 2 + 1, row * 8 + ypix), firstTransparent);
 
                                 pixelData.Add((byte)(color1 + (color2 << 4)));
                             }
@@ -567,7 +567,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                         {
                             for (int xpix = 0; xpix < 8 && pixelData.Count < PixelData.Count; xpix++)
                             {
-                                pixelData.Add((byte)Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(col * 8 + xpix, row * 8 + ypix)));
+                                pixelData.Add((byte)Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(col * 8 + xpix, row * 8 + ypix), firstTransparent));
                             }
                         }
                     }

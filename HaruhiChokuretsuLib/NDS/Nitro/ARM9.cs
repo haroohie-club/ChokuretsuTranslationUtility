@@ -1,9 +1,9 @@
 ﻿// This code is heavily based on code Gericom wrote for ErmiiBuild
 
+using HaruhiChokuretsuLib.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HaruhiChokuretsuLib.Util;
 
 namespace HaruhiChokuretsuLib.NDS.Nitro
 {

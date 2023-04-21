@@ -1,9 +1,8 @@
-﻿using System;
+﻿using HaruhiChokuretsuLib.Util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using HaruhiChokuretsuLib.Util;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {

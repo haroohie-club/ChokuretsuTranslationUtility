@@ -1,9 +1,10 @@
-﻿using System;
+﻿using HaruhiChokuretsuLib.Util;
+using HaruhiChokuretsuLib.Util.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using HaruhiChokuretsuLib.Util;
 
 namespace HaruhiChokuretsuLib.Archive
 {
@@ -28,13 +29,13 @@ namespace HaruhiChokuretsuLib.Archive
         public Dictionary<int, int> LengthToMagicIntegerMap { get; private set; } = new();
         private ILogger _log { get; set; }
 
-        public static ArchiveFile<T> FromFile(string fileName, ILogger log)
+        public static ArchiveFile<T> FromFile(string fileName, ILogger log, bool dontThrow = true)
         {
             byte[] archiveBytes = File.ReadAllBytes(fileName);
-            return new ArchiveFile<T>(archiveBytes, log) { FileName = Path.GetFileName(fileName) };
+            return new ArchiveFile<T>(archiveBytes, log, dontThrow) { FileName = Path.GetFileName(fileName) };
         }
 
-        public ArchiveFile(byte[] archiveBytes, ILogger log)
+        public ArchiveFile(byte[] archiveBytes, ILogger log, bool dontThrow = true)
         {
             _log = log;
 
@@ -109,11 +110,18 @@ namespace HaruhiChokuretsuLib.Archive
                     T file = new();
                     try
                     {
-                        file = FileManager<T>.FromCompressedData(fileBytes, _log, offset, filenames[i]);
+                        file = FileManager<T>.FromCompressedData(fileBytes, _log, offset, i >= filenames.Count ? $"FILE{i}" : filenames[i]);
                     }
-                    catch (IndexOutOfRangeException)
+                    catch (Exception ex)
                     {
-                        _log.LogWarning($"Failed to parse file at 0x{i:X8} due to index out of range exception (most likely during decompression)");
+                        if (dontThrow)
+                        {
+                            _log.LogError($"Failed to parse file 0x{i:X3}!");
+                        }
+                        else
+                        {
+                            throw new ArchiveLoadException(i, i >= filenames.Count ? $"FILE{i}" : filenames[i], ex);
+                        }
                     }
                     file.Offset = offset;
                     file.MagicInteger = MagicIntegers[i];

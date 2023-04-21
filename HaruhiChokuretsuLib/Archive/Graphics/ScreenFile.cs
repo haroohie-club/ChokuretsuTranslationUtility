@@ -104,7 +104,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 {
                     for (int x = 0; x < tile.Width; x++)
                     {
-                        tile.SetPixel(x, y, palette[Helpers.ClosestColorIndex(palette, tile.GetPixel(x, y))]);
+                        tile.SetPixel(x, y, palette[Helpers.ClosestColorIndex(palette, tile.GetPixel(x, y), true)]);
                     }
                 }
             }
