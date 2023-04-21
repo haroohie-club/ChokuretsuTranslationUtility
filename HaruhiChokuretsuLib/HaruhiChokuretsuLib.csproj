@@ -3,12 +3,13 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <Company>Haroohie Translation Club</Company>
-    <Version>0.24.8</Version>
+    <Version>0.25.0</Version>
   </PropertyGroup>
   
   <ItemGroup>
     <PackageReference Include="FFMpegCore" Version="5.0.0" />
     <PackageReference Include="NAudio.Core" Version="2.1.0" />
+    <PackageReference Include="PaletteNet" Version="3.0.0" />
     <PackageReference Include="ResXResourceReader.NetStandard" Version="1.1.0" />
     <PackageReference Include="SkiaSharp" Version="2.88.3" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.3" />

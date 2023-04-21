@@ -1110,7 +1110,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public DialogueLine(string line, EventFile script)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            Speaker = Speaker.HARUHI;
+            Speaker = Speaker.KYON;
             SpeakerName = "何でもない";
             SpeakerPointer = 1;
             Pointer = 1;

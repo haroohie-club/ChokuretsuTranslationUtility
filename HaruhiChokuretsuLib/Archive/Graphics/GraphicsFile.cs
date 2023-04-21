@@ -485,10 +485,6 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 numColors--;
             }
             Palette = Helpers.GetPaletteFromImage(bitmap, numColors);
-            for (int i = Palette.Count; i < numColors; i++)
-            {
-                Palette.Add(SKColors.Black);
-            }
             if (transparentIndex >= 0)
             {
                 Palette.Insert(transparentIndex, SKColors.Transparent);
