@@ -220,11 +220,12 @@ namespace HaruhiChokuretsuLib.Util
 
         private static List<SKColor> GetPalette(List<SKColor> firstBin, int numberOfColors)
         {
-            List<List<SKColor>> bins = new();
-            bins.Add(firstBin);
+            List<List<SKColor>> bins = new() { firstBin };
             bins = ProcessBins(0, bins, numberOfColors);
 
-            List<SKColor> palette = bins.Select(b => new SKColor((byte)b.Average(c => c.Red), (byte)b.Average(c => c.Green), (byte)b.Average(c => c.Blue))).ToList();
+            List<SKColor> palette = bins.Select(b => b.Count > 0 ?
+                new SKColor((byte)b.Average(c => c.Red), (byte)b.Average(c => c.Green), (byte)b.Average(c => c.Blue)) :
+                SKColor.Empty).ToList();
 
             for (int i = palette.Count; i < numberOfColors; i++)
             {
