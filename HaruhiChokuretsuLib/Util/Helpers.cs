@@ -247,7 +247,7 @@ namespace HaruhiChokuretsuLib.Util
                 };
                 List<(ColorComponent component, List<byte> componentValues, int index)> componentRangesCollapsed =
                     componentRanges.SelectMany(r => r.valueRanges.Select(v => (r.component, v.componentValues, v.index))) // collapse above listinto a single list of three-part tuples
-                    .OrderByDescending(r => r.componentValues.Max() - r.componentValues.Min()) // put the tuple with the highest difference in value on a particular component first
+                    .OrderByDescending(r => r.componentValues.Count > 0 ? r.componentValues.Max() - r.componentValues.Min() : 0) // put the tuple with the highest difference in value on a particular component first
                     .ToList();
 
                 int indexToSplitAt = componentRangesCollapsed[0].index; // because the max difference is now the first in the list, we can just take the first value's index
