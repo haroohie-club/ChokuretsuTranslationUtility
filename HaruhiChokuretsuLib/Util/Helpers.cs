@@ -1,4 +1,5 @@
 ﻿using FFMpegCore.Pipes;
+using HaruhiChokuretsuLib.Archive.Graphics;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -204,8 +205,6 @@ namespace HaruhiChokuretsuLib.Util
         {
             // Adapted from https://github.com/antigones/palette_extraction
 
-            List<SKColor> palette = new();
-
             List<SKColor> firstBin = new();
 
             for (int x = 0; x < bitmap.Width; x++)
@@ -225,7 +224,14 @@ namespace HaruhiChokuretsuLib.Util
             bins.Add(firstBin);
             bins = ProcessBins(0, bins, numberOfColors);
 
-            return bins.Select(b => new SKColor((byte)b.Average(c => c.Red), (byte)b.Average(c => c.Green), (byte)b.Average(c => c.Blue))).ToList();
+            List<SKColor> palette = bins.Select(b => new SKColor((byte)b.Average(c => c.Red), (byte)b.Average(c => c.Green), (byte)b.Average(c => c.Blue))).ToList();
+
+            for (int i = palette.Count; i < numberOfColors; i++)
+            {
+                palette.Add(SKColors.Black);
+            }
+
+            return palette;
         }
 
         private static List<List<SKColor>> ProcessBins(int i, List<List<SKColor>> bins, int maxNumberBins)
