@@ -458,33 +458,38 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
+            PnnLABQuantizer quantizer = new();
             if (setPalette && FileFunction != Function.SCREEN)
             {
-                SetPaletteFromImage(bitmap, transparentIndex);
+                SetPaletteFromImage(bitmap, quantizer, transparentIndex);
             }
 
             if (FileFunction == Function.SCREEN)
             {
-                return SetScreenImage(bitmap, associatedTiles);
+                return SetScreenImage(bitmap, quantizer, associatedTiles);
             }
             else if (IsTexture())
             {
-                return SetTexture(bitmap, newSize, transparentIndex == 0 ? true : false);
+                return SetTexture(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false);
             }
             else
             {
-                return SetTiles(bitmap, newSize, transparentIndex == 0 ? true : false);
+                return SetTiles(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false);
             }
         }
 
-        private void SetPaletteFromImage(SKBitmap bitmap, int transparentIndex = -1)
+        private void SetPaletteFromImage(SKBitmap bitmap, PnnLABQuantizer quantizer, int transparentIndex = -1)
         {
             int numColors = Palette.Count;
             if (transparentIndex >= 0)
             {
                 numColors--;
             }
-            Palette = Helpers.GetPaletteFromImage(bitmap, numColors);
+
+            SKColor[] newPalette = Palette.ToArray();
+            quantizer.Pnnquan(bitmap.Pixels.Select(c => (uint)c).ToArray(), ref newPalette, ref numColors, _log);
+            Palette = newPalette.ToList();
+
             if (transparentIndex >= 0)
             {
                 Palette.Insert(transparentIndex, SKColors.Transparent);
@@ -500,7 +505,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
         }
 
-        private int SetTexture(SKBitmap bitmap, bool newSize, bool firstTransparent)
+        private int SetTexture(SKBitmap bitmap, PnnLABQuantizer quantizer, bool newSize, bool firstTransparent)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -516,19 +521,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            int i = 0;
-            for (int y = 0; y < bitmap.Height; y++)
-            {
-                for (int x = 0; x < bitmap.Width; x++)
-                {
-                    PixelData[i++] = (byte)Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(x, y), firstTransparent);
-                }
-            }
+            quantizer.QuantizeImage(bitmap, this, 256, true, true, _log);
 
             return bitmap.Width;
         }
 
-        private int SetTiles(SKBitmap bitmap, bool newSize, bool firstTransparent)
+        private int SetTiles(SKBitmap bitmap, PnnLABQuantizer quantizer, bool newSize, bool firstTransparent)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -545,35 +543,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            List<byte> pixelData = new();
-
-            for (int row = 0; row < bitmap.Height / 8 && pixelData.Count < PixelData.Count; row++)
-            {
-                for (int col = 0; col < bitmap.Width / 8 && pixelData.Count < PixelData.Count; col++)
-                {
-                    for (int ypix = 0; ypix < 8 && pixelData.Count < PixelData.Count; ypix++)
-                    {
-                        if (ImageTileForm == TileForm.GBA_4BPP)
-                        {
-                            for (int xpix = 0; xpix < 4 && pixelData.Count < PixelData.Count; xpix++)
-                            {
-                                int color1 = Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(col * 8 + xpix * 2, row * 8 + ypix), firstTransparent);
-                                int color2 = Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(col * 8 + xpix * 2 + 1, row * 8 + ypix), firstTransparent);
-
-                                pixelData.Add((byte)(color1 + (color2 << 4)));
-                            }
-                        }
-                        else
-                        {
-                            for (int xpix = 0; xpix < 8 && pixelData.Count < PixelData.Count; xpix++)
-                            {
-                                pixelData.Add((byte)Helpers.ClosestColorIndex(Palette, bitmap.GetPixel(col * 8 + xpix, row * 8 + ypix), firstTransparent));
-                            }
-                        }
-                    }
-                }
-            }
-            PixelData = pixelData;
+            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, true, false, _log);
             return bitmap.Width;
         }
     }

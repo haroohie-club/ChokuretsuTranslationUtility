@@ -69,7 +69,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return bitmap;
         }
 
-        public int SetScreenImage(SKBitmap bitmap, GraphicsFile associatedTiles)
+        public int SetScreenImage(SKBitmap bitmap, PnnLABQuantizer quantizer, GraphicsFile associatedTiles)
         {
             if (bitmap.Width != 256 || bitmap.Height != 192)
             {
