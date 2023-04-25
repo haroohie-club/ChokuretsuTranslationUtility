@@ -505,7 +505,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
         }
 
-        private int SetTexture(SKBitmap bitmap, PnnLABQuantizer quantizer, bool newSize, bool firstTransparent)
+        private int SetTexture(SKBitmap bitmap, PnnQuantizer quantizer, bool newSize, bool firstTransparent)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -526,7 +526,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return bitmap.Width;
         }
 
-        private int SetTiles(SKBitmap bitmap, PnnLABQuantizer quantizer, bool newSize, bool firstTransparent)
+        private int SetTiles(SKBitmap bitmap, PnnQuantizer quantizer, bool newSize, bool firstTransparent)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {

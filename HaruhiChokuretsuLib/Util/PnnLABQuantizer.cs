@@ -1,9 +1,9 @@
-﻿using HaruhiChokuretsuLib.Archive.Graphics;
+﻿using FFMpegCore.Enums;
+using HaruhiChokuretsuLib.Archive.Graphics;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static HaruhiChokuretsuLib.Archive.Graphics.GraphicsFile;
 
 namespace HaruhiChokuretsuLib.Util
 {
@@ -11,7 +11,7 @@ namespace HaruhiChokuretsuLib.Util
     // Modified to switch to use SkiaSharp
     // Licensed under Apache License v2.0
     // Full text of license here: https://github.com/mcychan/nQuant.cs/blob/core/LICENSE
-    public class PnnLABQuantizer
+    public class PnnQuantizer
     {
         protected byte _alphaThreshold = 0xF;
         protected bool _dither = true, _hasSemiTransparency = false;
@@ -21,7 +21,7 @@ namespace HaruhiChokuretsuLib.Util
         protected readonly Dictionary<uint, ushort[]> _closestMap = new();
         protected readonly Dictionary<uint, ushort> _nearestMap = new();
 
-        protected double PR = 0.299, PG = 0.587, PB = 0.114, PA = .3333;
+        protected double _PR = 0.299, _PG = 0.587, _PB = 0.114, _PA = .3333;
         protected double _ratio = .5, _weight = 1;
 
         private static readonly float[,] _coeffs = new float[,] {
@@ -29,128 +29,90 @@ namespace HaruhiChokuretsuLib.Util
             {-0.14713f, -0.28886f, 0.436f},
             {0.615f, -0.51499f, -0.10001f}
         };
-
-        protected float[] saliencies;
-        private readonly Dictionary<uint, CIELABConvertor.Lab> _pixelMap = new();
-
-        private static readonly float[,] coeffs = new float[,] {
-            {0.299f, 0.587f, 0.114f},
-            {-0.14713f, -0.28886f, 0.436f},
-            {0.615f, -0.51499f, -0.10001f}
-        };
         private sealed class Pnnbin
         {
-            internal float ac, Lc, Ac, Bc;
+            internal float ac, rc, gc, bc;
             internal float cnt;
             internal int nn, fw, bk, tm, mtm;
             internal float err;
         }
 
-        private static int GetARGB1555(uint argb)
+        public static int GetARGBIndex(uint argb)
         {
             SKColor c = new(argb);
-            return (c.Alpha & 0x80) << 8 | (c.Red & 0xF8) << 7 | (c.Green & 0xF8) << 2 | (c.Blue >> 3);
-        }
-        private static int GetARGBIndex(uint argb, bool hasSemiTransparency, bool hasTransparency)
-        {
-            SKColor c = new(argb);
-            if (hasSemiTransparency)
-                return (c.Alpha & 0xF0) << 8 | (c.Red & 0xF0) << 4 | (c.Green & 0xF0) | (c.Blue >> 4);
-            if (hasTransparency)
-                return GetARGB1555(argb);
             return (c.Red & 0xF8) << 8 | (c.Green & 0xFC) << 3 | (c.Blue >> 3);
         }
 
-        private void GetLab(uint argb, out CIELABConvertor.Lab lab1)
+        public static float Sqr(float val)
         {
-            if (!_pixelMap.TryGetValue(argb, out lab1))
-            {
-                lab1 = CIELABConvertor.RGB2LAB(new(argb));
-                _pixelMap[argb] = lab1;
-            }
-        }
-        public int GetColorIndex(uint argb)
-        {
-            return GetARGBIndex(argb, _hasSemiTransparency, _transparentPixelIndex > -1);
+            return val * val;
         }
 
-        private void FindNN(Pnnbin[] bins, int idx, bool texicab)
+        public int GetColorIndex(uint argb)
+        {
+            return GetARGBIndex(argb);
+        }
+
+        private void FindNearestNeighbor(Pnnbin[] bins, int idx)
         {
             int nn = 0;
-            var err = 1e100;
+            double err = 1e100;
 
             var bin1 = bins[idx];
             var n1 = bin1.cnt;
-            var lab1 = new CIELABConvertor.Lab
-            {
-                alpha = bin1.ac,
-                L = bin1.Lc,
-                A = bin1.Ac,
-                B = bin1.Bc
-            };
+            var wa = bin1.ac;
+            var wr = bin1.rc;
+            var wg = bin1.gc;
+            var wb = bin1.bc;
+
+            int start = 0;
+            if (BlueNoise.RAW_BLUE_NOISE[idx & 4095] > -88)
+                start = (_PG < _coeffs[0, 1]) ? _coeffs.GetLength(0) : 1;
+
             for (int i = bin1.fw; i != 0; i = bins[i].fw)
             {
-                float n2 = bins[i].cnt;
-                float nerr2 = (n1 * n2) / (n1 + n2);
+                var n2 = bins[i].cnt;
+                var nerr2 = (n1 * n2) / (n1 + n2);
                 if (nerr2 >= err)
                     continue;
 
-                var lab2 = new CIELABConvertor.Lab
+                var nerr = 0.0;
+                if (_hasSemiTransparency)
                 {
-                    alpha = bins[i].ac,
-                    L = bins[i].Lc,
-                    A = bins[i].Ac,
-                    B = bins[i].Bc
-                };
-                var alphaDiff = _hasSemiTransparency ? Math.Pow(lab2.alpha - lab1.alpha, 2) / Math.Exp(1.5) : 0;
-                var nerr = nerr2 * alphaDiff;
-                if (nerr >= err)
-                    continue;
-
-                if (!texicab)
-                {
-                    nerr += (1 - _ratio) * nerr2 * Math.Pow(lab2.L - lab1.L, 2);
+                    start = 1;
+                    nerr += nerr2 * (1 - _ratio) * _PA * Sqr(bins[i].ac - wa);
                     if (nerr >= err)
                         continue;
-
-                    nerr += (1 - _ratio) * nerr2 * Math.Pow(lab2.A - lab1.A, 2);
-                    if (nerr >= err)
-                        continue;
-
-                    nerr += (1 - _ratio) * nerr2 * Math.Pow(lab2.B - lab1.B, 2);
-                }
-                else
-                {
-                    nerr += (1 - _ratio) * nerr2 * Math.Abs(lab2.L - lab1.L);
-                    if (nerr >= err)
-                        continue;
-
-                    nerr += (1 - _ratio) * nerr2 * Math.Sqrt(Math.Pow(lab2.A - lab1.A, 2) + Math.Pow(lab2.B - lab1.B, 2));
                 }
 
+                nerr += nerr2 * (1 - _ratio) * _PR * Sqr(bins[i].rc - wr);
                 if (nerr >= err)
                     continue;
 
-                var deltaL_prime_div_k_L_S_L = CIELABConvertor.LPrimeDivKLSL(lab1, lab2);
-                nerr += _ratio * nerr2 * Math.Pow(deltaL_prime_div_k_L_S_L, 2);
+                nerr += nerr2 * (1 - _ratio) * _PG * Sqr(bins[i].gc - wg);
                 if (nerr >= err)
                     continue;
 
-                var deltaC_prime_div_k_L_S_L = CIELABConvertor.CPrimeDivKLSL(lab1, lab2, out var a1Prime, out var a2Prime, out var CPrime1, out var CPrime2);
-                nerr += _ratio * nerr2 * Math.Pow(deltaC_prime_div_k_L_S_L, 2);
+                nerr += nerr2 * (1 - _ratio) * _PB * Sqr(bins[i].bc - wb);
                 if (nerr >= err)
                     continue;
 
-                var deltaH_prime_div_k_L_S_L = CIELABConvertor.HPrimeDivKLSL(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2, out var barCPrime, out var barhPrime);
-                nerr += _ratio * nerr2 * Math.Pow(deltaH_prime_div_k_L_S_L, 2);
-                if (nerr >= err)
-                    continue;
+                for (int j = start; j < _coeffs.GetLength(0); ++j)
+                {
+                    nerr += nerr2 * _ratio * Sqr(_coeffs[j, 0] * (bins[i].rc - wr));
+                    if (nerr >= err)
+                        break;
 
-                nerr += _ratio * nerr2 * CIELABConvertor.R_T(barCPrime, barhPrime, deltaC_prime_div_k_L_S_L, deltaH_prime_div_k_L_S_L);
-                if (nerr >= err)
-                    continue;
+                    nerr += nerr2 * _ratio * Sqr(_coeffs[j, 1] * (bins[i].gc - wg));
+                    if (nerr >= err)
+                        break;
 
-                err = (float)nerr;
+                    nerr += nerr2 * _ratio * Sqr(_coeffs[j, 2] * (bins[i].bc - wb));
+                    if (nerr >= err)
+                        break;
+                }
+
+                err = nerr;
                 nn = i;
             }
             bin1.err = (float)err;
@@ -158,46 +120,38 @@ namespace HaruhiChokuretsuLib.Util
         }
 
         protected delegate float QuanFn(float cnt);
-        protected QuanFn GetQuanFn(int nMaxColors, short quan_rt)
+        protected virtual QuanFn GetQuanFn(int nMaxColors, short quan_rt)
         {
             if (quan_rt > 0)
             {
-                if (quan_rt > 1)
-                    return cnt => (int)Math.Pow(cnt, .75);
                 if (nMaxColors < 64)
                     return cnt => (int)Math.Sqrt(cnt);
-
                 return cnt => (float)Math.Sqrt(cnt);
             }
+            if (quan_rt < 0)
+                return cnt => (int)Math.Cbrt(cnt);
             return cnt => cnt;
         }
-
-        public void Pnnquan(uint[] pixels, ref SKColor[] palette, ref int nMaxColors, ILogger log)
+        protected virtual void Pnnquan(uint[] pixels, ref SKColor[] palette, ref int nMaxColors)
         {
             short quan_rt = 1;
             var bins = new Pnnbin[ushort.MaxValue + 1];
-            saliencies = new float[pixels.Length];
-            var saliencyBase = .1f;
 
             /* Build histogram */
-            for (int i = 0; i < pixels.Length; ++i)
+            foreach (var pixel in pixels)
             {
-                var pixel = pixels[i];
                 SKColor c = new(pixel);
                 if (c.Alpha <= _alphaThreshold)
                     c = _transparentColor;
 
-                int index = GetARGBIndex((uint)c, _hasSemiTransparency, _transparentPixelIndex > -1);
-                GetLab(pixel, out var lab1);
+                int index = GetARGBIndex((uint)c);
                 if (bins[index] == null)
                     bins[index] = new Pnnbin();
-                bins[index].ac += (float)lab1.alpha;
-                bins[index].Lc += (float)lab1.L;
-                bins[index].Ac += (float)lab1.A;
-                bins[index].Bc += (float)lab1.B;
+                bins[index].ac += c.Alpha;
+                bins[index].rc += c.Red;
+                bins[index].gc += c.Green;
+                bins[index].bc += c.Blue;
                 bins[index].cnt += 1.0f;
-                if (lab1.alpha > _alphaThreshold && nMaxColors < 32)
-                    saliencies[i] = (float)(saliencyBase + (1 - saliencyBase) * lab1.L / 100f);
             }
 
             /* Cluster nonempty bins at one end of array */
@@ -209,47 +163,24 @@ namespace HaruhiChokuretsuLib.Util
 
                 var d = 1.0f / bins[i].cnt;
                 bins[i].ac *= d;
-                bins[i].Lc *= d;
-                bins[i].Ac *= d;
-                bins[i].Bc *= d;
+                bins[i].rc *= d;
+                bins[i].gc *= d;
+                bins[i].bc *= d;
 
                 bins[maxbins++] = bins[i];
             }
 
-            var proportional = Math.Pow(nMaxColors, 2) / maxbins;
-            if ((_transparentPixelIndex > -1 || _hasSemiTransparency) && nMaxColors < 32)
-                quan_rt = -1;
+            if (nMaxColors < 16)
+                nMaxColors = -1;
 
-            _weight = Math.Min(0.9, nMaxColors * 1.0 / maxbins);
-            if (_weight > .0015 && _weight < .002)
-                quan_rt = 2;
-            if (_weight < .04 && PG < 1 && PG >= coeffs[0, 1])
+            _weight = nMaxColors * 1.0 / maxbins;
+            if (_weight > .003 && _weight < .005)
+                quan_rt = 0;
+            if (_weight < .04 && _PG < 1 && _PG >= _coeffs[0, 1])
             {
-                var delta = Math.Exp(1.75) * _weight;
-                PG -= delta;
-                PB += delta;
+                _PR = _PG = _PB = _PA = 1;
                 if (nMaxColors >= 64)
                     quan_rt = 0;
-            }
-
-            if (_pixelMap.Count <= nMaxColors)
-            {
-                /* Fill palette */
-                palette = new SKColor[_pixelMap.Count];
-                int i = 0;
-                foreach (var pixel in _pixelMap.Keys)
-                {
-                    SKColor c = new((uint)pixel);
-                    palette[i++] = c;
-
-                    if (i > 1 && c.Alpha == 0)
-                    {
-                        (palette[0], palette[i - 1]) = (palette[i - 1], palette[0]);
-                    }
-                }
-                nMaxColors = i;
-                log.Log("Maximum number of colors: " + palette.Length);
-                return;
             }
 
             var quanFn = GetQuanFn(nMaxColors, quan_rt);
@@ -264,43 +195,14 @@ namespace HaruhiChokuretsuLib.Util
             }
             bins[j].cnt = quanFn(bins[j].cnt);
 
-            var texicab = proportional > .025;
-
             int h, l, l2;
-            if (_hasSemiTransparency)
-                _ratio = .5;
-            else if (quan_rt != 0 && nMaxColors < 64)
-            {
-                if (proportional > .018 && proportional < .022)
-                    _ratio = Math.Min(1.0, proportional + _weight * Math.Exp(3.872));
-                else if (proportional > .1)
-                    _ratio = Math.Min(1.0, 1.0 - _weight);
-                else if (proportional > .04)
-                    _ratio = Math.Min(1.0, _weight * Math.Exp(2.28));
-                else if (proportional > .03)
-                    _ratio = Math.Min(1.0, _weight * Math.Exp(3.275));
-                else
-                {
-                    var beta = (maxbins % 2 == 0) ? -1 : 1;
-                    _ratio = Math.Min(1.0, proportional + beta * _weight * Math.Exp(1.997));
-                }
-            }
-            else if (nMaxColors > 256)
-                _ratio = Math.Min(1.0, 1 - 1.0 / proportional);
-            else
-                _ratio = Math.Min(1.0, Math.Max(.98, 1 - _weight * .7));
-
-            if (!_hasSemiTransparency && quan_rt < 0)
-                _ratio = Math.Min(1.0, _weight * Math.Exp(1.997));
-
             /* Initialize nearest neighbors and build heap of them */
             var heap = new int[bins.Length + 1];
             for (int i = 0; i < maxbins; ++i)
             {
-                FindNN(bins, i, texicab);
+                FindNearestNeighbor(bins, i);
                 /* Push slot on heap */
-                var err = bins[i].err;
-
+                double err = bins[i].err;
                 for (l = ++heap[0]; l > 1; l = l2)
                 {
                     l2 = l >> 1;
@@ -310,9 +212,6 @@ namespace HaruhiChokuretsuLib.Util
                 }
                 heap[l] = i;
             }
-
-            if (quan_rt > 0 && nMaxColors < 64 && (proportional < .023 || proportional > .05) && proportional < .1)
-                _ratio = Math.Min(1.0, proportional - _weight * Math.Exp(2.347));
 
             /* Merge bins which increase error the least */
             int extbins = maxbins - nMaxColors;
@@ -331,7 +230,7 @@ namespace HaruhiChokuretsuLib.Util
                         b1 = heap[1] = heap[heap[0]--];
                     else /* Too old error value */
                     {
-                        FindNN(bins, b1, texicab && proportional < 1);
+                        FindNearestNeighbor(bins, b1);
                         tb.tm = i;
                     }
                     /* Push slot down */
@@ -351,11 +250,11 @@ namespace HaruhiChokuretsuLib.Util
                 var nb = bins[tb.nn];
                 var n1 = tb.cnt;
                 var n2 = nb.cnt;
-                var d = 1.0f / (float)(n1 + n2);
-                tb.ac = d * (n1 * tb.ac + n2 * nb.ac);
-                tb.Lc = d * (n1 * tb.Lc + n2 * nb.Lc);
-                tb.Ac = d * (n1 * tb.Ac + n2 * nb.Ac);
-                tb.Bc = d * (n1 * tb.Bc + n2 * nb.Bc);
+                var d = 1.0f / (n1 + n2);
+                tb.ac = d * (float)Math.Round(n1 * tb.ac + n2 * nb.ac);
+                tb.rc = d * (float)Math.Round(n1 * tb.rc + n2 * nb.rc);
+                tb.gc = d * (float)Math.Round(n1 * tb.gc + n2 * nb.gc);
+                tb.bc = d * (float)Math.Round(n1 * tb.bc + n2 * nb.bc);
                 tb.cnt += n2;
                 tb.mtm = ++i;
 
@@ -372,14 +271,8 @@ namespace HaruhiChokuretsuLib.Util
             int k = 0;
             for (int i = 0; ; ++k)
             {
-                var lab1 = new CIELABConvertor.Lab
-                {
-                    alpha = (_hasSemiTransparency || _transparentPixelIndex >= 0) ? Math.Round(bins[i].ac) : Byte.MaxValue,
-                    L = bins[i].Lc,
-                    A = bins[i].Ac,
-                    B = bins[i].Bc
-                };
-                palette[k] = CIELABConvertor.LAB2RGB(lab1);
+                byte alpha = (_hasSemiTransparency || _transparentPixelIndex >= 0) ? Math.Clamp((byte)Math.Round(bins[i].ac), byte.MinValue, byte.MaxValue) : byte.MaxValue;
+                palette[k] = new SKColor(Math.Clamp((byte)bins[i].rc, byte.MinValue, byte.MaxValue), Math.Clamp((byte)bins[i].gc, byte.MinValue, byte.MaxValue), Math.Clamp((byte)bins[i].bc, byte.MinValue, byte.MaxValue), alpha);
 
                 if ((i = bins[i].fw) == 0)
                     break;
@@ -388,11 +281,10 @@ namespace HaruhiChokuretsuLib.Util
             if (k < nMaxColors - 1)
             {
                 nMaxColors = k + 1;
-                log.Log("Maximum number of colors: " + palette.Length);
+                Console.WriteLine("Maximum number of colors: " + palette.Length);
             }
         }
-
-        protected ushort NearestColorIndex(SKColor[] palette, uint pixel)
+        protected virtual ushort NearestColorIndex(SKColor[] palette, uint pixel, int pos)
         {
             if (_nearestMap.TryGetValue(pixel, out var k))
                 return k;
@@ -403,67 +295,33 @@ namespace HaruhiChokuretsuLib.Util
             if (palette.Length > 2 && _transparentPixelIndex > -1 && c.Alpha > _alphaThreshold)
                 k = 1;
 
+            double pr = _PR, pg = _PG, pb = _PB;
+            if (palette.Length > 2 && BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
+            {
+                pr = _coeffs[0, 0]; pg = _coeffs[0, 1]; pb = _coeffs[0, 2];
+            }
+
             double mindist = int.MaxValue;
             var nMaxColors = palette.Length;
-            GetLab(pixel, out var lab1);
-
             for (int i = k; i < nMaxColors; ++i)
             {
                 var c2 = palette[i];
-
-                var curdist = _hasSemiTransparency ? Math.Pow(c2.Alpha - c.Alpha, 2) / Math.Exp(1.5) : 0;
+                var curdist = _PA * Sqr(c2.Alpha - c.Alpha);
                 if (curdist > mindist)
                     continue;
 
-                GetLab((uint)c2, out var lab2);
-                if (nMaxColors <= 4)
-                {
-                    curdist = Math.Pow(c2.Red - c.Red, 2) + Math.Pow(c2.Green - c.Green, 2) + Math.Pow(c2.Blue - c.Blue, 2);
-                    if (_hasSemiTransparency)
-                        curdist += Math.Pow(c2.Alpha - c.Alpha, 2);
-                }
-                else if (_hasSemiTransparency)
-                {
-                    curdist += Math.Pow(lab2.L - lab1.L, 2);
-                    if (curdist > mindist)
-                        continue;
-
-                    curdist += Math.Pow(lab2.A - lab1.A, 2);
-                    if (curdist > mindist)
-                        continue;
-
-                    curdist += Math.Pow(lab2.B - lab1.B, 2);
-                }
-                else if (nMaxColors > 32)
-                {
-                    curdist += Math.Abs(lab2.L - lab1.L);
-                    if (curdist > mindist)
-                        continue;
-
-                    curdist += Math.Sqrt(Math.Pow(lab2.A - lab1.A, 2) + Math.Pow(lab2.B - lab1.B, 2));
-                }
-                else
-                {
-                    var deltaL_prime_div_k_L_S_L = CIELABConvertor.LPrimeDivKLSL(lab1, lab2);
-                    curdist += Math.Pow(deltaL_prime_div_k_L_S_L, 2);
-                    if (curdist > mindist)
-                        continue;
-
-                    var deltaC_prime_div_k_L_S_L = CIELABConvertor.CPrimeDivKLSL(lab1, lab2, out var a1Prime, out var a2Prime, out var CPrime1, out var CPrime2);
-                    curdist += Math.Pow(deltaC_prime_div_k_L_S_L, 2);
-                    if (curdist > mindist)
-                        continue;
-
-                    var deltaH_prime_div_k_L_S_L = CIELABConvertor.HPrimeDivKLSL(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2, out var barCPrime, out var barhPrime);
-                    curdist += Math.Pow(deltaH_prime_div_k_L_S_L, 2);
-                    if (curdist > mindist)
-                        continue;
-
-                    curdist += CIELABConvertor.R_T(barCPrime, barhPrime, deltaC_prime_div_k_L_S_L, deltaH_prime_div_k_L_S_L);
-                }
-
+                curdist += pr * Sqr(c2.Red - c.Red);
                 if (curdist > mindist)
                     continue;
+
+                curdist += pg * Sqr(c2.Green - c.Green);
+                if (curdist > mindist)
+                    continue;
+
+                curdist += pb * Sqr(c2.Blue - c.Blue);
+                if (curdist > mindist)
+                    continue;
+
                 mindist = curdist;
                 k = (ushort)i;
             }
@@ -471,58 +329,42 @@ namespace HaruhiChokuretsuLib.Util
             return k;
         }
 
-        protected ushort ClosestColorIndex(SKColor[] palette, uint pixel, int pos)
+        protected virtual ushort ClosestColorIndex(SKColor[] palette, uint pixel, int pos)
         {
             ushort k = 0;
             SKColor c = new(pixel);
             if (c.Alpha <= _alphaThreshold)
-                return NearestColorIndex(palette, pixel);
+                return NearestColorIndex(palette, pixel, pos);
 
             if (!_closestMap.TryGetValue(pixel, out var closest))
             {
                 closest = new ushort[4];
                 closest[2] = closest[3] = ushort.MaxValue;
 
-                int start = 0;
+                double pr = _PR, pg = _PG, pb = _PB;
                 if (BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
-                    start = 1;
+                {
+                    pr = _coeffs[0, 0]; pg = _coeffs[0, 1]; pb = _coeffs[0, 2];
+                }
 
                 var nMaxColors = palette.Length;
                 for (; k < nMaxColors; ++k)
                 {
                     var c2 = palette[k];
-                    var err = PR * (1 - _ratio) * Math.Pow(c.Red - c2.Red, 2);
+                    var err = pr * Sqr(c.Red - c2.Red);
                     if (err >= closest[3])
-                        continue;
+                        break;
 
-                    err += PG * (1 - _ratio) * Math.Pow(c.Green - c2.Green, 2);
+                    err += pg * Sqr(c.Green - c2.Green);
                     if (err >= closest[3])
-                        continue;
+                        break;
 
-                    err += PB * (1 - _ratio) * Math.Pow(c.Blue - c2.Blue, 2);
+                    err += pb * Sqr(c.Blue - c2.Blue);
                     if (err >= closest[3])
-                        continue;
+                        break;
 
                     if (_hasSemiTransparency)
-                    {
-                        err += PA * (1 - _ratio) * Math.Pow(c.Alpha - c2.Alpha, 2);
-                        start = 1;
-                    }
-
-                    for (var i = start; i < coeffs.GetLength(0); ++i)
-                    {
-                        err += _ratio * Math.Pow(coeffs[i, 0] * (c.Red - c2.Red), 2);
-                        if (err >= closest[3])
-                            break;
-
-                        err += _ratio * Math.Pow(coeffs[i, 1] * (c.Green - c2.Green), 2);
-                        if (err >= closest[3])
-                            break;
-
-                        err += _ratio * Math.Pow(coeffs[i, 2] * (c.Blue - c2.Blue), 2);
-                        if (err >= closest[3])
-                            break;
-                    }
+                        err += _PA * Sqr(c.Alpha - c2.Alpha);
 
                     if (err < closest[2])
                     {
@@ -544,71 +386,60 @@ namespace HaruhiChokuretsuLib.Util
                 _closestMap[pixel] = closest;
             }
 
-            var MAX_ERR = palette.Length;
-            if (_hasSemiTransparency && MAX_ERR > 32)
-            {
-                MAX_ERR <<= 1;
-                if (c.Red > 0xF0 && c.Green > 0xF0 && c.Blue > 0xF0)
-                    MAX_ERR >>= 1;
-            }
-
-            if (PG < coeffs[0, 1] && BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
-                return NearestColorIndex(palette, pixel);
-
-            int idx = 1;
-            if (closest[2] == 0 || (_rand.Next(short.MaxValue) % (closest[3] + closest[2])) <= closest[3])
+            var MAX_ERR = palette.Length << 2;
+            int idx = (pos + 1) % 2;
+            if (closest[3] * .67 < (closest[3] - closest[2]))
                 idx = 0;
+            else if (closest[0] > closest[1])
+                idx = pos % 2;
 
             if (closest[idx + 2] >= MAX_ERR || (_transparentPixelIndex > -1 && closest[idx] == 0))
-                return NearestColorIndex(palette, pixel);
+                return NearestColorIndex(palette, pixel, pos);
             return closest[idx];
         }
 
-        public ushort DitherColorIndex(SKColor[] palette, uint pixel, int pos)
+        public virtual ushort DitherColorIndex(SKColor[] palette, uint pixel, int pos)
         {
+            if (_dither)
+                return NearestColorIndex(palette, pixel, pos);
             return ClosestColorIndex(palette, pixel, pos);
         }
 
-        protected int[] Dither(uint[] pixels, SKColor[] palettes, int semiTransCount, int width, int height, bool dither)
+        protected virtual int[] Dither(uint[] pixels, SKColor[] palettes, int semiTransCount, int width, int height, bool dither)
         {
-            _dither = dither;
+            this._dither = dither;
+            var weight = 3.0;
             if ((semiTransCount * 1.0 / pixels.Length) > .099)
-                _weight *= .01;
-            var qPixels = GilbertCurve.Dither(width, height, pixels, palettes, this, saliencies, _weight);
+                weight /= 2;
+            var qPixels = GilbertCurve.Dither(width, height, pixels, palettes, this, null, weight);
 
             if (!dither)
-            {
-                var delta = Math.Pow(palettes.Length, 2) / _pixelMap.Count;
-                var weight = delta > 0.023 ? 1.0f : (float)(36.921 * delta + 0.906);
-                BlueNoise.Dither(width, height, pixels, palettes, this, qPixels, weight);
-            }
-
-            _pixelMap.Clear();
+                BlueNoise.Dither(width, height, pixels, palettes, this, qPixels);
             return qPixels;
         }
 
-        public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool dither, bool isTexture, ILogger log)
+        public GraphicsFile QuantizeImage(GraphicsFile source, int nMaxColors, bool dither)
         {
             var bitmapWidth = source.Width;
             var bitmapHeight = source.Height;
 
-            var pixels = source.Pixels.Select(c => (uint)c).ToArray();
             int semiTransCount = 0;
             _hasSemiTransparency = semiTransCount > 0;
 
-            SKColor[] palette = dest.Palette.ToArray();
+            uint[] pixels = source.GetImage().Pixels.Select(p => (uint)p).ToArray();
+            SKColor[] palette = source.Palette.ToArray();
             if (palette.Length != nMaxColors)
                 palette = new SKColor[nMaxColors];
 
             if (nMaxColors <= 32)
-                PR = PG = PB = PA = 1;
+                _PR = _PG = _PB = _PA = 1;
             else
             {
-                PR = _coeffs[0, 0]; PG = _coeffs[0, 1]; PB = _coeffs[0, 2];
+                _PR = _coeffs[0, 0]; _PG = _coeffs[0, 1]; _PB = _coeffs[0, 2];
             }
 
             if (nMaxColors > 2)
-                Pnnquan(pixels, ref palette, ref nMaxColors, log);
+                Pnnquan(pixels, ref palette, ref nMaxColors);
             else
             {
                 if (_transparentPixelIndex >= 0)
@@ -636,46 +467,7 @@ namespace HaruhiChokuretsuLib.Util
             _closestMap.Clear();
             _nearestMap.Clear();
 
-            if (isTexture)
-            {
-                for (int i = 0; i < qPixels.Length; i++)
-                {
-                    dest.PixelData[i] = (byte)qPixels[i];
-                }
-            }
-            else
-            {
-                List<byte> pixelData = new();
-
-                int i = 0;
-                for (int row = 0; row < source.Height / 8 && pixelData.Count < dest.PixelData.Count; row++)
-                {
-                    for (int col = 0; col < source.Width / 8 && pixelData.Count < dest.PixelData.Count; col++)
-                    {
-                        for (int ypix = 0; ypix < 8 && pixelData.Count < dest.PixelData.Count; ypix++)
-                        {
-                            if (dest.ImageTileForm == TileForm.GBA_4BPP)
-                            {
-                                for (int xpix = 0; xpix < 4 && pixelData.Count < dest.PixelData.Count; xpix++)
-                                {
-                                    int color1 = qPixels[i++];
-                                    int color2 = qPixels[i++];
-
-                                    pixelData.Add((byte)(color1 + (color2 << 4)));
-                                }
-                            }
-                            else
-                            {
-                                for (int xpix = 0; xpix < 8 && pixelData.Count < dest.PixelData.Count; xpix++)
-                                {
-                                    pixelData.Add((byte)qPixels[i++]);
-                                }
-                            }
-                        }
-                    }
-                }
-                dest.PixelData = pixelData;
-            }
+            return BitmapUtilities.ProcessImagePixels(dest, palette, qPixels, _transparentPixelIndex >= 0);
         }
     }
 
@@ -1093,7 +885,7 @@ namespace HaruhiChokuretsuLib.Util
             return new(a_pix, r_pix, g_pix, b_pix);
         }
 
-        public static void Dither(int width, int height, uint[] pixels, SKColor[] palette, PnnLABQuantizer quantizer, int[] qPixels, float weight = 1.0f)
+        public static void Dither(int width, int height, uint[] pixels, SKColor[] palette, PnnQuantizer quantizer, int[] qPixels, float weight = 1.0f)
         {
             float strength = 1 / 3.0f;
             for (int y = 0; y < height; ++y)
@@ -1148,7 +940,7 @@ namespace HaruhiChokuretsuLib.Util
         private readonly uint[] _pixels;
         private readonly SKColor[] _palette;
         private readonly int[] _qPixels;
-        private readonly PnnLABQuantizer _ditherable;
+        private readonly PnnQuantizer _ditherable;
         private readonly float[] _saliencies;
         private readonly Queue<ErrorBox> _errorq;
         private readonly float[] _weights;
@@ -1158,7 +950,7 @@ namespace HaruhiChokuretsuLib.Util
         private readonly float DIVISOR;
         private const float BLOCK_SIZE = 343f;
 
-        private GilbertCurve(int width, int height, uint[] pixels, SKColor[] palette, int[] qPixels, PnnLABQuantizer ditherable, float[] saliencies, double weight)
+        private GilbertCurve(int width, int height, uint[] pixels, SKColor[] palette, int[] qPixels, PnnQuantizer ditherable, float[] saliencies, double weight)
         {
             _width = width;
             _height = height;
@@ -1331,7 +1123,7 @@ namespace HaruhiChokuretsuLib.Util
                 Generate2d(0, 0, 0, _height, _width, 0);
         }
 
-        public static int[] Dither(int width, int height, uint[] pixels, SKColor[] palette, PnnLABQuantizer ditherable, float[] saliencies = null, double weight = 1.0)
+        public static int[] Dither(int width, int height, uint[] pixels, SKColor[] palette, PnnQuantizer ditherable, float[] saliencies = null, double weight = 1.0)
         {
             var qPixels = new int[pixels.Length];
             new GilbertCurve(width, height, pixels, palette, qPixels, ditherable, saliencies, weight).Run();
