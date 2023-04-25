@@ -1,5 +1,4 @@
 ﻿using FFMpegCore.Pipes;
-using HaruhiChokuretsuLib.Archive.Graphics;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -102,12 +101,10 @@ namespace HaruhiChokuretsuLib.Util
         // redmean color distance formula with alpha term
         private static double ColorDistance(SKColor color1, SKColor color2)
         {
-            double redmean = (color1.Red + color2.Red) / 2.0;
+            CIELab lab1 = color1.ToLab();
+            CIELab lab2 = color2.ToLab();
 
-            return Math.Sqrt((2 + redmean / 256) * Math.Pow(color1.Red - color2.Red, 2)
-                + 4 * Math.Pow(color1.Green - color2.Green, 2)
-                + (2 + (255 - redmean) / 256) * Math.Pow(color1.Blue - color2.Blue, 2)
-                + Math.Pow(color1.Alpha - color2.Alpha, 2));
+            return Math.Sqrt(Math.Pow(lab1.L - lab2.L, 2) + Math.Pow(lab1.A - lab2.A, 2) + Math.Pow(lab1.B - lab2.B, 2));
         }
 
         public static int ClosestColorIndex(IList<SKColor> colors, SKColor color, bool firstTransparent)
