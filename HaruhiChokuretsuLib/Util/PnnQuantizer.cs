@@ -475,7 +475,6 @@ namespace HaruhiChokuretsuLib.Util
             }
             else
             {
-                int pixelIndex = 0;
                 List<byte> pixelData = new();
 
                 for (int row = 0; row < dest.Height / 8 && pixelData.Count < dest.PixelData.Count; row++)
@@ -488,8 +487,8 @@ namespace HaruhiChokuretsuLib.Util
                             {
                                 for (int xpix = 0; xpix < 4 && pixelData.Count < dest.PixelData.Count; xpix++)
                                 {
-                                    int color1 = qPixels[pixelIndex++];
-                                    int color2 = qPixels[pixelIndex++];
+                                    int color1 = qPixels[row * dest.Height + col * dest.Width + ypix * 8 + xpix * 2];
+                                    int color2 = qPixels[row * dest.Height + col * dest.Width + ypix * 8 + xpix * 2 + 1];
 
                                     pixelData.Add((byte)(color1 + (color2 << 4)));
                                 }
@@ -498,7 +497,11 @@ namespace HaruhiChokuretsuLib.Util
                             {
                                 for (int xpix = 0; xpix < 8 && pixelData.Count < dest.PixelData.Count; xpix++)
                                 {
-                                    pixelData.Add((byte)qPixels[pixelIndex++]);
+                                    if (row * dest.Height + col * dest.Width + ypix * 8 + xpix < 0x100)
+                                    {
+                                        Console.WriteLine("Hi");
+                                    }
+                                    pixelData.Add((byte)qPixels[col * 8 + xpix + (row * 8 + ypix) * dest.Width]);
                                 }
                             }
                         }
