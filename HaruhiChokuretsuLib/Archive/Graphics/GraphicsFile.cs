@@ -521,7 +521,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, 256, true, true, _log);
+            quantizer.QuantizeImage(bitmap, this, 256, texture: true, dither: true, firstTransparent, _log);
 
             return bitmap.Width;
         }
@@ -543,7 +543,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, true, false, _log);
+            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, texture: false, dither: true, firstTransparent, _log);
+
             return bitmap.Width;
         }
     }

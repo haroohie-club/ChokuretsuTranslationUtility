@@ -1,14 +1,14 @@
-﻿using FFMpegCore.Enums;
-using HaruhiChokuretsuLib.Archive.Graphics;
+﻿using HaruhiChokuretsuLib.Archive.Graphics;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static HaruhiChokuretsuLib.Archive.Graphics.GraphicsFile;
 
 namespace HaruhiChokuretsuLib.Util
 {
     // Code modified from https://github.com/mcychan/nQuant.cs
-    // Modified to switch to use SkiaSharp
+    // Modified to use SkiaSharp
     // Licensed under Apache License v2.0
     // Full text of license here: https://github.com/mcychan/nQuant.cs/blob/core/LICENSE
     public class PnnQuantizer
@@ -418,13 +418,18 @@ namespace HaruhiChokuretsuLib.Util
             return qPixels;
         }
 
-        public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, ILogger log)
+        public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, bool firstTransparent, ILogger log)
         {
             var bitmapWidth = source.Width;
             var bitmapHeight = source.Height;
 
             int semiTransCount = 0;
             _hasSemiTransparency = semiTransCount > 0;
+
+            if (firstTransparent)
+            {
+                _transparentPixelIndex = 0;
+            }
 
             uint[] pixels = source.Pixels.Select(p => (uint)p).ToArray();
             SKColor[] palette = dest.Palette.ToArray();
@@ -438,21 +443,7 @@ namespace HaruhiChokuretsuLib.Util
                 _PR = _coeffs[0, 0]; _PG = _coeffs[0, 1]; _PB = _coeffs[0, 2];
             }
 
-            if (nMaxColors > 2)
-                Pnnquan(pixels, ref palette, ref nMaxColors, log);
-            else
-            {
-                if (_transparentPixelIndex >= 0)
-                {
-                    palette[0] = _transparentColor;
-                    palette[1] = SKColors.Black;
-                }
-                else
-                {
-                    palette[0] = SKColors.Black;
-                    palette[1] = SKColors.White;
-                }
-            }
+            Pnnquan(pixels, ref palette, ref nMaxColors, log);
 
             int[] qPixels = Dither(pixels, palette, semiTransCount, bitmapWidth, bitmapHeight, dither);
 
@@ -481,6 +472,39 @@ namespace HaruhiChokuretsuLib.Util
                 {
                     dest.PixelData[i] = (byte)qPixels[i];
                 }
+            }
+            else
+            {
+                int pixelIndex = 0;
+                List<byte> pixelData = new();
+
+                for (int row = 0; row < dest.Height / 8 && pixelData.Count < dest.PixelData.Count; row++)
+                {
+                    for (int col = 0; col < dest.Width / 8 && pixelData.Count < dest.PixelData.Count; col++)
+                    {
+                        for (int ypix = 0; ypix < 8 && pixelData.Count < dest.PixelData.Count; ypix++)
+                        {
+                            if (dest.ImageTileForm == TileForm.GBA_4BPP)
+                            {
+                                for (int xpix = 0; xpix < 4 && pixelData.Count < dest.PixelData.Count; xpix++)
+                                {
+                                    int color1 = qPixels[pixelIndex++];
+                                    int color2 = qPixels[pixelIndex++];
+
+                                    pixelData.Add((byte)(color1 + (color2 << 4)));
+                                }
+                            }
+                            else
+                            {
+                                for (int xpix = 0; xpix < 8 && pixelData.Count < dest.PixelData.Count; xpix++)
+                                {
+                                    pixelData.Add((byte)qPixels[pixelIndex++]);
+                                }
+                            }
+                        }
+                    }
+                }
+                dest.PixelData = pixelData;
             }
         }
     }
