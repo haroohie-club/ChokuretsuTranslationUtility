@@ -132,7 +132,7 @@ namespace HaruhiChokuretsuLib.Util
                 return cnt => (int)Math.Cbrt(cnt);
             return cnt => cnt;
         }
-        protected virtual void Pnnquan(uint[] pixels, ref SKColor[] palette, ref int nMaxColors)
+        protected virtual void Pnnquan(uint[] pixels, ref SKColor[] palette, ref int nMaxColors, ILogger log)
         {
             short quan_rt = 1;
             var bins = new Pnnbin[ushort.MaxValue + 1];
@@ -281,7 +281,7 @@ namespace HaruhiChokuretsuLib.Util
             if (k < nMaxColors - 1)
             {
                 nMaxColors = k + 1;
-                Console.WriteLine("Maximum number of colors: " + palette.Length);
+                log.Log("Maximum number of colors: " + palette.Length);
             }
         }
         protected virtual ushort NearestColorIndex(SKColor[] palette, uint pixel, int pos)
@@ -407,7 +407,7 @@ namespace HaruhiChokuretsuLib.Util
 
         protected virtual int[] Dither(uint[] pixels, SKColor[] palettes, int semiTransCount, int width, int height, bool dither)
         {
-            this._dither = dither;
+            _dither = dither;
             var weight = 3.0;
             if ((semiTransCount * 1.0 / pixels.Length) > .099)
                 weight /= 2;
@@ -418,7 +418,7 @@ namespace HaruhiChokuretsuLib.Util
             return qPixels;
         }
 
-        public GraphicsFile QuantizeImage(GraphicsFile source, int nMaxColors, bool dither)
+        public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, ILogger log)
         {
             var bitmapWidth = source.Width;
             var bitmapHeight = source.Height;
@@ -426,8 +426,8 @@ namespace HaruhiChokuretsuLib.Util
             int semiTransCount = 0;
             _hasSemiTransparency = semiTransCount > 0;
 
-            uint[] pixels = source.GetImage().Pixels.Select(p => (uint)p).ToArray();
-            SKColor[] palette = source.Palette.ToArray();
+            uint[] pixels = source.Pixels.Select(p => (uint)p).ToArray();
+            SKColor[] palette = dest.Palette.ToArray();
             if (palette.Length != nMaxColors)
                 palette = new SKColor[nMaxColors];
 
@@ -439,7 +439,7 @@ namespace HaruhiChokuretsuLib.Util
             }
 
             if (nMaxColors > 2)
-                Pnnquan(pixels, ref palette, ref nMaxColors);
+                Pnnquan(pixels, ref palette, ref nMaxColors, log);
             else
             {
                 if (_transparentPixelIndex >= 0)
@@ -454,7 +454,7 @@ namespace HaruhiChokuretsuLib.Util
                 }
             }
 
-            var qPixels = Dither(pixels, palette, semiTransCount, bitmapWidth, bitmapHeight, dither);
+            int[] qPixels = Dither(pixels, palette, semiTransCount, bitmapWidth, bitmapHeight, dither);
 
             if (_transparentPixelIndex >= 0 && nMaxColors <= 256)
             {
@@ -467,7 +467,21 @@ namespace HaruhiChokuretsuLib.Util
             _closestMap.Clear();
             _nearestMap.Clear();
 
-            return BitmapUtilities.ProcessImagePixels(dest, palette, qPixels, _transparentPixelIndex >= 0);
+            dest.Palette = palette.ToList();
+            dest.PaletteData = new();
+            for (int i = 0; i < dest.Palette.Count; i++)
+            {
+                byte[] color = BitConverter.GetBytes((short)(dest.Palette[i].Red / 8 | dest.Palette[i].Green / 8 << 5 | dest.Palette[i].Blue / 8 << 10));
+                dest.PaletteData.AddRange(color);
+            }
+
+            if (texture)
+            {
+                for (int i = 0; i < dest.PixelData.Count && i < qPixels.Length; i++)
+                {
+                    dest.PixelData[i] = (byte)qPixels[i];
+                }
+            }
         }
     }
 
@@ -989,7 +1003,7 @@ namespace HaruhiChokuretsuLib.Util
             byte b_pix = (byte)Math.Min(byte.MaxValue, Math.Max(error[2], 0.0));
             byte a_pix = (byte)Math.Min(byte.MaxValue, Math.Max(error[3], 0.0));
 
-            SKColor c2 = new(a_pix, r_pix, g_pix, b_pix);
+            SKColor c2 = new(r_pix, g_pix, b_pix, a_pix);
             if (_palette.Length <= 32 && a_pix > 0xF0)
             {
                 int offset = _ditherable.GetColorIndex((uint)c2);

@@ -458,7 +458,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
-            PnnLABQuantizer quantizer = new();
+            PnnQuantizer quantizer = new();
             if (setPalette && FileFunction != Function.SCREEN)
             {
                 SetPaletteFromImage(bitmap, quantizer, transparentIndex);
@@ -478,7 +478,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
         }
 
-        private void SetPaletteFromImage(SKBitmap bitmap, PnnLABQuantizer quantizer, int transparentIndex = -1)
+        private void SetPaletteFromImage(SKBitmap bitmap, PnnQuantizer quantizer, int transparentIndex = -1)
         {
             int numColors = Palette.Count;
             if (transparentIndex >= 0)
@@ -487,7 +487,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
 
             SKColor[] newPalette = Palette.ToArray();
-            quantizer.Pnnquan(bitmap.Pixels.Select(c => (uint)c).ToArray(), ref newPalette, ref numColors, _log);
+            //quantizer.Pnnquan(bitmap.Pixels.Select(c => (uint)c).ToArray(), ref newPalette, ref numColors, _log);
             Palette = newPalette.ToList();
 
             if (transparentIndex >= 0)
