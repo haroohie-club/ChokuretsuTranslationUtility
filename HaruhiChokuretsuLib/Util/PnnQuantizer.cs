@@ -477,9 +477,9 @@ namespace HaruhiChokuretsuLib.Util
             {
                 List<byte> pixelData = new();
 
-                for (int row = 0; row < dest.Height / 8 && pixelData.Count < dest.PixelData.Count; row++)
+                for (int row = 0; row < source.Height / 8 && pixelData.Count < dest.PixelData.Count; row++)
                 {
-                    for (int col = 0; col < dest.Width / 8 && pixelData.Count < dest.PixelData.Count; col++)
+                    for (int col = 0; col < source.Width / 8 && pixelData.Count < dest.PixelData.Count; col++)
                     {
                         for (int ypix = 0; ypix < 8 && pixelData.Count < dest.PixelData.Count; ypix++)
                         {
@@ -487,8 +487,8 @@ namespace HaruhiChokuretsuLib.Util
                             {
                                 for (int xpix = 0; xpix < 4 && pixelData.Count < dest.PixelData.Count; xpix++)
                                 {
-                                    int color1 = qPixels[row * dest.Height + col * dest.Width + ypix * 8 + xpix * 2];
-                                    int color2 = qPixels[row * dest.Height + col * dest.Width + ypix * 8 + xpix * 2 + 1];
+                                    int color1 = qPixels[col * 8 + xpix * 2 + (row * 8 + ypix) * source.Width];
+                                    int color2 = qPixels[col * 8 + xpix * 2 + (row * 8 + ypix) * source.Width + 1];
 
                                     pixelData.Add((byte)(color1 + (color2 << 4)));
                                 }
@@ -497,11 +497,7 @@ namespace HaruhiChokuretsuLib.Util
                             {
                                 for (int xpix = 0; xpix < 8 && pixelData.Count < dest.PixelData.Count; xpix++)
                                 {
-                                    if (row * dest.Height + col * dest.Width + ypix * 8 + xpix < 0x100)
-                                    {
-                                        Console.WriteLine("Hi");
-                                    }
-                                    pixelData.Add((byte)qPixels[col * 8 + xpix + (row * 8 + ypix) * dest.Width]);
+                                    pixelData.Add((byte)qPixels[col * 8 + xpix + (row * 8 + ypix) * source.Width]);
                                 }
                             }
                         }
