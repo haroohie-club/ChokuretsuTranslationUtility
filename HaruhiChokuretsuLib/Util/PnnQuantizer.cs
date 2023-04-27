@@ -418,7 +418,7 @@ namespace HaruhiChokuretsuLib.Util
             return qPixels;
         }
 
-        public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, bool firstTransparent, ILogger log)
+        public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, bool firstTransparent, bool replacePalette, ILogger log)
         {
             var bitmapWidth = source.Width;
             var bitmapHeight = source.Height;
@@ -432,9 +432,15 @@ namespace HaruhiChokuretsuLib.Util
             }
 
             uint[] pixels = source.Pixels.Select(p => (uint)p).ToArray();
-            SKColor[] palette = dest.Palette.ToArray();
-            if (palette.Length != nMaxColors)
-                palette = new SKColor[nMaxColors];
+            SKColor[] palette;
+            if (dest.Palette.Count < nMaxColors)
+            {
+                palette = dest.Palette.Concat(new SKColor[nMaxColors - dest.Palette.Count]).ToArray();
+            }
+            else
+            {
+                palette = dest.Palette.ToArray();
+            }
 
             if (nMaxColors <= 32)
                 _PR = _PG = _PB = _PA = 1;
@@ -443,7 +449,10 @@ namespace HaruhiChokuretsuLib.Util
                 _PR = _coeffs[0, 0]; _PG = _coeffs[0, 1]; _PB = _coeffs[0, 2];
             }
 
-            Pnnquan(pixels, ref palette, ref nMaxColors, log);
+            if (replacePalette)
+            {
+                Pnnquan(pixels, ref palette, ref nMaxColors, log);
+            }
 
             int[] qPixels = Dither(pixels, palette, semiTransCount, bitmapWidth, bitmapHeight, dither);
 

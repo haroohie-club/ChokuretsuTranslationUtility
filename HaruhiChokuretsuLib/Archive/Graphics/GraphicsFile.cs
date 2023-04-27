@@ -459,10 +459,6 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
             PnnQuantizer quantizer = new();
-            if (setPalette && FileFunction != Function.SCREEN)
-            {
-                SetPaletteFromImage(bitmap, quantizer, transparentIndex);
-            }
 
             if (FileFunction == Function.SCREEN)
             {
@@ -470,42 +466,15 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             else if (IsTexture())
             {
-                return SetTexture(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false);
+                return SetTexture(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false, setPalette);
             }
             else
             {
-                return SetTiles(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false);
+                return SetTiles(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false, setPalette);
             }
         }
 
-        private void SetPaletteFromImage(SKBitmap bitmap, PnnQuantizer quantizer, int transparentIndex = -1)
-        {
-            int numColors = Palette.Count;
-            if (transparentIndex >= 0)
-            {
-                numColors--;
-            }
-
-            SKColor[] newPalette = Palette.ToArray();
-            //quantizer.Pnnquan(bitmap.Pixels.Select(c => (uint)c).ToArray(), ref newPalette, ref numColors, _log);
-            Palette = newPalette.ToList();
-
-            if (transparentIndex >= 0)
-            {
-                Palette.Insert(transparentIndex, SKColors.Transparent);
-            }
-
-            PaletteData = new();
-            _log.Log($"Generating new palette for #{Index:X3}... ");
-
-            for (int i = 0; i < Palette.Count; i++)
-            {
-                byte[] color = BitConverter.GetBytes((short)(Palette[i].Red / 8 | Palette[i].Green / 8 << 5 | Palette[i].Blue / 8 << 10));
-                PaletteData.AddRange(color);
-            }
-        }
-
-        private int SetTexture(SKBitmap bitmap, PnnQuantizer quantizer, bool newSize, bool firstTransparent)
+        private int SetTexture(SKBitmap bitmap, PnnQuantizer quantizer, bool newSize, bool firstTransparent, bool setPalette)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -521,12 +490,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, 256, texture: true, dither: true, firstTransparent, _log);
+            quantizer.QuantizeImage(bitmap, this, 256, texture: true, dither: true, firstTransparent, setPalette, _log);
 
             return bitmap.Width;
         }
 
-        private int SetTiles(SKBitmap bitmap, PnnQuantizer quantizer, bool newSize, bool firstTransparent)
+        private int SetTiles(SKBitmap bitmap, PnnQuantizer quantizer, bool newSize, bool firstTransparent, bool setPalette)
         {
             if (!VALID_WIDTHS.Contains(bitmap.Width))
             {
@@ -543,7 +512,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, texture: false, dither: true, firstTransparent, _log);
+            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, texture: false, dither: true, firstTransparent, setPalette, _log);
 
             return bitmap.Width;
         }
