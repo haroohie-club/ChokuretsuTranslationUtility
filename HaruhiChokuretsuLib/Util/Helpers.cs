@@ -181,40 +181,16 @@ namespace HaruhiChokuretsuLib.Util
             return s;
         }
 
-        public static List<SKColor> GetPaletteFromImages(IList<SKBitmap> bitmaps, int numberOfColors)
+        public static List<SKColor> GetPaletteFromImages(IList<SKBitmap> bitmaps, int numberOfColors, ILogger log)
         {
-            List<SKColor> firstBin = new();
-
-            // Concatenate pixel data from all bitmaps into a single bin
-            foreach (SKBitmap bitmap in bitmaps)
-            {
-                for (int x = 0; x < bitmap.Width; x++)
-                {
-                    for (int y = 0; y < bitmap.Height; y++)
-                    {
-                        firstBin.Add(bitmap.GetPixel(x, y));
-                    }
-                }
-            }
-
-            return GetPalette(firstBin, numberOfColors);
+            PnnQuantizer quantizer = new();
+            return quantizer.GetPaletteFromImages(bitmaps, numberOfColors, log);
         }
 
-        public static List<SKColor> GetPaletteFromImage(SKBitmap bitmap, int numberOfColors)
+        public static List<SKColor> GetPaletteFromImage(SKBitmap bitmap, int numberOfColors, ILogger log)
         {
-            // Adapted from https://github.com/antigones/palette_extraction
-
-            List<SKColor> firstBin = new();
-
-            for (int x = 0; x < bitmap.Width; x++)
-            {
-                for (int y = 0; y < bitmap.Height; y++)
-                {
-                    firstBin.Add(bitmap.GetPixel(x, y));
-                }
-            }
-
-            return GetPalette(firstBin, numberOfColors);
+            PnnQuantizer quantizer = new();
+            return quantizer.GetPaletteFromImages(new SKBitmap[] { bitmap }, numberOfColors, log);
         }
 
         private static List<SKColor> GetPalette(List<SKColor> firstBin, int numberOfColors)

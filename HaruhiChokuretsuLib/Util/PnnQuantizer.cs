@@ -418,6 +418,25 @@ namespace HaruhiChokuretsuLib.Util
             return qPixels;
         }
 
+        public List<SKColor> GetPaletteFromImages(IEnumerable<SKBitmap> bitmaps, int nMaxColors, ILogger log)
+        {
+            uint[] pixels = bitmaps.SelectMany(b => b.Pixels).Select(p => (uint)p).ToArray();
+            SKColor[] palette = new SKColor[nMaxColors];
+
+            if (nMaxColors <= 32)
+            {
+                _PR = _PG = _PB = _PA = 1;
+            }
+            else
+            {
+                _PR = _coeffs[0, 0]; _PG = _coeffs[0, 1]; _PB = _coeffs[0, 2];
+            }
+
+            Pnnquan(pixels, ref palette, ref nMaxColors, log);
+
+            return palette.ToList();
+        }
+
         public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, bool firstTransparent, bool replacePalette, ILogger log)
         {
             var bitmapWidth = source.Width;
