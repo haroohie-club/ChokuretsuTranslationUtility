@@ -1,5 +1,4 @@
 ﻿using FFMpegCore.Pipes;
-using HaruhiChokuretsuLib.Archive.Graphics;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -182,120 +181,16 @@ namespace HaruhiChokuretsuLib.Util
             return s;
         }
 
-        public static List<SKColor> GetPaletteFromImages(IList<SKBitmap> bitmaps, int numberOfColors)
+        public static List<SKColor> GetPaletteFromImages(IList<SKBitmap> bitmaps, int numberOfColors, ILogger log)
         {
-            List<SKColor> firstBin = new();
-
-            // Concatenate pixel data from all bitmaps into a single bin
-            foreach (SKBitmap bitmap in bitmaps)
-            {
-                for (int x = 0; x < bitmap.Width; x++)
-                {
-                    for (int y = 0; y < bitmap.Height; y++)
-                    {
-                        firstBin.Add(bitmap.GetPixel(x, y));
-                    }
-                }
-            }
-
-            return GetPalette(firstBin, numberOfColors);
+            PnnQuantizer quantizer = new();
+            return quantizer.GetPaletteFromImages(bitmaps, numberOfColors, log);
         }
 
-        public static List<SKColor> GetPaletteFromImage(SKBitmap bitmap, int numberOfColors)
+        public static List<SKColor> GetPaletteFromImage(SKBitmap bitmap, int numberOfColors, ILogger log)
         {
-            // Adapted from https://github.com/antigones/palette_extraction
-
-            List<SKColor> firstBin = new();
-
-            for (int x = 0; x < bitmap.Width; x++)
-            {
-                for (int y = 0; y < bitmap.Height; y++)
-                {
-                    firstBin.Add(bitmap.GetPixel(x, y));
-                }
-            }
-
-            return GetPalette(firstBin, numberOfColors);
-        }
-
-        private static List<SKColor> GetPalette(List<SKColor> firstBin, int numberOfColors)
-        {
-            List<List<SKColor>> bins = new() { firstBin };
-            bins = ProcessBins(0, bins, numberOfColors);
-
-            List<SKColor> palette = bins.Select(b => b.Count > 0 ?
-                new SKColor((byte)b.Average(c => c.Red), (byte)b.Average(c => c.Green), (byte)b.Average(c => c.Blue)) :
-                SKColor.Empty).ToList();
-
-            for (int i = palette.Count; i < numberOfColors; i++)
-            {
-                palette.Add(SKColors.Black);
-            }
-
-            return palette;
-        }
-
-        private static List<List<SKColor>> ProcessBins(int i, List<List<SKColor>> bins, int maxNumberBins)
-        {
-            if (i < maxNumberBins - 1)
-            {
-                // Create a list of three tuples by RGB component, sorting all the colors by the value of that component
-                List<(ColorComponent component, List<(List<byte> componentValues, int index)> valueRanges)> componentRanges = new()
-                {
-                    (ColorComponent.R, bins.Select(b => (b.Select(c => c.Red).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
-                    (ColorComponent.G, bins.Select(b => (b.Select(c => c.Green).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
-                    (ColorComponent.B, bins.Select(b => (b.Select(c => c.Blue).OrderBy(c => c).ToList(), bins.IndexOf(b))).ToList()),
-                };
-                List<(ColorComponent component, List<byte> componentValues, int index)> componentRangesCollapsed =
-                    componentRanges.SelectMany(r => r.valueRanges.Select(v => (r.component, v.componentValues, v.index))) // collapse above listinto a single list of three-part tuples
-                    .OrderByDescending(r => r.componentValues.Count > 0 ? r.componentValues.Max() - r.componentValues.Min() : 0) // put the tuple with the highest difference in value on a particular component first
-                    .ToList();
-
-                int indexToSplitAt = componentRangesCollapsed[0].index; // because the max difference is now the first in the list, we can just take the first value's index
-
-                List<SKColor> bin = bins[indexToSplitAt];
-                bins.RemoveAt(indexToSplitAt);
-                bins.InsertRange(indexToSplitAt, SplitPixels(bin, componentRangesCollapsed[0].component));
-
-                return ProcessBins(i + 1, bins, maxNumberBins);
-            }
-            else
-            {
-                return bins;
-            }
-        }
-
-        private static List<List<SKColor>> SplitPixels(List<SKColor> colors, ColorComponent component)
-        {
-            List<List<SKColor>> bins = new() { new(), new() };
-
-            switch (component)
-            {
-                case ColorComponent.R:
-                    IOrderedEnumerable<SKColor> orderedColorsR = colors.OrderBy(c => c.Red); // sort all colors in the bin by their red component
-                    bins[0].AddRange(orderedColorsR.Take(orderedColorsR.Count() / 2)); // we can now take the middle value as the split point
-                    bins[1].AddRange(orderedColorsR.Skip(orderedColorsR.Count() / 2)); // since that will be the median value
-                    break;
-                case ColorComponent.G:
-                    IOrderedEnumerable<SKColor> orderedColorsG = colors.OrderBy(c => c.Green);
-                    bins[0].AddRange(orderedColorsG.Take(orderedColorsG.Count() / 2));
-                    bins[1].AddRange(orderedColorsG.Skip(orderedColorsG.Count() / 2));
-                    break;
-                case ColorComponent.B:
-                    IOrderedEnumerable<SKColor> orderedColorsB = colors.OrderBy(c => c.Blue);
-                    bins[0].AddRange(orderedColorsB.Take(orderedColorsB.Count() / 2));
-                    bins[1].AddRange(orderedColorsB.Skip(orderedColorsB.Count() / 2));
-                    break;
-            }
-
-            return bins;
-        }
-
-        private enum ColorComponent
-        {
-            R,
-            G,
-            B
+            PnnQuantizer quantizer = new();
+            return quantizer.GetPaletteFromImages(new SKBitmap[] { bitmap }, numberOfColors, log);
         }
 
         public static byte[] CompressData(byte[] decompressedData)

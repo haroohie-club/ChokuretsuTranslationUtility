@@ -126,7 +126,7 @@ namespace HaruhiChokuretsuCLI
             {
                 CommandSet.Out.WriteLine($"Generating shared palette for set {key}...");
                 List<SKBitmap> images = filesWithSharedPalettes[key].Select(f => SKBitmap.Decode(f)).ToList();
-                _palettes.Add(key, Helpers.GetPaletteFromImages(images, 256));
+                _palettes.Add(key, Helpers.GetPaletteFromImages(images, 256, log));
             }
 
             foreach (string filePath in filePaths)

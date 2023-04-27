@@ -69,7 +69,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return bitmap;
         }
 
-        public int SetScreenImage(SKBitmap bitmap, GraphicsFile associatedTiles)
+        public int SetScreenImage(SKBitmap bitmap, PnnQuantizer quantizer, GraphicsFile associatedTiles)
         {
             if (bitmap.Width != 256 || bitmap.Height != 192)
             {
@@ -97,7 +97,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 }
             }
 
-            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16);
+            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16, _log);
             foreach (SKBitmap tile in tiles)
             {
                 for (int y = 0; y < tile.Height; y++)
