@@ -485,7 +485,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             {
                 PixelData = new(new byte[bitmap.Width * bitmap.Height]);
             }
-            else if (bitmap.Height != calculatedHeight)
+            else if (bitmap.Height < calculatedHeight)
             {
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
@@ -507,7 +507,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 _log.LogWarning("Resizing... ");
                 PixelData = new(new byte[bitmap.Width * bitmap.Height]);
             }
-            else if (bitmap.Height != calculatedHeight)
+            else if (bitmap.Height < calculatedHeight)
             {
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
