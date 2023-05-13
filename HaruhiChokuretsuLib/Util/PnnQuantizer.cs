@@ -269,7 +269,7 @@ namespace HaruhiChokuretsuLib.Util
                 palette = new SKColor[maxbins];
 
             int k = 0;
-            for (int i = 0; ; ++k)
+            for (int i = 0; k < palette.Length; ++k)
             {
                 byte alpha = (_hasSemiTransparency || _transparentPixelIndex >= 0) ? Math.Clamp((byte)Math.Round(bins[i].ac), byte.MinValue, byte.MaxValue) : byte.MaxValue;
                 palette[k] = new SKColor(Math.Clamp((byte)bins[i].rc, byte.MinValue, byte.MaxValue), Math.Clamp((byte)bins[i].gc, byte.MinValue, byte.MaxValue), Math.Clamp((byte)bins[i].bc, byte.MinValue, byte.MaxValue), alpha);
@@ -445,11 +445,6 @@ namespace HaruhiChokuretsuLib.Util
             int semiTransCount = 0;
             _hasSemiTransparency = semiTransCount > 0;
 
-            if (firstTransparent)
-            {
-                _transparentPixelIndex = 0;
-            }
-
             uint[] pixels = source.Pixels.Select(p => (uint)p).ToArray();
             SKColor[] palette;
             if (dest.Palette.Count < nMaxColors)
@@ -459,6 +454,10 @@ namespace HaruhiChokuretsuLib.Util
             else
             {
                 palette = dest.Palette.ToArray();
+            }
+            if (firstTransparent)
+            {
+                palette = palette.Skip(1).ToArray();
             }
 
             if (nMaxColors <= 32)
@@ -487,6 +486,10 @@ namespace HaruhiChokuretsuLib.Util
             _nearestMap.Clear();
 
             dest.Palette = palette.ToList();
+            if (firstTransparent)
+            {
+                dest.Palette.Insert(0, _transparentColor);
+            }
             dest.PaletteData = new();
             for (int i = 0; i < dest.Palette.Count; i++)
             {
@@ -499,6 +502,10 @@ namespace HaruhiChokuretsuLib.Util
                 for (int i = 0; i < dest.PixelData.Count && i < qPixels.Length; i++)
                 {
                     dest.PixelData[i] = (byte)qPixels[i];
+                    if (firstTransparent)
+                    {
+                        dest.PixelData[i]++;
+                    }
                 }
             }
             else
@@ -517,6 +524,11 @@ namespace HaruhiChokuretsuLib.Util
                                 {
                                     int color1 = qPixels[col * 8 + xpix * 2 + (row * 8 + ypix) * source.Width];
                                     int color2 = qPixels[col * 8 + xpix * 2 + (row * 8 + ypix) * source.Width + 1];
+                                    if (firstTransparent)
+                                    {
+                                        color1++;
+                                        color2++;
+                                    }
 
                                     pixelData.Add((byte)(color1 + (color2 << 4)));
                                 }
@@ -526,6 +538,10 @@ namespace HaruhiChokuretsuLib.Util
                                 for (int xpix = 0; xpix < 8 && pixelData.Count < dest.PixelData.Count; xpix++)
                                 {
                                     pixelData.Add((byte)qPixels[col * 8 + xpix + (row * 8 + ypix) * source.Width]);
+                                    if (firstTransparent)
+                                    {
+                                        pixelData[pixelData.Count - 1]++;
+                                    }
                                 }
                             }
                         }
