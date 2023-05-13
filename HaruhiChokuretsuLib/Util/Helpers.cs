@@ -99,7 +99,7 @@ namespace HaruhiChokuretsuLib.Util
         }
 
         // redmean color distance formula with alpha term
-        private static double ColorDistance(SKColor color1, SKColor color2)
+        public static double ColorDistance(SKColor color1, SKColor color2)
         {
             double redmean = (color1.Red + color2.Red) / 2.0;
 
