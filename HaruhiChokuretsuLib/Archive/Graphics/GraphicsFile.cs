@@ -196,10 +196,9 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Palette = new()
             {
                 new SKColor(0x00, 0x00, 0x00),
-                new SKColor(0x0F, 0x0F, 0x0F),
+                new SKColor(0x1F, 0x1F, 0xF),
                 new SKColor(0x2F, 0x2F, 0x2F),
                 new SKColor(0x3F, 0x3F, 0x3F),
-                new SKColor(0x4F, 0x4F, 0x4F),
                 new SKColor(0x4F, 0x4F, 0x4F),
                 new SKColor(0x5F, 0x5F, 0x5F),
                 new SKColor(0x6F, 0x6F, 0x6F),

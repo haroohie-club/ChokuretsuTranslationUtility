@@ -405,16 +405,16 @@ namespace HaruhiChokuretsuLib.Util
             return ClosestColorIndex(palette, pixel, pos);
         }
 
-        protected virtual int[] Dither(uint[] pixels, SKColor[] palettes, int semiTransCount, int width, int height, bool dither)
+        protected virtual int[] Dither(uint[] pixels, SKColor[] palette, int semiTransCount, int width, int height, bool dither)
         {
             _dither = dither;
             var weight = 3.0;
             if ((semiTransCount * 1.0 / pixels.Length) > .099)
                 weight /= 2;
-            var qPixels = GilbertCurve.Dither(width, height, pixels, palettes, this, null, weight);
+            var qPixels = GilbertCurve.Dither(width, height, pixels, palette, this, null, weight);
 
             if (!dither)
-                BlueNoise.Dither(width, height, pixels, palettes, this, qPixels);
+                BlueNoise.Dither(width, height, pixels, palette, this, qPixels);
             return qPixels;
         }
 
