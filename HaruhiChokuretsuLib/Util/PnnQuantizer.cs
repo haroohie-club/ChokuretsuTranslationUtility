@@ -307,19 +307,19 @@ namespace HaruhiChokuretsuLib.Util
             {
                 var c2 = palette[i];
                 var curdist = _PA * Sqr(c2.Alpha - c.Alpha);
-                if (curdist > mindist)
+                if (curdist >= mindist)
                     continue;
 
                 curdist += pr * Sqr(c2.Red - c.Red);
-                if (curdist > mindist)
+                if (curdist >= mindist)
                     continue;
 
                 curdist += pg * Sqr(c2.Green - c.Green);
-                if (curdist > mindist)
+                if (curdist >= mindist)
                     continue;
 
                 curdist += pb * Sqr(c2.Blue - c.Blue);
-                if (curdist > mindist)
+                if (curdist >= mindist)
                     continue;
 
                 mindist = curdist;
@@ -1071,22 +1071,22 @@ namespace HaruhiChokuretsuLib.Util
             byte a_pix = (byte)Math.Min(byte.MaxValue, Math.Max(error[3], 0.0));
 
             SKColor c2 = new(r_pix, g_pix, b_pix, a_pix);
-            if (_palette.Length <= 32 && a_pix > 0xF0)
-            {
-                int offset = _ditherable.GetColorIndex((uint)c2);
-                if (_lookup[offset] == 0)
-                    _lookup[offset] = _ditherable.DitherColorIndex(_palette, (uint)c2, bidx) + 1;
-                _qPixels[bidx] = _lookup[offset] - 1;
+            //if (_palette.Length <= 32 && a_pix > 0xF0)
+            //{
+            //    int offset = _ditherable.GetColorIndex((uint)c2);
+            //    if (_lookup[offset] == 0)
+            //        _lookup[offset] = _ditherable.DitherColorIndex(_palette, (uint)c2, bidx) + 1;
+            //    _qPixels[bidx] = _lookup[offset] - 1;
 
-                if (_saliencies != null && _saliencies[bidx] > .65f && _saliencies[bidx] < .75f)
-                {
-                    var strength = 1 / 3f;
-                    c2 = BlueNoise.Diffuse(pixel, _palette[_qPixels[bidx]], 1 / _saliencies[bidx], strength, x, y);
-                    _qPixels[bidx] = _ditherable.DitherColorIndex(_palette, (uint)c2, bidx);
-                }
-            }
-            else
-                _qPixels[bidx] = _ditherable.DitherColorIndex(_palette, (uint)c2, bidx);
+            //    if (_saliencies != null && _saliencies[bidx] > .65f && _saliencies[bidx] < .75f)
+            //    {
+            //        var strength = 1 / 3f;
+            //        c2 = BlueNoise.Diffuse(pixel, _palette[_qPixels[bidx]], 1 / _saliencies[bidx], strength, x, y);
+            //        _qPixels[bidx] = _ditherable.DitherColorIndex(_palette, (uint)c2, bidx);
+            //    }
+            //}
+            //else
+            _qPixels[bidx] = _ditherable.DitherColorIndex(_palette, (uint)pixel, bidx);
 
             if (_errorq.Count > 0)
                 _errorq.Dequeue();
