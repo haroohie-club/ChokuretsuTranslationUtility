@@ -1,4 +1,5 @@
-﻿using HaruhiChokuretsuLib.Util;
+﻿using HaruhiChokuretsuLib.Font;
+using HaruhiChokuretsuLib.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -43,6 +44,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             for (int i = 0; i < SectionPointersAndCounts.Count - 2; i++)
             {
                 VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH), _log));
+                VoiceMapStructs[VoiceMapStructs.Count - 1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapStructs.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
+                VoiceMapStructs[VoiceMapStructs.Count - 1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapStructs.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray()), recenter: false);
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset, @override: true);
@@ -145,25 +148,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             for (int i = 0; i < csvData.Length; i++)
             {
                 string[] fields = csvData[i].Split(',');
-                short y = 0;
                 int lineLength = DialogueLines[i].Text.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
-
-                switch (fields[2])
-                {
-                    default:
-                    case "TOP":
-                        y = 16;
-                        break;
-                    case "BELOW_TOP":
-                        y = 40;
-                        break;
-                    case "ABOVE_BOTTOM":
-                        y = 160;
-                        break;
-                    case "BOTTOM":
-                        y = 176;
-                        break;
-                }
 
                 EndPointers.AddRange(new int[] { Data.Count, Data.Count + 4 }); // Add the next two pointers to end pointers
                 EndPointerPointers.AddRange(new int[] { filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer });
@@ -172,9 +157,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     VoiceFileNamePointer = filenamePointers[i] + filenameSectionStart,
                     SubtitlePointer = dialogueLinePointers[i] + DialogueLinesPointer,
                     X = CenterSubtitle(lineLength),
-                    Y = y,
+                    YPos = Enum.Parse<VoiceMapStruct.YPosition>(fields[2]),
                     FontSize = 100,
-                    TargetScreen = (VoiceMapStruct.Screen)Enum.Parse(typeof(VoiceMapStruct.Screen), fields[3]),
+                    TargetScreen = Enum.Parse<VoiceMapStruct.Screen>(fields[3]),
                     Timer = ushort.Parse(fields[4]),
                 };
 
@@ -241,7 +226,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return (short)((256 - lineLength) / 2);
         }
 
-        private static Dictionary<string, Speaker> SpeakerCodeMap = new()
+        public static Dictionary<string, Speaker> SpeakerCodeMap = new()
         {
             { "ANZ", Speaker.GIRL },
             { "HRH", Speaker.HARUHI },
@@ -261,11 +246,33 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 TOP = 1,
             }
 
+            public enum YPosition : short
+            {
+                TOP = 16,
+                BELOW_TOP = 40,
+                ABOVE_BOTTOM = 160,
+                BOTTOM = 176,
+            }
+
+            private string _subtitle;
+            private YPosition _yPosition;
+
             public List<byte> Data { get; set; } = new();
             public int VoiceFileNamePointer { get; set; }
+            public string VoiceFileName { get; set; }
             public int SubtitlePointer { get; set; }
+            public string Subtitle { get => _subtitle; }
             public short X { get; set; }
-            public short Y { get; set; }
+            public short Y { get; private set; }
+            public YPosition YPos 
+            { 
+                get => _yPosition; 
+                set
+                {
+                    Y = (short)value;
+                    _yPosition = value;
+                } 
+            }
             public short FontSize { get; set; }
             public Screen TargetScreen { get; set; }
             public int Timer { get; set; }
@@ -286,11 +293,37 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 SubtitlePointer = BitConverter.ToInt32(data.Skip(4).Take(4).ToArray());
                 X = BitConverter.ToInt16(data.Skip(8).Take(2).ToArray());
                 Y = BitConverter.ToInt16(data.Skip(10).Take(2).ToArray());
+                YPos = (YPosition)Y;
                 FontSize = BitConverter.ToInt16(data.Skip(12).Take(2).ToArray());
                 TargetScreen = (Screen)BitConverter.ToInt16(data.Skip(14).Take(2).ToArray());
                 Timer = BitConverter.ToInt32(data.Skip(16).Take(4).ToArray());
 
                 Data = data.ToList();
+            }
+
+            public void SetSubtitle(string value, FontReplacementDictionary fontReplacementMap = null, bool recenter = true)
+            {
+                _subtitle = value;
+                if (recenter)
+                {
+                    X = CenterSubtitle(_subtitle.Sum(c => fontReplacementMap.ReverseLookup(c)?.Offset ?? 15));
+                }
+            }
+
+            public string GetSource(int currentVoiceFile)
+            {
+                StringBuilder sb = new();
+
+                sb.AppendLine($"STRUCT{currentVoiceFile:D3}:");
+                sb.AppendLine($"   STRUCTFILE{currentVoiceFile:D3}: .word FILENAME{currentVoiceFile:D3}");
+                sb.AppendLine($"   STRUCTSUBS{currentVoiceFile:D3}: .word SUBTITLE{currentVoiceFile:D3}");
+                sb.AppendLine($"   .short {X}");
+                sb.AppendLine($"   .short {Y}");
+                sb.AppendLine($"   .short {FontSize}");
+                sb.AppendLine($"   .short {(short)TargetScreen}");
+                sb.AppendLine($"   .word {Timer}");
+
+                return sb.ToString();
             }
 
             public byte[] GetBytes()
