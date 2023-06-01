@@ -65,13 +65,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine(".word DIALOGUE_SECTION");
             sb.AppendLine(".word 1");
 
-            sb.AppendLine("MAGIC: .ascii \"SUBS\"");
-
             for (int i = 0; i < VoiceMapStructs.Count; i++)
             {
                 sb.AppendLine($".word FILENAME{i:D3}");
                 sb.AppendLine(".word 1");
             }
+
+            sb.AppendLine("MAGIC: .ascii \"SUBS\"");
 
             for (int i = 0; i < VoiceMapStructs.Count; i++)
             {
