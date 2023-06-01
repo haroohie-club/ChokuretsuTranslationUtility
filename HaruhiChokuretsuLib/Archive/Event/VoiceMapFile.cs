@@ -57,7 +57,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             sb.AppendLine($".word {VoiceMapStructs.Count + 2}");
             sb.AppendLine(".word END_POINTERS");
-            sb.AppendLine(".word 1");
+            sb.AppendLine(".ascii \"SUBS\"");
             sb.AppendLine(".word STRUCT_SECTION");
             sb.AppendLine(".word 1");
             sb.AppendLine(".word DIALOGUE_SECTION");
