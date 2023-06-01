@@ -180,8 +180,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 DramatisPersonae.Add(filenamePointers[i] + filenameSectionStart, filenames[i]);
             }
 
-            Data.AddRange(Encoding.ASCII.GetBytes("SUBS"));
-
             Data.AddRange(filenameSection);
 
             // Go back and insert the pointer to the dialogue section

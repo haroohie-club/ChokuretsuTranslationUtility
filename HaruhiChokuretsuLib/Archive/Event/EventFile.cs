@@ -776,7 +776,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "VOICEMAPS")
             {
-                return "";
+                VoiceMapFile voiceMapFile = CastTo<VoiceMapFile>();
+                return voiceMapFile.GetSource();
             }
             else
             {
