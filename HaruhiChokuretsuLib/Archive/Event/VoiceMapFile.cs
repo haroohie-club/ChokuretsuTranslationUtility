@@ -45,7 +45,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH), _log));
                 VoiceMapStructs[^1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapStructs.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
-                VoiceMapStructs[^1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapStructs.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray()), recenter: false);
+                VoiceMapStructs[^1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapStructs.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray())[4..], recenter: false);
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset, @override: true);
@@ -92,8 +92,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine(".skip 12");
             for (int i = 0; i < VoiceMapStructs.Count; i++)
             {
-                sb.AppendLine($"SUBTITLE{i:D3}: .string \"{VoiceMapStructs[i].Subtitle.EscapeShiftJIS()}\"");
-                sb.AsmPadString(VoiceMapStructs[i].Subtitle, Encoding.GetEncoding("Shift-JIS"));
+                sb.AppendLine($"SUBTITLE{i:D3}: .string \"{VoiceMapStructs[i].GetRawSubtitle().EscapeShiftJIS()}\"");
+                sb.AsmPadString(VoiceMapStructs[i].GetRawSubtitle(), Encoding.GetEncoding("Shift-JIS"));
             }
             sb.AppendLine(".skip 4");
 
@@ -385,6 +385,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 Timer = BitConverter.ToInt32(data.Skip(16).Take(4).ToArray());
 
                 Data = data.ToList();
+            }
+
+            public string GetRawSubtitle()
+            {
+                return _subtitle;
             }
 
             public void SetSubtitle(string value, FontReplacementDictionary fontReplacementMap = null, bool recenter = true)
