@@ -31,8 +31,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 });
             }
             Settings = new(new byte[0x128]);
-            VoiceMapStructSectionOffset = SectionPointersAndCounts[1].Pointer;
-            Settings.DialogueSectionPointer = SectionPointersAndCounts[2].Pointer;
+            VoiceMapStructSectionOffset = SectionPointersAndCounts[0].Pointer;
+            Settings.DialogueSectionPointer = SectionPointersAndCounts[1].Pointer;
             DialogueLinesPointer = Settings.DialogueSectionPointer + (SectionPointersAndCounts.Count - 1) * 12;
             Settings.NumDialogueEntries = numFrontPointers - 2;
 
