@@ -347,7 +347,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             public int VoiceFileNamePointer { get; set; }
             public string VoiceFileName { get; set; }
             public int SubtitlePointer { get; set; }
-            public string Subtitle { get => _subtitle; }
+            public string Subtitle { get => _subtitle[4..]; }
             public short X { get; set; }
             public short Y { get; private set; }
             public YPosition YPos 
@@ -392,7 +392,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 _subtitle = $"#P07{value}";
                 if (recenter)
                 {
-                    X = CenterSubtitle(_subtitle.Sum(c => fontReplacementMap.ReverseLookup(c)?.Offset ?? 15));
+                    X = CenterSubtitle(value.Sum(c => fontReplacementMap.ReverseLookup(c)?.Offset ?? 15));
                 }
             }
 
