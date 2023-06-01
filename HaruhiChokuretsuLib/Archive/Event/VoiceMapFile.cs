@@ -51,6 +51,67 @@ namespace HaruhiChokuretsuLib.Archive.Event
             InitializeDialogueAndEndPointers(decompressedData, offset, @override: true);
         }
 
+        public string GetSource()
+        {
+            StringBuilder sb = new();
+
+            sb.AppendLine($".word {VoiceMapStructs.Count + 2}");
+            sb.AppendLine(".word END_POINTERS");
+            sb.AppendLine(".word 1");
+            sb.AppendLine(".word STRUCT_SECTION");
+            sb.AppendLine(".word 1");
+            sb.AppendLine(".word DIALOGUE_SECTION");
+            sb.AppendLine(".word 1");
+            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            {
+                sb.AppendLine($".word FILENAME{i:D3}");
+                sb.AppendLine(".word 1");
+            }
+
+            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            {
+                sb.AppendLine($"FILENAME{i:D3}: .string \"{VoiceMapStructs[i].VoiceFileName}\"");
+                sb.AsmPadString(VoiceMapStructs[i].VoiceFileName, Encoding.ASCII);
+            }
+
+            sb.AppendLine("DIALOGUE_SECTION:");
+            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            {
+                sb.AppendLine($".word {(int)VoiceMapFile.SpeakerCodeMap[VoiceMapStructs[i].VoiceFileName[0..3]]}");
+                sb.AppendLine($"DRAMPERS{i:D3}: .word FILENAME{i:D3}");
+                sb.AppendLine($"DIALOGUE{i:D3}: .word SUBTITLE{i:D3}");
+            }
+            sb.AppendLine(".skip 12");
+            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            {
+                sb.AppendLine($"SUBTITLE{i:D3}: .string \"{VoiceMapStructs[i].Subtitle.EscapeShiftJIS()}\"");
+                sb.AsmPadString(VoiceMapStructs[i].Subtitle, Encoding.GetEncoding("Shift-JIS"));
+            }
+            sb.AppendLine(".skip 4");
+
+            sb.AppendLine("STRUCT_SECTION:");
+            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            {
+                sb.AppendLine(VoiceMapStructs[i].GetSource(i));
+            }
+            sb.AppendLine($".skip {VoiceMapFile.VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH}");
+
+            sb.AppendLine("END_POINTERS:");
+            sb.AppendLine($".word {VoiceMapStructs.Count * 4}");
+            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            {
+                sb.AppendLine($".word DRAMPERS{i:D3}");
+                sb.AppendLine($".word DIALOGUE{i:D3}");
+            }
+            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            {
+                sb.AppendLine($".word STRUCTFILE{i:D3}");
+                sb.AppendLine($".word STRUCTSUBS{i:D3}");
+            }
+
+            return sb.ToString();
+        }
+
         public override void NewFile(string filename, ILogger log)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
