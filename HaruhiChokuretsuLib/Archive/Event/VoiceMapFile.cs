@@ -389,7 +389,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             public void SetSubtitle(string value, FontReplacementDictionary fontReplacementMap = null, bool recenter = true)
             {
-                _subtitle = value;
+                _subtitle = $"#P07{value}";
                 if (recenter)
                 {
                     X = CenterSubtitle(_subtitle.Sum(c => fontReplacementMap.ReverseLookup(c)?.Offset ?? 15));
