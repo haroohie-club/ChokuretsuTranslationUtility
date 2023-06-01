@@ -44,8 +44,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             for (int i = 0; i < SectionPointersAndCounts.Count - 2; i++)
             {
                 VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH), _log));
-                VoiceMapStructs[VoiceMapStructs.Count - 1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapStructs.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
-                VoiceMapStructs[VoiceMapStructs.Count - 1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapStructs.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray()), recenter: false);
+                VoiceMapStructs[^1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapStructs.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
+                VoiceMapStructs[^1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapStructs.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray()), recenter: false);
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset, @override: true);
@@ -77,7 +77,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine("DIALOGUE_SECTION:");
             for (int i = 0; i < VoiceMapStructs.Count; i++)
             {
-                sb.AppendLine($".word {(int)VoiceMapFile.SpeakerCodeMap[VoiceMapStructs[i].VoiceFileName[0..3]]}");
+                if (SpeakerCodeMap.TryGetValue(VoiceMapStructs[i].VoiceFileName.Split('_')[0], out Speaker speaker))
+                {
+                    sb.AppendLine($".word {(int)speaker}");
+                }
+                else
+                {
+                    sb.AppendLine($".word 1");
+                }
                 sb.AppendLine($"DRAMPERS{i:D3}: .word FILENAME{i:D3}");
                 sb.AppendLine($"DIALOGUE{i:D3}: .word SUBTITLE{i:D3}");
             }
@@ -94,7 +101,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 sb.AppendLine(VoiceMapStructs[i].GetSource(i));
             }
-            sb.AppendLine($".skip {VoiceMapFile.VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH}");
+            sb.AppendLine($".skip {VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH}");
 
             sb.AppendLine("END_POINTERS:");
             sb.AppendLine($".word {VoiceMapStructs.Count * 4}");
@@ -183,7 +190,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             for (int i = 0; i < dialogueLinePointers.Count; i++)
             {
-                Data.AddRange(BitConverter.GetBytes((int)SpeakerCodeMap[filenames[i].Split('_')[0]]));
+                if (SpeakerCodeMap.TryGetValue(filenames[i].Split('_')[0], out Speaker speaker))
+                {
+                    Data.AddRange(BitConverter.GetBytes((int)speaker));
+                }
+                else
+                {
+                    Data.AddRange(BitConverter.GetBytes(1));
+                }
                 EndPointers.Add(Data.Count); // add this next pointer to the end pointers so it gets resolved
                 EndPointerPointers.Add(filenamePointers[i] + filenameSectionStart);
                 Data.AddRange(BitConverter.GetBytes(filenamePointers[i] + filenameSectionStart));
@@ -198,7 +212,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
             // Initialize the dialogue lines
             for (int i = 0; i < dialogueLinePointers.Count; i++)
             {
-                DialogueLines.Add(new(SpeakerCodeMap[filenames[i].Split('_')[0]], filenames[i], filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer, Data.ToArray()));
+                Speaker speaker = Speaker.HARUHI;
+                if (SpeakerCodeMap.TryGetValue(filenames[i].Split('_')[0], out Speaker parsedSpeaker))
+                {
+                    speaker = parsedSpeaker;
+                }
+                DialogueLines.Add(new(speaker, filenames[i], filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer, Data.ToArray()));
             }
 
             // Go back and insert the pointer to the struct section
@@ -287,14 +306,18 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return (short)((256 - lineLength) / 2);
         }
 
-        public static Dictionary<string, Speaker> SpeakerCodeMap = new()
+        public static readonly Dictionary<string, Speaker> SpeakerCodeMap = new()
         {
             { "ANZ", Speaker.GIRL },
             { "HRH", Speaker.HARUHI },
             { "KYN", Speaker.KYON },
+            { "KUN", Speaker.KUNIKIDA },
             { "KZM", Speaker.KOIZUMI },
             { "MKR", Speaker.MIKURU },
             { "NGT", Speaker.NAGATO },
+            { "SIS", Speaker.KYON_SIS },
+            { "TAN", Speaker.TANIGUCHI },
+            { "TRY", Speaker.TSURUYA },
         };
 
         public class VoiceMapStruct
