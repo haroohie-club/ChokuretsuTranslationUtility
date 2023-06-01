@@ -31,17 +31,17 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 });
             }
             Settings = new(new byte[0x128]);
-            VoiceMapStructSectionOffset = SectionPointersAndCounts[0].Pointer;
-            Settings.DialogueSectionPointer = SectionPointersAndCounts[1].Pointer;
+            VoiceMapStructSectionOffset = SectionPointersAndCounts[1].Pointer;
+            Settings.DialogueSectionPointer = SectionPointersAndCounts[2].Pointer;
             DialogueLinesPointer = Settings.DialogueSectionPointer + (SectionPointersAndCounts.Count - 1) * 12;
-            Settings.NumDialogueEntries = numFrontPointers - 2;
+            Settings.NumDialogueEntries = numFrontPointers - 3;
 
-            for (int i = 2; i < SectionPointersAndCounts.Count; i++)
+            for (int i = 3; i < SectionPointersAndCounts.Count; i++)
             {
                 DramatisPersonae.Add(SectionPointersAndCounts[i].Pointer, Encoding.ASCII.GetString(Data.Skip(SectionPointersAndCounts[i].Pointer).TakeWhile(b => b != 0).ToArray()));
             }
 
-            for (int i = 0; i < SectionPointersAndCounts.Count - 2; i++)
+            for (int i = 0; i < SectionPointersAndCounts.Count - 3; i++)
             {
                 VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH), _log));
                 VoiceMapStructs[^1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapStructs.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
@@ -55,13 +55,18 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
 
-            sb.AppendLine($".word {VoiceMapStructs.Count + 2}");
+            sb.AppendLine($".word {VoiceMapStructs.Count + 3}");
             sb.AppendLine(".word END_POINTERS");
+            sb.AppendLine(".word 1");
+            sb.AppendLine(".word MAGIC");
             sb.AppendLine(".word 1");
             sb.AppendLine(".word STRUCT_SECTION");
             sb.AppendLine(".word 1");
             sb.AppendLine(".word DIALOGUE_SECTION");
             sb.AppendLine(".word 1");
+
+            sb.AppendLine("MAGIC: .ascii \"SUBS\"");
+
             for (int i = 0; i < VoiceMapStructs.Count; i++)
             {
                 sb.AppendLine($".word FILENAME{i:D3}");
@@ -155,16 +160,22 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 }
             }
 
-            int numFrontPointers = csvData.Length + 2;
+            int numFrontPointers = csvData.Length + 3;
             Data.AddRange(BitConverter.GetBytes(numFrontPointers));
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for end pointers pointer
+            Data.AddRange(BitConverter.GetBytes(1));
+            Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for magic section
             Data.AddRange(BitConverter.GetBytes(1));
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for struct section
             Data.AddRange(BitConverter.GetBytes(1));
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for dialogue section
             Data.AddRange(BitConverter.GetBytes(1));
 
-            int filenameSectionStart = Data.Count + filenamePointers.Count * 8;
+            int magicSectionStart = Data.Count + filenamePointers.Count * 8;
+            int filenameSectionStart = magicSectionStart + 4;
+            Data.RemoveRange(0x0C, 4);
+            Data.InsertRange(0x0C, BitConverter.GetBytes(magicSectionStart));
+
             // add rest of front pointers (dramatis personae/filename pointers)
             Data.AddRange(filenamePointers.SelectMany(p =>
             {
@@ -175,15 +186,17 @@ namespace HaruhiChokuretsuLib.Archive.Event
             // And then add them to dramatis personae
             for (int i = 0; i < filenamePointers.Count; i++)
             {
-                DramatisPersonae.Add(filenamePointers[i] + filenameSectionStart, filenames[i]);
+                DramatisPersonae.Add(filenamePointers[i] + magicSectionStart, filenames[i]);
             }
+
+            Data.AddRange(Encoding.ASCII.GetBytes("SUBS"));
 
             Data.AddRange(filenameSection);
 
             // Go back and insert the pointer to the dialogue section
             int dialogueSectionStart = Data.Count;
-            Data.RemoveRange(0x14, 4);
-            Data.InsertRange(0x14, BitConverter.GetBytes(dialogueSectionStart));
+            Data.RemoveRange(0x1C, 4);
+            Data.InsertRange(0x1C, BitConverter.GetBytes(dialogueSectionStart));
 
             // Account for the dialogue section leadin
             DialogueLinesPointer = Data.Count + dialogueLinePointers.Count * 12 + 12;
@@ -222,8 +235,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             // Go back and insert the pointer to the struct section
             VoiceMapStructSectionOffset = Data.Count;
-            Data.RemoveRange(0x0C, 4);
-            Data.InsertRange(0x0C, BitConverter.GetBytes(VoiceMapStructSectionOffset));
+            Data.RemoveRange(0x14, 4);
+            Data.InsertRange(0x14, BitConverter.GetBytes(VoiceMapStructSectionOffset));
 
             for (int i = 0; i < csvData.Length; i++)
             {
