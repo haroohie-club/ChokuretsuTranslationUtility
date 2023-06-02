@@ -772,7 +772,41 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "TOPICS")
             {
-                return "";
+                InitializeTopicFile();
+                StringBuilder sb = new();
+
+                sb.AppendLine($".word 1");
+                sb.AppendLine(".word END_POINTERS");
+                sb.AppendLine(".word FILE_START");
+                sb.AppendLine(".word TOPICS");
+                sb.AppendLine($".word {TopicStructs.Count + 1}");
+                sb.AppendLine();
+
+                sb.AppendLine("FILE_START:");
+                sb.AppendLine("TOPICS:");
+                int numEndPointers = 0;
+                for (int i = 0; i < TopicStructs.Count; i++)
+                {
+                    sb.AppendLine(TopicStructs[i].GetSource(i, ref numEndPointers));
+                }
+                sb.AppendLine(".skip 0x24");
+
+                for (int i = 0; i < TopicStructs.Count; i++)
+                {
+                    sb.AppendLine($"TOPICTITL{i:D3}: {TopicStructs[i].Title.EscapeShiftJIS()}");
+                    sb.AsmPadString(TopicStructs[i].Title, Encoding.GetEncoding("Shift-JIS"));
+                    sb.AppendLine($"TOPICDESC{i:D3}: {TopicStructs[i].Description.EscapeShiftJIS()}");
+                    sb.AsmPadString(TopicStructs[i].Description, Encoding.GetEncoding("Shift-JIS"));
+                }
+
+                sb.AppendLine("END_POINTERS:");
+                sb.AppendLine($".word {numEndPointers}");
+                for (int i = 0; i < numEndPointers; i++)
+                {
+                    sb.AppendLine($".word POINTER{i}");
+                }
+
+                return sb.ToString();
             }
             else if (Name == "VOICEMAPS")
             {
