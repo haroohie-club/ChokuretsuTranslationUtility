@@ -142,7 +142,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                 filenames.Add(fields[0]);
                 filenameSection.AddRange(Encoding.ASCII.GetBytes(fields[0]));
-                dialogueLinesSection.AddRange(Encoding.GetEncoding("Shift-JIS").GetBytes(fields[1]));
+                dialogueLinesSection.AddRange(Encoding.GetEncoding("Shift-JIS").GetBytes($"#P07{fields[1]}"));
 
                 filenameSection.Add(0);
                 dialogueLinesSection.Add(0);
