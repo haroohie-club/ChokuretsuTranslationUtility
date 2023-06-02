@@ -772,7 +772,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "TOPICS")
             {
-                InitializeTopicFile();
+                if (!TopicStructs.Any())
+                {
+                    InitializeTopicFile();
+                }
                 StringBuilder sb = new();
 
                 sb.AppendLine($".word 1");

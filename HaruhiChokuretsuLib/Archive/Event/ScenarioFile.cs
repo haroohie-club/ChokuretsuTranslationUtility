@@ -17,7 +17,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
     {
         public List<ScenarioCommand> Commands { get; set; } = new();
         public List<ScenarioSelectionStruct> Selects { get; set; } = new();
-        public List<short> UnknownShorts { get; set; } = new();
+        public List<short> KyonlessTopicIds { get; set; } = new();
 
         public ScenarioStruct(IEnumerable<byte> data, List<DialogueLine> lines, List<EventFileSection> sections)
         {
@@ -43,7 +43,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             for (int i = 0; i < 6; i++)
             {
-                UnknownShorts.Add(IO.ReadShort(data, sections[0].Pointer + 0x10 + i * 2));
+                KyonlessTopicIds.Add(IO.ReadShort(data, sections[0].Pointer + 0x10 + i * 2));
             }
         }
 
@@ -87,8 +87,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
                         first = false;
                         continue;
                     }
-                    sb.AppendLine($".word SHORTSHEADER{route.RouteTitleIndex:D2}");
-                    sb.AppendLine($".word {route.UnknownShortsHeader.Count}");
+                    sb.AppendLine($".word KYONLESS_TOPICS{route.RouteTitleIndex:D2}");
+                    sb.AppendLine($".word {route.KyonlessTopics.Count}");
                 }
                 
                 foreach (ScenarioRouteSelectionStruct routeSelection in select.RouteSelections.Where(rs => rs is not null))
@@ -102,8 +102,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($".word {Selects.Count + 1}");
             sb.AppendLine(".word COMMANDS");
             sb.AppendLine($".word {Commands.Count}");
-            sb.AppendLine($".word SHORTSHEADER{Selects[0].RouteSelections[0].Routes[0].RouteTitleIndex:D2}");
-            sb.AppendLine($".word {Selects[0].RouteSelections[0].Routes[0].UnknownShortsHeader.Count}");
+            sb.AppendLine($".word KYONLESS_TOPICS{Selects[0].RouteSelections[0].Routes[0].RouteTitleIndex:D2}");
+            sb.AppendLine($".word {Selects[0].RouteSelections[0].Routes[0].KyonlessTopics.Count}");
             sb.AppendLine();
 
             sb.AppendLine("FILE_START:");
@@ -141,9 +141,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($".word {Commands.Count - 1}");
             sb.AppendLine($".word {Selects.Count}");
 
-            foreach (short unknownShort in UnknownShorts)
+            foreach (short topicId in KyonlessTopicIds)
             {
-                sb.AppendLine($".short {unknownShort}");
+                sb.AppendLine($".short {topicId}");
             }
 
             sb.AppendLine("END_POINTERS:");
@@ -273,12 +273,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             foreach (ScenarioRouteStruct route in RouteSelections.Where(rs => rs is not null).SelectMany(rs => rs.Routes))
             {
-                sb.AppendLine($"SHORTSHEADER{route.RouteTitleIndex:D2}:");
-                foreach (short s in route.UnknownShortsHeader)
+                sb.AppendLine($"KYONLESS_TOPICS{route.RouteTitleIndex:D2}:");
+                foreach (short s in route.KyonlessTopics)
                 {
                     sb.AppendLine($"   .short {s}");
                 }
-                if (route.UnknownShortsHeader.Count % 2 > 0)
+                if (route.KyonlessTopics.Count % 2 > 0)
                 {
                     sb.AppendLine("   .skip 2");
                 }
@@ -388,8 +388,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
     public class ScenarioRouteStruct
     {
         public short ScriptIndex { get; set; }
-        public short UnknownShort { get; set; }
-        public List<short> UnknownShortsHeader { get; set; } = new();
+        public short Flag { get; set; }
+        public List<short> KyonlessTopics { get; set; } = new();
         public int RouteTitleIndex { get; set; }
         public string Title { get; }
         public List<Speaker> CharactersInvolved { get; set; } = new();
@@ -430,15 +430,15 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
 
             ScriptIndex = IO.ReadShort(data, dataStartIndex + 4);
-            UnknownShort = IO.ReadShort(data, dataStartIndex + 6);
+            Flag = IO.ReadShort(data, dataStartIndex + 6);
 
             int pointerToShortArray = IO.ReadInt(data, dataStartIndex + 8);
             int currentShortOffset = 0;
             do
             {
-                UnknownShortsHeader.Add(IO.ReadShort(data, pointerToShortArray + currentShortOffset));
+                KyonlessTopics.Add(IO.ReadShort(data, pointerToShortArray + currentShortOffset));
                 currentShortOffset += 2;
-            } while (UnknownShortsHeader.Last() > 0);
+            } while (KyonlessTopics.Last() > 0);
 
             RouteTitleIndex = lines.IndexOf(lines.First(l => l.Pointer == BitConverter.ToInt32(data.Skip(dataStartIndex + 12).Take(4).ToArray())));
             Title = lines[RouteTitleIndex].Text;
@@ -462,8 +462,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             sb.AppendLine($".word {GetCharactersInvolvedFlag()}");
             sb.AppendLine($".short {includes["EVTBIN"].First(i => i.Value == ScriptIndex).Name}");
-            sb.AppendLine($".short {UnknownShort}");
-            sb.AppendLine($"POINTER{currentPointer++}: .word SHORTSHEADER{RouteTitleIndex:D2}");
+            sb.AppendLine($".short {Flag}");
+            sb.AppendLine($"POINTER{currentPointer++}: .word KYONLESS_TOPICS{RouteTitleIndex:D2}");
             sb.AppendLine($"POINTER{currentPointer++}: .word ROUTETITLE{RouteTitleIndex:D2}");
 
             return sb.ToString();
