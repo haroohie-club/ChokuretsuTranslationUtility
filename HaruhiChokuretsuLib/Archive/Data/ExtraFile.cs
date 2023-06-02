@@ -32,7 +32,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 Bgms.Add(new()
                 {
                     Index = IO.ReadShort(decompressedData, bgmsOffset + i * 8),
-                    Unknown02 = IO.ReadShort(decompressedData, bgmsOffset + i * 8 + 2),
+                    Flag = IO.ReadShort(decompressedData, bgmsOffset + i * 8 + 2),
                     Name = Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(IO.ReadInt(decompressedData, bgmsOffset + i * 8 + 4)).TakeWhile(b => b != 0).ToArray()),
                 });
             }
@@ -42,7 +42,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 Cgs.Add(new()
                 {
                     BgId = IO.ReadShort(decompressedData, cgsOffset + i * 12),
-                    Unknown02 = IO.ReadShort(decompressedData, cgsOffset + i * 12 + 2),
+                    Flag = IO.ReadShort(decompressedData, cgsOffset + i * 12 + 2),
                     Unknown04 = IO.ReadInt(decompressedData, cgsOffset + i * 12 + 4),
                     Name = Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(IO.ReadInt(decompressedData, cgsOffset + i * 12 + 8)).TakeWhile(b => b != 0).ToArray()),
                 });
@@ -70,7 +70,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             foreach (BgmStruct bgm in Bgms)
             {
                 sb.AppendLine($".short {bgm.Index}");
-                sb.AppendLine($"   .short {bgm.Unknown02}");
+                sb.AppendLine($"   .short {bgm.Flag}");
                 sb.AppendLine($"   POINTER{endPointers++:D3}: .word BGM{bgm.Index:D3}");
             }
             sb.AppendLine(".skip 8");
@@ -85,7 +85,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             foreach (CgStruct cg in Cgs)
             {
                 sb.AppendLine($".short {cg.BgId}");
-                sb.AppendLine($"   .short {cg.Unknown02}");
+                sb.AppendLine($"   .short {cg.Flag}");
                 sb.AppendLine($"   .word {cg.Unknown04}");
                 sb.AppendLine($"   POINTER{endPointers++:D3}: .word CG{cg.BgId:D3}");
             }
@@ -118,14 +118,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
     public class BgmStruct
     {
         public short Index { get; set; }
-        public short Unknown02 { get; set; }
+        public short Flag { get; set; }
         public string Name { get; set; }
     }
 
     public class CgStruct
     {
         public short BgId { get; set; }
-        public short Unknown02 { get; set; }
+        public short Flag { get; set; }
         public int Unknown04 { get; set; }
         public string Name { get; set; }
     }
