@@ -796,9 +796,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                 for (int i = 0; i < TopicStructs.Count; i++)
                 {
-                    sb.AppendLine($"TOPICTITL{i:D3}: {TopicStructs[i].Title.EscapeShiftJIS()}");
+                    sb.AppendLine($"TOPICTITL{i:D3}: .string \"{TopicStructs[i].Title.EscapeShiftJIS()}\"");
                     sb.AsmPadString(TopicStructs[i].Title, Encoding.GetEncoding("Shift-JIS"));
-                    sb.AppendLine($"TOPICDESC{i:D3}: {TopicStructs[i].Description.EscapeShiftJIS()}");
+                    sb.AppendLine($"TOPICDESC{i:D3}: .string \"{TopicStructs[i].Description.EscapeShiftJIS()}\"");
                     sb.AsmPadString(TopicStructs[i].Description, Encoding.GetEncoding("Shift-JIS"));
                 }
 
