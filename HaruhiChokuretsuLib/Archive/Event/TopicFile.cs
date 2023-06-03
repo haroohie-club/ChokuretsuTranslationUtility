@@ -29,7 +29,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public short Id { get; set; }
         public short EventIndex { get; set; }
         public byte EpisodeGroup { get; set; }
-        public byte GroupSelection { get; set; }
+        public byte PuzzlePhaseGroup { get; set; }
         public TopicCategory Category { get; set; }
         public short BaseTimeGain { get; set; }
         public short UnknownShort03 { get; set; }
@@ -59,7 +59,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Id = IO.ReadShort(data, 0x04);
             EventIndex = IO.ReadShort(data, 0x06);
             EpisodeGroup = data[0x08];
-            GroupSelection = data[0x09];
+            PuzzlePhaseGroup = data[0x09];
             Category = (TopicCategory)IO.ReadShort(data, 0x0A);
             BaseTimeGain = IO.ReadShort(data, 0x0C);
             UnknownShort03 = IO.ReadShort(data, 0x0E);
@@ -88,7 +88,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($"   .short {Id}");
             sb.AppendLine($"   .short {EventIndex}");
             sb.AppendLine($"   .byte {EpisodeGroup}");
-            sb.AppendLine($"   .byte {GroupSelection}");
+            sb.AppendLine($"   .byte {PuzzlePhaseGroup}");
             sb.AppendLine($"   .short {(short)Category}");
             sb.AppendLine($"   .short {BaseTimeGain}");
             sb.AppendLine($"   .short {UnknownShort03}");
