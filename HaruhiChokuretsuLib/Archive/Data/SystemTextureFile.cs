@@ -68,24 +68,24 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 SystemTextures[i].Name = $"{includes["GRPBIN"].FirstOrDefault(index => index.Value == SystemTextures[i].GrpIndex)?.Name ?? $"UNKNOWN{i:D2}"}_ENTRY_{i:D3}";
                 sb.AppendLine($"{Helpers.Indent(3)}.set {SystemTextures[i].Name}, {i}");
                 sb.AppendLine($"{Helpers.Indent(3)}.word {SystemTextures[i].Screen}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {includes["GRPBIN"].FirstOrDefault(index => index.Value == SystemTextures[i].GrpIndex)?.Name ?? $"{SystemTextures[i].GrpIndex}"}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Tpage}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].PaletteNumber}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].ValidateTex}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].LoadMethod}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown0E}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].MaxVram}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown12}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown14}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown16}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {includes["GRPBIN"].FirstOrDefault(index => index.Value == SystemTextures[i].AnimationIndex)?.Name ?? $"{SystemTextures[i].AnimationIndex}"}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].TileWidth}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].TileHeight}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown1E}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown20}");
-                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown22}");
-                sb.AppendLine($"{Helpers.Indent(3)}.word {SystemTextures[i].Unknown24}");
-                sb.AppendLine($"{Helpers.Indent(3)}.word {SystemTextures[i].Unknown28}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {includes["GRPBIN"].FirstOrDefault(index => index.Value == SystemTextures[i].GrpIndex)?.Name ?? $"{SystemTextures[i].GrpIndex}"} @ {SystemTextures[i].GrpIndex:X3}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Tpage} @ {nameof(SystemTexture.Tpage)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].PaletteNumber} @ {nameof(SystemTexture.PaletteNumber)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].ValidateTex} @ {nameof(SystemTexture.ValidateTex)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].LoadMethod} @ {nameof(SystemTexture.LoadMethod)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown0E} @ {nameof(SystemTexture.Unknown0E)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].MaxVram} @ {nameof(SystemTexture.MaxVram)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown12} @ {nameof(SystemTexture.Unknown12)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown14} @ {nameof(SystemTexture.Unknown14)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown16} @ {nameof(SystemTexture.Unknown16)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {includes["GRPBIN"].FirstOrDefault(index => index.Value == SystemTextures[i].AnimationIndex)?.Name ?? $"{SystemTextures[i].AnimationIndex}"} @ {nameof(SystemTexture.AnimationIndex)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].TileWidth} @ {nameof(SystemTexture.TileWidth)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].TileHeight} @ {nameof(SystemTexture.TileHeight)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown1E} @ {nameof(SystemTexture.Unknown1E)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown20} @ {nameof(SystemTexture.Unknown20)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.short {SystemTextures[i].Unknown22} @ {nameof(SystemTexture.Unknown22)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.word {SystemTextures[i].Unknown24} @ {nameof(SystemTexture.Unknown24)}");
+                sb.AppendLine($"{Helpers.Indent(3)}.word {SystemTextures[i].Unknown28} @ {nameof(SystemTexture.Unknown28)}");
                 sb.AppendLine();
             }
 
@@ -112,9 +112,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public short ValidateTex { get; set; }
         public short LoadMethod { get; set; }
         public short Unknown0E { get; set; }
-        public short MaxVram { get; set; }
+        public ushort MaxVram { get; set; }
         public short Unknown12 { get; set; }
-        public short Unknown14 { get; set; }
+        public ushort Unknown14 { get; set; }
         public short Unknown16 { get; set; }
         public short AnimationIndex { get; set; }
         public short TileWidth { get; set; }
@@ -134,9 +134,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
             ValidateTex = IO.ReadShort(data, 0x0A);
             LoadMethod = IO.ReadShort(data, 0x0C);
             Unknown0E = IO.ReadShort(data, 0x0E);
-            MaxVram = IO.ReadShort(data, 0x10);
+            MaxVram = IO.ReadUShort(data, 0x10);
             Unknown12 = IO.ReadShort(data, 0x12);
-            Unknown14 = IO.ReadShort(data, 0x14);
+            Unknown14 = IO.ReadUShort(data, 0x14);
             Unknown16 = IO.ReadShort(data, 0x16);
             AnimationIndex = IO.ReadShort(data, 0x18);
             TileWidth = IO.ReadShort(data, 0x1A);

@@ -180,8 +180,17 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             Data.AddRange(Encoding.ASCII.GetBytes("SHTXDS"));
             Data.AddRange(BitConverter.GetBytes((short)ImageTileForm));
-            byte encodedWidth = (byte)Math.Log2(bitmap.Width);
-            byte encodedHeight = (byte)Math.Log2(bitmap.Height);
+            byte encodedWidth, encodedHeight;
+            if (ImageForm == Form.TILE)
+            {
+                encodedWidth = (byte)Math.Log2(256);
+                encodedHeight = (byte)Math.Ceiling(Math.Log2(bitmap.Height / (256 / bitmap.Width)));
+            }
+            else
+            {
+                encodedWidth = (byte)Math.Ceiling(Math.Log2(bitmap.Width));
+                encodedHeight = (byte)Math.Ceiling(Math.Log2(bitmap.Height));
+            }
             Data.AddRange(new byte[] { 0x01, 0x00, 0x00, 0x01, 0xC0, 0x00, encodedWidth, encodedHeight, 0x00, 0xC0, 0x00, 0x00 });
             Data.AddRange(PaletteData);
             Data.AddRange(PixelData);
@@ -238,6 +247,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 && (Index < 0xB61 || Index > 0xB6F)
                 && (Index < 0xBC9 || Index > 0xC1B)
                 && (Index < 0xC70 || Index > 0xC78)
+                && (Index < 0xC7B || Index > 0xC7C)
                 && (Index < 0xCA3 || Index > 0xCA8)
                 && Index != 0xCAF
                 && (Index < 0xD02 || Index > 0xD9F)
