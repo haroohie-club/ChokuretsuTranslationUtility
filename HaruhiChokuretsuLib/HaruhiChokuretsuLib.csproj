@@ -7,7 +7,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="FFMpegCore" Version="5.0.0" />
     <PackageReference Include="NAudio.Core" Version="2.1.0" />
     <PackageReference Include="ResXResourceReader.NetStandard" Version="1.1.0" />
     <PackageReference Include="SkiaSharp" Version="2.88.3" />

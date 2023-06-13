@@ -1,12 +1,8 @@
-﻿using FFMpegCore.Pipes;
-using SkiaSharp;
+﻿using SkiaSharp;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HaruhiChokuretsuLib.Util
 {
@@ -643,27 +639,5 @@ namespace HaruhiChokuretsuLib.Util
             }
             Lxx_2026198();
         }
-    }
-
-    public class SKBitmapFrame : IVideoFrame, IDisposable
-    {
-        private readonly SKBitmap _source;
-
-        public int Width => _source.Width;
-
-        public int Height => _source.Height;
-
-        public string Format => "bgra";
-
-        public SKBitmapFrame(SKBitmap source)
-        {
-            _source = source;
-        }
-
-        public void Dispose() => _source.Dispose();
-
-        public void Serialize(Stream pipe) => pipe.Write(_source.Bytes);
-
-        public async Task SerializeAsync(Stream pipe, CancellationToken token) => await pipe.WriteAsync(_source.Bytes, token).ConfigureAwait(false);
     }
 }

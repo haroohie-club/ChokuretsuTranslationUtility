@@ -1,17 +1,16 @@
-﻿using FFMpegCore;
-using FFMpegCore.Pipes;
-using HaruhiChokuretsuLib.Archive;
+﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using HaruhiChokuretsuLib.Archive.Graphics;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Hashing;
 using System.Linq;
-using System.Text;
 
 namespace HaruhiChokuretsuCLI
 {
@@ -56,7 +55,7 @@ namespace HaruhiChokuretsuCLI
             if (_listMaps)
             {
                 CommandSet.Out.WriteLine("Available maps:");
-                CommandSet.Out.WriteLine(string.Join('\n', mapFileNames.Select(f => f[0..^1])));
+                CommandSet.Out.WriteLine(string.Join('\n', mapFileNames.Select(f => f[0..^2])));
                 return 0;
             }
 
@@ -71,7 +70,7 @@ namespace HaruhiChokuretsuCLI
                 CommandSet.Out.WriteLine("ERROR: Maps must be provided, either by name, index, or by indicating all should be exported through -a or --all-maps");
             }
 
-            if (_mapNames is not null && _mapNames.Any(m => !mapFileNames.Select(f => f[0..^1]).Contains(m)))
+            if (_mapNames is not null && _mapNames.Any(m => !mapFileNames.Select(f => f[0..^2]).Contains(m)))
             {
                 foreach (string name in _mapNames)
                 {
@@ -128,7 +127,7 @@ namespace HaruhiChokuretsuCLI
                     maxLayoutIndex = _maxLayoutIndices[m];
                 }
                 CommandSet.Out.WriteLine($"Exporting map for {mapName[0..^1]}...");
-                MapFile map = (MapFile)dat.Files.First(f => f.Name == mapName);
+                MapFile map = dat.Files.First(f => f.Name == mapName).CastTo<MapFile>();
 
                 if (_animated && (map.Settings.PaletteAnimationFileIndex > 0 || map.Settings.ColorAnimationFileIndex > 0))
                 {
@@ -174,26 +173,18 @@ namespace HaruhiChokuretsuCLI
                         frames.Add(frameMapping[BitConverter.ToUInt32(Crc32.Hash(frame.Data.ToArray()))]);
                     }
 
-                    IEnumerable<SKBitmapFrame> videoFrames = frames.Select(f => new SKBitmapFrame(f));
-                    List<SKBitmapFrame> loopedFrames = new();
+                    using Image<Rgba32> gif = new(frames.Max(f => f.Width), frames.Max(f => f.Height));
+                    gif.Metadata.GetGifMetadata().RepeatCount = 0;
 
-                    for (int i = 0; loopedFrames.Count < 720; i++)
+                    IEnumerable<Image<Rgba32>> gifFrames = frames.Select(f => Image.LoadPixelData<Rgba32>(f.Pixels.Select(c => new Rgba32(c.Red, c.Green, c.Blue, c.Alpha)).ToArray(), f.Width, f.Height));
+                    foreach (Image<Rgba32> gifFrame in gifFrames.Skip(1))
                     {
-                        loopedFrames.AddRange(videoFrames);
+                        gifFrame.Frames.RootFrame.Metadata.GetGifMetadata().FrameDelay = 2;
+                        gif.Frames.AddFrame(gifFrame.Frames.RootFrame);
                     }
+                    gif.Frames.RemoveFrame(0);
 
-                    RawVideoPipeSource pipeSource = new(loopedFrames) { FrameRate = 60 };
-
-                    Console.WriteLine("Creating WEBM video from frames...");
-
-                    if (!FFMpegArguments
-                        .FromPipeInput(pipeSource)
-                        .OutputToFile(Path.Combine(_outputFolder, $"{mapName[0..^1]}.webm"), overwrite: true, options => options.WithVideoCodec("libvpx-vp9"))
-                        .ProcessSynchronously())
-                    {
-                        Console.WriteLine("FFMpeg error!");
-                        return 1;
-                    }
+                    gif.SaveAsGif(Path.Combine(_outputFolder, $"{mapName[0..^1]}.gif"));
                 }
                 else
                 {

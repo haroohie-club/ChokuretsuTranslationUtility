@@ -1,12 +1,12 @@
-﻿using FFMpegCore;
-using FFMpegCore.Pipes;
-using HaruhiChokuretsuLib.Archive;
+﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using HaruhiChokuretsuLib.Archive.Graphics;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.PixelFormats;
 using SkiaSharp;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -71,26 +71,20 @@ namespace HaruhiChokuretsuCLI
                     }
                 }
 
-                IEnumerable<SKBitmapFrame> videoFrames = frames.Select(f => new SKBitmapFrame(f));
-                List<SKBitmapFrame> loopedFrames = new();
+                using Image<Rgba32> gif = new(frames.Max(f => f.Width), frames.Max(f => f.Height));
+                gif.Metadata.GetGifMetadata().RepeatCount = 0;
 
-                for (int i = 0; i < 5; i++)
+                IEnumerable<Image<Rgba32>> gifFrames = frames.Select(f => Image.LoadPixelData<Rgba32>(f.Pixels.Select(c => new Rgba32(c.Red, c.Green, c.Blue, c.Alpha)).ToArray(), f.Width, f.Height));
+                foreach (Image<Rgba32> gifFrame in gifFrames)
                 {
-                    loopedFrames.AddRange(videoFrames);
+                    GifFrameMetadata metadata = gifFrame.Frames.RootFrame.Metadata.GetGifMetadata();
+                    metadata.FrameDelay = 2;
+                    metadata.DisposalMethod = GifDisposalMethod.RestoreToBackground;
+                    gif.Frames.AddFrame(gifFrame.Frames.RootFrame);
                 }
+                gif.Frames.RemoveFrame(0);
 
-                RawVideoPipeSource pipeSource = new(loopedFrames) { FrameRate = 60 };
-
-                Console.WriteLine("Creating MP4 video from frames...");
-
-                if (!FFMpegArguments
-                    .FromPipeInput(pipeSource)
-                    .OutputToFile(Path.Combine(_outputFolder, $"{texture.Name[0..^3]}.mp4"), overwrite: true)
-                    .ProcessSynchronously())
-                {
-                    Console.WriteLine("FFMpeg error!");
-                    return 1;
-                }
+                gif.SaveAsGif(Path.Combine(_outputFolder, $"{texture.Name[0..^3]}.gif"));
             }
 
             return 0;
