@@ -50,5 +50,10 @@ namespace HaruhiChokuretsuLib.Util
                 }
             }
         }
+
+        public void LogException(string message, Exception exception)
+        {
+            LogError($"{message}: {exception.Message}\n\n{exception.StackTrace}");
+        }
     }
 }

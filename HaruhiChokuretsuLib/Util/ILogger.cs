@@ -1,9 +1,12 @@
-﻿namespace HaruhiChokuretsuLib.Util
+﻿using System;
+
+namespace HaruhiChokuretsuLib.Util
 {
     public interface ILogger
     {
         public void Log(string message);
         public void LogError(string message, bool lookForWarnings = false);
         public void LogWarning(string message, bool lookForErrors = false);
+        public void LogException(string message, Exception exception);
     }
 }
