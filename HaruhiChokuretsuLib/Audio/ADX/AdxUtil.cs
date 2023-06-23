@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
-namespace HaruhiChokuretsuLib.Audio
+namespace HaruhiChokuretsuLib.Audio.ADX
 {
     public class LoopInfo
     {
@@ -49,7 +49,7 @@ namespace HaruhiChokuretsuLib.Audio
             double coeff1 = c * 2.0;
             double coeff2 = -Math.Pow(c, 2);
 
-            return ((int)((coeff1 * 4096.0) + 0.5), (int)((coeff2 * 4096.0) + 0.5));
+            return ((int)(coeff1 * 4096.0 + 0.5), (int)(coeff2 * 4096.0 + 0.5));
         }
 
         public static int SignExtend(uint num, uint bits)
@@ -168,7 +168,7 @@ namespace HaruhiChokuretsuLib.Audio
 
         public void Push(short sample, (int Coeff1, int Coeff2) coefficients)
         {
-            int delta = ((sample << 12) - coefficients.Coeff1 * Prev.First - coefficients.Coeff2 * Prev.Second) >> 12;
+            int delta = (sample << 12) - coefficients.Coeff1 * Prev.First - coefficients.Coeff2 * Prev.Second >> 12;
             if (delta < Min)
             {
                 Min = delta;
@@ -212,11 +212,11 @@ namespace HaruhiChokuretsuLib.Audio
 
         public byte GetNibble(short sample, int scale, (int Coeff1, int Coeff2) coefficients)
         {
-            int delta = ((sample << 12) - coefficients.Coeff1 * Prev.First - coefficients.Coeff2 * Prev.Second) >> 12;
+            int delta = (sample << 12) - coefficients.Coeff1 * Prev.First - coefficients.Coeff2 * Prev.Second >> 12;
             int unclipped = delta > 0 ? (delta + (scale >> 1)) / scale : (delta - (scale >> 1)) / scale;
 
             sbyte nibble = (sbyte)Math.Min(Math.Max(unclipped, -8), 7);
-            int unclippedSimulatedSample = (((nibble) << 12) * scale + coefficients.Coeff1 * Prev.First + coefficients.Coeff2 * Prev.Second) >> 12;
+            int unclippedSimulatedSample = (nibble << 12) * scale + coefficients.Coeff1 * Prev.First + coefficients.Coeff2 * Prev.Second >> 12;
             short simulatedSample = (short)Math.Min(Math.Max(unclippedSimulatedSample, short.MinValue), short.MaxValue);
 
             Prev.Second = Prev.First;
@@ -304,7 +304,7 @@ namespace HaruhiChokuretsuLib.Audio
                 Byte = 0;
                 Bit = 0;
             }
-            Byte |= (byte)(bit << (7 - Bit));
+            Byte |= (byte)(bit << 7 - Bit);
             Bit++;
         }
 
@@ -313,7 +313,7 @@ namespace HaruhiChokuretsuLib.Audio
             bits--;
             for (; bits >= 0; bits--)
             {
-                WriteBit((num >> bits) & 1);
+                WriteBit(num >> bits & 1);
             }
         }
 

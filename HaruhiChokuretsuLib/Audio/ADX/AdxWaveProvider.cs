@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace HaruhiChokuretsuLib.Audio
+namespace HaruhiChokuretsuLib.Audio.ADX
 {
     public class AdxWaveProvider : IWaveProvider
     {

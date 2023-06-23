@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
-namespace HaruhiChokuretsuLib.Audio
+namespace HaruhiChokuretsuLib.Audio.ADX
 {
     public class AdxHeader
     {

@@ -1,4 +1,4 @@
-﻿using HaruhiChokuretsuLib.Audio;
+﻿using HaruhiChokuretsuLib.Audio.ADX;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using NAudio.Wave;

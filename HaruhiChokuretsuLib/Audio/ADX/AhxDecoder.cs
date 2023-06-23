@@ -5,7 +5,7 @@ using System.Linq;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 // But modified to work with more AHX files and to fix some bugs
-namespace HaruhiChokuretsuLib.Audio
+namespace HaruhiChokuretsuLib.Audio.ADX
 {
     public struct QuantizeSpec
     {
@@ -27,7 +27,7 @@ namespace HaruhiChokuretsuLib.Audio
         public List<Sample> Samples { get; set; } = new();
         public uint Channels => Header.ChannelCount;
         public uint SampleRate => Header.SampleRate;
-        public LoopInfo? LoopInfo => null;
+        public LoopInfo LoopInfo => null;
 
         private int _currentOffset = 0;
         private int _currentBit = 0;
@@ -82,11 +82,11 @@ namespace HaruhiChokuretsuLib.Audio
             for (int index = 0; index < samples.Length; index++)
             {
                 long requantized = samples[index] ^ (uint)(1 << (int)(numBits - 1));
-                requantized |= -(requantized & ((uint)(1 << (int)(numBits - 1))));
+                requantized |= -(requantized & (uint)(1 << (int)(numBits - 1)));
 
                 requantized <<= (int)(FRAC_BITS - (numBits - 1));
 
-                samples[index] = ((requantized + quant.D) * quant.C) >> FRAC_BITS;
+                samples[index] = (requantized + quant.D) * quant.C >> FRAC_BITS;
             }
 
             return samples;
@@ -201,7 +201,7 @@ namespace HaruhiChokuretsuLib.Audio
                             long[] longSamples = ReadSamples(quant);
                             for (int i = 0; i < longSamples.Length; i++)
                             {
-                                sbSamples[sb][i] = (longSamples[i] * _sfTable[scaleFactors[sb][part]]) >> FRAC_BITS;
+                                sbSamples[sb][i] = longSamples[i] * _sfTable[scaleFactors[sb][part]] >> FRAC_BITS;
                             }
                         }
                     }
@@ -216,7 +216,7 @@ namespace HaruhiChokuretsuLib.Audio
                             long sum = 0;
                             for (int j = 0; j < 32; j++)
                             {
-                                sum += (_n[i][j] * sbSamples[j][index]) >> FRAC_BITS;
+                                sum += _n[i][j] * sbSamples[j][index] >> FRAC_BITS;
                             }
 
                             V[tableIndex + i] = sum;
@@ -225,14 +225,14 @@ namespace HaruhiChokuretsuLib.Audio
                             {
                                 for (int sb = 0; sb < 32; sb++)
                                 {
-                                    U[(j * 64) + sb] = V[(tableIndex + (j * 128) + sb) % 1024];
-                                    U[(j * 64) + sb + 32] = V[(tableIndex + (j * 128) + sb + 96) % 1024];
+                                    U[j * 64 + sb] = V[(tableIndex + j * 128 + sb) % 1024];
+                                    U[j * 64 + sb + 32] = V[(tableIndex + j * 128 + sb + 96) % 1024];
                                 }
                             }
 
                             for (int j = 0; j < 512; j++)
                             {
-                                U[j] = (U[j] * _d[j]) >> FRAC_BITS;
+                                U[j] = U[j] * _d[j] >> FRAC_BITS;
                             }
 
                             for (int sb = 0; sb < 32; sb++)

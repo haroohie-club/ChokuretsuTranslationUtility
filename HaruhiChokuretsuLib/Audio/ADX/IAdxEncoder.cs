@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace HaruhiChokuretsuLib.Audio
+namespace HaruhiChokuretsuLib.Audio.ADX
 {
     public interface IAdxEncoder
     {

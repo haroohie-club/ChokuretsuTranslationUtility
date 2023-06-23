@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
-namespace HaruhiChokuretsuLib.Audio
+namespace HaruhiChokuretsuLib.Audio.ADX
 {
     public class AhxEncoder : IAdxEncoder
     {
@@ -33,7 +33,7 @@ namespace HaruhiChokuretsuLib.Audio
                 _n[i] = new long[32];
                 for (int j = 0; j < _n[i].Length; j++)
                 {
-                    _n[i][j] = (long)((Math.Cos((float)((16 + i) * ((j << 1) + 1)) * 0.0490873852123405)) * 268435456.0);
+                    _n[i][j] = (long)(Math.Cos((16 + i) * ((j << 1) + 1) * 0.0490873852123405) * 268435456.0);
                 }
             }
         }
@@ -214,10 +214,10 @@ namespace HaruhiChokuretsuLib.Audio
 
                         for (int s = 0; s < 3; s++)
                         {
-                            long scaled = (polyphasedSamples[part][gr][sb][s] * ISF_TABLE[scaleFactors[part][sb]]) >> 28;
-                            long transformed = ((scaled * quant.A) >> 28) + quant.B;
+                            long scaled = polyphasedSamples[part][gr][sb][s] * ISF_TABLE[scaleFactors[part][sb]] >> 28;
+                            long transformed = (scaled * quant.A >> 28) + quant.B;
                             long quantized = transformed >> (int)(28 - (quant.NumBits - 1));
-                            long formatted = (quantized & ((1 << (int)quant.NumBits) - 1)) ^ (1 << ((int)quant.NumBits - 1));
+                            long formatted = quantized & (1 << (int)quant.NumBits) - 1 ^ 1 << (int)quant.NumBits - 1;
                             quantizedSamples[s] = formatted;
                         }
 
@@ -327,7 +327,7 @@ namespace HaruhiChokuretsuLib.Audio
                     {
                         // Window the sample
                         // (15b * 28b) >> 15 = 28b
-                        y[i] += (this[i + 64 * j] * ENWINDOW[i + 64 * j]) >> 15;
+                        y[i] += this[i + 64 * j] * ENWINDOW[i + 64 * j] >> 15;
                     }
                 }
 
@@ -336,7 +336,7 @@ namespace HaruhiChokuretsuLib.Audio
                 {
                     for (int i = 0; i < 64; i++)
                     {
-                        polyphased[sb] += (n[i][sb] * y[i]) >> 28;
+                        polyphased[sb] += n[i][sb] * y[i] >> 28;
                     }
                 }
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
-namespace HaruhiChokuretsuLib.Audio
+namespace HaruhiChokuretsuLib.Audio.ADX
 {
     public class AdxDecoder : IAdxDecoder
     {
@@ -23,7 +23,7 @@ namespace HaruhiChokuretsuLib.Audio
         public uint SampleRate => Header.SampleRate;
         public LoopInfo LoopInfo => Header.Version == 3 || Header.Version == 4 ? new()
         {
-            StartSample = Header.LoopInfo.BeginSample - Header.LoopInfo.AlignmentSamples,  
+            StartSample = Header.LoopInfo.BeginSample - Header.LoopInfo.AlignmentSamples,
             EndSample = Header.LoopInfo.EndSample - Header.LoopInfo.AlignmentSamples,
         } : null;
 
@@ -55,7 +55,7 @@ namespace HaruhiChokuretsuLib.Audio
 
         public List<Sample> ReadFrame()
         {
-            uint samplesPerBlock = (((uint)Header.BlockSize - 2) * 8) / Header.SampleBitdepth;
+            uint samplesPerBlock = ((uint)Header.BlockSize - 2) * 8 / Header.SampleBitdepth;
             List<Sample> samples = new(new Sample[samplesPerBlock]);
 
             for (int channel = 0; channel < Header.ChannelCount; channel++)
@@ -84,7 +84,7 @@ namespace HaruhiChokuretsuLib.Audio
 
                     int unclampledSample = prediction + delta;
 
-                    short sample = unclampledSample >= short.MaxValue ? short.MaxValue : (unclampledSample <= short.MinValue ? short.MinValue : (short)unclampledSample);
+                    short sample = unclampledSample >= short.MaxValue ? short.MaxValue : unclampledSample <= short.MinValue ? short.MinValue : (short)unclampledSample;
 
                     PrevPrevSample[channel] = PreviousSample[channel];
                     PreviousSample[channel] = sample;
@@ -132,7 +132,7 @@ namespace HaruhiChokuretsuLib.Audio
             {
                 return null;
             }
-            
+
             return Samples[(int)CurrentSample++];
         }
     }

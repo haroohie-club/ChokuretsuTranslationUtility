@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
-namespace HaruhiChokuretsuLib.Audio
+namespace HaruhiChokuretsuLib.Audio.ADX
 {
     public class AdxEncoder : IAdxEncoder
     {
@@ -22,7 +22,7 @@ namespace HaruhiChokuretsuLib.Audio
         {
             if (spec.LoopInfo is not null)
             {
-                AlignmentSamples = (32 - (spec.LoopInfo.StartSample % 32)) % 32;
+                AlignmentSamples = (32 - spec.LoopInfo.StartSample % 32) % 32;
                 spec.LoopInfo.StartSample += AlignmentSamples;
                 spec.LoopInfo.EndSample += AlignmentSamples;
 
