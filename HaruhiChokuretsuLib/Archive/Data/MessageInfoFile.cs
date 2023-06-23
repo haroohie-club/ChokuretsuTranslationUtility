@@ -72,7 +72,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
-    public struct MessageInfo
+    public class MessageInfo
     {
         public Speaker Character { get; set; }
         public short VoiceFont { get; set; }
