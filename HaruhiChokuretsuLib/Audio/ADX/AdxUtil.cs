@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio.ADX
@@ -88,7 +89,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             EncodeAudio(wav, outputAdx, false, loopInfo);
         }
 
-        public static void EncodeAudio(WaveStream wav, string outputAdx, bool ahx, LoopInfo loopInfo = null)
+        public static void EncodeAudio(WaveStream wav, string outputAdx, bool ahx, LoopInfo loopInfo = null, CancellationToken? cancellationToken = null)
         {
             using BinaryWriter writer = new(File.Create(outputAdx));
 
@@ -114,6 +115,10 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             List<Sample> samples = new();
             for (int i = 0; i < bytes.Length; i += 2)
             {
+                if (cancellationToken?.IsCancellationRequested ?? false)
+                {
+                    return;
+                }
                 if (wav.WaveFormat.Channels == 1)
                 {
                     samples.Add(new Sample(new short[] { IO.ReadShort(bytes, i) }));
@@ -124,7 +129,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
                     i += 2;
                 }
             }
-            encoder.EncodeData(samples);
+            encoder.EncodeData(samples, cancellationToken ?? new());
             encoder.Finish();
 
             writer.Flush();

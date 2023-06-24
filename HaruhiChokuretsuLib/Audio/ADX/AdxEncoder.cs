@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio.ADX
@@ -56,14 +57,18 @@ namespace HaruhiChokuretsuLib.Audio.ADX
                 {
                     samples.Add(new(new short[spec.Channels]));
                 }
-                EncodeData(samples);
+                EncodeData(samples, new());
             }
         }
 
-        public void EncodeData(IEnumerable<Sample> samples)
+        public void EncodeData(IEnumerable<Sample> samples, CancellationToken cancellationToken)
         {
             foreach (Sample sample in samples)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
                 CurrentFrame.Push(sample, Coefficients);
                 SamplesEncoded++;
                 if (CurrentFrame.IsFull)

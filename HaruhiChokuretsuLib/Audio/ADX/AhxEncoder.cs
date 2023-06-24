@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio.ADX
@@ -239,12 +240,17 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             }
         }
 
-        public void EncodeData(IEnumerable<Sample> samples)
+        public void EncodeData(IEnumerable<Sample> samples, CancellationToken cancellationToken)
         {
             foreach (Sample sample in samples)
             {
                 foreach (short channelSample in sample)
                 {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
                     Buffer[BufferIndex++] = channelSample;
 
                     if (BufferIndex == 1152)
