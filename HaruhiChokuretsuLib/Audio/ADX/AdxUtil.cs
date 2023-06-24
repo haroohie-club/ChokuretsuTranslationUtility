@@ -59,19 +59,19 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             return (int)(num << bitsToShift) >> bitsToShift;
         }
 
-        public static void EncodeWav(string wavFile, string outputAdx, bool ahx)
+        public static void EncodeWav(string wavFile, string outputAdx, bool ahx, CancellationToken? cancellationToken = null)
         {
             using WaveFileReader wav = new(wavFile);
-            EncodeAudio(wav, outputAdx, ahx);
+            EncodeAudio(wav, outputAdx, ahx, cancellationToken: cancellationToken);
         }
 
-        public static void EncodeWav(string wavFile, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample)
+        public static void EncodeWav(string wavFile, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample, CancellationToken? cancellationToken = null)
         {
             using WaveFileReader wav = new(wavFile);
-            EncodeAudio(wav, outputAdx, loopEnabled, loopStartSample, loopEndSample);
+            EncodeAudio(wav, outputAdx, loopEnabled, loopStartSample, loopEndSample, cancellationToken);
         }
 
-        public static void EncodeAudio(WaveStream wav, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample)
+        public static void EncodeAudio(WaveStream wav, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample, CancellationToken? cancellationToken = null)
         {
             LoopInfo loopInfo;
             if (loopEnabled)
@@ -86,7 +86,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             {
                 loopInfo = null;
             }
-            EncodeAudio(wav, outputAdx, false, loopInfo);
+            EncodeAudio(wav, outputAdx, false, loopInfo, cancellationToken);
         }
 
         public static void EncodeAudio(WaveStream wav, string outputAdx, bool ahx, LoopInfo loopInfo = null, CancellationToken? cancellationToken = null)
