@@ -185,6 +185,9 @@ namespace HaruhiChokuretsuCLI
                             case "QMAPS":
                                 file = qmapFile;
                                 break;
+                            case "SND_DSS":
+                                file = file.CastTo<SoundDSFile>();
+                                break;
                             case "SYSTEXS":
                                 file = file.CastTo<SystemTextureFile>();
                                 break;
