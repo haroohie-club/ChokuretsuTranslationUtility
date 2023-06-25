@@ -26,6 +26,7 @@ namespace HaruhiChokuretsuCLI
                 new ExportMapCommand(),
                 new ExportLayoutCommand(),
                 new ExportIncludeCommand(),
+                new ExportSfxCommand(),
                 new ScriptCommandSearchCommand(),
             };
 
