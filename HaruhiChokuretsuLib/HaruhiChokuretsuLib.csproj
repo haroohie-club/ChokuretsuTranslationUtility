@@ -3,11 +3,11 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <Company>Haroohie Translation Club</Company>
-    <Version>0.31.1</Version>
+    <Version>0.32.0</Version>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="GotaSequenceLib" Version="1.0.0" />
+    <PackageReference Include="GotaSequenceLib" Version="1.1.0" />
     <PackageReference Include="GotaSoundBank" Version="1.0.0" />
     <PackageReference Include="GotaSoundIO" Version="2.1.0" />
     <PackageReference Include="NAudio.Core" Version="2.1.0" />
