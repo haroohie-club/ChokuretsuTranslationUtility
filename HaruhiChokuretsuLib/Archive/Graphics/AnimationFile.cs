@@ -38,10 +38,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                     }
                     frame.PaletteData = texture.PaletteData;
                     frame.Width = animationEntry.FrameXAdjustment;
+                    frame.Height = animationEntry.FrameYAdjustment;
                     frame.PixelData = new();
                     for (int i = animationEntry.FrameOffset; i < (texture.PixelData?.Count ?? 0); i += AnimationEntries.DistinctBy(a => ((FrameAnimationEntry)a).FrameOffset).Count() * animationEntry.FrameXAdjustment)
                     {
-                        frame.Height++;
                         frame.PixelData.AddRange(texture.PixelData.Skip(i).Take(animationEntry.FrameXAdjustment));
                     }
                     graphicFrames.Add(frame);
