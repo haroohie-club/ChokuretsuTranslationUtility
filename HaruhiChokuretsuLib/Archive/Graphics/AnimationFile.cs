@@ -37,12 +37,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                         frame.Palette[0] = SKColors.Transparent;
                     }
                     frame.PaletteData = texture.PaletteData;
-                    frame.Width = animationEntry.FrameXAdjustment;
-                    frame.Height = animationEntry.FrameYAdjustment;
+                    frame.Width = animationEntry.FrameWidth;
+                    frame.Height = animationEntry.FrameHeight;
                     frame.PixelData = new();
-                    for (int i = animationEntry.FrameOffset; i < (texture.PixelData?.Count ?? 0); i += AnimationEntries.DistinctBy(a => ((FrameAnimationEntry)a).FrameOffset).Count() * animationEntry.FrameXAdjustment)
+                    for (int i = animationEntry.FrameOffset; i < (texture.PixelData?.Count ?? 0); i += AnimationEntries.DistinctBy(a => ((FrameAnimationEntry)a).FrameOffset).Count() * animationEntry.FrameWidth)
                     {
-                        frame.PixelData.AddRange(texture.PixelData.Skip(i).Take(animationEntry.FrameXAdjustment));
+                        frame.PixelData.AddRange(texture.PixelData.Skip(i).Take(animationEntry.FrameWidth));
                     }
                     graphicFrames.Add(frame);
                 }
@@ -215,6 +215,67 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 
             return graphicFrames;
         }
+
+        public GraphicsFile SetFrameAnimationAndGetTexture(List<(SKBitmap Frame, short Time)> framesAndTimings)
+        {
+            if (framesAndTimings is null || framesAndTimings.Count == 0)
+            {
+                _log.LogError("No frames provided!");
+                return null;
+            }
+            if (framesAndTimings.DistinctBy(ft => ft.Frame.Width).Count() > 1 || framesAndTimings.DistinctBy(ft => ft.Frame.Height).Count() > 1)
+            {
+                _log.LogError("Frames are not all the same width/height!");
+                return null;
+            }
+
+            List<SKBitmap> uniqueFrames = new();
+            List<(int index, short time)> indicesAndTimings = new();
+            foreach ((SKBitmap frame, short time) in framesAndTimings)
+            {
+                if (!uniqueFrames.Any(f => f.Pixels.SequenceEqual(frame.Pixels)))
+                {
+                    indicesAndTimings.Add((uniqueFrames.Count, time));
+                    uniqueFrames.Add(frame);
+                }
+                else
+                {
+                    indicesAndTimings.Add((uniqueFrames.FindIndex(f => f.Pixels.SequenceEqual(frame.Pixels)), time));
+                }
+            }
+
+            int frameWidth = framesAndTimings.First().Frame.Width;
+            int frameHeight = framesAndTimings.First().Frame.Height;
+            SKBitmap newTextureBitmap = new(Helpers.NextPowerOf2(frameWidth * uniqueFrames.Count), Helpers.NextPowerOf2(frameHeight));
+            
+            for (int y = 0; y < frameHeight; y++)
+            {
+                for (int i = 0; i < uniqueFrames.Count; i++)
+                {
+                    Array.Copy(uniqueFrames[i].Pixels, y * frameWidth, newTextureBitmap.Pixels, (i + y * uniqueFrames.Count) * frameWidth, frameWidth);
+                }
+            }
+
+            GraphicsFile newTexture = new()
+            {
+                FileFunction = Function.SHTX,
+                ImageForm = Form.TEXTURE,
+                ImageTileForm = TileForm.GBA_8BPP,
+                _log = _log,
+                Palette = new(),
+                Width = newTextureBitmap.Width,
+                Height = newTextureBitmap.Height,
+            };
+            newTexture.SetImage(newTextureBitmap, setPalette: true, transparentIndex: 0);
+
+            AnimationEntries.Clear();
+            foreach ((int index, short time) in indicesAndTimings)
+            {
+                AnimationEntries.Add(new FrameAnimationEntry(index * frameWidth, (short)frameWidth, (short)frameHeight, time));
+            }
+
+            return newTexture;
+        }
     }
 
     public class AnimationEntry
@@ -224,15 +285,22 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
     public class FrameAnimationEntry : AnimationEntry
     {
         public int FrameOffset { get; set; }
-        public short FrameXAdjustment { get; set; }
-        public short FrameYAdjustment { get; set; }
+        public short FrameWidth { get; set; }
+        public short FrameHeight { get; set; }
         public short Time { get; set; }
 
+        public FrameAnimationEntry(int frameOffset, short frameWidth, short frameHeight, short time)
+        {
+            FrameOffset = frameOffset;
+            FrameWidth = frameWidth;
+            FrameHeight = frameHeight;
+            Time = time;
+        }
         public FrameAnimationEntry(IEnumerable<byte> data)
         {
             FrameOffset = IO.ReadInt(data, 0);
-            FrameXAdjustment = IO.ReadShort(data, 4);
-            FrameYAdjustment = IO.ReadShort(data, 6);
+            FrameWidth = IO.ReadShort(data, 4);
+            FrameHeight = IO.ReadShort(data, 6);
             Time = IO.ReadShort(data, 8);
         }
     }

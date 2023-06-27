@@ -1,5 +1,4 @@
 ﻿using FolderBrowserEx;
-using HaruhiChokuretsuLib;
 using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using HaruhiChokuretsuLib.Archive.Event;
