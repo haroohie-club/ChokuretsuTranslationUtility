@@ -493,7 +493,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         protected void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset, bool @override = false)
         {
-            if (Name != "CHESSS" && Name != "EVTTBLS" && Name != "TOPICS" && Name != "SCENARIOS" && Name != "VOICEMAPS"
+            if (Name != "CHESSS" && Name != "EVTTBLS" && Name != "TOPICS" && Name != "SCENARIOS" && Name != "TUTORIALS" && Name != "VOICEMAPS"
                 && Name != "MESSS"
                 && Settings.DialogueSectionPointer < decompressedData.Length || @override)
             {
@@ -808,6 +808,30 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     sb.AppendLine($".word POINTER{i}");
                 }
+
+                return sb.ToString();
+            }
+            else if (Name == "TUTORIALS")
+            {
+                StringBuilder sb = new();
+
+                sb.AppendLine(".word 1");
+                sb.AppendLine(".word END_POINTERS");
+                sb.AppendLine(".word FILE_START");
+                sb.AppendLine(".word TUTORIALS");
+                sb.AppendLine($".word {Tutorials.Count}");
+                sb.AppendLine();
+                sb.AppendLine("FILE_START:");
+                sb.AppendLine("TUTORIALS:");
+
+                foreach (Tutorial tutorial in Tutorials)
+                {
+                    sb.AppendLine($".short {tutorial.Id}");
+                    sb.AppendLine($".short {tutorial.AssociatedScript}");
+                }
+
+                sb.AppendLine("END_POINTERS:");
+                sb.AppendLine(".word 0");
 
                 return sb.ToString();
             }
