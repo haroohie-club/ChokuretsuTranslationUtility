@@ -271,7 +271,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 PixelData = new(),
                 PaletteData = new(),
             };
-            newTexture.SetImage(newTextureBitmap, setPalette: true, newSize: true);
+            newTexture.SetImage(newTextureBitmap, newSize: true);
 
             AnimationEntries.Clear();
             foreach ((int index, short time) in indicesAndTimings)
