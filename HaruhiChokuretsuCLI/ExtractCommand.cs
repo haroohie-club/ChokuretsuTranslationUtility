@@ -227,7 +227,7 @@ namespace HaruhiChokuretsuCLI
                 else
                 {
                     CommandSet.Out.Write($"Extracting file #{file.Index:X3} from archive {archive.FileName}... ");
-                    File.WriteAllBytes(_outputFile, file.GetBytes());
+                    File.WriteAllBytes(_outputFile, file.Data.ToArray());
                 }
                 CommandSet.Out.WriteLine("OK");
             }

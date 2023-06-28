@@ -104,7 +104,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             else if (Name.EndsWith("BNA", StringComparison.OrdinalIgnoreCase))
             {
                 FileFunction = Function.ANIMATION;
-                if (Name.Contains("PAN")) // if the animation type byte is valid for rotations, we assume this is a rotatey boy
+                if (Name.Contains("PAN"))
                 {
                     for (int i = 0x00; i <= Data.Count - 0x08; i += 0x08)
                     {
@@ -122,6 +122,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 {
                     AnimationX = IO.ReadShort(Data, 0x02);
                     AnimationY = IO.ReadShort(Data, 0x04);
+                    ChibiAnimationType = IO.ReadShort(Data, 0x08);
                     for (int i = 0x10; i <= Data.Count - 0x0A; i += 0x0A)
                     {
                         if (IO.ReadShort(Data, i + 8) != 0)
@@ -278,6 +279,22 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 {
                     data.AddRange(entry.GetBytes());
                 }
+
+                return data.ToArray();
+            }
+            else if (FileFunction == Function.ANIMATION && AnimationEntries.FirstOrDefault().GetType() == typeof(FrameAnimationEntry))
+            {
+                List<byte> data = new();
+                data.AddRange(BitConverter.GetBytes(0x10));
+                data.AddRange(BitConverter.GetBytes(AnimationX));
+                data.AddRange(BitConverter.GetBytes(AnimationY));
+                data.AddRange(BitConverter.GetBytes(ChibiAnimationType));
+                data.AddRange(new byte[] { 0x00, 0xFF, 0x00, 0x00, 0xFF, 0xFF });
+                foreach (FrameAnimationEntry frame in AnimationEntries.Cast<FrameAnimationEntry>())
+                {
+                    data.AddRange(frame.GetBytes());
+                }
+                data.AddRange(new byte[10]);
 
                 return data.ToArray();
             }

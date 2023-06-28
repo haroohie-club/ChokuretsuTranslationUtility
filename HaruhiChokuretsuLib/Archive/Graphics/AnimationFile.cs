@@ -11,6 +11,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         public List<AnimationEntry> AnimationEntries { get; set; } = new();
         public short AnimationX { get; set; }
         public short AnimationY { get; set; }
+        public short ChibiAnimationType { get; set; }
 
         public List<GraphicsFile> GetAnimationFrames(GraphicsFile texture)
         {
@@ -302,6 +303,16 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             FrameWidth = IO.ReadShort(data, 4);
             FrameHeight = IO.ReadShort(data, 6);
             Time = IO.ReadShort(data, 8);
+        }
+
+        public List<byte> GetBytes()
+        {
+            List<byte> bytes = new();
+            bytes.AddRange(BitConverter.GetBytes(FrameOffset));
+            bytes.AddRange(BitConverter.GetBytes(FrameWidth));
+            bytes.AddRange(BitConverter.GetBytes(FrameHeight));
+            bytes.AddRange(BitConverter.GetBytes(Time));
+            return bytes;
         }
     }
 
