@@ -266,8 +266,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 Palette = new(),
                 Width = newTextureBitmap.Width,
                 Height = newTextureBitmap.Height,
+                PixelData = new(),
+                PaletteData = new(),
             };
-            newTexture.SetImage(newTextureBitmap, setPalette: true, transparentIndex: 0);
+            newTexture.SetImage(newTextureBitmap, setPalette: true, transparentIndex: 0, newSize: true);
 
             AnimationEntries.Clear();
             foreach ((int index, short time) in indicesAndTimings)
