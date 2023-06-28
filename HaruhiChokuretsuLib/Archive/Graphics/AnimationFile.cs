@@ -253,7 +253,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             {
                 for (int i = 0; i < uniqueFrames.Count; i++)
                 {
-                    Array.Copy(uniqueFrames[i].Bytes, y * frameWidth * 4, newTextureBitmap.Bytes, (i + y * uniqueFrames.Count) * frameWidth * 4, frameWidth * 4);
+                    for (int x = 0; x < frameWidth; x++)
+                    {
+                        newTextureBitmap.Pixels[(i + y * uniqueFrames.Count) * frameWidth + x] = uniqueFrames[i].Pixels[y * frameWidth + x];
+                    }
                 }
             }
 
@@ -269,7 +272,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 PixelData = new(),
                 PaletteData = new(),
             };
-            newTexture.SetImage(newTextureBitmap, setPalette: true, transparentIndex: 0, newSize: true);
+            newTexture.SetImage(newTextureBitmap, setPalette: true, newSize: true);
 
             AnimationEntries.Clear();
             foreach ((int index, short time) in indicesAndTimings)
