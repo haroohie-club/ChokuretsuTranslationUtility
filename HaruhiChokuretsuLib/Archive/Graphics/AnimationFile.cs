@@ -217,7 +217,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return graphicFrames;
         }
 
-        public GraphicsFile SetFrameAnimationAndGetTexture(List<(SKBitmap Frame, short Time)> framesAndTimings)
+        public GraphicsFile SetFrameAnimationAndGetTexture(List<(SKBitmap Frame, short Time)> framesAndTimings, List<SKColor> palette)
         {
             if (framesAndTimings is null || framesAndTimings.Count == 0)
             {
@@ -259,13 +259,14 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             newTextureBitmap.Pixels = newPixels;
 
+            palette[0] = new(palette[0].Red, palette[0].Green, palette[0].Blue, 0); // transparent
             GraphicsFile newTexture = new()
             {
                 FileFunction = Function.SHTX,
                 ImageForm = Form.TEXTURE,
                 ImageTileForm = TileForm.GBA_8BPP,
                 _log = _log,
-                Palette = new(),
+                Palette = palette,
                 Width = newTextureBitmap.Width,
                 Height = newTextureBitmap.Height,
                 PixelData = new(),
