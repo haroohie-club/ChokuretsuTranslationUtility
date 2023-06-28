@@ -253,7 +253,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             {
                 for (int i = 0; i < uniqueFrames.Count; i++)
                 {
-                    Array.Copy(uniqueFrames[i].Pixels, y * frameWidth, newTextureBitmap.Pixels, (i + y * uniqueFrames.Count) * frameWidth, frameWidth);
+                    Array.Copy(uniqueFrames[i].Bytes, y * frameWidth * 4, newTextureBitmap.Bytes, (i + y * uniqueFrames.Count) * frameWidth * 4, frameWidth * 4);
                 }
             }
 
