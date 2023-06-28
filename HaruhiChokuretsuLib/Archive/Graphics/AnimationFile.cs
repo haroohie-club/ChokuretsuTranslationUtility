@@ -248,17 +248,16 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             int frameWidth = framesAndTimings.First().Frame.Width;
             int frameHeight = framesAndTimings.First().Frame.Height;
             SKBitmap newTextureBitmap = new(Helpers.NextPowerOf2(frameWidth * uniqueFrames.Count), Helpers.NextPowerOf2(frameHeight));
-            
+            SKColor[] newPixels = new SKColor[newTextureBitmap.Pixels.Length];
+
             for (int y = 0; y < frameHeight; y++)
             {
                 for (int i = 0; i < uniqueFrames.Count; i++)
                 {
-                    for (int x = 0; x < frameWidth; x++)
-                    {
-                        newTextureBitmap.Pixels[(i + y * uniqueFrames.Count) * frameWidth + x] = uniqueFrames[i].Pixels[y * frameWidth + x];
-                    }
+                    Array.Copy(uniqueFrames[i].Pixels, y * frameWidth, newPixels, (i + y * uniqueFrames.Count) * frameWidth, frameWidth);
                 }
             }
+            newTextureBitmap.Pixels = newPixels;
 
             GraphicsFile newTexture = new()
             {
