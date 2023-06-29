@@ -813,7 +813,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "TUTORIALS")
             {
-                InitializeTutorialFile();
+                if (!Tutorials.Any())
+                {
+                    InitializeTutorialFile();
+                }
                 StringBuilder sb = new();
 
                 sb.AppendLine(".word 1");
