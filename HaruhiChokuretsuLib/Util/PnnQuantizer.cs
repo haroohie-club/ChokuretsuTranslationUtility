@@ -963,7 +963,7 @@ namespace HaruhiChokuretsuLib.Util
             b_pix = (byte)Math.Min(0xff, Math.Max(b_pix + (adj * (b_pix - qPixel.Blue)), 0));
             a_pix = (byte)Math.Min(0xff, Math.Max(a_pix + (adj * (a_pix - qPixel.Alpha)), 0));
 
-            return new(a_pix, r_pix, g_pix, b_pix);
+            return new(r_pix, g_pix, b_pix, a_pix);
         }
 
         public static void Dither(int width, int height, uint[] pixels, SKColor[] palette, PnnQuantizer quantizer, int[] qPixels, float weight = 1.0f)
