@@ -17,7 +17,7 @@ namespace HaruhiChokuretsuCLI
     {
         private string _inputArchive, _outputFile, _fileName;
         private string[] _includes;
-        private int _fileIndex = -1, _imageWidth = -1;
+        private int _fileIndex = -1, _imageWidth = -1, _palette = 0;
         private bool _showHelp, _compressed;
 
         public ExtractCommand() : base("extract", "Extracts a file from an archive")
@@ -33,6 +33,7 @@ namespace HaruhiChokuretsuCLI
                 { "name=", "Name of the file to extract", name => _fileName = name },
                 { "o|output-file=", "File name of extracted file (if ends in PNG, RESX, or S, will extract to those formats; otherwise extracts raw binary data)", o => _outputFile = o},
                 { "w|image-width=", "Width of an image to extract (defaults to the image's encoded width)", w => _imageWidth = int.Parse(w) },
+                { "p|palette=", "The number of the palette to use in 4bpp graphics (0-15)", p => _palette = int.Parse(p) },
                 { "includes=", "Comma-separated list of include files to use when producing a source file", include => _includes = include.Split(',') },
                 { "c|compressed", "Extract compressed file", c => _compressed = true },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
@@ -93,7 +94,7 @@ namespace HaruhiChokuretsuCLI
 
                 CommandSet.Out.Write($"Extracting file #{grpFile.Index:X3} as image from archive {grpArchive.FileName}... ");
                 using FileStream fileStream = new(_outputFile, FileMode.Create);
-                grpFile.GetImage(_imageWidth).Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+                grpFile.GetImage(_imageWidth, paletteOffset: _palette * 16).Encode(fileStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
                 CommandSet.Out.WriteLine("OK");
             }
             else if (Path.GetExtension(_outputFile).Equals(".resx", StringComparison.OrdinalIgnoreCase))

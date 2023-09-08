@@ -62,11 +62,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 Width = (int)Math.Pow(2, Data.Skip(0x0E).First());
                 Height = (int)Math.Pow(2, Data.Skip(0x0F).First());
 
-                int paletteLength = 0x200;
-                if (ImageTileForm == TileForm.GBA_4BPP)
-                {
-                    paletteLength = 0x60;
-                }
+                int paletteLength = BitConverter.ToInt16(decompressedData.Skip(0x0A).Take(2).ToArray());
 
                 PaletteData = Data.Skip(0x14).Take(paletteLength).ToList();
                 for (int i = 0; i < PaletteData.Count; i += 2)
@@ -538,7 +534,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, texture: false, dither: true, firstTransparent, setPalette, _log);
+            quantizer.QuantizeImage(bitmap, this, (Palette?.Count ?? 0) == 0 ? 256 : Palette.Count, texture: false, dither: true, firstTransparent, setPalette, _log);
+            PixelData = PixelData.Select(p => (byte)(p % 16)).ToList();
 
             return bitmap.Width;
         }
