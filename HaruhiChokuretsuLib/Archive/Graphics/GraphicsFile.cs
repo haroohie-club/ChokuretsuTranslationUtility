@@ -61,8 +61,11 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 ImageTileForm = (TileForm)BitConverter.ToInt16(decompressedData.Skip(0x06).Take(2).ToArray());
                 Width = (int)Math.Pow(2, Data.Skip(0x0E).First());
                 Height = (int)Math.Pow(2, Data.Skip(0x0F).First());
-
-                int paletteLength = BitConverter.ToInt16(decompressedData.Skip(0x0A).Take(2).ToArray());
+                int paletteLength = 0x200;
+                if (ImageTileForm == TileForm.GBA_4BPP && !Name.StartsWith("CHS_SYS_"))
+                {
+                    paletteLength = 0x40;
+                }
 
                 PaletteData = Data.Skip(0x14).Take(paletteLength).ToList();
                 for (int i = 0; i < PaletteData.Count; i += 2)
@@ -534,8 +537,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, (Palette?.Count ?? 0) == 0 ? 256 : Palette.Count, texture: false, dither: true, firstTransparent, setPalette, _log);
-            PixelData = PixelData.Select(p => (byte)(p % 16)).ToList();
+            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, texture: false, dither: true, firstTransparent, setPalette, _log);           
 
             return bitmap.Width;
         }

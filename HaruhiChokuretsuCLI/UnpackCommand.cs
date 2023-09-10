@@ -3,7 +3,6 @@ using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml.Schema;
 
 namespace HaruhiChokuretsuCLI
 {
