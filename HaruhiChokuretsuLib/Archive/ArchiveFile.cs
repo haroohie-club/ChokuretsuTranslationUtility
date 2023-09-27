@@ -29,6 +29,8 @@ namespace HaruhiChokuretsuLib.Archive
         public Dictionary<int, int> LengthToMagicIntegerMap { get; private set; } = new();
         private ILogger _log { get; set; }
 
+        private List<byte[]> RawNameBytes { get; set; } = new();
+
         public static ArchiveFile<T> FromFile(string fileName, ILogger log, bool dontThrow = true)
         {
             byte[] archiveBytes = File.ReadAllBytes(fileName);
@@ -76,9 +78,11 @@ namespace HaruhiChokuretsuLib.Archive
 
             // Calculate file names based on the substitution cipher
             List<string> filenames = new();
+            RawNameBytes = new();
             for (int i = 0; i < FileNamesSection.Count;)
             {
                 byte[] nameBytes = FileNamesSection.Skip(i).TakeWhile(b => b != 0x00).ToArray();
+                RawNameBytes.Add(nameBytes.ToArray()); // Create a clone so it won't be affected
                 for (int j = 0; j < nameBytes.Length; j++)
                 {
                     if ((nameBytes[j] >= 67 && nameBytes[j] <= 70)
@@ -253,25 +257,8 @@ namespace HaruhiChokuretsuLib.Archive
             bytes.AddRange(BitConverter.GetBytes(Unknown2));
 
             List<byte> namesSectionBytes = new();
-            foreach (string filename in Files.Select(f => f.Name))
+            foreach (byte[] nameBytes in RawNameBytes)
             {
-                byte[] nameBytes = Encoding.ASCII.GetBytes(filename);
-                for (int j = 0; j < nameBytes.Length; j++)
-                {
-                    if ((nameBytes[j] >= 48 && nameBytes[j] <= 51)
-                        || (nameBytes[j] >= 56 && nameBytes[j] <= 57)
-                        || (nameBytes[j] >= 65 && nameBytes[j] <= 67)
-                        || (nameBytes[j] >= 72 && nameBytes[j] <= 75)
-                        || (nameBytes[j] >= 80 && nameBytes[j] <= 83)
-                        || nameBytes[j] >= 88)
-                    {
-                        nameBytes[j] += 19;
-                    }
-                    else
-                    {
-                        nameBytes[j] += 11;
-                    }
-                }
                 namesSectionBytes.AddRange(nameBytes);
                 namesSectionBytes.Add(0);
             }
