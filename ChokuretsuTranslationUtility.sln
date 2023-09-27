@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31424.327
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaruhiChokuretsuEditor", "HaruhiChokuretsuEditor\HaruhiChokuretsuEditor.csproj", "{BFC57E2D-4371-4A50-AC60-307A9F19C4DD}"
 EndProject
@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaruhiChokuretsuTests", "Ha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaruhiChokuretsuLib", "HaruhiChokuretsuLib\HaruhiChokuretsuLib.csproj", "{5ADB6BD3-B3D4-40FA-AA6E-66CD279C271B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaruhiChokuretsuCLI", "HaruhiChokuretsuCLI\HaruhiChokuretsuCLI.csproj", "{733B25DB-758C-4B2D-81E4-E3C80CA66E44}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaruhiChokuretsuCLI", "HaruhiChokuretsuCLI\HaruhiChokuretsuCLI.csproj", "{733B25DB-758C-4B2D-81E4-E3C80CA66E44}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
