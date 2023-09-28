@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Font;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace HaruhiChokuretsuCLI
 {
     public class JsonExportCommand : Command
     {
-        private string _inputArchive, _outputFolder;
+        private string _inputArchive, _outputFolder, _charmapFile;
         private bool _showHelp, _isDat;
 
         public JsonExportCommand() : base("json-export", "Export messages into json files")
@@ -24,6 +25,7 @@ namespace HaruhiChokuretsuCLI
                 { "i|input-archive=", "Archive to extract file from", i => _inputArchive = i },
                 { "o|output-folder=", "Folder path of extracted file", o => _outputFolder = o},
                 { "d|is-dat", "Whether input archive is dat.bin", d => _isDat = true },
+                { "c|charmap=", "Charset mapping file", c => _charmapFile = c },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
         }
@@ -50,6 +52,17 @@ namespace HaruhiChokuretsuCLI
                 return returnValue;
             }
 
+            var shiftJis2Char = new Dictionary<char, char>();
+            if (!string.IsNullOrEmpty(_charmapFile))
+            {
+                var json_text = File.ReadAllText(_charmapFile);
+                var content = JsonSerializer.Deserialize<List<FontReplacement>>(json_text)!;
+                foreach (var obj in content)
+                {
+                    shiftJis2Char.Add(obj.OriginalCharacter, obj.ReplacedCharacter);
+                }
+            }
+
             Directory.CreateDirectory(_outputFolder);
             var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive, log);
             var jsonOptions = new JsonSerializerOptions
@@ -72,7 +85,19 @@ namespace HaruhiChokuretsuCLI
                 var output = new List<List<string>>();
                 foreach (var line in file.DialogueLines)
                 {
-                    output.Add(new List<string>() { line.SpeakerName, line.Text });
+                    var text = "";
+                    foreach (char c in line.Text)
+                    {
+                        if (shiftJis2Char.TryGetValue(c, out char new_c))
+                        {
+                            text += new_c;
+                        }
+                        else
+                        {
+                            text += c;
+                        }
+                    }
+                    output.Add(new List<string>() { line.SpeakerName, text });
                 }
                 File.WriteAllBytes(Path.Combine(_outputFolder, $"{(_isDat ? "dat" : "evt")}_{file.Name}.json"), JsonSerializer.SerializeToUtf8Bytes(output, jsonOptions));
             }

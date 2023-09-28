@@ -38,7 +38,7 @@ namespace HaruhiChokuretsuCLI
             Options.Parse(arguments);
             ConsoleLogger log = new();
 
-            if (_showHelp || string.IsNullOrEmpty(_inputArchive) || string.IsNullOrEmpty(_inputFolder) || string.IsNullOrEmpty(_charmapFile) || string.IsNullOrEmpty(_outputArchive))
+            if (_showHelp || string.IsNullOrEmpty(_inputArchive) || string.IsNullOrEmpty(_inputFolder) || string.IsNullOrEmpty(_outputArchive))
             {
                 int returnValue = 0;
                 if (string.IsNullOrEmpty(_inputArchive))
@@ -51,11 +51,6 @@ namespace HaruhiChokuretsuCLI
                     CommandSet.Error.WriteLine("Input folder not provided, please supply -f or --input-folder");
                     returnValue = 1;
                 }
-                if (string.IsNullOrEmpty(_charmapFile))
-                {
-                    CommandSet.Out.WriteLine("Charmap not provided, please supply -c or --charmap");
-                    returnValue = 1;
-                }
                 if (string.IsNullOrEmpty(_outputArchive))
                 {
                     CommandSet.Error.WriteLine("Output archive not provided, please supply -o or --output-archive");
@@ -65,13 +60,16 @@ namespace HaruhiChokuretsuCLI
                 return returnValue;
             }
 
-            var json_text = File.ReadAllText(_charmapFile);
-            var content = JsonSerializer.Deserialize<List<FontReplacement>>(json_text)!;
             var char2ShiftJis = new Dictionary<char, char>();
 
-            foreach (var obj in content)
+            if (!string.IsNullOrEmpty(_charmapFile))
             {
-                char2ShiftJis.Add(obj.ReplacedCharacter, obj.OriginalCharacter);
+                var json_text = File.ReadAllText(_charmapFile);
+                var content = JsonSerializer.Deserialize<List<FontReplacement>>(json_text)!;
+                foreach (var obj in content)
+                {
+                    char2ShiftJis.Add(obj.ReplacedCharacter, obj.OriginalCharacter);
+                }
             }
             var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive, log);
             foreach (var file in evtArchive.Files)
