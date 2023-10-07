@@ -5,6 +5,7 @@ using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
@@ -99,7 +100,9 @@ namespace HaruhiChokuretsuCLI
                     }
                     output.Add(new List<string>() { line.SpeakerName, text });
                 }
-                File.WriteAllBytes(Path.Combine(_outputFolder, $"{(_isDat ? "dat" : "evt")}_{file.Name}.json"), JsonSerializer.SerializeToUtf8Bytes(output, jsonOptions));
+                var outputJson = Encoding.UTF8.GetString(JsonSerializer.SerializeToUtf8Bytes(output, jsonOptions));
+                outputJson = outputJson.Replace(@"\u3000", "\u3000");
+                File.WriteAllText(Path.Combine(_outputFolder, $"{(_isDat ? "dat" : "evt")}_{file.Name}.json"), outputJson);
             }
 
             return 0;
