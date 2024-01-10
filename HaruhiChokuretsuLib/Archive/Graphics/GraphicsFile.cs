@@ -67,7 +67,13 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         public enum TileForm
         {
             // corresponds to number of colors
+            /// <summary>
+            /// 4 bits per pixel i.e. 16 colors
+            /// </summary>
             GBA_4BPP = 0x10,
+            /// <summary>
+            /// 8 bits per pixel i.e. 256 colors
+            /// </summary>
             GBA_8BPP = 0x100,
         }
 
@@ -76,10 +82,25 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         public enum Function
         {
+            /// <summary>
+            /// Unknown function
+            /// </summary>
             UNKNOWN,
+            /// <summary>
+            /// Shade Texture graphic
+            /// </summary>
             SHTX,
+            /// <summary>
+            /// Top screen VRAM-optimized graphic
+            /// </summary>
             SCREEN,
+            /// <summary>
+            /// Layout file
+            /// </summary>
             LAYOUT,
+            /// <summary>
+            /// Animation file
+            /// </summary>
             ANIMATION,
         }
 
@@ -88,16 +109,26 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         public enum Form
         {
+            /// <summary>
+            /// Unknown to be tile or texture
+            /// </summary>
             UNKNOWN,
+            /// <summary>
+            /// Texture (bottom screen optimized)
+            /// </summary>
             TEXTURE,
+            /// <summary>
+            /// Tile (top screen OAM optimized)
+            /// </summary>
             TILE,
         }
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
             byte[] magicBytes = Data.Take(4).ToArray();
             if (Encoding.ASCII.GetString(magicBytes) == "SHTX")
             {
@@ -182,9 +213,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
         }
 
+        /// <inheritdoc/>
         public override void NewFile(string filename, ILogger log)
         {
-            _log = log;
+            Log = log;
             SKBitmap bitmap = SKBitmap.Decode(filename);
             string[] fileComponents = Path.GetFileNameWithoutExtension(filename).Split('_');
             ImageTileForm = fileComponents[1].ToLower() switch
@@ -200,7 +232,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 _ => throw new ArgumentException($"Image {filename} does not have its image form (third argument should be 'texture' or 'tile')")
             };
             Name = fileComponents.Last().ToUpper();
-            Data = new();
+            Data = [];
             FileFunction = Function.SHTX;
             int transparentIndex = -1;
             Match transparentIndexMatch = Regex.Match(filename, @"tidx(?<transparentIndex>\d+)");
@@ -209,8 +241,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 transparentIndex = int.Parse(transparentIndexMatch.Groups["transparentIndex"].Value);
             }
 
-            PaletteData = new();
-            PixelData = new();
+            PaletteData = [];
+            PixelData = [];
             if (ImageTileForm == TileForm.GBA_4BPP)
             {
                 Palette.AddRange(new SKColor[16]);
@@ -250,8 +282,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         {
             ImageTileForm = TileForm.GBA_4BPP;
             // grayscale palette
-            Palette = new()
-            {
+            Palette =
+            [
                 new SKColor(0x00, 0x00, 0x00),
                 new SKColor(0x1F, 0x1F, 0xF),
                 new SKColor(0x2F, 0x2F, 0x2F),
@@ -268,7 +300,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 new SKColor(0xDF, 0xDF, 0xDF),
                 new SKColor(0xEF, 0xEF, 0xEF),
                 new SKColor(0xFF, 0xFF, 0xFF),
-            };
+            ];
             PixelData = Data;
             Width = 16;
             Height = PixelData.Count / 8;
@@ -311,6 +343,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 && Index != 0xE50;
         }
 
+        /// <inheritdoc/>
         public override byte[] GetBytes()
         {
             if (FileFunction == Function.SHTX)
@@ -365,6 +398,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{Index:X3} {Index:D4} 0x{Offset:X8} ({FileFunction}) - {Name}";
@@ -531,7 +565,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             PaletteData = [];
             if (!suppressOutput)
             {
-                _log.Log($"Using provided palette for #{Index:X3}... ");
+                Log.Log($"Using provided palette for #{Index:X3}... ");
             }
 
             for (int i = 0; i < Palette.Count; i++)
@@ -545,6 +579,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// Replaces the current pixel data with a bitmap image on disk
         /// </summary>
         /// <param name="bitmapFile">Path to bitmap file to import</param>
+        /// <param name="setPalette">(Optional) If true, sets the palette of the graphics file from the provided image</param>
+        /// <param name="transparentIndex">(Optional) Sets the transparent index (if existing, usually 0)</param>
+        /// <param name="newSize">(Optional) If true, resizes the image</param>
+        /// <param name="associatedTiles">(Optional) If attempting to render a screen image, has these associated tiles</param>
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
@@ -556,6 +594,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// Replaces the current pixel data with a bitmap image in memory
         /// </summary>
         /// <param name="bitmap">Bitmap image in memory</param>
+        /// <param name="setPalette">(Optional) If true, sets the palette of the graphics file from the provided image</param>
+        /// <param name="transparentIndex">(Optional) Sets the transparent index (if existing, usually 0)</param>
+        /// <param name="newSize">(Optional) If true, resizes the image</param>
+        /// <param name="associatedTiles">(Optional) If attempting to render a screen image, has these associated tiles</param>
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
@@ -591,7 +633,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, 256, texture: true, dither: true, firstTransparent, setPalette, _log);
+            quantizer.QuantizeImage(bitmap, this, 256, texture: true, dither: true, firstTransparent, setPalette, Log);
 
             return bitmap.Width;
         }
@@ -605,7 +647,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             int calculatedHeight = PixelData.Count / (bitmap.Width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
             if (newSize)
             {
-                _log.LogWarning("Resizing... ");
+                Log.LogWarning("Resizing... ");
                 PixelData = new(new byte[bitmap.Width * bitmap.Height]);
             }
             else if (bitmap.Height < calculatedHeight)
@@ -613,7 +655,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, texture: false, dither: true, firstTransparent, setPalette, _log);           
+            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, texture: false, dither: true, firstTransparent, setPalette, Log);           
 
             return bitmap.Width;
         }

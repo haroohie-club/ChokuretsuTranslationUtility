@@ -19,6 +19,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public List<CgExtraData> Cgs { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -26,7 +27,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             int numSections = IO.ReadInt(decompressedData, 0);
             if (numSections != 3)
             {
-                _log.LogError($"Extras file should only have 3 sections, {numSections} detected.");
+                Log.LogError($"Extras file should only have 3 sections, {numSections} detected.");
                 return;
             }
 
@@ -58,6 +59,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             StringBuilder sb = new();
@@ -156,6 +158,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// The flag indicating that this CG has been encountered in game
         /// </summary>
         public short Flag { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown04 { get; set; }
         /// <summary>
         /// The name of the CG as displayed in the extras mode's CG viewer

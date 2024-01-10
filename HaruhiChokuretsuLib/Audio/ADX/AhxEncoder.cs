@@ -6,17 +6,28 @@ using System.Threading;
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio.ADX
 {
+    /// <summary>
+    /// ADX encoder for the AHX subtype
+    /// </summary>
     public class AhxEncoder : IAdxEncoder
     {
-        public BitWriter Writer { get; set; }
+        internal BitWriter Writer { get; set; }
+        /// <summary>
+        /// ADX specification data
+        /// </summary>
         public AdxSpec Spec { get; set; }
-        public Window Win { get; set; }
-        public uint SamplesEncoded { get; set; }
-        public short[] Buffer { get; set; }
-        public uint BufferIndex { get; set; }
+        internal Window Win { get; set; }
+        internal uint SamplesEncoded { get; set; }
+        internal short[] Buffer { get; set; }
+        internal uint BufferIndex { get; set; }
 
         private long[][] _n { get; set; }
 
+        /// <summary>
+        /// Create an AHX encoder from a BinaryWriter and a spec
+        /// </summary>
+        /// <param name="writer">BinaryWriter to use to write the file</param>
+        /// <param name="spec">AHX spec</param>
         public AhxEncoder(BinaryWriter writer, AdxSpec spec)
         {
             writer.Seek(0x24, SeekOrigin.Begin);
@@ -39,7 +50,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             }
         }
 
-        public void EncodeFrame()
+        private void EncodeFrame()
         {
             Writer.Reset();
 
@@ -240,6 +251,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             }
         }
 
+        /// <inheritdoc/>
         public void EncodeData(IEnumerable<Sample> samples, CancellationToken cancellationToken)
         {
             foreach (Sample sample in samples)
@@ -263,6 +275,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             }
         }
 
+        /// <inheritdoc/>
         public void Finish()
         {
             if (BufferIndex != 0)
@@ -295,7 +308,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             w.Flush();
         }
 
-        public class Window
+        internal class Window
         {
             public short[] Values { get; set; }
             public uint Index { get; set; }

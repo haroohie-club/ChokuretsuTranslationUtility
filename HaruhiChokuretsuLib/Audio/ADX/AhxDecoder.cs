@@ -7,7 +7,7 @@ using System.Linq;
 // But modified to work with more AHX files and to fix some bugs
 namespace HaruhiChokuretsuLib.Audio.ADX
 {
-    public struct QuantizeSpec
+    internal struct QuantizeSpec
     {
         public long NLevels { get; set; }
         public uint Group { get; set; }
@@ -16,23 +16,39 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         public uint D { get; set; }
     }
 
+    /// <summary>
+    /// ADX decoder for AHX subtype
+    /// </summary>
     public class AhxDecoder : IAdxDecoder
     {
+        /// <summary>
+        /// ADX header data
+        /// </summary>
         public AdxHeader Header { get; set; }
-        public List<byte> Data { get; set; }
-        public uint VOffset { get; set; }
-        public long[] U { get; set; } = new long[512];
-        public long[] V { get; set; } = new long[1024];
-        public int CurrentSample { get; set; }
-        public List<Sample> Samples { get; set; } = new();
+        internal List<byte> Data { get; set; }
+        internal uint VOffset { get; set; }
+        internal long[] U { get; set; } = new long[512];
+        internal long[] V { get; set; } = new long[1024];
+        internal int CurrentSample { get; set; }
+        internal List<Sample> Samples { get; set; } = [];
+        /// <inheritdoc/>
         public uint Channels => Header.ChannelCount;
+        /// <inheritdoc/>
         public uint SampleRate => Header.SampleRate;
+        /// <summary>
+        /// Defines how the audio loops
+        /// </summary>
         public LoopInfo LoopInfo => null;
 
         private int _currentOffset = 0;
         private int _currentBit = 0;
-        private ILogger _log;
+        private readonly ILogger _log;
 
+        /// <summary>
+        /// Wraps an AHX file with a decoder
+        /// </summary>
+        /// <param name="data">The binary data of the AHX file</param>
+        /// <param name="log">ILogger instance for logging</param>
         public AhxDecoder(IEnumerable<byte> data, ILogger log)
         {
             _log = log;
@@ -92,7 +108,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             return samples;
         }
 
-        public Sample[] ReadFrame()
+        private Sample[] ReadFrame()
         {
             Sample[] pcm = new Sample[1152];
 
@@ -270,6 +286,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             return pcm;
         }
 
+        /// <inheritdoc/>
         public Sample NextSample()
         {
             if (CurrentSample == Samples.Count)

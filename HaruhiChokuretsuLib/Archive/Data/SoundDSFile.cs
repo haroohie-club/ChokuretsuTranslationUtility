@@ -10,12 +10,21 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// </summary>
     public class SoundDSFile : DataFile
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public List<int> UnknownSection1 { get; set; } = [];
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public List<UnknownAudio02Entry> UnknownSection2 { get; set; } = [];
         /// <summary>
         /// The list of sound effect entries
         /// </summary>
         public List<SfxEntry> SfxSection { get; set; } = [];
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public List<short> UnknownSection4 { get; set; } = [];
         /// <summary>
         /// The list of background music entries
@@ -25,23 +34,33 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// The list of voice file entries
         /// </summary>
         public List<string> VoiceSection { get; set; } = [];
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public List<int> UnknownSection7 { get; set; } = [];
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public List<int> UnknownSection8 { get; set; } = [];
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public List<UnknownAudio09Entry> UnknownSection9 { get; set; } = [];
         // Section 10 is a pointers section
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
 
             int numSections = IO.ReadInt(decompressedData, 0);
             if (numSections != 10)
             {
-                _log.LogError($"DS sound file should have 10 sections, {numSections} detected");
+                Log.LogError($"DS sound file should have 10 sections, {numSections} detected");
                 return;
             }
 
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
             Offset = offset;
 
             int unknownSection1Pointer = IO.ReadInt(Data, 0x0C);
@@ -120,6 +139,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             StringBuilder sb = new();
@@ -271,13 +291,29 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// </summary>
     public class UnknownAudio02Entry(IEnumerable<byte> data)
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown01 { get; set; } = IO.ReadShort(data, 0x00);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown02 { get; set; } = IO.ReadShort(data, 0x02);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown03 { get; set; } = IO.ReadShort(data, 0x04);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown04 { get; set; } = IO.ReadShort(data, 0x06);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown05 { get; set; } = IO.ReadShort(data, 0x08);
 
-        public string GetSource()
+
+        internal string GetSource()
         {
             StringBuilder sb = new();
 
@@ -309,12 +345,24 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// The volume at which to play the SFX
         /// </summary>
         public short Volume { get; set; } = IO.ReadShort(data, 0x04);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown4 { get; set; } = IO.ReadShort(data, 0x06);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown5 { get; set; } = IO.ReadInt(data, 0x08);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown6 { get; set; } = IO.ReadInt(data, 0x0C);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown7 { get; set; } = IO.ReadInt(data, 0x10);
 
-        public string GetSource()
+        internal string GetSource()
         {
             StringBuilder sb = new();
 
@@ -335,12 +383,24 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// </summary>
     public class UnknownAudio09Entry(IEnumerable<byte> data)
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown01 { get; set; } = IO.ReadShort(data, 0x00);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown02 { get; set; } = IO.ReadShort(data, 0x02);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown03 { get; set; } = IO.ReadShort(data, 0x04);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown04 { get; set; } = IO.ReadShort(data, 0x06);
 
-        public string GetSource()
+        internal string GetSource()
         {
             StringBuilder sb = new();
 

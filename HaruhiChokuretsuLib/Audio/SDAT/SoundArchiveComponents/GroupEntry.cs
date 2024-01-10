@@ -120,6 +120,21 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
     /// </summary>
     public enum GroupEntryType : byte
     {
-        Sequence, Bank, WaveArchive, SequenceArchive
+        /// <summary>
+        /// Sequence
+        /// </summary>
+        Sequence,
+        /// <summary>
+        /// Bank
+        /// </summary>
+        Bank,
+        /// <summary>
+        /// Wave archive
+        /// </summary>
+        WaveArchive,
+        /// <summary>
+        /// Sequence archive
+        /// </summary>
+        SequenceArchive
     }
 }

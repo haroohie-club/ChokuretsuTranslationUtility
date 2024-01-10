@@ -59,7 +59,7 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
             public AutoLoadEntry(uint address, byte[] data)
 			{
 				Address = address;
-				Data = data.ToList();
+				Data = [.. data];
 				Size = (uint)data.Length;
 				BssSize = 0;
 			}

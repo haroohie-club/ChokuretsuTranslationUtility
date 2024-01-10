@@ -6,8 +6,16 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Util
 {
+    /// <summary>
+    /// Helper methods
+    /// </summary>
     public static class Helpers
     {
+        /// <summary>
+        /// Rounds to the next power of two
+        /// </summary>
+        /// <param name="n">Number to round</param>
+        /// <returns>The next power of two past that number</returns>
         public static int NextPowerOf2(int n)
         {
             n--;
@@ -21,21 +29,42 @@ namespace HaruhiChokuretsuLib.Util
             return n;
         }
 
+        /// <summary>
+        /// Gets a string indent
+        /// </summary>
+        /// <param name="indent">Number of spaces to indent</param>
+        /// <returns>A string composed of that many spaces</returns>
         public static string Indent(int indent)
         {
             return string.Join(' ', new string[indent + 1]);
         }
 
+        /// <summary>
+        /// Escapes Shift-JIS for inclusion in ARM assembly files
+        /// </summary>
+        /// <param name="shiftJisString">A Shift-JIS string</param>
+        /// <returns>An escaped string ready to include in ARM assembly</returns>
         public static string EscapeShiftJIS(this string shiftJisString)
         {
             return string.Join("", Encoding.GetEncoding("Shift-JIS").GetBytes(shiftJisString).Select(b => $"\\x{b:X2}"));
         }
 
+        /// <summary>
+        /// Gets the length of a Shift-JIS string in bytess
+        /// </summary>
+        /// <param name="shiftJisString">A Shift-JIS string</param>
+        /// <returns>Length of the string in bytes</returns>
         public static int GetShiftJISLength(this string shiftJisString)
         {
             return Encoding.GetEncoding("Shift-JIS").GetByteCount(shiftJisString) + 1; // +1 for trailing \x00
         }
 
+        /// <summary>
+        /// Pads the end of a string in an assembly source file with the necessary number of bytes to maintain four-byte alignment
+        /// </summary>
+        /// <param name="sb">The StringBuilder instance being used to build the source file</param>
+        /// <param name="str">The string to pad</param>
+        /// <param name="encoding">The encoding of the string</param>
         public static void AsmPadString(this StringBuilder sb, string str, Encoding encoding)
         {
             int neededPadding = 4 - encoding.GetByteCount(str) % 4 - 1;
@@ -45,6 +74,12 @@ namespace HaruhiChokuretsuLib.Util
             }
         }
 
+        /// <summary>
+        /// Finds the greatest common factor between two integers
+        /// </summary>
+        /// <param name="a">First integer</param>
+        /// <param name="b">Second integer</param>
+        /// <returns>The GCF of the two provided integers</returns>
         public static int GreatestCommonFactor(int a, int b)
         {
             while (b != 0)
@@ -55,11 +90,22 @@ namespace HaruhiChokuretsuLib.Util
             return a;
         }
 
+        /// <summary>
+        /// Finds the least common multiple of two integers
+        /// </summary>
+        /// <param name="a">First integer</param>
+        /// <param name="b">Second integer</param>
+        /// <returns>The LCM of the two provided integers</returns>
         public static int LeastCommonMultiple(int a, int b)
         {
             return a / GreatestCommonFactor(a, b) * b;
         }
 
+        /// <summary>
+        /// Finds the least common multiple of a set of integers
+        /// </summary>
+        /// <param name="list">The list of integers</param>
+        /// <returns>The LCM of the entire provided list of integers</returns>
         public static int LeastCommonMultiple(IEnumerable<int> list)
         {
             int lcm = list.ElementAt(0);
@@ -71,6 +117,15 @@ namespace HaruhiChokuretsuLib.Util
             return lcm;
         }
 
+        /// <summary>
+        /// Swaps two entries in a list
+        /// </summary>
+        /// <typeparam name="T">Type of the list</typeparam>
+        /// <param name="list">The list in which to swap two items</param>
+        /// <param name="firstIndex">First index to swap</param>
+        /// <param name="secondIndex">Second index to swap</param>
+        /// <param name="numToSwapAtOnce">Number of items to swap at once</param>
+        /// <returns></returns>
         public static IList<T> Swap<T>(this IList<T> list, int firstIndex, int secondIndex, int numToSwapAtOnce = 1)
         {
             for (int i = 0; i < numToSwapAtOnce; i++)
@@ -81,6 +136,14 @@ namespace HaruhiChokuretsuLib.Util
             return list;
         }
 
+        /// <summary>
+        /// Rotates a section of a list left
+        /// </summary>
+        /// <typeparam name="T">The type of the list</typeparam>
+        /// <param name="enumerable">The list to rotate within</param>
+        /// <param name="index">The starting index of rotation</param>
+        /// <param name="length">The length of the section to rotate</param>
+        /// <returns>The rotated enumerable</returns>
         public static IEnumerable<T> RotateSectionLeft<T>(this IEnumerable<T> enumerable, int index, int length)
         {
             T[] array = enumerable.ToArray();
@@ -94,6 +157,14 @@ namespace HaruhiChokuretsuLib.Util
             return array.AsEnumerable();
         }
 
+        /// <summary>
+        /// Rotates a section of a list right
+        /// </summary>
+        /// <typeparam name="T">The type of the list</typeparam>
+        /// <param name="enumerable">The list to rotate within</param>
+        /// <param name="index">The starting index of rotation</param>
+        /// <param name="length">The length of the section to rotate</param>
+        /// <returns>The rotated enumerable</returns>
         public static IEnumerable<T> RotateSectionRight<T>(this IEnumerable<T> enumerable, int index, int length)
         {
             T[] array = enumerable.ToArray();
@@ -108,6 +179,12 @@ namespace HaruhiChokuretsuLib.Util
         }
 
         // redmean color distance formula with alpha term
+        /// <summary>
+        /// Color distance calculated with redmean formula
+        /// </summary>
+        /// <param name="color1">First color</param>
+        /// <param name="color2">Second color</param>
+        /// <returns>Distance between the two colors</returns>
         public static double ColorDistance(SKColor color1, SKColor color2)
         {
             double redmean = (color1.Red + color2.Red) / 2.0;
@@ -118,6 +195,13 @@ namespace HaruhiChokuretsuLib.Util
                 + Math.Pow(color1.Alpha - color2.Alpha, 2));
         }
 
+        /// <summary>
+        /// Finds the closet color in a palette to a given color
+        /// </summary>
+        /// <param name="colors">The palette of colors to search within</param>
+        /// <param name="color">The color to try to match</param>
+        /// <param name="firstTransparent">Whether to ignore the first entry as it's transparent</param>
+        /// <returns></returns>
         public static int ClosestColorIndex(IList<SKColor> colors, SKColor color, bool firstTransparent)
         {
             int skip = firstTransparent ? 1 : 0;
@@ -126,21 +210,44 @@ namespace HaruhiChokuretsuLib.Util
             return colorDistances.IndexOf(colorDistances.Min());
         }
 
+        /// <summary>
+        /// Converts an RGB555 value to an SKColor
+        /// </summary>
+        /// <param name="rgb555">Color formatted as an RGB555 16-bit integer</param>
+        /// <returns>An equivalent SKColor</returns>
         public static SKColor Rgb555ToSKColor(short rgb555)
         {
             return new SKColor((byte)((rgb555 & 0x1F) << 3), (byte)((rgb555 >> 5 & 0x1F) << 3), (byte)((rgb555 >> 10 & 0x1F) << 3));
         }
 
+        /// <summary>
+        /// Converts an SKColor to an RGB555
+        /// </summary>
+        /// <param name="color">An SKColor</param>
+        /// <returns>An equivalent RGB555 value</returns>
         public static short SKColorToRgb555(SKColor color)
         {
             return (short)(color.Red >> 3 | color.Green << 2 | color.Blue << 7);
         }
 
+        /// <summary>
+        /// Determines whether an addition will cause a carry to take place
+        /// </summary>
+        /// <param name="x">First addend</param>
+        /// <param name="y">Second addend</param>
+        /// <returns>True if carry occurs, false otherwise</returns>
         public static bool AddWillCauseCarry(int x, int y)
         {
             return ((x & 0xFFFFFFFFFL) + (y & 0xFFFFFFFFL) & 0x1000000000) > 0;
         }
 
+        /// <summary>
+        /// Finds the index of a sequence inside another sequence
+        /// </summary>
+        /// <typeparam name="T">Type of enumerable</typeparam>
+        /// <param name="items">The enumerable to search within</param>
+        /// <param name="search">The pattern to search for</param>
+        /// <returns>The index of the pattern if found, -1 otherwise</returns>
         public static int IndexOfSequence<T>(this IEnumerable<T> items, IEnumerable<T> search)
         {
             int searchLength = search.Count();
@@ -155,59 +262,43 @@ namespace HaruhiChokuretsuLib.Util
             return -1;
         }
 
-        public static bool BytesInARowLessThan(this IEnumerable<byte> sequence, int numBytesInARowLessThan, byte targetByte)
-        {
-            for (int i = 0; i < sequence.Count() - numBytesInARowLessThan; i++)
-            {
-                if (sequence.Skip(i).TakeWhile(b => b == targetByte).Count() > numBytesInARowLessThan)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-        public static byte[] ByteArrayFromString(string s)
-        {
-            if (s.Length % 2 != 0)
-            {
-                throw new ArgumentException($"Invalid string length {s.Length}; must be of even length");
-            }
-            List<byte> bytes = new();
-            for (int i = 0; i < s.Length; i += 2)
-            {
-                bytes.Add(byte.Parse(s[i..(i + 2)], System.Globalization.NumberStyles.HexNumber));
-            }
-            return bytes.ToArray();
-        }
-
-        public static string StringFromByteArray(byte[] ba)
-        {
-            string s = "";
-            foreach (byte b in ba)
-            {
-                s += $"{b:X2}";
-            }
-            return s;
-        }
-
+        /// <summary>
+        /// Gets a palette from a set of images
+        /// </summary>
+        /// <param name="bitmaps">A set of images to extract a palette from</param>
+        /// <param name="numberOfColors">The number of colors in the palette</param>
+        /// <param name="log">An ILogger instance</param>
+        /// <returns></returns>
         public static List<SKColor> GetPaletteFromImages(IList<SKBitmap> bitmaps, int numberOfColors, ILogger log)
         {
             PnnQuantizer quantizer = new();
             return quantizer.GetPaletteFromImages(bitmaps, numberOfColors, log);
         }
 
+        /// <summary>
+        /// Gets a palette from a single image
+        /// </summary>
+        /// <param name="bitmap">The image to extract a palette from</param>
+        /// <param name="numberOfColors">The number of colors in the palette</param>
+        /// <param name="log">An ILogger instance</param>
+        /// <returns></returns>
         public static List<SKColor> GetPaletteFromImage(SKBitmap bitmap, int numberOfColors, ILogger log)
         {
             PnnQuantizer quantizer = new();
             return quantizer.GetPaletteFromImages(new SKBitmap[] { bitmap }, numberOfColors, log);
         }
 
+        /// <summary>
+        /// Compression implementation of the Shade compression algorithm
+        /// </summary>
+        /// <param name="decompressedData">Binary data to compress</param>
+        /// <returns>A byte array of compressed data</returns>
         public static byte[] CompressData(byte[] decompressedData)
         {
             // nonsense hack to deal with a rare edge case where the last byte of a file could get dropped
-            List<byte> temp = decompressedData.ToList();
+            List<byte> temp = [.. decompressedData];
             temp.Add(0x00);
-            decompressedData = temp.ToArray();
+            decompressedData = [.. temp];
 
             List<byte> compressedData = new();
 
@@ -325,7 +416,7 @@ namespace HaruhiChokuretsuLib.Util
                 WriteDirectBytes(decompressedData, compressedData, decompressedData.Length - 1, directBytesToWrite);
             }
 
-            return compressedData.ToArray();
+            return [.. compressedData];
         }
 
         private class LookbackEntry
@@ -334,7 +425,7 @@ namespace HaruhiChokuretsuLib.Util
 
             public LookbackEntry(List<byte> bytes, int index)
             {
-                Bytes = bytes.ToArray();
+                Bytes = [.. bytes];
             }
 
             public override bool Equals(object obj)
@@ -379,6 +470,11 @@ namespace HaruhiChokuretsuLib.Util
             writeTo.AddRange(writeFrom.Skip(position - numBytesToWrite).Take(numBytesToWrite));
         }
 
+        /// <summary>
+        /// Decompression implementation of the Shade compression algorithm
+        /// </summary>
+        /// <param name="compressedData">Compressed data to decompress</param>
+        /// <returns>A byte array of decompressed data</returns>
         public static byte[] DecompressData(byte[] compressedData)
         {
             List<byte> decompressedData = new();
@@ -465,17 +561,17 @@ namespace HaruhiChokuretsuLib.Util
             {
                 decompressedData.Add(0x00);
             }
-            return decompressedData.ToArray();
+            return [.. decompressedData];
         }
     }
 
-    public class AsmDecompressionSimulator
+    internal class AsmDecompressionSimulator
     {
         private int z, c, l, n;
         private List<byte> _output = new();
         private byte[] _data;
 
-        public byte[] Output { get { return _output.ToArray(); } }
+        public byte[] Output { get { return [.. _output]; } }
 
         public AsmDecompressionSimulator(byte[] data)
         {

@@ -15,6 +15,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public List<char> CharMap { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

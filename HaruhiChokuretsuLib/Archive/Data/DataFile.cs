@@ -9,23 +9,27 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// </summary>
     public class DataFile : FileInArchive, ISourceFile
     {
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
         }
 
+        /// <inheritdoc/>
         public override byte[] GetBytes() => Data.ToArray();
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{Index:X3} 0x{Offset:X8} - {Name}";
         }
 
+        /// <inheritdoc/>
         public virtual string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
-            _log.LogError("Attempting to get source of a generic data file; not supported.");
+            Log.LogError("Attempting to get source of a generic data file; not supported.");
             return null;
         }
     }

@@ -51,11 +51,17 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// The section containing the name of the event file
         /// </summary>
         public EventNameSection EventNameSection { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public IntegerSection UnknownSection01 { get; set; }
         /// <summary>
         /// The section containing data on interactable objects (if the event has them)
         /// </summary>
         public InteractableObjectsSection InteractableObjectsSection { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown03Section UnknownSection03 { get; set; }
         /// <summary>
         /// The section containing the list of chibis that appear on the top screen at the start of the event
@@ -65,14 +71,29 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// The section containing definitions of which characters appear on the map and where for investigation phase events
         /// </summary>
         public MapCharactersSection MapCharactersSection { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public IntegerSection UnknownSection06 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown07Section UnknownSection07 { get; set; }
         /// <summary>
         /// The section containing the choices used by the SELECT command
         /// </summary>
         public ChoicesSection ChoicesSection { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown08Section UnknownSection08 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown09Section UnknownSection09 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown10Section UnknownSection10 { get; set; }
         /// <summary>
         /// The section which contains the labels for the script sections
@@ -175,69 +196,262 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public enum CommandVerb
         {
+
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#init_read_flag-0x00
+            /// </summary>
             INIT_READ_FLAG,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#dialogue-0x01
+            /// </summary>
             DIALOGUE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#kbg_disp-0x02
+            /// </summary>
             KBG_DISP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#pin_mnl-0x03
+            /// </summary>
             PIN_MNL,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_disp-0x04
+            /// </summary>
             BG_DISP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_fadein-0x05
+            /// </summary>
             SCREEN_FADEIN,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_fadeout-0x06
+            /// </summary>
             SCREEN_FADEOUT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_flash-0x07
+            /// </summary>
             SCREEN_FLASH,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#snd_play-0x08
+            /// </summary>
             SND_PLAY,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#removed-0x09
+            /// </summary>
             REMOVED,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#unknown0a-0x0a
+            /// </summary>
             UNKNOWN0A,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bgm_play-0x0b
+            /// </summary>
             BGM_PLAY,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#vce_play-0x0c
+            /// </summary>
             VCE_PLAY,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#flag-0x0d
+            /// </summary>
             FLAG,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#topic_get-0x0e
+            /// </summary>
             TOPIC_GET,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#toggle_dialogue-0x0f
+            /// </summary>
             TOGGLE_DIALOGUE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#select-0x10
+            /// </summary>
             SELECT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_shake-0x11
+            /// </summary>
             SCREEN_SHAKE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_shake_stop-0x12
+            /// </summary>
             SCREEN_SHAKE_STOP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#goto-0x13
+            /// </summary>
             GOTO,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#scene_goto-0x14
+            /// </summary>
             SCENE_GOTO,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#wait-0x15
+            /// </summary>
             WAIT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#hold-0x16
+            /// </summary>
             HOLD,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#noop1-0x17
+            /// </summary>
             NOOP1,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#vgoto-0x18
+            /// </summary>
             VGOTO,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#haruhi_meter-0x19
+            /// </summary>
             HARUHI_METER,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#haruhi_meter_noshow-0x1a
+            /// </summary>
             HARUHI_METER_NOSHOW,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#paleffect-0x1b
+            /// </summary>
             PALEFFECT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_fade-0x1c
+            /// </summary>
             BG_FADE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#trans_out-0x1d
+            /// </summary>
             TRANS_OUT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#trans_in-0x1e
+            /// </summary>
             TRANS_IN,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#set_place-0x1f
+            /// </summary>
             SET_PLACE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#item_dispimg-0x20
+            /// </summary>
             ITEM_DISPIMG,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#back-0x21
+            /// </summary>
             BACK,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#stop-0x22
+            /// </summary>
             STOP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#noop2-0x23
+            /// </summary>
             NOOP2,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#load_isomap-0x24
+            /// </summary>
             LOAD_ISOMAP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#invest_start-0x25
+            /// </summary>
             INVEST_START,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#invest_end-0x26
+            /// </summary>
             INVEST_END,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chibi_emote-0x27
+            /// </summary>
             CHIBI_EMOTE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#next_scene-0x28
+            /// </summary>
             NEXT_SCENE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#skip_scene-0x29
+            /// </summary>
             SKIP_SCENE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#modify_friendship-0x2a
+            /// </summary>
             MODIFY_FRIENDSHIP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chibi_enterexit-0x2b
+            /// </summary>
             CHIBI_ENTEREXIT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#avoid_disp-0x2c
+            /// </summary>
             AVOID_DISP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#global2d-0x2d
+            /// </summary>
             GLOBAL2D,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_load-0x2e
+            /// </summary>
             CHESS_LOAD,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_vgoto-0x2f
+            /// </summary>
             CHESS_VGOTO,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_move-0x30
+            /// </summary>
             CHESS_MOVE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_toggle_guide-0x31
+            /// </summary>
             CHESS_TOGGLE_GUIDE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_toggle_highlight-0x32
+            /// </summary>
             CHESS_TOGGLE_HIGHLIGHT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_toggle_cross-0x33
+            /// </summary>
             CHESS_TOGGLE_CROSS,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_clear_annotations-0x34
+            /// </summary>
             CHESS_CLEAR_ANNOTATIONS,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_reset-0x35
+            /// </summary>
             CHESS_RESET,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#scene_goto2-0x36
+            /// </summary>
             SCENE_GOTO2,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#epheader-0x37
+            /// </summary>
             EPHEADER,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#noop3-0x38
+            /// </summary>
             NOOP3,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#confetti-0x39
+            /// </summary>
             CONFETTI,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_dispcg-0x3a
+            /// </summary>
             BG_DISPCG,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_scroll-0x3b
+            /// </summary>
             BG_SCROLL,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#op_mode-0x3c
+            /// </summary>
             OP_MODE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#wait_cancel-0x3d
+            /// </summary>
             WAIT_CANCEL,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_revert-0x3e
+            /// </summary>
             BG_REVERT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_disp2-0x3f
+            /// </summary>
             BG_DISP2
         }
 
@@ -255,12 +469,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         private const int DIALOGUE_LINE_LENGTH = 230;
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
 
             NumSections = BitConverter.ToInt32(decompressedData.Take(4).ToArray());
             for (int i = 0; i < NumSections; i++)
@@ -558,7 +773,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             InitializeDialogueAndEndPointers(decompressedData, offset);
         }
 
-        protected void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset, bool @override = false)
+        internal void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset, bool @override = false)
         {
             if (Name != "CHESSS" && Name != "EVTTBLS" && Name != "TOPICS" && Name != "SCENARIOS" && Name != "TUTORIALS" && Name != "VOICEMAPS"
                 && Name != "MESSS"
@@ -576,7 +791,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     }
 
                     DramatisPersonae.TryGetValue(speakerPointer, out string speakerName);
-                    DialogueLines.Add(new DialogueLine((Speaker)character, speakerName, speakerPointer, dialoguePointer, Data.ToArray()));
+                    DialogueLines.Add(new DialogueLine((Speaker)character, speakerName, speakerPointer, dialoguePointer, [.. Data]));
                 }
             }
 
@@ -631,7 +846,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             DialogueLines.Clear();
             for (int i = 0; i < EndPointerPointers.Count; i++)
             {
-                DialogueLines.Add(new DialogueLine(Speaker.INFO, "INFO", 0, EndPointerPointers[i], Data.ToArray()));
+                DialogueLines.Add(new DialogueLine(Speaker.INFO, "INFO", 0, EndPointerPointers[i], [.. Data]));
             }
         }
 
@@ -837,18 +1052,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     {
                         type = "choice";
                     }
-                    _log.LogWarning($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[0..Math.Min(15, dialogueText.Length - 1)]})");
+                    Log.LogWarning($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[0..Math.Min(15, dialogueText.Length - 1)]})");
                 }
 
                 EditDialogueLine(dialogueIndex, dialogueText);
             }
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{Index:X3} {Index:D3} 0x{Offset:X8} '{Name}'";
         }
 
+        /// <inheritdoc/>
         public string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             if (Name == "CHESSS")
@@ -862,7 +1079,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             else if (Name == "SCENARIOS")
             {
                 InitializeScenarioFile();
-                return Scenario.GetSource(includes, _log);
+                return Scenario.GetSource(includes, Log);
             }
             else if (Name == "TOPICS")
             {
@@ -1160,6 +1377,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public IEventSection<object> Section { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"0x{Pointer:X8}, {ItemCount}";
@@ -1174,6 +1392,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         internal const int SETTINGS_LENGTH = 0x128;
 
         internal int EventNamePointer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int NumUnknown01 { get; private set; }
         internal int UnknownSection01Pointer { get; set; } // probably straight up unused
         /// <summary>
@@ -1181,6 +1402,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public int NumInteractableObjects { get; private set; }
         internal int InteractableObjectsPointer { get; set; } // potentially something to do with flag setting after you've investigated something
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int NumUnknown03 { get; private set; }
         internal int UnknownSection03Pointer { get; set; } // probably straight up unused
         /// <summary>
@@ -1193,8 +1417,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public int NumMapCharacterSections { get; private set; }
         internal int MapCharactersSectionPointer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int NumUnknown06 { get; private set; }
         internal int UnknownSection06Pointer { get; set; } // probably straigt up unused
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int NumUnknown07 { get; private set; }
         internal int UnknownSection07Pointer { get; set; } // more flags stuff (investigation-related)
         /// <summary>
@@ -1202,10 +1432,22 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public int NumChoices { get; private set; }
         internal int ChoicesSectionPointer { get; set; }
+        /// <summary>
+        /// Unused
+        /// </summary>
         public int Unused44 { get; set; }
+        /// <summary>
+        /// Unused
+        /// </summary>
         public int Unused48 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int NumUnknown09 { get; private set; }
         internal int UnknownSection09Pointer { get; set; } // maybe unused
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int NumUnknown10 { get; private set; }
         internal int UnknownSection10Pointer { get; set; } // seems unused
         /// <summary>
@@ -1360,6 +1602,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             SpeakerIndex = script.DramatisPersonaeSections.Count;
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return Text;
@@ -1371,30 +1614,105 @@ namespace HaruhiChokuretsuLib.Archive.Event
     /// </summary>
     public enum Speaker
     {
+        /// <summary>
+        /// Kyon
+        /// </summary>
         KYON = 0x01,
+        /// <summary>
+        /// Haruhi Suzumiya
+        /// </summary>
         HARUHI = 0x02,
+        /// <summary>
+        /// Mikuru Asahina
+        /// </summary>
         MIKURU = 0x03,
+        /// <summary>
+        /// Yuki Nagato
+        /// </summary>
         NAGATO = 0x04,
+        /// <summary>
+        /// Itsuki Koizumi
+        /// </summary>
         KOIZUMI = 0x05,
+        /// <summary>
+        /// Kyon's Little Sister
+        /// </summary>
         KYON_SIS = 0x06,
+        /// <summary>
+        /// Tsuruya-san
+        /// </summary>
         TSURUYA = 0x07,
+        /// <summary>
+        /// Taniguchi
+        /// </summary>
         TANIGUCHI = 0x08,
+        /// <summary>
+        /// Kunikida
+        /// </summary>
         KUNIKIDA = 0x09,
+        /// <summary>
+        /// The Computer Research Society President
+        /// </summary>
         CLUB_PRES = 0x0A,
+        /// <summary>
+        /// Computer Research Society Member A
+        /// </summary>
         CLUB_MEM_A = 0x0B,
+        /// <summary>
+        /// Computer Research Society Member B
+        /// </summary>
         CLUB_MEM_B = 0x0C,
+        /// <summary>
+        /// Computer Research Society Member C
+        /// </summary>
         CLUB_MEM_C = 0x0D,
+        /// <summary>
+        /// Computer Research Society Member D
+        /// </summary>
         CLUB_MEM_D = 0x0E,
+        /// <summary>
+        /// Okabe-sensei
+        /// </summary>
         OKABE = 0x0F,
+        /// <summary>
+        /// Captain of the baseball team
+        /// </summary>
         BASEBALL_CAPTAIN = 0x10,
+        /// <summary>
+        /// Grocer
+        /// </summary>
         GROCER = 0x11,
+        /// <summary>
+        /// Mystery Girl
+        /// </summary>
         GIRL = 0x12,
+        /// <summary>
+        /// Old Lady
+        /// </summary>
         OLD_LADY = 0x13,
+        /// <summary>
+        /// Fake Haruhi
+        /// </summary>
         FAKE_HARUHI = 0x14,
+        /// <summary>
+        /// A stray cat
+        /// </summary>
         STRAY_CAT = 0x15,
+        /// <summary>
+        /// ???
+        /// </summary>
         UNKNOWN = 0x16,
+        /// <summary>
+        /// Info
+        /// </summary>
         INFO = 0x17,
+        /// <summary>
+        /// Kyon's monologue
+        /// </summary>
         MONOLOGUE = 0x18,
+        /// <summary>
+        /// Text message
+        /// </summary>
         MAIL = 0x19,
     }
 }

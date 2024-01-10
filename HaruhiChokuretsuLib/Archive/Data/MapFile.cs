@@ -25,7 +25,13 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// Map file's settings
         /// </summary>
         public MapFileSettings Settings { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public List<UnknownMapObject2> UnknownMapObject2s { get; set; } = [];
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public List<UnknownMapObject3> UnknownMapObject3s { get; set; } = [];
         /// <summary>
         /// List of interactable objects found on the map
@@ -35,14 +41,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// A 2D byte-array representing the pathing/walkability of each space on the map
         /// </summary>
         public byte[][] PathingMap { get; set; }
-
+        
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
 
             NumSections = BitConverter.ToInt32(Data.Take(4).ToArray());
             EndPointersOffset = BitConverter.ToInt32(Data.Skip(0x04).Take(4).ToArray());
@@ -222,6 +229,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             };
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             StringBuilder sb = new();
@@ -339,10 +347,25 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// (specifically, the ScreenX and ScreenY properties of the specified entry define the map size)
         /// </summary>
         public int LayoutSizeDefinitionIndex { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown18 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownLayoutIndex1C { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownLayoutIndex20 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownLayoutIndex24 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown28 { get; set; }
         /// <summary>
         /// The index of the layout layer at which the background image starts
@@ -352,6 +375,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// The index of the layout layer at which the background image ends
         /// </summary>
         public int BackgroundLayoutEndIndex { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown34 { get; set; }
         /// <summary>
         /// The color of the top of the background gradient
@@ -361,8 +387,17 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// The color of the bottom of the background gradient
         /// </summary>
         public SKColor BottomGradient { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownLayoutIndex40 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown44 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown48 { get; set; }
         /// <summary>
         /// The starting position (in terms of tiles) of the player character
@@ -376,7 +411,13 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// If the map uses palette animation, this is the grp.bin index of that animation file
         /// </summary>
         public int PaletteAnimationFileIndex { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown5C { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown2Count { get; internal set; }
         internal int Unknown2SectionPointer { get; set; }
         /// <summary>
@@ -385,6 +426,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public int InteractableObjectsCount { get; internal set; }
         internal int InteractableObjectsSectionPointer { get; set; }
         internal int WalkabilityMapPointer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown3Count { get; internal set; }
         internal int Unknown3SectionPointer { get; set; }
 
@@ -469,9 +513,18 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class UnknownMapObject2(IEnumerable<byte> data)
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort1 { get; set; } = BitConverter.ToInt16(data.Take(2).ToArray());
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort2 { get; set; } = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
 
         internal string GetAsm(int indent)
@@ -484,10 +537,22 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class UnknownMapObject3(IEnumerable<byte> data)
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort1 { get; set; } = BitConverter.ToInt16(data.Take(2).ToArray());
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort2 { get; set; } = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort3 { get; set; } = BitConverter.ToInt16(data.Skip(4).Take(2).ToArray());
 
         internal string GetAsm(int indent)

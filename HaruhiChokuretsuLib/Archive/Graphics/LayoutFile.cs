@@ -139,11 +139,17 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
     /// </summary>
     public class LayoutEntry
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort1 { get; set; }
         /// <summary>
         /// Index of the texture to use
         /// </summary>
         public short RelativeShtxIndex { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort2 { get; set; }
         /// <summary>
         /// X position of the cropped texture on the screen
@@ -177,6 +183,9 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// Height of the cropped texture on the screen
         /// </summary>
         public short ScreenH { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort3 { get; set; }
         /// <summary>
         /// Color to tint the texture while rendering
@@ -215,6 +224,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Tint = new(tint);
         }
 
+        /// <summary>
+        /// Gets binary representation of the layout
+        /// </summary>
+        /// <returns>Byte array of that binary representation</returns>
         public byte[] GetBytes()
         {
             List<byte> data =
@@ -236,6 +249,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return [.. data];
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"Index: {RelativeShtxIndex}; TX: {TextureX} {TextureY} {TextureX + TextureW} {TextureY + TextureH}, SC: {ScreenX} {ScreenY} {ScreenX + ScreenW} {ScreenY + ScreenH}";

@@ -57,26 +57,38 @@ namespace HaruhiChokuretsuLib.Font
             return _fontReplacements.FirstOrDefault(f => f.OriginalCharacter == key);
         }
 
+        /// <inheritdoc/>
         public ICollection<char> Keys => (ICollection<char>)_fontReplacements.Select(f => f.ReplacedCharacter);
 
+        /// <inheritdoc/>
         public ICollection<FontReplacement> Values => _fontReplacements;
 
+        /// <inheritdoc/>
         public int Count => _fontReplacements.Count;
 
+        /// <inheritdoc/>
         public bool IsReadOnly => false;
 
+        /// <summary>
+        /// Gets a replacement character given an original character
+        /// </summary>
+        /// <param name="originalCharacter">The original character to get</param>
+        /// <returns></returns>
         public FontReplacement GetReplacementCharacter(char originalCharacter) => _fontReplacements.FirstOrDefault(f => f.OriginalCharacter == originalCharacter);
 
+        /// <inheritdoc/>
         public void Add(FontReplacement value)
         {
             _fontReplacements.Add(value);
         }
 
+        /// <inheritdoc/>
         public void AddRange(IEnumerable<FontReplacement> values)
         {
             _fontReplacements.AddRange(values);
         }
 
+        /// <inheritdoc/>
         public void Add(char key, FontReplacement value)
         {
             if (key != value.ReplacedCharacter)
@@ -86,36 +98,43 @@ namespace HaruhiChokuretsuLib.Font
             _fontReplacements.Add(value);
         }
 
+        /// <inheritdoc/>
         public void Add(KeyValuePair<char, FontReplacement> item)
         {
             Add(item.Key, item.Value);
         }
 
+        /// <inheritdoc/>
         public void Clear()
         {
             _fontReplacements.Clear();
         }
 
+        /// <inheritdoc/>
         public bool Contains(KeyValuePair<char, FontReplacement> item)
         {
             return _fontReplacements.Contains(item.Value);
         }
 
+        /// <inheritdoc/>
         public bool ContainsKey(char key)
         {
             return _fontReplacements.Any(f => f.ReplacedCharacter == key);
         }
 
+        /// <inheritdoc/>
         public void CopyTo(KeyValuePair<char, FontReplacement>[] array, int arrayIndex)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public IEnumerator<KeyValuePair<char, FontReplacement>> GetEnumerator()
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public bool Remove(char key)
         {
             int index = _fontReplacements.FindIndex(f => f.ReplacedCharacter == key);
@@ -130,11 +149,13 @@ namespace HaruhiChokuretsuLib.Font
             }
         }
 
+        /// <inheritdoc/>
         public bool Remove(KeyValuePair<char, FontReplacement> item)
         {
             return _fontReplacements.Remove(item.Value);
         }
 
+        /// <inheritdoc/>
         public bool TryGetValue(char key, [MaybeNullWhen(false)] out FontReplacement value)
         {
             if (ContainsKey(key))

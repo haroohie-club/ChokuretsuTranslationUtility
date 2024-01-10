@@ -47,7 +47,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                         FileFunction = Function.SHTX,
                         ImageForm = Form.TEXTURE,
                         ImageTileForm = TileForm.GBA_8BPP,
-                        _log = _log,
+                        Log = Log,
                         Palette = texture.Palette
                     };
                     if (frame.Palette.Count > 0)
@@ -80,17 +80,17 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                             {
                                 case 1:
                                     texture.SetPalette(texture.Palette.RotateSectionRight(animationEntry.PaletteOffset, animationEntry.SwapAreaSize).ToList(), suppressOutput: true);
-                                    texture.Data = texture.GetBytes().ToList();
+                                    texture.Data = [.. texture.GetBytes()];
                                     break;
                                 case 2:
                                     texture.SetPalette(texture.Palette.RotateSectionLeft(animationEntry.PaletteOffset, animationEntry.SwapAreaSize).ToList(), suppressOutput: true);
-                                    texture.Data = texture.GetBytes().ToList();
+                                    texture.Data = [.. texture.GetBytes()];
                                     break;
                                 case 3:
-                                    _log.LogError($"Case 3 animation frames not implemented.");
+                                    Log.LogError($"Case 3 animation frames not implemented.");
                                     break;
                                 default:
-                                    _log.LogError($"Invalid animation type on palette rotation animation entry ({animationEntry.AnimationType})");
+                                    Log.LogError($"Invalid animation type on palette rotation animation entry ({animationEntry.AnimationType})");
                                     break;
                             }
                         }
@@ -208,17 +208,17 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                         iterator = 0;
                     }
                     texture.SetPalette(texture.Palette, suppressOutput: true);
-                    texture.Data = texture.GetBytes().ToList();
+                    texture.Data = [.. texture.GetBytes()];
                     graphicFrames.Add(texture.CastTo<GraphicsFile>());
 
                     if (f == 0)
                     {
-                        originalPalette = texture.Palette.ToArray();
+                        originalPalette = [.. texture.Palette];
                     }
                     else if (f > 0 && !changedOnce && !graphicFrames[f].Palette.SequenceEqual(originalPalette))
                     {
                         changedOnce = true;
-                        originalPalette = texture.Palette.ToArray();
+                        originalPalette = [.. texture.Palette];
                     }
                     else if (f > 0 && changedOnce && !changedTwice && !graphicFrames[f].Palette.SequenceEqual(originalPalette))
                     {
@@ -244,12 +244,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         {
             if (framesAndTimings is null || framesAndTimings.Count == 0)
             {
-                _log.LogError("No frames provided!");
+                Log.LogError("No frames provided!");
                 return null;
             }
             if (framesAndTimings.DistinctBy(ft => ft.Frame.Width).Count() > 1 || framesAndTimings.DistinctBy(ft => ft.Frame.Height).Count() > 1)
             {
-                _log.LogError("Frames are not all the same width/height!");
+                Log.LogError("Frames are not all the same width/height!");
                 return null;
             }
 
@@ -288,7 +288,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 FileFunction = Function.SHTX,
                 ImageForm = Form.TEXTURE,
                 ImageTileForm = TileForm.GBA_8BPP,
-                _log = _log,
+                Log = Log,
                 Palette = palette,
                 Width = newTextureBitmap.Width,
                 Height = newTextureBitmap.Height,
@@ -362,6 +362,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Time = IO.ReadShort(data, 8);
         }
 
+        /// <summary>
+        /// Gets binary representation of this frame animation entry
+        /// </summary>
+        /// <returns>Byte array of the frame animation entry data</returns>
         public List<byte> GetBytes()
         {
             List<byte> bytes =
@@ -390,13 +394,32 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// A little complicated, but an array of colors that helps determine the animation
         /// </summary>
         public List<short> ColorArray { get; set; } = [];
+        /// <summary>
+        /// Red shift component
+        /// </summary>
         public short RedComponent { get; set; }
+        /// <summary>
+        /// Green shift component
+        /// </summary>
         public short GreenComponent { get; set; }
+        /// <summary>
+        /// Blue shift component
+        /// </summary>
         public short BlueComponent { get; set; }
+        /// <summary>
+        /// Overall color shift
+        /// </summary>
         public short Color { get; set; }
 
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int NumColors { get; set; }
 
+        /// <summary>
+        /// Creates a palette color animation entry from data
+        /// </summary>
+        /// <param name="data">Data from animation file</param>
         public PaletteColorAnimationEntry(IEnumerable<byte> data)
         {
             PaletteOffset = IO.ReadShort(data, 0);
@@ -412,6 +435,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Color = IO.ReadShort(data, 0xCA);
         }
 
+        /// <summary>
+        /// Shift the colors on a graphics file for color animation
+        /// </summary>
+        /// <param name="texture"></param>
         public void Prepare(GraphicsFile texture)
         {
             ColorIndexer = 0;
@@ -430,6 +457,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Color = (short)((ushort)RedComponent | (ushort)(GreenComponent << 5) | (ushort)(BlueComponent << 10));
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"CAN Off: {PaletteOffset:X4} Unk: {Determinant:X4}";
@@ -462,6 +490,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         public short AnimationType { get; set; } = IO.ReadShort(data, 0x06);
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"PAN Off: {PaletteOffset:X4} Type: {AnimationType} FPT: {FramesPerTick} Size: {SwapSize}x{SwapAreaSize}";

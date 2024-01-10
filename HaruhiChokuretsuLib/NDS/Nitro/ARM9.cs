@@ -68,7 +68,7 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
             List<byte> moduleParamsBytes = _start_ModuleParams.GetBytes();
             bytes.RemoveRange((int)_start_ModuleParamsOffset, moduleParamsBytes.Count);
             bytes.InsertRange((int)_start_ModuleParamsOffset, moduleParamsBytes);
-            return bytes.ToArray();
+            return [.. bytes];
         }
 
         public void AddAutoLoadEntry(uint address, byte[] data)
@@ -106,13 +106,13 @@ namespace HaruhiChokuretsuLib.NDS.Nitro
         {
             if (address > _ramAddress && address < _start_ModuleParams.AutoLoadStart)
             {
-                return BitConverter.ToUInt32(_staticData.ToArray(), (int)(address - _ramAddress));
+                return BitConverter.ToUInt32([.. _staticData], (int)(address - _ramAddress));
             }
             foreach (var v in _autoLoadList)
             {
                 if (address > v.Address && address < (v.Address + v.Size))
                 {
-                    return BitConverter.ToUInt32(v.Data.ToArray(), (int)(address - v.Address));
+                    return BitConverter.ToUInt32([.. v.Data], (int)(address - v.Address));
                 }
             }
             return 0xFFFFFFFF;

@@ -49,7 +49,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //Set raw data.
-            RawData = data.ToArray();
+            RawData = [.. data];
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //Return the list.
-            return l.ToArray();
+            return [.. l];
 
         }
 

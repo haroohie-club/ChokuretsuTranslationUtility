@@ -19,14 +19,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public List<CharacterSprite> Sprites { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
 
             int numSections = IO.ReadInt(decompressedData, 0);
             if (numSections != 1)
             {
-                _log.LogError($"Character data file should only have 1 section; {numSections} specified");
+                Log.LogError($"Character data file should only have 1 section; {numSections} specified");
                 return;
             }
             int sectionStart = IO.ReadInt(decompressedData, 0x0C);
@@ -38,11 +39,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             if (!includes.ContainsKey("GRPBIN"))
             {
-                _log.LogError("Includes needs GRPBIN to be present.");
+                Log.LogError("Includes needs GRPBIN to be present.");
                 return null;
             }
 
@@ -90,6 +92,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// </summary>
     public class CharacterSprite(IEnumerable<byte> data)
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown00 { get; set; } = IO.ReadShort(data, 0);
         /// <summary>
         /// Is true if the sprite is large

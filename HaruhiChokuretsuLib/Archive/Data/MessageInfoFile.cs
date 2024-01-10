@@ -15,14 +15,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public List<MessageInfo> MessageInfos { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
 
             int numSections = IO.ReadInt(decompressedData, 0);
             if (numSections != 1)
             {
-                _log.LogError($"MESSAGEINFO file should only have 1 section; {numSections} specified.");
+                Log.LogError($"MESSAGEINFO file should only have 1 section; {numSections} specified.");
                 return;
             }
 
@@ -41,6 +42,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             StringBuilder sb = new();
@@ -96,6 +98,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// the lower this value, the faster text is displayed
         /// </summary>
         public short TextTimer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown { get; set; }
     }
 }

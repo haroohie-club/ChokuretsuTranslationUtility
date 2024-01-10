@@ -20,7 +20,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             InitializeDialogueForSpecialFiles();
             for (int i = 0; i < DialogueLines.Count; i += 2)
             {
-                Topics.Add(new(i, DialogueLines[i].Text, Data.Skip(0x14 + i / 2 * 0x24).Take(0x24).ToArray(), _log));
+                Topics.Add(new(i, DialogueLines[i].Text, Data.Skip(0x14 + i / 2 * 0x24).Take(0x24).ToArray(), Log));
                 Topics[^1].Description = Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(Topics[^1].TopicDescriptionPointer).TakeWhile(b => b != 0).ToArray());
             }
         }
@@ -65,7 +65,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// The base time gain (modified by the various time percentages depending on the character accompanying Haruhi)
         /// </summary>
         public short BaseTimeGain { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort03 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort04 { get; set; }
         /// <summary>
         /// If Kyon is accompanying Haruhi, the time gain for this topic will be this parameter * BaseTimeGain / 100.0
@@ -83,6 +89,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// If Koizumi is accompanying Haruhi, the time gain for this topic will be this parameter * BaseTimeGain / 100.0
         /// </summary>
         public short KoizumiTimePercentage { get; set; }
+        /// <summary>
+        /// Just padding
+        /// </summary>
         public short Padding { get; set; }
         internal int TopicTitlePointer { get; set; }
         internal int TopicDescriptionPointer { get; set; }
@@ -131,6 +140,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             TopicDescriptionPointer = IO.ReadInt(data, 0x20);
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"0x{Id:X4} '{Title}'";
@@ -162,6 +172,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Converts the topic data to a line in a CSV file
+        /// </summary>
+        /// <returns>A string containing the CSV formatted information about this topic</returns>
         public string ToCsvLine()
         {
             return $"{TopicDialogueIndex},{Title},{Id:X4},{EventIndex}";
@@ -173,11 +187,29 @@ namespace HaruhiChokuretsuLib.Archive.Event
     /// </summary>
     public enum TopicCardType : short
     {
+        /// <summary>
+        /// Main topic
+        /// </summary>
         Main = 0x00,
+        /// <summary>
+        /// Haruhi topic
+        /// </summary>
         Haruhi = 0x01,
+        /// <summary>
+        /// Mikuru topic
+        /// </summary>
         Mikuru = 0x02,
+        /// <summary>
+        /// Nagato topic
+        /// </summary>
         Nagato = 0x03,
+        /// <summary>
+        /// Koizumi topic
+        /// </summary>
         Koizumi = 0x04,
+        /// <summary>
+        /// Sub-topic
+        /// </summary>
         Sub = 0x05,
     }
 
@@ -186,9 +218,21 @@ namespace HaruhiChokuretsuLib.Archive.Event
     /// </summary>
     public enum TopicType : short
     {
+        /// <summary>
+        /// Main topic
+        /// </summary>
         Main = 0x00,
+        /// <summary>
+        /// Haruhi topic
+        /// </summary>
         Haruhi = 0x01,
+        /// <summary>
+        /// Character topic
+        /// </summary>
         Character = 0x02,
+        /// <summary>
+        /// Sub-topic
+        /// </summary>
         Sub = 0x03,
     }
 
@@ -197,10 +241,25 @@ namespace HaruhiChokuretsuLib.Archive.Event
     /// </summary>
     public enum TopicCategory : short
     {
+        /// <summary>
+        /// Main topic
+        /// </summary>
         Main = 0x00,
+        /// <summary>
+        /// Sub-topic
+        /// </summary>
         Sub = 0x01,
+        /// <summary>
+        /// Character topic
+        /// </summary>
         Character = 0x03,
+        /// <summary>
+        /// Haruhi topic
+        /// </summary>
         Haruhi = 0x04,
+        /// <summary>
+        /// Hidden topic
+        /// </summary>
         Hidden = 0x05,
     }
 }

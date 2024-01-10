@@ -5,13 +5,34 @@ using System.Linq;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Enum describing background image types in BGTBL.S
+    /// </summary>
     public enum BgType
     { 
+        /// <summary>
+        /// Kinetic screen images are scrolling images used on the top screen
+        /// </summary>
         KINETIC_SCREEN = 0,
+        /// <summary>
+        /// TEX_BG images are two-component visual novel background textures used on the bottom screen
+        /// </summary>
         TEX_BG = 1,
+        /// <summary>
+        /// TEX_CG images are CGs two-component CGs used on the bottom screen
+        /// </summary>
         TEX_CG = 0x0A,
+        /// <summary>
+        /// Dual screen CGs are two-component images displayed on both screens capable of being scrolled up and down
+        /// </summary>
         TEX_CG_DUAL_SCREEN = 0x0B,
+        /// <summary>
+        /// Wide CGs are two-component CGs capable of being scrolled left and right
+        /// </summary>
         TEX_CG_WIDE = 0x0C,
+        /// <summary>
+        /// Single CGs are single-component CGs capable of being scrolled up and down
+        /// </summary>
         TEX_CG_SINGLE = 0x0E,
     }
 
@@ -25,11 +46,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public List<BgTableEntry> BgTableEntries { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
 
             int startIndex = BitConverter.ToInt32(Data.Skip(0x0C).Take(4).ToArray());
             int numBgs = BitConverter.ToInt32(Data.Skip(0x10).Take(4).ToArray());
@@ -45,6 +67,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             HashSet<string> names = [];

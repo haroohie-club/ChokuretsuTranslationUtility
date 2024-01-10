@@ -2,13 +2,18 @@
 
 namespace HaruhiChokuretsuLib.Util
 {
+    /// <summary>
+    /// ILogger implementation for logging directly to the console
+    /// </summary>
     public class ConsoleLogger : ILogger
     {
+        /// <inheritdoc/>
         public void Log(string message)
         {
             Console.WriteLine(message);
         }
 
+        /// <inheritdoc/>
         public void LogError(string message, bool lookForWarnings = false)
         {
             if (!string.IsNullOrEmpty(message))
@@ -29,6 +34,7 @@ namespace HaruhiChokuretsuLib.Util
             }
         }
 
+        /// <inheritdoc/>
         public void LogWarning(string message, bool lookForErrors = false)
         {
             {
@@ -51,6 +57,7 @@ namespace HaruhiChokuretsuLib.Util
             }
         }
 
+        /// <inheritdoc/>
         public void LogException(string message, Exception exception)
         {
             LogError($"{message}: {exception.Message}\n\n{exception.StackTrace}");

@@ -22,7 +22,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
             XDocument romInfo = XDocument.Load(romInfoPath);
 
             Name = Path.GetFileNameWithoutExtension(file);
-            Data = File.ReadAllBytes(file).ToList();
+            Data = [.. File.ReadAllBytes(file)];
             // Every overlay seems to have functions that write an integer directly after the end of the overlay.
             // This ensures that when we begin appending, we don't have any code get overwritten.
             Data.AddRange(new byte[4]);
@@ -34,7 +34,7 @@ namespace HaruhiChokuretsuLib.NDS.Overlay
 
         public void Save(string file)
         {
-            File.WriteAllBytes(file, Data.ToArray());
+            File.WriteAllBytes(file, [.. Data]);
         }
 
         public void Patch(uint address, byte[] patchData)

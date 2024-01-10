@@ -73,7 +73,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //Set raw data.
-            RawData = data.ToArray();
+            RawData = [.. data];
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             w.InitBlock("DATA");
 
             //Write each sequence.
-            Sequences = Sequences.OrderBy(x => x.Index).ToList();
+            Sequences = [.. Sequences.OrderBy(x => x.Index)];
             if (Sequences.Count > 0)
             {
                 w.Write((uint)(0x20 + 12 * (Sequences.Last().Index + 1)));
@@ -199,7 +199,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //Return the list.
-            return l.ToArray();
+            return [.. l];
 
         }
 
@@ -232,7 +232,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             List<int> labelLines = new List<int>();
 
             //Format text.
-            List<string> t = text.ToList();
+            List<string> t = [.. text];
             int comNum = 0;
             for (int i = t.Count - 1; i >= 0; i--)
             {

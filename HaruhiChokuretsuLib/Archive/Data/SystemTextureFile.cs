@@ -13,6 +13,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
         internal int NumSections { get; set; }
         internal int EndPointersOffset { get; set; }
         internal int HeaderEndOffset { get; set; }
+        /// <summary>
+        /// Data file sections
+        /// </summary>
         public List<DataFileSection> SectionOffsetsAndCounts { get; set; } = [];
 
         /// <summary>
@@ -24,14 +27,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public List<short> LoadOrders { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
 
             NumSections = IO.ReadInt(decompressedData, 0x00);
             if (NumSections != 2)
             {
-                _log.LogError($"SYSTEX.S should only have 2 sections but {NumSections} were detected.");
+                Log.LogError($"SYSTEX.S should only have 2 sections but {NumSections} were detected.");
                 return;
             }
             EndPointersOffset = IO.ReadInt(decompressedData, 0x04);
@@ -51,6 +55,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             StringBuilder sb = new();
@@ -144,13 +149,25 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// The method by which the texture should be loaded (not well-understood at this point)
         /// </summary>
         public short LoadMethod { get; set; } = IO.ReadShort(data, 0x0C);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown0E { get; set; } = IO.ReadShort(data, 0x0E);
         /// <summary>
         /// The name of this parameter is known through debug strings found in the binary, but exactly what it does is not quite understood at this point
         /// </summary>
         public ushort MaxVram { get; set; } = IO.ReadUShort(data, 0x10);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown12 { get; set; } = IO.ReadShort(data, 0x12);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public ushort Unknown14 { get; set; } = IO.ReadUShort(data, 0x14);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown16 { get; set; } = IO.ReadShort(data, 0x16);
         /// <summary>
         /// The index of the animation used by the system texture
@@ -164,10 +181,25 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// If a texture optimized for the top screen, the height of the tiles (used by the OAM)
         /// </summary>
         public short TileHeight { get; set; } = IO.ReadShort(data, 0x1C);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown1E { get; set; } = IO.ReadShort(data, 0x1E);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown20 { get; set; } = IO.ReadShort(data, 0x20);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown22 { get; set; } = IO.ReadShort(data, 0x22);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown24 { get; set; } = IO.ReadShort(data, 0x24);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown28 { get; set; } = IO.ReadShort(data, 0x28);
     }
 
@@ -176,7 +208,13 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// </summary>
     public enum SysTexScreen
     {
+        /// <summary>
+        /// NDS bottom screen
+        /// </summary>
         BOTTOM_SCREEN,
+        /// <summary>
+        /// NDS top screen
+        /// </summary>
         TOP_SCREEN,
     }
 }

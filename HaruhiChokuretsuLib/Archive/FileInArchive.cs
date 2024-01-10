@@ -1,31 +1,55 @@
 ﻿using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HaruhiChokuretsuLib.Archive
 {
+    /// <summary>
+    /// Base class for representing a file in a bin archive
+    /// </summary>
     public partial class FileInArchive
     {
-        public string Name { get; set; }
-        public uint MagicInteger { get; set; }
-        public int Index { get; set; }
-        public int Offset { get; set; }
-        public int Length { get; set; }
-        public List<byte> Data { get; set; }
-        public byte[] CompressedData { get; set; }
-        public bool Edited { get; set; } = false;
-        protected ILogger _log { get; set; }
-
         /// <summary>
-        /// Initializes the file
+        /// Name of the file in the archive
         /// </summary>
-        /// <param name="decompressedData">The file's decompressed data</param>
-        /// <param name="offset">The offset of the file in its archive</param>
-        /// <param name="log">An ILogger instance used for logging during initialization</param>
+        public string Name { get; set; }
+        /// <summary>
+        /// The file's magic integer in the archive
+        /// </summary>
+        public uint MagicInteger { get; set; }
+        /// <summary>
+        /// Index of the file in the archive
+        /// </summary>
+        public int Index { get; set; }
+        /// <summary>
+        /// Offset of the file in the archive
+        /// </summary>
+        public int Offset { get; set; }
+        /// <summary>
+        /// Decompressed length of the file
+        /// </summary>
+        public int Length { get; set; }
+        /// <summary>
+        /// Decompressed binary file data
+        /// </summary>
+        public List<byte> Data { get; set; }
+        /// <summary>
+        /// Compressed binary file data
+        /// </summary>
+        public byte[] CompressedData { get; set; }
+        /// <summary>
+        /// If true, the file has been edited and will need to be replaced when saving the archive
+        /// </summary>
+        public bool Edited { get; set; } = false;
+        /// <summary>
+        /// ILogger instance for logging
+        /// </summary>
+        protected ILogger Log { get; set; }
+
+        /// <inheritdoc/>
         public virtual void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
             Data = [.. decompressedData];
-            _log = log;
+            Log = log;
         }
         /// <summary>
         /// Gets the binary representation of the file
@@ -70,10 +94,12 @@ namespace HaruhiChokuretsuLib.Archive
                 CompressedData = CompressedData,
                 Edited = Edited
             };
-            newFile.Initialize([.. Data], Offset, _log);
+            newFile.Initialize([.. Data], Offset, Log);
 
             return newFile;
         }
+
+        /// <inheritdoc/>
         public override string ToString()
         {
             return Name;

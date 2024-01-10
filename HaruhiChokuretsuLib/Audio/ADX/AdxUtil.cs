@@ -9,38 +9,68 @@ using System.Threading;
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio.ADX
 {
+    /// <summary>
+    /// ADX loop info
+    /// </summary>
     public class LoopInfo
     {
+        /// <summary>
+        /// The start sample
+        /// </summary>
         public uint StartSample { get; set; }
+        /// <summary>
+        /// The last sample to play before looping to StartSample
+        /// </summary>
         public uint EndSample { get; set; }
     }
 
+    /// <summary>
+    /// ADX specification info
+    /// </summary>
     public struct AdxSpec
     {
+        /// <summary>
+        /// Number of channels
+        /// </summary>
         public uint Channels { get; set; }
+        /// <summary>
+        /// Sample rate
+        /// </summary>
         public uint SampleRate { get; set; }
+        /// <summary>
+        /// Loop info
+        /// </summary>
         public LoopInfo LoopInfo { get; set; }
     }
 
+    /// <summary>
+    /// Sample of audio data
+    /// </summary>
     public class Sample : List<short>
     {
+        /// <inheritdoc/>
         public Sample() : base()
         {
         }
 
+        /// <inheritdoc/>
         public Sample(IEnumerable<short> collection) : base(collection)
         {
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"({string.Join(',', this)})";
         }
     }
 
+    /// <summary>
+    /// Utility class for ADX operations
+    /// </summary>
     public static class AdxUtil
     {
-        public static (int, int) GenerateCoefficients(uint highpassFrequency, uint sampleRate)
+        internal static (int, int) GenerateCoefficients(uint highpassFrequency, uint sampleRate)
         {
             double highpassSamples = (double)highpassFrequency / sampleRate;
             double a = Math.Sqrt(2) - Math.Cos(2 * Math.PI * highpassSamples);
@@ -53,24 +83,49 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             return ((int)(coeff1 * 4096.0 + 0.5), (int)(coeff2 * 4096.0 + 0.5));
         }
 
-        public static int SignExtend(uint num, uint bits)
+        internal static int SignExtend(uint num, uint bits)
         {
             int bitsToShift = (int)(32 - bits);
             return (int)(num << bitsToShift) >> bitsToShift;
         }
 
+        /// <summary>
+        /// Encodes a WAV file as ADX
+        /// </summary>
+        /// <param name="wavFile">The WAV file to encode</param>
+        /// <param name="outputAdx">The output ADX file</param>
+        /// <param name="ahx">If true, use AHX encoding</param>
+        /// <param name="cancellationToken">(Optional) Cancellation token to cancel the operation</param>
         public static void EncodeWav(string wavFile, string outputAdx, bool ahx, CancellationToken? cancellationToken = null)
         {
             using WaveFileReader wav = new(wavFile);
             EncodeAudio(wav, outputAdx, ahx, cancellationToken: cancellationToken);
         }
 
+        /// <summary>
+        /// Encode a WAV file as ADX with loop data
+        /// </summary>
+        /// <param name="wavFile">The WAV file to encode</param>
+        /// <param name="outputAdx">The output ADX file</param>
+        /// <param name="loopEnabled">If true, looping is enabled</param>
+        /// <param name="loopStartSample">The start sample of the loop</param>
+        /// <param name="loopEndSample">The end sample of the loop</param>
+        /// <param name="cancellationToken">(Optional) Cancellation token to cancel the operation</param>
         public static void EncodeWav(string wavFile, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample, CancellationToken? cancellationToken = null)
         {
             using WaveFileReader wav = new(wavFile);
             EncodeAudio(wav, outputAdx, loopEnabled, loopStartSample, loopEndSample, cancellationToken);
         }
 
+        /// <summary>
+        /// Encodes audio from a WaveStream to an ADX file with loop data
+        /// </summary>
+        /// <param name="wav">The WaveStream to encode</param>
+        /// <param name="outputAdx">The output ADX file</param>
+        /// <param name="loopEnabled">If true, loop is enabled</param>
+        /// <param name="loopStartSample">The start sample of the loop</param>
+        /// <param name="loopEndSample">The end sample of the loop</param>
+        /// <param name="cancellationToken">(Optional) Cancellation token to cancel the operation</param>
         public static void EncodeAudio(WaveStream wav, string outputAdx, bool loopEnabled, uint loopStartSample, uint loopEndSample, CancellationToken? cancellationToken = null)
         {
             LoopInfo loopInfo;
@@ -89,6 +144,14 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             EncodeAudio(wav, outputAdx, false, loopInfo, cancellationToken);
         }
 
+        /// <summary>
+        /// Encodes audio from a WaveStream to an ADX file
+        /// </summary>
+        /// <param name="wav">The WaveStream to encode</param>
+        /// <param name="outputAdx">The output ADX file</param>
+        /// <param name="ahx">If true, use AHX encoding</param>
+        /// <param name="loopInfo">The loop info for looping the audio</param>
+        /// <param name="cancellationToken">(Optional) Cancellation token to cancel the operation</param>
         public static void EncodeAudio(WaveStream wav, string outputAdx, bool ahx, LoopInfo loopInfo = null, CancellationToken? cancellationToken = null)
         {
             using BinaryWriter writer = new(File.Create(outputAdx));
@@ -136,13 +199,13 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         }
     }
 
-    public class Prev<T>
+    internal class Prev<T>
     {
         public T First { get; set; }
         public T Second { get; set; }
     }
 
-    public class Block
+    internal class Block
     {
         public Prev<short> Prev { get; set; } = new() { First = 0, Second = 0 };
         public Prev<short> OriginalPrev { get; set; } = new() { First = 0, Second = 0 };
@@ -231,7 +294,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         }
     }
 
-    public class Frame
+    internal class Frame
     {
         public List<Block> Blocks { get; set; }
 
@@ -280,18 +343,11 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         }
     }
 
-    public class BitWriter
+    internal class BitWriter(BinaryWriter writer)
     {
-        public BinaryWriter Writer { get; set; }
-        public byte Byte { get; set; }
-        public int Bit { get; set; }
-
-        public BitWriter(BinaryWriter writer)
-        {
-            Writer = writer;
-            Byte = 0;
-            Bit = 0;
-        }
+        public BinaryWriter Writer { get; set; } = writer;
+        public byte Byte { get; set; } = 0;
+        public int Bit { get; set; } = 0;
 
         public void Reset()
         {

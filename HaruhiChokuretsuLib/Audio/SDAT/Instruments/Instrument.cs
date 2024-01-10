@@ -121,13 +121,37 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.Instruments
     /// </summary>
     public enum InstrumentType : byte
     {
+        /// <summary>
+        /// No instrument
+        /// </summary>
         Blank,
+        /// <summary>
+        /// PCM audio
+        /// </summary>
         PCM,
+        /// <summary>
+        /// PSG audio
+        /// </summary>
         PSG,
+        /// <summary>
+        /// Noise
+        /// </summary>
         Noise,
+        /// <summary>
+        /// Direct PCM audio
+        /// </summary>
         DirectPCM,
+        /// <summary>
+        /// Null
+        /// </summary>
         Null,
+        /// <summary>
+        /// Drum set
+        /// </summary>
         DrumSet = 16,
+        /// <summary>
+        /// Key split
+        /// </summary>
         KeySplit = 17
     }
 }

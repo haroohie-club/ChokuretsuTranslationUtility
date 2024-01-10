@@ -19,7 +19,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             int numSections = IO.ReadInt(Data, 0x00);
             if (numSections != 1)
             {
-                _log.LogError($"Tutorial file should have 1 section, {numSections} detected");
+                Log.LogError($"Tutorial file should have 1 section, {numSections} detected");
                 return;
             }
 

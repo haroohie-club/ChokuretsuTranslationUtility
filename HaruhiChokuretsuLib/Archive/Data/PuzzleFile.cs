@@ -26,16 +26,17 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public PuzzleSettings Settings { get; set; }
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Offset = offset;
             Data = [.. decompressedData];
 
             int numSections = IO.ReadInt(decompressedData, 0x00);
             if (numSections != 13)
             {
-                _log.LogError($"A puzzle file must have 13 sections but {numSections} were detected in one");
+                Log.LogError($"A puzzle file must have 13 sections but {numSections} were detected in one");
                 return;
             }
             int fileStart = IO.ReadInt(decompressedData, 0x08);
@@ -55,11 +56,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             if (!includes.TryGetValue("GRPBIN", out IncludeEntry[] grpBinInclude))
             {
-                _log.LogError("Includes needs GRPBIN to be present.");
+                Log.LogError("Includes needs GRPBIN to be present.");
                 return null;
             }
 
@@ -163,8 +165,17 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public enum RouteEventType : byte
         {
+            /// <summary>
+            /// No event occurs
+            /// </summary>
             NOTHING,
+            /// <summary>
+            /// A topic can be used
+            /// </summary>
             TOPIC,
+            /// <summary>
+            /// An accident occurs
+            /// </summary>
             ACCIDENT
         }
 
@@ -200,6 +211,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             string str = string.Empty;
@@ -241,6 +253,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// The number of singularities to place in the puzzle
         /// </summary>
         public int NumSingularities { get; set; } = IO.ReadInt(data, 0x08);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown04 { get; set; } = IO.ReadInt(data, 0x0C);
         /// <summary>
         /// The number of singularities which need to be cleared in order for the player to clear the puzzle
@@ -294,12 +309,26 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// The topic set to for this puzzle
         /// </summary>
         public int TopicSet { get; set; } = IO.ReadInt(data, 0x34);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown15 { get; set; } = IO.ReadInt(data, 0x38);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown16 { get; set; } = IO.ReadInt(data, 0x3C);
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown17 { get; set; } = IO.ReadInt(data, 0x40);
         internal int PointersSectionOffset { get; set; } = IO.ReadInt(data, 0x44);
 
-        public string GetMapName(List<byte> qmapData)
+        /// <summary>
+        /// Gets the name of the map by pulling from QMAP.S
+        /// </summary>
+        /// <param name="qmapData">QMap binary data</param>
+        /// <returns>The name of the map this puzzle uses</returns>
+        public string GetMapName(IEnumerable<byte> qmapData)
         {
             return Encoding.ASCII.GetString(
                 qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + MapId * 8).Take(4).ToArray()))

@@ -88,7 +88,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         {
             if (bitmap.Width != 256 || bitmap.Height != 192)
             {
-                _log.LogError("Screen image size must be 256x192");
+                Log.LogError("Screen image size must be 256x192");
                 return 256;
             }
 
@@ -112,7 +112,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 }
             }
 
-            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16, _log);
+            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16, Log);
             foreach (SKBitmap tile in tiles)
             {
                 for (int y = 0; y < tile.Height; y++)
@@ -135,7 +135,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 
             if (distinctTiles.Count > 255)
             {
-                _log.LogError($"Error attempting to replace screen image {Name} ({Index}): more than 256 tiles ({distinctTiles.Count}) generated from image; please use a less complex image");
+                Log.LogError($"Error attempting to replace screen image {Name} ({Index}): more than 256 tiles ({distinctTiles.Count}) generated from image; please use a less complex image");
                 return 256;
             }
 
@@ -202,10 +202,19 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             public ScreenTileFlip Flip { get; set; }
         }
 
+        /// <summary>
+        /// Direction to flip a screen tile
+        /// </summary>
         [Flags]
         public enum ScreenTileFlip : byte
         {
+            /// <summary>
+            /// Flip horizontally
+            /// </summary>
             HORIZONTAL = 0x04,
+            /// <summary>
+            /// Flip vertically
+            /// </summary>
             VERTICAL = 0x08,
         }
     }

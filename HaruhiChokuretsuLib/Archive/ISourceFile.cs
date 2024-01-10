@@ -2,6 +2,9 @@
 
 namespace HaruhiChokuretsuLib.Archive
 {
+    /// <summary>
+    /// Interface for files that can be represented as ARM assembly
+    /// </summary>
     public interface ISourceFile
     {
         /// <summary>

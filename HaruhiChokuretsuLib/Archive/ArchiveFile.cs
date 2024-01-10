@@ -15,6 +15,9 @@ namespace HaruhiChokuretsuLib.Archive
     public class ArchiveFile<T>
         where T : FileInArchive, new()
     {
+        /// <summary>
+        /// Offset of first magic integer
+        /// </summary>
         public const int FirstMagicIntegerOffset = 0x20;
 
         /// <summary>

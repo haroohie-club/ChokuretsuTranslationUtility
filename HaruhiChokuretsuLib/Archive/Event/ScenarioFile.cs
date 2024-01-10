@@ -34,6 +34,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public List<short> KyonlessTopicIds { get; set; } = [];
 
+        /// <summary>
+        /// Creates a scenario structure from SCENARIO.S data
+        /// </summary>
+        /// <param name="data">Binary SCENARIO.S data</param>
+        /// <param name="lines">List of dialogue lines for string reference</param>
+        /// <param name="sections">List of event file sections</param>
         public ScenarioStruct(IEnumerable<byte> data, List<DialogueLine> lines, List<EventFileSection> sections)
         {
             int commandsOffset = IO.ReadInt(data, sections[0].Pointer);
@@ -62,6 +68,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <summary>
+        /// Generates ARM assembly source code for the scenario file
+        /// </summary>
+        /// <param name="includes">List of includes (requires EVTBIN and DATBIN includes)</param>
+        /// <param name="log">ILogger instance for logging</param>
+        /// <returns>A string with an assembly representation of the scenario file</returns>
         public string GetSource(Dictionary<string, IncludeEntry[]> includes, ILogger log)
         {
             if (!includes.ContainsKey("EVTBIN"))
@@ -182,19 +194,61 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public enum ScenarioVerb : short
         {
+            /// <summary>
+            /// Sets the location where selecting an episode from the new game menu will jump to
+            /// </summary>
             NEW_GAME,
+            /// <summary>
+            /// Prompts the user to save the game
+            /// </summary>
             SAVE,
+            /// <summary>
+            /// Loads a specified event file
+            /// </summary>
             LOAD_SCENE,
+            /// <summary>
+            /// Starts the puzzle phase with a specified puzzle
+            /// </summary>
             PUZZLE_PHASE,
+            /// <summary>
+            /// Opens a particular group selection
+            /// </summary>
             ROUTE_SELECT,
+            /// <summary>
+            /// Stops executing the scenario
+            /// </summary>
             STOP,
+            /// <summary>
+            /// Also prompts the user to save (difference from SAVE unknown)
+            /// </summary>
             SAVE2,
+            /// <summary>
+            /// Shows the collected topics screen
+            /// </summary>
             TOPICS,
+            /// <summary>
+            /// Prompts the user to select the character who will accompany Haruhi
+            /// </summary>
             COMPANION_SELECT,
+            /// <summary>
+            /// Streams a video from the cartridge
+            /// </summary>
             PLAY_VIDEO,
+            /// <summary>
+            /// Does nothing
+            /// </summary>
             NOP,
+            /// <summary>
+            /// Unknown
+            /// </summary>
             UNKNOWN0B,
+            /// <summary>
+            /// Unlocks an unlockable
+            /// </summary>
             UNLOCK,
+            /// <summary>
+            /// Ends the game and returns to the title screen
+            /// </summary>
             END,
         };
         private short _verbIndex;
@@ -255,6 +309,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return sb.ToString();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{Verb}({Parameter})";
@@ -472,6 +527,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return sb.ToString();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return Title;
@@ -482,10 +538,25 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public enum BrigadeMember
         {
+            /// <summary>
+            /// Any brigade member can be chosen
+            /// </summary>
             ANY = -1,
+            /// <summary>
+            /// Mikuru Asahina
+            /// </summary>
             MIKURU = 3,
+            /// <summary>
+            /// Yuki Nagato
+            /// </summary>
             NAGATO = 4,
+            /// <summary>
+            /// Itsuki Koizumi
+            /// </summary>
             KOIZUMI = 5,
+            /// <summary>
+            /// No brigade member may be chosen
+            /// </summary>
             NONE = 22,
         }
     }
@@ -527,10 +598,25 @@ namespace HaruhiChokuretsuLib.Archive.Event
         [Flags]
         public enum CharacterMask : byte
         {
+            /// <summary>
+            /// Kyon
+            /// </summary>
             KYON = 0b0000_0010,
+            /// <summary>
+            /// Haruhi Suzumiya
+            /// </summary>
             HARUHI = 0b0000_0100,
+            /// <summary>
+            /// Mikuru Asahina
+            /// </summary>
             MIKURU = 0b0000_1000,
+            /// <summary>
+            /// Yuki Nagato
+            /// </summary>
             NAGATO = 0b0001_0000,
+            /// <summary>
+            /// Itsuki Koizumi
+            /// </summary>
             KOIZUMI = 0b0010_0000,
         }
 
@@ -605,6 +691,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return sb.ToString();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return Title;
