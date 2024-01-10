@@ -1,10 +1,9 @@
-﻿using HaruhiChokuretsuLib;
-using HaruhiChokuretsuLib.Archive;
+﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Data;
 using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace HaruhiChokuretsuTests
@@ -23,7 +22,7 @@ namespace HaruhiChokuretsuTests
 
             foreach (DataFile dataFile in dat.Files)
             {
-                Assert.AreEqual(dataFile.Offset, dat.RecalculateFileOffset(dataFile));
+                ClassicAssert.AreEqual(dataFile.Offset, dat.RecalculateFileOffset(dataFile));
             }
 
             byte[] newDataBytes = dat.GetBytes();
@@ -31,13 +30,13 @@ namespace HaruhiChokuretsuTests
 
             ArchiveFile<DataFile> newDatFile = new(newDataBytes, log);
 
-            Assert.AreEqual(dat.Files.Count, newDatFile.Files.Count);
+            ClassicAssert.AreEqual(dat.Files.Count, newDatFile.Files.Count);
             for (int i = 0; i < newDatFile.Files.Count; i++)
             {
-                Assert.AreEqual(dat.Files[i].Data, newDatFile.Files[i].Data, $"Failed at file {i} (offset: 0x{dat.Files[i].Offset:X8}; index: {dat.Files[i].Index:X4}");
+                ClassicAssert.AreEqual(dat.Files[i].Data, newDatFile.Files[i].Data, $"Failed at file {i} (offset: 0x{dat.Files[i].Offset:X8}; index: {dat.Files[i].Index:X4}");
             }
 
-            Assert.AreEqual(newDataBytes, newDatFile.GetBytes());
+            ClassicAssert.AreEqual(newDataBytes, newDatFile.GetBytes());
         }
     }
 }

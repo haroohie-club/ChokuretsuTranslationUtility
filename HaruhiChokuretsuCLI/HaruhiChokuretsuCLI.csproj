@@ -1,17 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="2.8.2.3" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="7.3.0" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
-    <PackageReference Include="System.IO.Hashing" Version="7.0.0" />
-    <PackageReference Include="System.Text.Json" Version="7.0.2" />
-    <PackageReference Include="Topten.RichTextKit" Version="0.4.165" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
+    <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.1" />
+    <PackageReference Include="Topten.RichTextKit" Version="0.4.166" />
   </ItemGroup>
 
   <ItemGroup>

@@ -103,7 +103,7 @@ namespace HaruhiChokuretsuCLI
                     switch (_section)
                     {
                         case 0:
-                            var genericSection01 = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION01");
+                            var genericSection01 = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION01");
                             if (genericSection01 is not null)
                             {
                                 var unknown01Section = (IntegerSection)Convert.ChangeType(genericSection01.Section, typeof(IntegerSection));
@@ -141,7 +141,7 @@ namespace HaruhiChokuretsuCLI
                             }
                             break;
                         case 1:
-                            var genericInteractableObjectsSection = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "INTERACTABLEOBJECTS");
+                            var genericInteractableObjectsSection = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "INTERACTABLEOBJECTS");
                             if (genericInteractableObjectsSection is not null)
                             {
                                 var interactableObjectsSection = (InteractableObjectsSection)Convert.ChangeType(genericInteractableObjectsSection.Section, typeof(InteractableObjectsSection));
@@ -200,7 +200,7 @@ namespace HaruhiChokuretsuCLI
                             break;
 
                         case 2:
-                            var genericSection3 = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION03");
+                            var genericSection3 = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION03");
                             if (genericSection3 is not null)
                             {
                                 var unknown03Section = (Unknown03Section)Convert.ChangeType(genericSection3.Section, typeof(Unknown03Section));
@@ -259,7 +259,7 @@ namespace HaruhiChokuretsuCLI
                             break;
 
                         case 3:
-                            var genericSection06 = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION06");
+                            var genericSection06 = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION06");
                             if (genericSection06 is not null)
                             {
                                 var unknown06Section = (IntegerSection)Convert.ChangeType(genericSection06.Section, typeof(IntegerSection));
@@ -298,7 +298,7 @@ namespace HaruhiChokuretsuCLI
                             break;
 
                         case 4:
-                            var genericSection07 = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION07");
+                            var genericSection07 = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION07");
                             if (genericSection07 is not null)
                             {
                                 var unknown07Section = (Unknown07Section)Convert.ChangeType(genericSection07.Section, typeof(Unknown07Section));
@@ -348,7 +348,7 @@ namespace HaruhiChokuretsuCLI
                             break;
 
                         case 5:
-                            var genericSection08 = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION08");
+                            var genericSection08 = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION08");
                             if (genericSection08 is not null)
                             {
                                 var unknown08Section = (Unknown08Section)Convert.ChangeType(genericSection08.Section, typeof(Unknown08Section));
@@ -410,7 +410,7 @@ namespace HaruhiChokuretsuCLI
                             break;
 
                         case 6:
-                            var genericSection09 = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION09");
+                            var genericSection09 = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION09");
                             if (genericSection09 is not null)
                             {
                                 var unknown09Section = (Unknown09Section)Convert.ChangeType(genericSection09.Section, typeof(Unknown09Section));
@@ -460,7 +460,7 @@ namespace HaruhiChokuretsuCLI
                             break;
 
                         case 7:
-                            var genericSection10 = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION10");
+                            var genericSection10 = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "UNKNOWNSECTION10");
                             if (genericSection10 is not null)
                             {
                                 var unknown10Section = (Unknown10Section)Convert.ChangeType(genericSection10.Section, typeof(Unknown10Section));
@@ -510,7 +510,7 @@ namespace HaruhiChokuretsuCLI
                             break;
 
                         case 8:
-                            var startingChibisGeneric = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "STARTINGCHIBIS");
+                            var startingChibisGeneric = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "STARTINGCHIBIS");
                             if (startingChibisGeneric is not null)
                             {
                                 var startingChibisSection = (StartingChibisSection)Convert.ChangeType(startingChibisGeneric.Section, typeof(StartingChibisSection));
@@ -584,7 +584,7 @@ namespace HaruhiChokuretsuCLI
                             break;
 
                         case 9:
-                            var mapCharactersGeneric = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "MAPCHARACTERS");
+                            var mapCharactersGeneric = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "MAPCHARACTERS");
                             if (mapCharactersGeneric is not null)
                             {
                                 var mapCharactersSection = (MapCharactersSection)Convert.ChangeType(mapCharactersGeneric.Section, typeof(MapCharactersSection));
@@ -658,7 +658,7 @@ namespace HaruhiChokuretsuCLI
                             break;
 
                         case 10:
-                            var choicesGeneric = eventFile.SectionPointersAndCounts.FirstOrDefault(s => (s.Section?.Name ?? "") == "CHOICES");
+                            var choicesGeneric = eventFile.EventFileSections.FirstOrDefault(s => (s.Section?.Name ?? "") == "CHOICES");
                             if (choicesGeneric is not null)
                             {
                                 var choicesSection = (ChoicesSection)Convert.ChangeType(choicesGeneric.Section, typeof(ChoicesSection));

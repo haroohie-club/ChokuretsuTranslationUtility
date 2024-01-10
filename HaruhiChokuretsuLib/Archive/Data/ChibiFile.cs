@@ -5,9 +5,15 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// A representation of CHIBI.S in dat.bin
+    /// </summary>
     public class ChibiFile : DataFile
     {
-        public List<Chibi> Chibis = new();
+        /// <summary>
+        /// The list of chibis defined in the file
+        /// </summary>
+        public List<Chibi> Chibis { get; set; } = [];
         private const int NUM_CHIBI_ENTRIES = 57;
 
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
@@ -105,15 +111,31 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// A representation of a set of chibi sprites used in the investigation phase or on the top screen corresponding to a particular character
+    /// </summary>
     public class Chibi
     {
-        public List<ChibiEntry> ChibiEntries { get; set; } = new();
+        /// <summary>
+        /// A list of chibi entries defining the chibi data
+        /// </summary>
+        public List<ChibiEntry> ChibiEntries { get; set; } = [];
+        /// <summary>
+        /// Indexes into the list of chibi entries by name rather than index
+        /// </summary>
+        /// <param name="entryName">The name of the chibi entry</param>
+        /// <returns>The chibi entry in question</returns>
         public ChibiEntry this[ChibiEntryName entryName]
         {
             get => ChibiEntries[(int)entryName];
             set { ChibiEntries[(int)entryName] = value; }
         }
 
+        /// <summary>
+        /// Create a chibi given data from CHIBI.S
+        /// </summary>
+        /// <param name="data">Binary data from the CHIBI.S entry</param>
+        /// <param name="numChibiEntries">The number of chibi entries present (defined as 57 without hacking to change that value)</param>
         public Chibi(IEnumerable<byte> data, int numChibiEntries)
         {
             for (int i = 0; i < numChibiEntries; i++)
@@ -123,17 +145,29 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// A struct representing a particular chibi sprite
+    /// </summary>
     public struct ChibiEntry
     {
+        /// <summary>
+        /// The grp.bin index of the chibi sprite's texture
+        /// </summary>
         public short Texture { get; set; }
+        /// <summary>
+        /// The grp.bin index of the chibi sprite's animation file
+        /// </summary>
         public short Animation { get; set; }
 
-        public override string ToString()
+        public override readonly string ToString()
         {
             return $"{Texture}, {Animation}";
         }
     }
 
+    /// <summary>
+    /// The name of the chibi entry (corresponds to pose and animation)
+    /// </summary>
     public enum ChibiEntryName
     {
         IDLE_BOTTOM_LEFT,

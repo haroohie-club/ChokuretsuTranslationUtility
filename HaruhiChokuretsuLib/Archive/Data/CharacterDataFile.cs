@@ -9,9 +9,15 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// A representation of CHRDATA.S in dat.bin
+    /// </summary>
     public class CharacterDataFile : DataFile
     {
-        public List<CharacterSprite> Sprites { get; set; } = new();
+        /// <summary>
+        /// The list of character sprites contained in the character data file
+        /// </summary>
+        public List<CharacterSprite> Sprites { get; set; } = [];
 
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
@@ -56,17 +62,19 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
             foreach (CharacterSprite sprite in Sprites)
             {
-                sb.AppendLine($".word {sprite.SpriteType}");
-                sb.AppendLine($".short {(int)sprite.Character}");
-                sb.AppendLine($".short {sprite.TextureIndex1}");
-                sb.AppendLine($".short {sprite.TextureIndex2}");
-                sb.AppendLine($".short {sprite.LayoutIndex}");
-                sb.AppendLine($".short {sprite.TextureIndex3}");
+                sb.AppendLine($".short {sprite.Unknown00}");
+                sb.AppendLine($".short {(sprite.IsLarge ? 1 : 0)}");
+                sb.AppendLine($".short {(short)sprite.Character}");
+                sb.AppendLine($".short {(sprite.TextureIndex1 > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.TextureIndex1).Name : 0)}");
+                sb.AppendLine($".short {(sprite.TextureIndex2 > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.TextureIndex2).Name : 0)}");
+                sb.AppendLine($".short {(sprite.LayoutIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.LayoutIndex).Name : 0)}");
+                sb.AppendLine($".short {(sprite.TextureIndex3 > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.TextureIndex3).Name : 0)}");
                 sb.AppendLine($".short {sprite.Padding}");
-                sb.AppendLine($".short {sprite.EyeTextureIndex}");
-                sb.AppendLine($".short {sprite.MouthTextureIndex}");
-                sb.AppendLine($".short {sprite.EyeAnimationIndex}");
-                sb.AppendLine($".short {sprite.MouthAnimationIndex}");
+                sb.AppendLine($".short {(sprite.EyeTextureIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.EyeTextureIndex).Name : 0)}");
+                sb.AppendLine($".short {(sprite.MouthTextureIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.MouthTextureIndex).Name : 0)}");
+                sb.AppendLine($".short {(sprite.EyeAnimationIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.EyeAnimationIndex).Name : 0)}");
+                sb.AppendLine($".short {(sprite.MouthAnimationIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.MouthAnimationIndex).Name : 0)}");
+                sb.AppendLine();
             }
 
             sb.AppendLine("END_POINTERS:");
@@ -76,40 +84,75 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
-    public class CharacterSprite
+    /// <summary>
+    /// A representation of a character sprite as displayed on screen during Chokuretsu's VN sections;
+    /// defined in CHRDATA.S
+    /// </summary>
+    public class CharacterSprite(IEnumerable<byte> data)
     {
-        public int SpriteType { get; set; }
-        public Speaker Character { get; set; }
-        public short TextureIndex1 { get; set; }
-        public short TextureIndex2 { get; set; }
-        public short LayoutIndex { get; set; }
-        public short TextureIndex3 { get; set; }
-        public short Padding { get; set; }
-        public short EyeTextureIndex { get; set; }
-        public short MouthTextureIndex { get; set; }
-        public short EyeAnimationIndex { get; set; }
-        public short MouthAnimationIndex { get; set; }
+        public short Unknown00 { get; set; } = IO.ReadShort(data, 0);
+        /// <summary>
+        /// Is true if the sprite is large
+        /// </summary>
+        public bool IsLarge { get; set; } = IO.ReadShort(data, 0x02) == 1;
+        /// <summary>
+        /// The character depicted in the sprite (defined with the same Speaker value used in scripts)
+        /// </summary>
+        public Speaker Character { get; set; } = (Speaker)IO.ReadShort(data, 0x04);
+        /// <summary>
+        /// The grp.bin index of the first texture used in the sprite layout
+        /// </summary>
+        public short TextureIndex1 { get; set; } = IO.ReadShort(data, 0x06);
+        /// <summary>
+        /// The grp.bin index of the second texture used in the sprite layout
+        /// </summary>
+        public short TextureIndex2 { get; set; } = IO.ReadShort(data, 0x08);
+        /// <summary>
+        /// The grp.bin index of the sprite layout
+        /// </summary>
+        public short LayoutIndex { get; set; } = IO.ReadShort(data, 0x0A);
+        /// <summary>
+        /// The grp.bin index of the third texture used in the sprite layout
+        /// </summary>
+        public short TextureIndex3 { get; set; } = IO.ReadShort(data, 0x0C);
+        /// <summary>
+        /// Unused
+        /// </summary>
+        public short Padding { get; set; } = IO.ReadShort(data, 0x0E);
+        /// <summary>
+        /// The grp.bin index of the eye texture
+        /// </summary>
+        public short EyeTextureIndex { get; set; } = IO.ReadShort(data, 0x10);
+        /// <summary>
+        /// The grp.bin index of the mouth texture
+        /// </summary>
+        public short MouthTextureIndex { get; set; } = IO.ReadShort(data, 0x12);
+        /// <summary>
+        /// The grp.bin index of the eye animation file
+        /// </summary>
+        public short EyeAnimationIndex { get; set; } = IO.ReadShort(data, 0x14);
+        /// <summary>
+        /// The grp.bin index of the mouth animation file
+        /// </summary>
+        public short MouthAnimationIndex { get; set; } = IO.ReadShort(data, 0x16);
 
-        public CharacterSprite(IEnumerable<byte> data)
-        {
-            SpriteType = IO.ReadInt(data, 0);
-            Character = (Speaker)IO.ReadShort(data, 0x04);
-            TextureIndex1 = IO.ReadShort(data, 0x06);
-            TextureIndex2 = IO.ReadShort(data, 0x08);
-            LayoutIndex = IO.ReadShort(data, 0x0A);
-            TextureIndex3 = IO.ReadShort(data, 0x0C);
-            Padding = IO.ReadShort(data, 0x0E);
-            EyeTextureIndex = IO.ReadShort(data, 0x10);
-            MouthTextureIndex = IO.ReadShort(data, 0x12);
-            EyeAnimationIndex = IO.ReadShort(data, 0x14);
-            MouthAnimationIndex = IO.ReadShort(data, 0x16);
-        }
-
+        /// <summary>
+        /// Gets the animation of the sprite blinking without lip flap animation
+        /// </summary>
+        /// <param name="grp">The grp.bin ArchiveFile object</param>
+        /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
+        /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
         public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
         {
             return GetAnimation(grp, messageInfoFile, false);
         }
 
+        /// <summary>
+        /// Gets the animation of the sprite blinking and moving its lips
+        /// </summary>
+        /// <param name="grp">The grp.bin ArchiveFile object</param>
+        /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
+        /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
         public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
         {
             return GetAnimation(grp, messageInfoFile, true);
@@ -117,14 +160,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
         private List<(SKBitmap frame, int timing)> GetAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile, bool lipFlap)
         {
-            List<(SKBitmap, int)> frames = new();
+            List<(SKBitmap, int)> frames = [];
 
-            if (SpriteType == 0)
+            if (Unknown00 == 0)
             {
                 return frames;
             }
 
-            List<GraphicsFile> textures = new() { grp.Files.First(f => f.Index == TextureIndex1), grp.Files.First(f => f.Index == TextureIndex2), grp.Files.First(f => f.Index == TextureIndex3) };
+            List<GraphicsFile> textures = [grp.Files.First(f => f.Index == TextureIndex1), grp.Files.First(f => f.Index == TextureIndex2), grp.Files.First(f => f.Index == TextureIndex3)];
             GraphicsFile layout = grp.Files.First(f => f.Index == LayoutIndex);
             GraphicsFile eyeTexture = grp.Files.First(f => f.Index == EyeTextureIndex);
             GraphicsFile eyeAnimation = grp.Files.First(f => f.Index == EyeAnimationIndex);

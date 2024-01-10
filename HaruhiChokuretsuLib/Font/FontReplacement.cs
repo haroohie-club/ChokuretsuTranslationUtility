@@ -6,24 +6,52 @@ using System.Linq;
 
 namespace HaruhiChokuretsuLib.Font
 {
+    /// <summary>
+    /// A representation of a font replacement (used for translation)
+    /// </summary>
     public class FontReplacement
     {
+        /// <summary>
+        /// The original Shift-JIS character to replace
+        /// </summary>
         public char OriginalCharacter { get; set; }
+        /// <summary>
+        /// The character to replace it with
+        /// </summary>
         public char ReplacedCharacter { get; set; }
+        /// <summary>
+        /// The codepoint of the original character
+        /// </summary>
         public int CodePoint { get; set; }
+        /// <summary>
+        /// The width of the replacement character for use by the variable width font hack
+        /// </summary>
         public int Offset { get; set; }
     }
 
+    /// <summary>
+    /// A special dictionary for font replacement
+    /// </summary>
     public class FontReplacementDictionary : IDictionary<char, FontReplacement>
     {
-        private List<FontReplacement> _fontReplacements = new();
+        private readonly List<FontReplacement> _fontReplacements = [];
 
+        /// <summary>
+        /// Indexes into a font replacement dictionary
+        /// </summary>
+        /// <param name="key">The replacement character</param>
+        /// <returns>A font replacement object given that replacement character</returns>
         public FontReplacement this[char key]
         {
             get => _fontReplacements.First(f => f.ReplacedCharacter == key);
             set => _fontReplacements[_fontReplacements.FindIndex(f => f.ReplacedCharacter == key)] = value;
         }
 
+        /// <summary>
+        /// Looks up a font replacement by original character
+        /// </summary>
+        /// <param name="key">The original character</param>
+        /// <returns>A font replacement object</returns>
         public FontReplacement ReverseLookup(char key)
         {
             return _fontReplacements.FirstOrDefault(f => f.OriginalCharacter == key);

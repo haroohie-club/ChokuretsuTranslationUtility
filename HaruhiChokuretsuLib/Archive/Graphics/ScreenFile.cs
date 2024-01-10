@@ -8,11 +8,19 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 {
     public partial class GraphicsFile
     {
-        public List<ScreenDataEntry> ScreenData { get; set; } = new();
+        /// <summary>
+        /// Data for screen file
+        /// </summary>
+        public List<ScreenDataEntry> ScreenData { get; set; } = [];
+        /// <summary>
+        /// Gets a rendered screen image
+        /// </summary>
+        /// <param name="tilesGrp">The graphics file representing tiles to use to render the image</param>
+        /// <returns>A rendered SKBitmap of the screen image</returns>
         public SKBitmap GetScreenImage(GraphicsFile tilesGrp)
         {
             SKBitmap bitmap = new(256, 192);
-            List<SKBitmap> tileImages = new();
+            List<SKBitmap> tileImages = [];
             for (int palette = 0; palette <= ScreenData.Max(s => s.Palette); palette++)
             {
                 tileImages.Add(tilesGrp.GetImage(paletteOffset: palette * 16));
@@ -69,6 +77,13 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return bitmap;
         }
 
+        /// <summary>
+        /// Sets a screen image from a bitmap
+        /// </summary>
+        /// <param name="bitmap">Bitmap to set the screen image to</param>
+        /// <param name="quantizer">A PnnQuantizer to quantize the image</param>
+        /// <param name="associatedTiles">A graphics file to which the associated tiles will be set</param>
+        /// <returns>The width of the screen image</returns>
         public int SetScreenImage(SKBitmap bitmap, PnnQuantizer quantizer, GraphicsFile associatedTiles)
         {
             if (bitmap.Width != 256 || bitmap.Height != 192)
@@ -77,7 +92,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 return 256;
             }
 
-            List<SKBitmap> tiles = new();
+            List<SKBitmap> tiles = [];
             for (int y = 0; y < bitmap.Height; y += 8)
             {
                 for (int x = 0; x < bitmap.Width; x += 8)
@@ -154,6 +169,11 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return 256;
         }
 
+        /// <summary>
+        /// Gets the associated screen tiles from grp.bin
+        /// </summary>
+        /// <param name="grp">ArchiveFile object for grp.bin</param>
+        /// <returns>A GraphicsFile of the screen image's tiles</returns>
         public GraphicsFile GetAssociatedScreenTiles(ArchiveFile<GraphicsFile> grp)
         {
             GraphicsFile associatedTiles = grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[0..^3]));
@@ -163,10 +183,22 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return associatedTiles;
         }
 
+        /// <summary>
+        /// Screen data entry struct
+        /// </summary>
         public struct ScreenDataEntry
         {
+            /// <summary>
+            /// Index of tile in tile graphic
+            /// </summary>
             public byte Index { get; set; }
+            /// <summary>
+            /// Palette to use for this tile
+            /// </summary>
             public byte Palette { get; set; }
+            /// <summary>
+            /// Direction to flip this tile
+            /// </summary>
             public ScreenTileFlip Flip { get; set; }
         }
 

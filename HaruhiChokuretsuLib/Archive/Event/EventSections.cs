@@ -6,6 +6,9 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
+    /// <summary>
+    /// A (fake) generic section used for generic operations
+    /// </summary>
     public class GenericSection : IEventSection<object>, IConvertible
     {
         public string Name { get; set; }
@@ -143,6 +146,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The settings section of the event file
+    /// </summary>
     public class SettingsSection : IEventSection<EventFileSettings>
     {
         public string Name { get; set; }
@@ -218,6 +224,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A pointer section of the event file containing pointers to other sections
+    /// </summary>
     public class PointerSection : IEventSection<PointerStruct>
     {
         public string Name { get; set; }
@@ -253,7 +262,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
-        public static (int sectionIndex, PointerSection section) ParseSection(List<EventFileSection> eventFileSections, int pointer, string name, IEnumerable<byte> data, ILogger log)
+        internal static (int sectionIndex, PointerSection section) ParseSection(List<EventFileSection> eventFileSections, int pointer, string name, IEnumerable<byte> data, ILogger log)
         {
             int sectionIndex = eventFileSections.FindIndex(s => s.Pointer == pointer);
             PointerSection section = new();
@@ -264,7 +273,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return (sectionIndex, section);
         }
 
-        public static PointerSection GetForSection<T>(IEventSection<T> section)
+        internal static PointerSection GetForSection<T>(IEventSection<T> section)
         {
             return new() 
             { 
@@ -305,18 +314,24 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A struct used by pointer sections to define pointers to other sections
+    /// </summary>
     public struct PointerStruct
     {
         public int Padding1 { get; set; }
         public int Pointer { get; set; }
         public int Padding2 { get; set; }
 
-        public override string ToString()
+        public override readonly string ToString()
         {
             return $"0x{Pointer:X4}";
         }
     }
 
+    /// <summary>
+    /// An "integer section" used by sections which only contain integers
+    /// </summary>
     public class IntegerSection : IEventSection<int>
     {
         public string Name { get; set; }
@@ -365,6 +380,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return sb.ToString();
         }
     }
+
+    /// <summary>
+    /// The section containing definitions for interactable objects
+    /// </summary>
 
     public class InteractableObjectsSection : IEventSection<InteractableObjectEntry>
     {
@@ -426,9 +445,18 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// An entry for interactable objects
+    /// </summary>
     public class InteractableObjectEntry
     {
+        /// <summary>
+        /// An index containing the interactable object's ID
+        /// </summary>
         public short ObjectId { get; set; }
+        /// <summary>
+        /// The script block the interactable object triggers
+        /// </summary>
         public short ScriptBlock { get; set; }
         public short Padding { get; set; }
 
@@ -506,6 +534,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The section defining the chibis which appear on the top screen at the start of the event
+    /// </summary>
     public class StartingChibisSection : IEventSection<StartingChibiEntry>
     {
         public string Name { get; set; }
@@ -568,8 +599,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// An entry defining a starting chibi
+    /// </summary>
     public class StartingChibiEntry
     {
+        /// <summary>
+        /// The index of the chibi into CHIBI.S in dat.bin
+        /// </summary>
         public short ChibiIndex { get; set; }
         public short UnknownShort2 { get; set; }
         public short UnknownShort3 { get; set; }
@@ -583,6 +620,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The section defining which characters appear on the map for the investigation phase
+    /// </summary>
     public class MapCharactersSection : IEventSection<MapCharactersSectionEntry>
     {
         public string Name { get; set; }
@@ -648,13 +688,31 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return sb.ToString();
         }
     }
-
+    
+    /// <summary>
+    /// A map character entry in the map characters section of an event file
+    /// </summary>
     public class MapCharactersSectionEntry
     {
+        /// <summary>
+        /// The index of character as defined by their chibi in CHIBI.S
+        /// </summary>
         public int CharacterIndex { get; set; }
+        /// <summary>
+        /// The direction the character faces by default (from 0 to 3, down left, down right, up left, up right)
+        /// </summary>
         public short FacingDirection { get; set; }
+        /// <summary>
+        /// The X position of the chibi on the map (in terms of tiles)
+        /// </summary>
         public short X { get; set; }
+        /// <summary>
+        /// The Y position of the chibi on the map (in terms of tiles)
+        /// </summary>
         public short Y { get; set; }
+        /// <summary>
+        /// The script block that triggers when talking to the character
+        /// </summary>
         public short TalkScriptBlock { get; set; }
         public short Padding { get; set; }
         
@@ -729,6 +787,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The section that defines the choices used by the SELECT command in event files
+    /// </summary>
     public class ChoicesSection : IEventSection<ChoicesSectionEntry>
     {
         public string Name { get; set; }
@@ -800,11 +861,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A choice as defined in an event file
+    /// </summary>
     public class ChoicesSectionEntry
     {
+        /// <summary>
+        /// The ID of the choice as will be referenced by the SELECT command
+        /// </summary>
         public int Id { get; set; }
         public int Padding1 { get; set; }
         public int Padding2 { get; set; }
+        /// <summary>
+        /// The text of the choice
+        /// </summary>
         public string Text { get; set; }
         public int Padding3 { get; set; }
 
@@ -1015,6 +1085,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The section that defines the names of the different script blocks
+    /// </summary>
     public class LabelsSection : IEventSection<LabelsSectionEntry>
     {
         public string Name { get; set; }
@@ -1080,9 +1153,18 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A label for a script block in an event file
+    /// </summary>
     public class LabelsSectionEntry
     {
+        /// <summary>
+        /// The position of the script block
+        /// </summary>
         public short Id { get; set; }
+        /// <summary>
+        /// The name of the script block
+        /// </summary>
         public string Name { get; set; }
 
         public override string ToString()
@@ -1091,6 +1173,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A dramatis personae (character name) section
+    /// </summary>
     public class DramatisPersonaeSection : IEventSection<string>
     {
         public string Name { get; set; }
@@ -1132,6 +1217,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The dialogue section containing dialogue lines used in an event file
+    /// </summary>
     public class DialogueSection : IEventSection<DialogueLine>
     {
         public string Name { get; set; }
@@ -1162,7 +1250,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
-        public void InitializeDramatisPersonaeIndices(List<DramatisPersonaeSection> dramatisPersonae)
+        internal void InitializeDramatisPersonaeIndices(List<DramatisPersonaeSection> dramatisPersonae)
         {
             for (int i = 0; i < NumObjects; i++)
             {
@@ -1203,6 +1291,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The section of conditionals used in an event file
+    /// </summary>
     public class ConditionalSection : IEventSection<string>
     {
         public string Name { get; set; }
@@ -1269,6 +1360,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The section which defines the various script sections in an event file
+    /// </summary>
     public class ScriptSectionDefinitionsSection : IEventSection<ScriptSectionDefinition>
     {
         public string Name { get; set; }
@@ -1328,13 +1422,25 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A definition of a script section in an event file
+    /// </summary>
     public class ScriptSectionDefinition
     {
-        public string Name { get; set; }
-        public int NumCommands { get; set; }
-        public int Pointer { get; set; }
+        /// <summary>
+        /// The name of the script section (determined in the labels section)
+        /// </summary>
+        public string Name { get; internal set; }
+        /// <summary>
+        /// The number of commands in the script section
+        /// </summary>
+        public int NumCommands { get; internal set; }
+        internal int Pointer { get; set; }
     }
 
+    /// <summary>
+    /// A script section used in an event file
+    /// </summary>
     public class ScriptSection : IEventSection<ScriptCommandInvocation>
     {
         public string Name { get; set; }
@@ -1381,6 +1487,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The event name section defining the title of the event
+    /// </summary>
     public class EventNameSection : IEventSection<string>
     {
         public string Name { get; set; }

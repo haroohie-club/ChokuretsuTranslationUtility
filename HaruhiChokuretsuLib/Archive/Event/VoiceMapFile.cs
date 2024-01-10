@@ -24,24 +24,24 @@ namespace HaruhiChokuretsuLib.Archive.Event
             int numFrontPointers = BitConverter.ToInt32(decompressedData.Take(4).ToArray());
             for (int i = 0; i < numFrontPointers; i++)
             {
-                SectionPointersAndCounts.Add(new()
+                EventFileSections.Add(new()
                 {
                     Pointer = BitConverter.ToInt32(decompressedData.Skip(0x0C + 0x08 * i).Take(4).ToArray()),
                     ItemCount = BitConverter.ToInt32(decompressedData.Skip(0x10 + 0x08 * i).Take(4).ToArray()),
                 });
             }
             Settings = new(new byte[0x128]);
-            VoiceMapStructSectionOffset = SectionPointersAndCounts[0].Pointer;
-            Settings.DialogueSectionPointer = SectionPointersAndCounts[1].Pointer;
-            DialogueLinesPointer = Settings.DialogueSectionPointer + (SectionPointersAndCounts.Count - 1) * 12;
+            VoiceMapStructSectionOffset = EventFileSections[0].Pointer;
+            Settings.DialogueSectionPointer = EventFileSections[1].Pointer;
+            DialogueLinesPointer = Settings.DialogueSectionPointer + (EventFileSections.Count - 1) * 12;
             Settings.NumDialogueEntries = numFrontPointers - 2;
 
-            for (int i = 2; i < SectionPointersAndCounts.Count; i++)
+            for (int i = 2; i < EventFileSections.Count; i++)
             {
-                DramatisPersonae.Add(SectionPointersAndCounts[i].Pointer, Encoding.ASCII.GetString(Data.Skip(SectionPointersAndCounts[i].Pointer).TakeWhile(b => b != 0).ToArray()));
+                DramatisPersonae.Add(EventFileSections[i].Pointer, Encoding.ASCII.GetString(Data.Skip(EventFileSections[i].Pointer).TakeWhile(b => b != 0).ToArray()));
             }
 
-            for (int i = 0; i < SectionPointersAndCounts.Count - 2; i++)
+            for (int i = 0; i < EventFileSections.Count - 2; i++)
             {
                 VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH), _log));
                 VoiceMapStructs[^1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapStructs.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
@@ -277,7 +277,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Data.InsertRange(VoiceMapStructSectionOffset + VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH * index + 8, BitConverter.GetBytes(VoiceMapStructs[index].X));
         }
 
-        public override void ShiftPointers(int shiftLocation, int shiftAmount)
+        internal override void ShiftPointers(int shiftLocation, int shiftAmount)
         {
             base.ShiftPointers(shiftLocation, shiftAmount);
 

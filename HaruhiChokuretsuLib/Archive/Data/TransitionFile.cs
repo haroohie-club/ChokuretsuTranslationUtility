@@ -1,6 +1,9 @@
 ﻿namespace HaruhiChokuretsuLib.Archive.Data
 {
-    internal class TransitionFile
+    /// <summary>
+    /// Representation of TRANSITION.S in dat.bin, not yet implemented
+    /// </summary>
+    public class TransitionFile
     {
     }
 }

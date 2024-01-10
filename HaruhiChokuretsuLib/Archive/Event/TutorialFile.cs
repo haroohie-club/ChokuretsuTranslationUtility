@@ -6,8 +6,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
 {
     public partial class EventFile
     {
+        /// <summary>
+        /// In TUTORIAL.S, represents the list of tutorials
+        /// </summary>
         public List<Tutorial> Tutorials { get; set; } = new();
 
+        /// <summary>
+        /// Initializes TUTORIAL.S
+        /// </summary>
         public void InitializeTutorialFile()
         {
             int numSections = IO.ReadInt(Data, 0x00);
@@ -27,15 +33,18 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public class Tutorial
+    /// <summary>
+    /// Represents a tutorial entry in TUTORIAL.S
+    /// </summary>
+    public class Tutorial(IEnumerable<byte> data)
     {
-        public short Id { get; set; }
-        public short AssociatedScript { get; set; }
-
-        public Tutorial(IEnumerable<byte> data)
-        {
-            Id = IO.ReadShort(data, 0x00);
-            AssociatedScript = IO.ReadShort(data, 0x02);
-        }
+        /// <summary>
+        /// The ID/flag of the tutorial
+        /// </summary>
+        public short Id { get; set; } = IO.ReadShort(data, 0x00);
+        /// <summary>
+        /// The script to be loaded for that tutorial
+        /// </summary>
+        public short AssociatedScript { get; set; } = IO.ReadShort(data, 0x02);
     }
 }

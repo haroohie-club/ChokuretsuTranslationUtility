@@ -5,9 +5,15 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Represents MESS.S in dat.bin
+    /// </summary>
     public class MessageFile : DataFile
     {
-        public List<string> Messages { get; set; } = new();
+        /// <summary>
+        /// The list of messages as defined in the file
+        /// </summary>
+        public List<string> Messages { get; set; } = [];
 
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {

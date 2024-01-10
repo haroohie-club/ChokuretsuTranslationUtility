@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Represents an abstract file in dat.bin
+    /// </summary>
     public class DataFile : FileInArchive, ISourceFile
     {
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
@@ -27,10 +30,22 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// Represents a section of a data file
+    /// </summary>
     public class DataFileSection
     {
+        /// <summary>
+        /// The name of the section (used for source file creation; not actually present in the binary)
+        /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// The offset of the section in the binary
+        /// </summary>
         public int Offset { get; set; }
+        /// <summary>
+        /// The number of items the section contains
+        /// </summary>
         public int ItemCount { get; set; }
     }
 }

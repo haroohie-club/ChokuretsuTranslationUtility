@@ -5,9 +5,15 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Representation of PLACE.S in dat.bin
+    /// </summary>
     public class PlaceFile : DataFile
     {
-        public List<int> PlaceGraphicIndices { get; set; } = new();
+        /// <summary>
+        /// A list of grp.bin indices of the place graphics
+        /// </summary>
+        public List<int> PlaceGraphicIndices { get; set; } = [];
 
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {

@@ -1,5 +1,6 @@
 using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +19,7 @@ namespace HaruhiChokuretsuTests
 
             byte[] decompressedDataOnDisk = File.ReadAllBytes(decompressedFile);
             File.WriteAllBytes($".\\inputs\\{filePrefix}_asm_decomp.bin", asm.Output);
-            Assert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(asm.Output));
+            ClassicAssert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(asm.Output));
         }
 
         [Test]
@@ -35,7 +36,7 @@ namespace HaruhiChokuretsuTests
             File.WriteAllBytes($".\\inputs\\{filePrefix}_prog_decomp.bin", decompressedDataInMemory);
 
             byte[] decompressedDataOnDisk = File.ReadAllBytes(decompressedFile);
-            Assert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataInMemory));
+            ClassicAssert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataInMemory));
         }
 
         [Test]
@@ -59,13 +60,13 @@ namespace HaruhiChokuretsuTests
 
             byte[] decompressedDataInMemory = Helpers.DecompressData(compressedData);
             File.WriteAllBytes($".\\inputs\\{filePrefix}_prog_decomp.bin", decompressedDataInMemory);
-            Assert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataInMemory), message: "Failed in implementation.");
+            ClassicAssert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataInMemory), message: "Failed in implementation.");
 
             if (runAsm)
             {
                 byte[] decompressedDataViaAsm = new AsmDecompressionSimulator(compressedData).Output;
                 File.WriteAllBytes($".\\inputs\\{filePrefix}_asm_decomp.bin", decompressedDataViaAsm);
-                Assert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataViaAsm), message: "Failed in assembly simulation.");
+                ClassicAssert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataViaAsm), message: "Failed in assembly simulation.");
             }
         }
 

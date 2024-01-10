@@ -1,6 +1,9 @@
 ﻿namespace HaruhiChokuretsuLib.Archive.Data
 {
-    internal class FaceMoveFile
+    /// <summary>
+    /// Represents FACEMOVE.S in dat.bin; currently not implemented
+    /// </summary>
+    public class FaceMoveFile
     {
     }
 }

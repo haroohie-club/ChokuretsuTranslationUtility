@@ -10,14 +10,29 @@ namespace HaruhiChokuretsuLib.Archive.Event
 {
     public partial class EventFile
     {
+        /// <summary>
+        /// If this file is SCENARIO.S this defines the scenario
+        /// </summary>
         public ScenarioStruct Scenario { get; set; }
     }
 
+    /// <summary>
+    /// A representation of the scenario flow of the game defined in SCENARIO.S
+    /// </summary>
     public class ScenarioStruct
     {
-        public List<ScenarioCommand> Commands { get; set; } = new();
-        public List<ScenarioSelectionStruct> Selects { get; set; } = new();
-        public List<short> KyonlessTopicIds { get; set; } = new();
+        /// <summary>
+        /// A list of scenario commands defining the flow of the game
+        /// </summary>
+        public List<ScenarioCommand> Commands { get; set; } = [];
+        /// <summary>
+        /// A list of group selections
+        /// </summary>
+        public List<ScenarioSelection> Selects { get; set; } = [];
+        /// <summary>
+        /// A list of Kyonless topics
+        /// </summary>
+        public List<short> KyonlessTopicIds { get; set; } = [];
 
         public ScenarioStruct(IEnumerable<byte> data, List<DialogueLine> lines, List<EventFileSection> sections)
         {
@@ -66,8 +81,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             sb.AppendLine(ScenarioCommand.GetMacros());
 
-            int numSections = Selects.Sum(s => s.RouteSelections.Where(rs => rs is not null).Sum(rs => rs.Routes.Count)) // all route shorts headers
-                + Selects.Sum(s => s.RouteSelections.Where(rs => rs is not null).Count()) // all route selections
+            int numSections = Selects.Sum(s => s.Activities.Where(rs => rs is not null).Sum(rs => rs.Routes.Count)) // all route shorts headers
+                + Selects.Sum(s => s.Activities.Where(rs => rs is not null).Count()) // all route selections
                 + 3; // scenario holder + commands holder + settings
             sb.AppendLine($".word {numSections}");
             sb.AppendLine(".word END_POINTERS");
@@ -78,9 +93,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine(".word 1");
 
             bool first = true;
-            foreach (ScenarioSelectionStruct select in Selects)
+            foreach (ScenarioSelection select in Selects)
             {
-                foreach (ScenarioRouteStruct route in select.RouteSelections.Where(rs => rs is not null).SelectMany(rs => rs.Routes))
+                foreach (ScenarioRoute route in select.Activities.Where(rs => rs is not null).SelectMany(rs => rs.Routes))
                 {
                     if (first)
                     {
@@ -91,7 +106,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     sb.AppendLine($".word {route.KyonlessTopics.Count}");
                 }
                 
-                foreach (ScenarioRouteSelectionStruct routeSelection in select.RouteSelections.Where(rs => rs is not null))
+                foreach (ScenarioActivity routeSelection in select.Activities.Where(rs => rs is not null))
                 {
                     sb.AppendLine($".word ROUTESELECTION{routeSelection.TitleIndex:D2}");
                     sb.AppendLine(".word 1");
@@ -102,31 +117,31 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($".word {Selects.Count + 1}");
             sb.AppendLine(".word COMMANDS");
             sb.AppendLine($".word {Commands.Count}");
-            sb.AppendLine($".word KYONLESS_TOPICS{Selects[0].RouteSelections[0].Routes[0].RouteTitleIndex:D2}");
-            sb.AppendLine($".word {Selects[0].RouteSelections[0].Routes[0].KyonlessTopics.Count}");
+            sb.AppendLine($".word KYONLESS_TOPICS{Selects[0].Activities[0].Routes[0].RouteTitleIndex:D2}");
+            sb.AppendLine($".word {Selects[0].Activities[0].Routes[0].KyonlessTopics.Count}");
             sb.AppendLine();
 
             sb.AppendLine("FILE_START:");
 
             int currentPointer = 0;
-            foreach (ScenarioSelectionStruct selection in Selects)
+            foreach (ScenarioSelection selection in Selects)
             {
                 sb.AppendLine(selection.GetSource(includes, ref currentPointer));
             }
 
             sb.AppendLine("SELECTS:");
-            foreach (ScenarioSelectionStruct selection in Selects)
+            foreach (ScenarioSelection selection in Selects)
             {
-                sb.AppendLine($".word {selection.RouteSelections.Count}");
+                sb.AppendLine($".word {selection.Activities.Count}");
                 for (int i = 0; i < 4; i++)
                 {
-                    if (i >= selection.RouteSelections.Count || selection.RouteSelections[i] is null)
+                    if (i >= selection.Activities.Count || selection.Activities[i] is null)
                     {
                         sb.AppendLine(".word 0");
                     }
                     else
                     {
-                        sb.AppendLine($"POINTER{currentPointer++:D2}: .word ROUTESELECTION{selection.RouteSelections[i].TitleIndex:D2}");
+                        sb.AppendLine($"POINTER{currentPointer++:D2}: .word ROUTESELECTION{selection.Activities[i].TitleIndex:D2}");
                     }
                 }
             }
@@ -157,8 +172,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A command used in the scenario commands section of SCENARIO.S
+    /// </summary>
     public class ScenarioCommand
     {
+        /// <summary>
+        /// An enum defining the verbs of a scenario command
+        /// </summary>
         public enum ScenarioVerb : short
         {
             NEW_GAME,
@@ -178,27 +199,42 @@ namespace HaruhiChokuretsuLib.Archive.Event
         };
         private short _verbIndex;
 
+        /// <summary>
+        /// The verb of the scenario command
+        /// </summary>
         public ScenarioVerb Verb { get => (ScenarioVerb)_verbIndex; set => _verbIndex = (short)value; }
+        /// <summary>
+        /// The parameter of the scenario command
+        /// </summary>
         public int Parameter { get; set; } = new();
 
+        /// <summary>
+        /// Creates a scenario command from a verb and parameter
+        /// </summary>
+        /// <param name="verb">The command verb</param>
+        /// <param name="parameter">The command parameter</param>
         public ScenarioCommand(ScenarioVerb verb, int parameter)
         {
             _verbIndex = (short)verb;
             Parameter = parameter;
         }
 
+        /// <summary>
+        /// Creates a scenario command from data
+        /// </summary>
+        /// <param name="data">The scenario command data from SCENARIO.S</param>
         public ScenarioCommand(IEnumerable<byte> data)
         {
             _verbIndex = BitConverter.ToInt16(data.Take(2).ToArray());
             Parameter = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
         }
 
-        public string GetAsm(int indentation, Dictionary<string, IncludeEntry[]> includes)
+        internal string GetAsm(int indentation, Dictionary<string, IncludeEntry[]> includes)
         {
             return $"{Helpers.Indent(indentation + 1)}{Verb} {GetParameterString(includes)}";
         }
 
-        public static string GetMacros()
+        internal static string GetMacros()
         {
             StringBuilder sb = new();
 
@@ -224,6 +260,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return $"{Verb}({Parameter})";
         }
 
+        /// <summary>
+        /// Gets the stringified version of a particular parameter
+        /// </summary>
+        /// <param name="evt">ArchiveFile for evt.bin</param>
+        /// <param name="dat">ArchiveFile for dat.bin</param>
+        /// <returns>String version of a particular parameter</returns>
         public string GetParameterString(ArchiveFile<EventFile> evt, ArchiveFile<DataFile> dat)
         {
             string parameterString = _verbIndex switch
@@ -235,6 +277,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
             };
             return $"{Verb}({parameterString})";
         }
+
+        /// <summary>
+        /// Gets the stringified version of a particular parameter
+        /// </summary>
+        /// <param name="includes">Dictionary of includes as would be passed to GetSource()</param>
+        /// <returns>String version of a particular parameter</returns>
         public string GetParameterString(Dictionary<string, IncludeEntry[]> includes)
         {
             string parameterString = _verbIndex switch
@@ -248,30 +296,42 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public class ScenarioSelectionStruct
+    /// <summary>
+    /// Represents a group selection object
+    /// </summary>
+    public class ScenarioSelection
     {
-        public List<ScenarioRouteSelectionStruct> RouteSelections { get; set; } = new();
+        /// <summary>
+        /// The list of activities (e.g. what you send Kyon and the others to do) available to this group selection
+        /// </summary>
+        public List<ScenarioActivity> Activities { get; set; } = [];
 
-        public ScenarioSelectionStruct(int[] routeSelectionOffsets, List<DialogueLine> lines, IEnumerable<byte> data)
+        /// <summary>
+        /// Creates a scenario selection object from SCENARIO.S data
+        /// </summary>
+        /// <param name="activityOffsets">The oofsets of each route selection in SCENARIO.S</param>
+        /// <param name="lines">Dialogue lines for string reference</param>
+        /// <param name="data">SCENARIO.S binary data</param>
+        public ScenarioSelection(int[] activityOffsets, List<DialogueLine> lines, IEnumerable<byte> data)
         {
-            for (int i = 0; i < routeSelectionOffsets.Length; i++)
+            for (int i = 0; i < activityOffsets.Length; i++)
             {
-                if (routeSelectionOffsets[i] == 0)
+                if (activityOffsets[i] == 0)
                 {
-                    RouteSelections.Add(null);
+                    Activities.Add(null);
                 }
                 else
                 {
-                    RouteSelections.Add(new(routeSelectionOffsets[i], lines, data));
+                    Activities.Add(new(activityOffsets[i], lines, data));
                 }
             }
         }
 
-        public string GetSource(Dictionary<string, IncludeEntry[]> includes, ref int currentPointer)
+        internal string GetSource(Dictionary<string, IncludeEntry[]> includes, ref int currentPointer)
         {
             StringBuilder sb = new();
 
-            foreach (ScenarioRouteStruct route in RouteSelections.Where(rs => rs is not null).SelectMany(rs => rs.Routes))
+            foreach (ScenarioRoute route in Activities.Where(rs => rs is not null).SelectMany(rs => rs.Routes))
             {
                 sb.AppendLine($"KYONLESS_TOPICS{route.RouteTitleIndex:D2}:");
                 foreach (short s in route.KyonlessTopics)
@@ -284,9 +344,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 }
             }
 
-            foreach (ScenarioRouteSelectionStruct routeSelection in RouteSelections.Where(rs => rs is not null))
+            foreach (ScenarioActivity activity in Activities.Where(rs => rs is not null))
             {
-                sb.AppendLine(routeSelection.GetSource(includes, ref currentPointer));
+                sb.AppendLine(activity.GetSource(includes, ref currentPointer));
                 sb.AppendLine();
             }
 
@@ -294,22 +354,64 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public class ScenarioRouteSelectionStruct
+    /// <summary>
+    /// Represents a particular route selection in a group selection
+    /// </summary>
+    public class ScenarioActivity
     {
-        public List<ScenarioRouteStruct> Routes { get; set; } = new();
-        public int TitleIndex { get; set; }
+        /// <summary>
+        /// A list of routes available when sending Kyon to do this activity
+        /// </summary>
+        public List<ScenarioRoute> Routes { get; set; } = [];
+        /// <summary>
+        /// Dialogue line index of Title
+        /// </summary>
+        public int TitleIndex { get; internal set; }
+        /// <summary>
+        /// The title of the activity
+        /// </summary>
         public string Title { get; }
-        public int FutureDescIndex { get; set; }
+        /// <summary>
+        /// Dialogue line index of FutureDesc
+        /// </summary>
+        public int FutureDescIndex { get; internal set; }
+        /// <summary>
+        /// Future tense description of what the activity is
+        /// </summary>
         public string FutureDesc { get; }
-        public int PastDescIndex { get; set; }
+        /// <summary>
+        /// Dialogue line index of PastDesc
+        /// </summary>
+        public int PastDescIndex { get; internal set; }
+        /// <summary>
+        /// Past tense description of what the activity is
+        /// </summary>
         public string PastDesc { get; }
 
+        /// <summary>
+        /// Tuple representing up to three brigade members comprising the defined "optimal group" for this activity
+        /// </summary>
         public (BrigadeMember, BrigadeMember, BrigadeMember) OptimalGroup { get; set; }
+        /// <summary>
+        /// Tuple representing up to three brigade members comprising the defined "worst group" for this activity
+        /// </summary>
         public (BrigadeMember, BrigadeMember, BrigadeMember) WorstGroup { get; set; }
+        /// <summary>
+        /// A brigade member who is required to be assigned to this activity
+        /// </summary>
         public BrigadeMember RequiredBrigadeMember { get; set; }
+        /// <summary>
+        /// If true, Haruhi is present for this activity
+        /// </summary>
         public bool HaruhiPresent { get; set; }
 
-        public ScenarioRouteSelectionStruct(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
+        /// <summary>
+        /// Creates a scenario activity from SCENARIO.S data
+        /// </summary>
+        /// <param name="dataStartIndex">Start index of data</param>
+        /// <param name="lines">Dialogue lines for string references</param>
+        /// <param name="data">SCENARIO.S binary data</param>
+        public ScenarioActivity(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
         {
             TitleIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex)));
             FutureDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x04)));
@@ -329,7 +431,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
-        public string GetSource(Dictionary<string, IncludeEntry[]> includes, ref int currentPointer)
+        internal string GetSource(Dictionary<string, IncludeEntry[]> includes, ref int currentPointer)
         {
             StringBuilder sb = new();
 
@@ -346,7 +448,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($"   .word {(int)RequiredBrigadeMember}");
             sb.AppendLine($"   .word {(HaruhiPresent ? 1 : 0)}");
 
-            foreach (ScenarioRouteStruct route in Routes)
+            foreach (ScenarioRoute route in Routes)
             {
                 sb.AppendLine(route.GetSource(includes, ref currentPointer));
             }
@@ -361,7 +463,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($"ROUTESELECTIONPASTDESC{TitleIndex:D2}: .string \"{PastDesc.EscapeShiftJIS()}\"");
             sb.AsmPadString(PastDesc, Encoding.GetEncoding("Shift-JIS"));
 
-            foreach (ScenarioRouteStruct route in Routes)
+            foreach (ScenarioRoute route in Routes)
             {
                 sb.AppendLine($"ROUTETITLE{route.RouteTitleIndex:D2}: .string \"{route.Title.EscapeShiftJIS()}\"");
                 sb.AsmPadString(route.Title, Encoding.GetEncoding("Shift-JIS"));
@@ -375,6 +477,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return Title;
         }
 
+        /// <summary>
+        /// Enum representing the possible brigade member assignments
+        /// </summary>
         public enum BrigadeMember
         {
             ANY = -1,
@@ -385,15 +490,40 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
-    public class ScenarioRouteStruct
+    /// <summary>
+    /// Defines a particular route (an allotment of characters to a particular activity) in a group selection in SCENARIO.S
+    /// </summary>
+    public class ScenarioRoute
     {
+        /// <summary>
+        /// The index of the event file that is loaded if this route is selected
+        /// </summary>
         public short ScriptIndex { get; set; }
+        /// <summary>
+        /// The flag that is set if this route is selected (i.e. the route ID)
+        /// </summary>
         public short Flag { get; set; }
-        public List<short> KyonlessTopics { get; set; } = new();
-        public int RouteTitleIndex { get; set; }
+        /// <summary>
+        /// If all the characters required for this route except Kyon are assigned to this route's activity,
+        /// the topics contained in this list will be given to the player
+        /// </summary>
+        public List<short> KyonlessTopics { get; set; } = [];
+        /// <summary>
+        /// The dialogue line index of Title
+        /// </summary>
+        public int RouteTitleIndex { get; internal set; }
+        /// <summary>
+        /// The title of the route
+        /// </summary>
         public string Title { get; }
-        public List<Speaker> CharactersInvolved { get; set; } = new();
+        /// <summary>
+        /// The characters who must be assigned to this route's activity to trigger this route
+        /// </summary>
+        public List<Speaker> CharactersInvolved { get; set; } = [];
 
+        /// <summary>
+        /// A set of mask bytes that are used for determining characters involved
+        /// </summary>
         [Flags]
         public enum CharacterMask : byte
         {
@@ -404,7 +534,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             KOIZUMI = 0b0010_0000,
         }
 
-        public ScenarioRouteStruct(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
+        /// <summary>
+        /// Creates a scenario route given data from SCENARIO.S
+        /// </summary>
+        /// <param name="dataStartIndex">The start index of the route within the data</param>
+        /// <param name="lines">Dialogue lines for string reference</param>
+        /// <param name="data">SCENARIO.S binary data</param>
+        public ScenarioRoute(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
         {
             CharacterMask charactersInvolved = (CharacterMask)IO.ReadInt(data, dataStartIndex);
 
@@ -456,7 +592,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return flag;
         }
 
-        public string GetSource(Dictionary<string, IncludeEntry[]> includes, ref int currentPointer)
+        internal string GetSource(Dictionary<string, IncludeEntry[]> includes, ref int currentPointer)
         {
             StringBuilder sb = new();
 

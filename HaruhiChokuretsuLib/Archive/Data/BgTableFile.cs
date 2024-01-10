@@ -15,9 +15,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         TEX_CG_SINGLE = 0x0E,
     }
 
+    /// <summary>
+    /// Representation of BGTBL.S in dat.bin
+    /// </summary>
     public class BgTableFile : DataFile
     {
-        public List<BgTableEntry> BgTableEntries { get; set; } = new();
+        /// <summary>
+        /// List of BG table entries
+        /// </summary>
+        public List<BgTableEntry> BgTableEntries { get; set; } = [];
 
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
@@ -41,7 +47,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
-            HashSet<string> names = new();
+            HashSet<string> names = [];
             string source = ".include \"GRPBIN.INC\"\n\n";
             source += $".set {nameof(BgType.KINETIC_SCREEN)}, {(int)BgType.KINETIC_SCREEN}\n";
             source += $".set {nameof(BgType.TEX_BG)}, {(int)BgType.TEX_BG}\n";
@@ -97,10 +103,22 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// A struct representaiton of a BG Table entry
+    /// </summary>
     public struct BgTableEntry
     {
+        /// <summary>
+        /// The BG Type
+        /// </summary>
         public BgType Type;
+        /// <summary>
+        /// The first background file index (indexes into grp.bin)
+        /// </summary>
         public short BgIndex1;
+        /// <summary>
+        /// The second background file index (indexes into grp.bin)
+        /// </summary>
         public short BgIndex2;
     }
 }

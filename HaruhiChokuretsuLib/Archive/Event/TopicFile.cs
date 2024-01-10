@@ -7,44 +7,102 @@ namespace HaruhiChokuretsuLib.Archive.Event
 {
     public partial class EventFile
     {
-        public List<TopicStruct> TopicStructs { get; set; } = new();
+        /// <summary>
+        /// In the topic file (TOPIC.S), the list of topics defined in that file
+        /// </summary>
+        public List<Topic> Topics { get; set; } = [];
 
+        /// <summary>
+        /// Initializes the topic file (TOPIC.S)
+        /// </summary>
         public void InitializeTopicFile()
         {
             InitializeDialogueForSpecialFiles();
             for (int i = 0; i < DialogueLines.Count; i += 2)
             {
-                TopicStructs.Add(new(i, DialogueLines[i].Text, Data.Skip(0x14 + i / 2 * 0x24).Take(0x24).ToArray(), _log));
-                TopicStructs[^1].Description = Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(TopicStructs[^1].TopicDescriptionPointer).TakeWhile(b => b != 0).ToArray());
+                Topics.Add(new(i, DialogueLines[i].Text, Data.Skip(0x14 + i / 2 * 0x24).Take(0x24).ToArray(), _log));
+                Topics[^1].Description = Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(Topics[^1].TopicDescriptionPointer).TakeWhile(b => b != 0).ToArray());
             }
         }
     }
 
-    public class TopicStruct
+    /// <summary>
+    /// Represents a topic defined in TOPIC.S
+    /// </summary>
+    public class Topic
     {
-        public int TopicDialogueIndex { get; set; }
+        internal int TopicDialogueIndex { get; set; }
+        /// <summary>
+        /// The title of the topic
+        /// </summary>
         public string Title { get; set; }
+        /// <summary>
+        /// The description of the topic
+        /// </summary>
         public string Description { get; set; }
 
+        /// <summary>
+        /// The topic's ID/flag
+        /// </summary>
         public short Id { get; set; }
+        /// <summary>
+        /// For character and (hidden) main topics, the evt.bin index of the event file triggered by this topic
+        /// </summary>
         public short EventIndex { get; set; }
+        /// <summary>
+        /// The "episode group" of the topic
+        /// </summary>
         public byte EpisodeGroup { get; set; }
+        /// <summary>
+        /// The "puzzle phase group" of this topic (referenced by puzzle files)
+        /// </summary>
         public byte PuzzlePhaseGroup { get; set; }
+        /// <summary>
+        /// The category of the topic as filterable in the extra menu
+        /// </summary>
         public TopicCategory Category { get; set; }
+        /// <summary>
+        /// The base time gain (modified by the various time percentages depending on the character accompanying Haruhi)
+        /// </summary>
         public short BaseTimeGain { get; set; }
         public short UnknownShort03 { get; set; }
         public short UnknownShort04 { get; set; }
+        /// <summary>
+        /// If Kyon is accompanying Haruhi, the time gain for this topic will be this parameter * BaseTimeGain / 100.0
+        /// </summary>
         public short KyonTimePercentage { get; set; }
+        /// <summary>
+        /// If Mikuru is accompanying Haruhi, the time gain for this topic will be this parameter * BaseTimeGain / 100.0
+        /// </summary>
         public short MikuruTimePercentage { get; set; }
+        /// <summary>
+        /// If Nagato is accompanying Haruhi, the time gain for this topic will be this parameter * BaseTimeGain / 100.0
+        /// </summary>
         public short NagatoTimePercentage { get; set; }
+        /// <summary>
+        /// If Koizumi is accompanying Haruhi, the time gain for this topic will be this parameter * BaseTimeGain / 100.0
+        /// </summary>
         public short KoizumiTimePercentage { get; set; }
         public short Padding { get; set; }
-        public int TopicTitlePointer { get; set; }
-        public int TopicDescriptionPointer { get; set; }
+        internal int TopicTitlePointer { get; set; }
+        internal int TopicDescriptionPointer { get; set; }
+        /// <summary>
+        /// The type of card displayed for the topic
+        /// </summary>
         public TopicCardType CardType { get; set; }
+        /// <summary>
+        /// The type of the topic
+        /// </summary>
         public TopicType Type { get; set; }
 
-        public TopicStruct(int dialogueIndex, string dialogueLine, byte[] data, ILogger log)
+        /// <summary>
+        /// Creates a topic from data
+        /// </summary>
+        /// <param name="dialogueIndex">Index of the dialogue line for this topic</param>
+        /// <param name="dialogueLine">Title of the topic</param>
+        /// <param name="data">Topic data</param>
+        /// <param name="log">ILogger instance for error logging</param>
+        public Topic(int dialogueIndex, string dialogueLine, byte[] data, ILogger log)
         {
             if (data.Length != 0x24)
             {
@@ -78,7 +136,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return $"0x{Id:X4} '{Title}'";
         }
 
-        public string GetSource(int currentTopic, ref int endPointerIndex)
+        internal string GetSource(int currentTopic, ref int endPointerIndex)
         {
             StringBuilder sb = new();
 
@@ -110,6 +168,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// Enum representing the type of the topic card
+    /// </summary>
     public enum TopicCardType : short
     {
         Main = 0x00,
@@ -120,6 +181,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         Sub = 0x05,
     }
 
+    /// <summary>
+    /// Enum representing the type of the topic
+    /// </summary>
     public enum TopicType : short
     {
         Main = 0x00,
@@ -128,6 +192,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         Sub = 0x03,
     }
 
+    /// <summary>
+    /// Enum representing the extras menu category of the topic
+    /// </summary>
     public enum TopicCategory : short
     {
         Main = 0x00,

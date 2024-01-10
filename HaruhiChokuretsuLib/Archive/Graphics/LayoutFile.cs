@@ -8,13 +8,33 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 {
     public partial class GraphicsFile
     {
+        /// <summary>
+        /// In layout files, the list of layout layers
+        /// </summary>
         public List<LayoutEntry> LayoutEntries { get; set; } = new();
 
+        /// <summary>
+        /// Renders a preview of a layout
+        /// </summary>
+        /// <param name="grpFiles">A list of graphics files to pull texture data from</param>
+        /// <param name="entryIndex">The index of the first layer to render</param>
+        /// <param name="numEntries">The number of layers to render</param>
+        /// <param name="darkMode">If true, will render the background dark</param>
+        /// <param name="preprocessedList">(Optional) If true, assumes the passed grp files are already in order; otherwise, assumes you're dropping all of grp.bin on it</param>
+        /// <returns>A tuple containing a rendered SKBitmap of the layout and a list of the layout entries</returns>
         public (SKBitmap bitmap, List<LayoutEntry> layoutEntries) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries, bool darkMode, bool preprocessedList = false)
         {
             return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList(), darkMode, preprocessedList);
         }
 
+        /// <summary>
+        /// Renders a preview of a layout
+        /// </summary>
+        /// <param name="grpFiles">A list of graphics files to pull texture data from</param>
+        /// <param name="layoutEntries">A list of layout entries to render</param>
+        /// <param name="darkMode">If true, will render the background dark</param>
+        /// <param name="preprocessedList">(Optional) If true, assumes the passed grp files are already in order; otherwise, assumes you're dropping all of grp.bin on it</param>
+        /// <returns>A tuple containing a rendered SKBitmap of the layout and a list of the layout entries</returns>
         public (SKBitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, List<LayoutEntry> layoutEntries, bool darkMode, bool preprocessedList = false)
         {
             LayoutEntry maxX = LayoutEntries.OrderByDescending(l => l.ScreenX).First();
@@ -37,7 +57,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             else
             {
                 IEnumerable<short> relativeIndices = layoutEntries.Select(l => l.RelativeShtxIndex).Distinct();
-                textures = new();
+                textures = [];
 
                 foreach (short index in relativeIndices)
                 {
@@ -114,22 +134,60 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         }
     }
 
+    /// <summary>
+    /// Represents a layout layer
+    /// </summary>
     public class LayoutEntry
     {
         public short UnknownShort1 { get; set; }
+        /// <summary>
+        /// Index of the texture to use
+        /// </summary>
         public short RelativeShtxIndex { get; set; }
         public short UnknownShort2 { get; set; }
+        /// <summary>
+        /// X position of the cropped texture on the screen
+        /// </summary>
         public short ScreenX { get; set; }
+        /// <summary>
+        /// Y position of the cropped texture on the screen
+        /// </summary>
         public short ScreenY { get; set; }
+        /// <summary>
+        /// Width of the cropped texture
+        /// </summary>
         public short TextureW { get; set; }
+        /// <summary>
+        /// Height of the cropped texture
+        /// </summary>
         public short TextureH { get; set; }
+        /// <summary>
+        /// X position of the crop on the texture
+        /// </summary>
         public short TextureX { get; set; }
+        /// <summary>
+        /// Y position of the crop on the texture
+        /// </summary>
         public short TextureY { get; set; }
+        /// <summary>
+        /// Width of the cropped texture on the screen
+        /// </summary>
         public short ScreenW { get; set; }
+        /// <summary>
+        /// Height of the cropped texture on the screen
+        /// </summary>
         public short ScreenH { get; set; }
         public short UnknownShort3 { get; set; }
+        /// <summary>
+        /// Color to tint the texture while rendering
+        /// </summary>
         public SKColor Tint { get; set; }
 
+        /// <summary>
+        /// Create a layout entry from data
+        /// </summary>
+        /// <param name="data">Binary data representing layout entry</param>
+        /// <exception cref="ArgumentException"></exception>
         public LayoutEntry(IEnumerable<byte> data)
         {
             if (data.Count() != 0x1C)
@@ -159,21 +217,23 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 
         public byte[] GetBytes()
         {
-            List<byte> data = new();
-            data.AddRange(BitConverter.GetBytes(UnknownShort1));
-            data.AddRange(BitConverter.GetBytes(RelativeShtxIndex));
-            data.AddRange(BitConverter.GetBytes(UnknownShort2));
-            data.AddRange(BitConverter.GetBytes(ScreenX));
-            data.AddRange(BitConverter.GetBytes(ScreenY));
-            data.AddRange(BitConverter.GetBytes(TextureW));
-            data.AddRange(BitConverter.GetBytes(TextureH));
-            data.AddRange(BitConverter.GetBytes(TextureX));
-            data.AddRange(BitConverter.GetBytes(TextureY));
-            data.AddRange(BitConverter.GetBytes(ScreenW));
-            data.AddRange(BitConverter.GetBytes(ScreenH));
-            data.AddRange(BitConverter.GetBytes(UnknownShort3));
-            data.AddRange(BitConverter.GetBytes((uint)Tint));
-            return data.ToArray();
+            List<byte> data =
+            [
+                .. BitConverter.GetBytes(UnknownShort1),
+                .. BitConverter.GetBytes(RelativeShtxIndex),
+                .. BitConverter.GetBytes(UnknownShort2),
+                .. BitConverter.GetBytes(ScreenX),
+                .. BitConverter.GetBytes(ScreenY),
+                .. BitConverter.GetBytes(TextureW),
+                .. BitConverter.GetBytes(TextureH),
+                .. BitConverter.GetBytes(TextureX),
+                .. BitConverter.GetBytes(TextureY),
+                .. BitConverter.GetBytes(ScreenW),
+                .. BitConverter.GetBytes(ScreenH),
+                .. BitConverter.GetBytes(UnknownShort3),
+                .. BitConverter.GetBytes((uint)Tint),
+            ];
+            return [.. data];
         }
 
         public override string ToString()

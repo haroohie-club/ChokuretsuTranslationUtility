@@ -5,10 +5,19 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// A representation of EXTRA.S in dat.bin
+    /// </summary>
     public class ExtraFile : DataFile
     {
-        public List<BgmStruct> Bgms { get; set; } = new();
-        public List<CgStruct> Cgs { get; set; } = new();
+        /// <summary>
+        /// The list of BGM extra data
+        /// </summary>
+        public List<BgmExtraData> Bgms { get; set; } = [];
+        /// <summary>
+        /// The list of CG extra data
+        /// </summary>
+        public List<CgExtraData> Cgs { get; set; } = [];
 
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
@@ -67,14 +76,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
             int endPointers = 0;
 
             sb.AppendLine("BGMS:");
-            foreach (BgmStruct bgm in Bgms)
+            foreach (BgmExtraData bgm in Bgms)
             {
                 sb.AppendLine($".short {bgm.Index}");
                 sb.AppendLine($"   .short {bgm.Flag}");
                 sb.AppendLine($"   POINTER{endPointers++:D3}: .word BGM{bgm.Index:D3}");
             }
             sb.AppendLine(".skip 8");
-            foreach (BgmStruct bgm in Bgms)
+            foreach (BgmExtraData bgm in Bgms)
             {
                 sb.AppendLine($"BGM{bgm.Index:D3}: .string \"{bgm.Name.EscapeShiftJIS()}\"");
                 sb.AsmPadString(bgm.Name, Encoding.GetEncoding("Shift-JIS"));
@@ -82,7 +91,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine();
 
             sb.AppendLine("CGS:");
-            foreach (CgStruct cg in Cgs)
+            foreach (CgExtraData cg in Cgs)
             {
                 sb.AppendLine($".short {cg.BgId}");
                 sb.AppendLine($"   .short {cg.Flag}");
@@ -90,7 +99,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 sb.AppendLine($"   POINTER{endPointers++:D3}: .word CG{cg.BgId:D3}");
             }
             sb.AppendLine(".skip 12");
-            foreach (CgStruct cg in Cgs)
+            foreach (CgExtraData cg in Cgs)
             {
                 sb.AppendLine($"CG{cg.BgId:D3}: .string \"{cg.Name.EscapeShiftJIS()}\"");
                 sb.AsmPadString(cg.Name, Encoding.GetEncoding("Shift-JIS"));
@@ -115,18 +124,42 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
-    public class BgmStruct
+    /// <summary>
+    /// The extras data for a particular background music track
+    /// </summary>
+    public class BgmExtraData
     {
+        /// <summary>
+        /// The index of the BGM in SND_DS.S
+        /// </summary>
         public short Index { get; set; }
+        /// <summary>
+        /// The flag indicating that this BGM has been encountered in-game
+        /// </summary>
         public short Flag { get; set; }
+        /// <summary>
+        /// The name of this BGM as displayed in the extras mode's BGM viewer
+        /// </summary>
         public string Name { get; set; }
     }
 
-    public class CgStruct
+    /// <summary>
+    /// The extras data for a particular CG
+    /// </summary>
+    public class CgExtraData
     {
+        /// <summary>
+        /// The ID of the CG as defined in BGTBL.S
+        /// </summary>
         public short BgId { get; set; }
+        /// <summary>
+        /// The flag indicating that this CG has been encountered in game
+        /// </summary>
         public short Flag { get; set; }
         public int Unknown04 { get; set; }
+        /// <summary>
+        /// The name of the CG as displayed in the extras mode's CG viewer
+        /// </summary>
         public string Name { get; set; }
     }
 }
