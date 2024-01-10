@@ -20,7 +20,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <summary>
         /// The number of sections in the event file
         /// </summary>
-        public int NumSections { get; internal set; }
+        public int NumSections { get; set; }
 
         /// <summary>
         /// A list of all the event file sections
