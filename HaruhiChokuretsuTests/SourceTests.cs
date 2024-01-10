@@ -205,7 +205,7 @@ namespace HaruhiChokuretsuTests
             ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
             EventFile eventFile = evt.Files.First(f => f.Index == evtFileIndex);
 
-            byte[] newBytes = await CompileFromSource(eventFile.GetSource(new()));
+            byte[] newBytes = await CompileFromSource(eventFile.GetSource([]));
             List<byte> newBytesList = new(newBytes);
             if (newBytes.Length % 16 > 0)
             {

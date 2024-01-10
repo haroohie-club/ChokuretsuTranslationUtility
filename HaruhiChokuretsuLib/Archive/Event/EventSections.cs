@@ -209,7 +209,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].LabelsSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word LABELS");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.DialogueSection.Objects.Count - 1}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].DialogueSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word DIALOGUESECTION");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.ConditionalsSection?.Objects.Count ?? 0}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.ConditionalsSection?.Objects.Count - 1 ?? 0}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].ConditionalsSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word CONDITIONALS");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.ScriptSections.Count}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].ScriptSectionDefinitionsSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word SCRIPTDEFINITIONS");
