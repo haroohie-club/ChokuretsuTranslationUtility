@@ -140,7 +140,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 int paletteLength = 0x200;
                 if (ImageTileForm == TileForm.GBA_4BPP && !Name.StartsWith("CHS_SYS_"))
                 {
-                    paletteLength = 0x40;
+                    paletteLength = 0x60;
                 }
 
                 PaletteData = Data.Skip(0x14).Take(paletteLength).ToList();
