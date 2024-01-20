@@ -16,8 +16,6 @@ namespace HaruhiChokuretsuCLI
                 new ReplaceCommand(),
                 new ImportResxCommand(),
                 new LocalizeSourceFilesCommand(),
-                new PatchArm9Command(),
-                new PatchOverlaysCommand(),
                 new HexSearchCommand(),
                 new VersionScreenCommand(),
                 new ConvertAudioCommand(),
