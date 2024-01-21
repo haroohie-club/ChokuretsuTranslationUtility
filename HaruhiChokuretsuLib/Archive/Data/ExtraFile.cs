@@ -52,8 +52,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 Cgs.Add(new()
                 {
                     BgId = IO.ReadShort(decompressedData, cgsOffset + i * 12),
-                    Flag = IO.ReadShort(decompressedData, cgsOffset + i * 12 + 2),
-                    Unknown04 = IO.ReadInt(decompressedData, cgsOffset + i * 12 + 4),
+                    Unknown02 = IO.ReadShort(decompressedData, cgsOffset + i * 12 + 2),
+                    Unknown04 = decompressedData.ElementAt(cgsOffset + i * 12 + 4),
+                    Flag = decompressedData.ElementAt(cgsOffset + i * 12 + 5) + 851,
                     Name = Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(IO.ReadInt(decompressedData, cgsOffset + i * 12 + 8)).TakeWhile(b => b != 0).ToArray()),
                 });
             }
@@ -96,8 +97,10 @@ namespace HaruhiChokuretsuLib.Archive.Data
             foreach (CgExtraData cg in Cgs)
             {
                 sb.AppendLine($".short {cg.BgId}");
-                sb.AppendLine($"   .short {cg.Flag}");
-                sb.AppendLine($"   .word {cg.Unknown04}");
+                sb.AppendLine($"   .short {cg.Unknown02}");
+                sb.AppendLine($"   .byte {cg.Unknown04}");
+                sb.AppendLine($"   .byte {cg.Flag - 851}");
+                sb.AppendLine($"   .skip 2");
                 sb.AppendLine($"   POINTER{endPointers++:D3}: .word CG{cg.BgId:D3}");
             }
             sb.AppendLine(".skip 12");
@@ -155,13 +158,17 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public short BgId { get; set; }
         /// <summary>
-        /// The flag indicating that this CG has been encountered in game
+        /// Unknown
         /// </summary>
-        public short Flag { get; set; }
+        public short Unknown02 { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown04 { get; set; }
+        public byte Unknown04 { get; set; }
+        /// <summary>
+        /// The flag indicating that this CG has been encountered in game
+        /// </summary>
+        public int Flag { get; set; }
         /// <summary>
         /// The name of the CG as displayed in the extras mode's CG viewer
         /// </summary>

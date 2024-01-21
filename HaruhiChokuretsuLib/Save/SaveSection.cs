@@ -71,7 +71,7 @@ namespace HaruhiChokuretsuLib.Save
         /// Clears a particular flag
         /// </summary>
         /// <param name="flag">The flag to clear</param>
-        public void ClearFlat(int flag)
+        public void ClearFlag(int flag)
         {
             Flags[flag / 8] &= (byte)~(1 << (flag % 8));
         }
