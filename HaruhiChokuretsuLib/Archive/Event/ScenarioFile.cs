@@ -239,9 +239,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             /// </summary>
             NOP,
             /// <summary>
-            /// Unknown
+            /// Unlocks a particular character ending
             /// </summary>
-            UNKNOWN0B,
+            UNLOCK_ENDINGS,
             /// <summary>
             /// Unlocks an unlockable
             /// </summary>
