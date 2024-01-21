@@ -24,19 +24,19 @@ namespace HaruhiChokuretsuLib.Save
         /// <summary>
         /// The static save slot data for the save file (slots 1 and 2)
         /// </summary>
-        public SaveSlotData[] StaticSaveSlots { get; set; }
+        public SaveSlotData[] CheckpointSaveSlots { get; set; }
         /// <summary>
         /// The loss prevention segements of the static save slot data (exists in case the primary slot becomes corrupted)
         /// </summary>
-        public SaveSlotData[] StaticSaveSlotBackups { get; set; }
+        public SaveSlotData[] CheckpointSaveSlotBackups { get; set; }
         /// <summary>
         /// The dyanmic save slot data for the save file (slot 3)
         /// </summary>
-        public DynamicSaveSlotData DynamicSaveSlot { get; set; }
+        public QuickSaveSlotData QuickSaveSlot { get; set; }
         /// <summary>
         /// The loss prevention segment of the dynamic save slot data (exists in case the primary slot becomes corrupted)
         /// </summary>
-        public DynamicSaveSlotData DynamicSaveSlotBackup { get; set; }
+        public QuickSaveSlotData QuickSaveSlotBackup { get; set; }
 
         /// <summary>
         /// Creates a save file given binary data
@@ -51,15 +51,15 @@ namespace HaruhiChokuretsuLib.Save
 
             CommonData = new(data.Skip(0x20).Take(0x2F0));
             CommonDataBackup = new(data.Skip(0x310).Take(0x2F0));
-            StaticSaveSlots = new SaveSlotData[2];
-            StaticSaveSlotBackups = new SaveSlotData[2];
-            for (int i = 0; i < StaticSaveSlots.Length; i++)
+            CheckpointSaveSlots = new SaveSlotData[2];
+            CheckpointSaveSlotBackups = new SaveSlotData[2];
+            for (int i = 0; i < CheckpointSaveSlots.Length; i++)
             {
-                StaticSaveSlots[i] = new(data.Skip(0x600 + 0x7E0 * i).Take(0x3F0));
-                StaticSaveSlotBackups[i] = new(data.Skip(0x9F0 + 0x7E0 * i).Take(0x3F0));
+                CheckpointSaveSlots[i] = new(data.Skip(0x600 + 0x7E0 * i).Take(0x3F0));
+                CheckpointSaveSlotBackups[i] = new(data.Skip(0x9F0 + 0x7E0 * i).Take(0x3F0));
             }
-            DynamicSaveSlot = new(data.Skip(0x15C0).Take(0x430));
-            DynamicSaveSlotBackup = new(data.Skip(0x19F0).Take(0x430));
+            QuickSaveSlot = new(data.Skip(0x15C0).Take(0x430));
+            QuickSaveSlotBackup = new(data.Skip(0x19F0).Take(0x430));
         }
 
         /// <summary>
@@ -74,13 +74,13 @@ namespace HaruhiChokuretsuLib.Save
             bytes.AddRange(new byte[5]);
             bytes.AddRange(CommonData.GetBytes());
             bytes.AddRange(CommonData.GetBytes());
-            for (int i = 0; i < StaticSaveSlots.Length; i++)
+            for (int i = 0; i < CheckpointSaveSlots.Length; i++)
             {
-                bytes.AddRange(StaticSaveSlots[i].GetBytes());
-                bytes.AddRange(StaticSaveSlots[i].GetBytes());
+                bytes.AddRange(CheckpointSaveSlots[i].GetBytes());
+                bytes.AddRange(CheckpointSaveSlots[i].GetBytes());
             }
-            bytes.AddRange(DynamicSaveSlot.GetBytes());
-            bytes.AddRange(DynamicSaveSlot.GetBytes());
+            bytes.AddRange(QuickSaveSlot.GetBytes());
+            bytes.AddRange(QuickSaveSlot.GetBytes());
             bytes.AddRange(new byte[0x1E0]);
 
             return [.. bytes];
