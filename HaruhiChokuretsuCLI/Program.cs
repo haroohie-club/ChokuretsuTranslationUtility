@@ -26,6 +26,7 @@ namespace HaruhiChokuretsuCLI
                 new ExportIncludeCommand(),
                 new ScriptCommandSearchCommand(),
                 new RecalculateSaveFileChecksumsCommand(),
+                new CompareSavesCommand(),
             };
 
             return commands.Run(args);
