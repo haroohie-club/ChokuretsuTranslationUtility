@@ -23,9 +23,13 @@ namespace HaruhiChokuretsuLib.Save
         /// </summary>
         public short EpisodeNumber { get; set; }
         /// <summary>
+        /// Current value of the Haruhi Meter (0-9 for 10% through 100%)
+        /// </summary>
+        public short HaruhiMeter { get; set; }
+        /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown294 { get; set; }
+        public short Unknown296 { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
@@ -85,7 +89,8 @@ namespace HaruhiChokuretsuLib.Save
             // Padding: 2 bytes
             ScenarioPosition = IO.ReadShort(data, 0x290);
             EpisodeNumber = IO.ReadShort(data, 0x292);
-            Unknown294 = IO.ReadInt(data, 0x294);
+            HaruhiMeter = IO.ReadShort(data, 0x294);
+            Unknown296 = IO.ReadShort(data, 0x296);
             Unknown298 = IO.ReadInt(data, 0x298);
             Unknown29C = IO.ReadShort(data, 0x29C);
             Unknown29E = IO.ReadShort(data, 0x29E);
@@ -96,7 +101,7 @@ namespace HaruhiChokuretsuLib.Save
             KoizumiFriendshipLevel = data.ElementAt(0x2A5);
             UnknownFriendshipLevel = data.ElementAt(0x2A6);
             TsuruyaFriendshipLevel = data.ElementAt(0x2A7);
-            Footer = data.Skip(0x2A8).Take(0x148).ToArray();
+            Footer = data.Skip(0x2A8).Take(0x144).ToArray();
         }
 
         /// <summary>
@@ -128,7 +133,8 @@ namespace HaruhiChokuretsuLib.Save
             data.AddRange(new byte[2]);
             data.AddRange(BitConverter.GetBytes(ScenarioPosition));
             data.AddRange(BitConverter.GetBytes(EpisodeNumber));
-            data.AddRange(BitConverter.GetBytes(Unknown294));
+            data.AddRange(BitConverter.GetBytes(HaruhiMeter));
+            data.AddRange(BitConverter.GetBytes(Unknown296));
             data.AddRange(BitConverter.GetBytes(Unknown298));
             data.AddRange(BitConverter.GetBytes(Unknown29C));
             data.AddRange(BitConverter.GetBytes(Unknown29E));
@@ -140,6 +146,7 @@ namespace HaruhiChokuretsuLib.Save
             data.Add(UnknownFriendshipLevel);
             data.Add(TsuruyaFriendshipLevel);
             data.AddRange(Footer);
+            data.AddRange(new byte[4]);
 
             return [.. data];
         }

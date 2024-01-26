@@ -15,49 +15,69 @@ namespace HaruhiChokuretsuLib.Save
     public class QuickSaveSlotData(IEnumerable<byte> data) : SaveSlotData(data)
     {
         /// <summary>
-        /// Unknown
+        /// The first character sprite to display
         /// </summary>
-        public int Unknown3F0 { get; set; } = IO.ReadInt(data, 0x3F0);
+        public int FirstCharacterSprite { get; set; } = IO.ReadInt(data, 0x3EC);
+        /// <summary>
+        /// The second character sprite to display
+        /// </summary>
+        public int SecondCharacterSprite { get; set; } = IO.ReadInt(data, 0x3F0);
+        /// <summary>
+        /// The third character sprite to display
+        /// </summary>
+        public int ThirdCharacterSprite { get; set; } = IO.ReadInt(data, 0x3F4);
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown3F4 { get; set; } = IO.ReadInt(data, 0x3F4);
+        public short Unknown3F8 { get; set; } = IO.ReadShort(data, 0x3F8);
         /// <summary>
-        /// Unknown
+        /// The horizontal offset of the first character sprite
         /// </summary>
-        public int Unknown3F8 { get; set; } = IO.ReadInt(data, 0x3F8);
+        public short Sprite1XOffset { get; set; } = IO.ReadShort(data, 0x3FA);
         /// <summary>
-        /// Unknown
+        /// The horizontal offset of the second character sprite
         /// </summary>
-        public int Unknown3FC { get; set; } = IO.ReadInt(data, 0x3FC);
+        public short Sprite2XOffset { get; set; } = IO.ReadShort(data, 0x3FC);
+        /// <summary>
+        /// The horizontal offset of the third character sprite
+        /// </summary>
+        public short Sprite3XOffset { get; set; } = IO.ReadShort(data, 0x3FE);
         /// <summary>
         /// Unknown
         /// </summary>
         public int Unknown400 { get; set; } = IO.ReadInt(data, 0x400);
         /// <summary>
-        /// Unknown
+        /// The episode header to display as with EPHEADER
         /// </summary>
-        public short Unknown404 { get; set; } = IO.ReadShort(data, 0x404);
+        public short EpisodeHeader { get; set; } = IO.ReadShort(data, 0x404);
         /// <summary>
         /// Unknown
         /// </summary>
         public short Unknown406 { get; set; } = IO.ReadShort(data, 0x406);
         /// <summary>
-        /// Unknown
+        /// The palette effect to apply to the BG as with PALEFFECT
         /// </summary>
-        public int Unknown408 { get; set; } = IO.ReadInt(data, 0x408);
+        public short BgPalEffect { get; set; } = IO.ReadShort(data, 0x408);
         /// <summary>
         /// Unknown
         /// </summary>
-        public short Unknown40C { get; set; } = IO.ReadShort(data, 0x40C);
+        public short Unknown40A { get; set; } = IO.ReadShort(data, 0x40A);
+        /// <summary>
+        /// The BGTBL.S index of the background to display on the bottom screen
+        /// </summary>
+        public short BgIndex { get; set; } = IO.ReadShort(data, 0x40C);
+        /// <summary>
+        /// The BGTBL.S index of the KBG to display on the top screen
+        /// </summary>
+        public short KbgIndex { get; set; } = IO.ReadShort(data, 0x40E);
+        /// <summary>
+        /// The BGTBL.S index of the CG displayed with DISP_CG
+        /// </summary>
+        public short CgIndex { get; set; } = IO.ReadShort(data, 0x410);
         /// <summary>
         /// Unknown
         /// </summary>
-        public short Unknown40E { get; set; } = IO.ReadShort(data, 0x40E);
-        /// <summary>
-        /// Unknown
-        /// </summary>
-        public int Unknown410 { get; set; } = IO.ReadInt(data, 0x410);
+        public short Unknown412 { get; set; } = IO.ReadShort(data, 0x412);
         /// <summary>
         /// Unknown
         /// </summary>
@@ -91,17 +111,23 @@ namespace HaruhiChokuretsuLib.Save
         {
             List<byte> data = [.. base.GetDataBytes()];
 
-            data.AddRange(BitConverter.GetBytes(Unknown3F0));
-            data.AddRange(BitConverter.GetBytes(Unknown3F4));
+            data.RemoveRange(data.Count - 5, 4);
+            data.AddRange(BitConverter.GetBytes(FirstCharacterSprite));
+            data.AddRange(BitConverter.GetBytes(SecondCharacterSprite));
+            data.AddRange(BitConverter.GetBytes(ThirdCharacterSprite));
             data.AddRange(BitConverter.GetBytes(Unknown3F8));
-            data.AddRange(BitConverter.GetBytes(Unknown3FC));
+            data.AddRange(BitConverter.GetBytes(Sprite1XOffset));
+            data.AddRange(BitConverter.GetBytes(Sprite2XOffset));
+            data.AddRange(BitConverter.GetBytes(Sprite3XOffset));
             data.AddRange(BitConverter.GetBytes(Unknown400));
-            data.AddRange(BitConverter.GetBytes(Unknown404));
+            data.AddRange(BitConverter.GetBytes(EpisodeHeader));
             data.AddRange(BitConverter.GetBytes(Unknown406));
-            data.AddRange(BitConverter.GetBytes(Unknown408));
-            data.AddRange(BitConverter.GetBytes(Unknown40C));
-            data.AddRange(BitConverter.GetBytes(Unknown40E));
-            data.AddRange(BitConverter.GetBytes(Unknown410));
+            data.AddRange(BitConverter.GetBytes(BgPalEffect));
+            data.AddRange(BitConverter.GetBytes(Unknown40A));
+            data.AddRange(BitConverter.GetBytes(BgIndex));
+            data.AddRange(BitConverter.GetBytes(KbgIndex));
+            data.AddRange(BitConverter.GetBytes(CgIndex));
+            data.AddRange(BitConverter.GetBytes(Unknown412));
             data.AddRange(BitConverter.GetBytes(Unknown414));
             data.AddRange(BitConverter.GetBytes(Unknown418));
             data.AddRange(BitConverter.GetBytes(Unknown41C));
