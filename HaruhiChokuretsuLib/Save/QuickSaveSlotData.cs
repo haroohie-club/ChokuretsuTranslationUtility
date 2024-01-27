@@ -51,9 +51,9 @@ namespace HaruhiChokuretsuLib.Save
         /// </summary>
         public short EpisodeHeader { get; set; } = IO.ReadShort(data, 0x404);
         /// <summary>
-        /// Unknown
+        /// The PLACE.S index of the place graphic to display on the top screen
         /// </summary>
-        public short Unknown406 { get; set; } = IO.ReadShort(data, 0x406);
+        public short Place { get; set; } = IO.ReadShort(data, 0x406);
         /// <summary>
         /// The palette effect to apply to the BG as with PALEFFECT
         /// </summary>
@@ -121,7 +121,7 @@ namespace HaruhiChokuretsuLib.Save
             data.AddRange(BitConverter.GetBytes(Sprite3XOffset));
             data.AddRange(BitConverter.GetBytes(Unknown400));
             data.AddRange(BitConverter.GetBytes(EpisodeHeader));
-            data.AddRange(BitConverter.GetBytes(Unknown406));
+            data.AddRange(BitConverter.GetBytes(Place));
             data.AddRange(BitConverter.GetBytes(BgPalEffect));
             data.AddRange(BitConverter.GetBytes(Unknown40A));
             data.AddRange(BitConverter.GetBytes(BgIndex));
