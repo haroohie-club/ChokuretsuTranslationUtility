@@ -1,7 +1,7 @@
-﻿using HaruhiChokuretsuLib.Util;
+﻿using HaruhiChokuretsuLib.Archive.Event;
+using HaruhiChokuretsuLib.Util;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HaruhiChokuretsuLib.Save
 {
@@ -45,7 +45,7 @@ namespace HaruhiChokuretsuLib.Save
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown400 { get; set; } = IO.ReadInt(data, 0x400);
+        public CharacterMask TopScreenChibis { get; set; } = (CharacterMask)IO.ReadInt(data, 0x400);
         /// <summary>
         /// The episode header to display as with EPHEADER
         /// </summary>
@@ -119,7 +119,7 @@ namespace HaruhiChokuretsuLib.Save
             data.AddRange(BitConverter.GetBytes(Sprite1XOffset));
             data.AddRange(BitConverter.GetBytes(Sprite2XOffset));
             data.AddRange(BitConverter.GetBytes(Sprite3XOffset));
-            data.AddRange(BitConverter.GetBytes(Unknown400));
+            data.AddRange(BitConverter.GetBytes((int)TopScreenChibis));
             data.AddRange(BitConverter.GetBytes(EpisodeHeader));
             data.AddRange(BitConverter.GetBytes(Place));
             data.AddRange(BitConverter.GetBytes(BgPalEffect));

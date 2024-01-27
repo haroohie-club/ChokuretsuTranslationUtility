@@ -593,34 +593,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public List<Speaker> CharactersInvolved { get; set; } = [];
 
         /// <summary>
-        /// A set of mask bytes that are used for determining characters involved
-        /// </summary>
-        [Flags]
-        public enum CharacterMask : byte
-        {
-            /// <summary>
-            /// Kyon
-            /// </summary>
-            KYON = 0b0000_0010,
-            /// <summary>
-            /// Haruhi Suzumiya
-            /// </summary>
-            HARUHI = 0b0000_0100,
-            /// <summary>
-            /// Mikuru Asahina
-            /// </summary>
-            MIKURU = 0b0000_1000,
-            /// <summary>
-            /// Yuki Nagato
-            /// </summary>
-            NAGATO = 0b0001_0000,
-            /// <summary>
-            /// Itsuki Koizumi
-            /// </summary>
-            KOIZUMI = 0b0010_0000,
-        }
-
-        /// <summary>
         /// Creates a scenario route given data from SCENARIO.S
         /// </summary>
         /// <param name="dataStartIndex">The start index of the route within the data</param>
@@ -696,5 +668,33 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             return Title;
         }
+    }
+
+    /// <summary>
+    /// A set of mask bytes that are used for determining characters involved
+    /// </summary>
+    [Flags]
+    public enum CharacterMask : byte
+    {
+        /// <summary>
+        /// Kyon
+        /// </summary>
+        KYON = 0b0000_0010,
+        /// <summary>
+        /// Haruhi Suzumiya
+        /// </summary>
+        HARUHI = 0b0000_0100,
+        /// <summary>
+        /// Mikuru Asahina
+        /// </summary>
+        MIKURU = 0b0000_1000,
+        /// <summary>
+        /// Yuki Nagato
+        /// </summary>
+        NAGATO = 0b0001_0000,
+        /// <summary>
+        /// Itsuki Koizumi
+        /// </summary>
+        KOIZUMI = 0b0010_0000,
     }
 }
