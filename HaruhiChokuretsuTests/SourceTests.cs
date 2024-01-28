@@ -318,6 +318,23 @@ namespace HaruhiChokuretsuTests
         }
 
         [Test]
+        public async Task ItemSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ItemFile itemFile = dat.Files.First(f => f.Name == "ITEMS").CastTo<ItemFile>();
+
+            byte[] newBytes = await CompileFromSource(itemFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            ClassicAssert.AreEqual(itemFile.Data, newBytesList);
+        }
+
+        [Test]
         public async Task ScenarioSourceTest()
         {
             // This file can be ripped directly from the ROM

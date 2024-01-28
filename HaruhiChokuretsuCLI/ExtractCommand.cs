@@ -173,6 +173,9 @@ namespace HaruhiChokuretsuCLI
                             case "EXTRAS":
                                 file = file.CastTo<ExtraFile>();
                                 break;
+                            case "ITEMS":
+                                file = file.CastTo<ItemFile>();
+                                break;
                             case "MESSS":
                                 file = file.CastTo<MessageFile>();
                                 break;
