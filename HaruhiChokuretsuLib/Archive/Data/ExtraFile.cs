@@ -8,7 +8,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// <summary>
     /// A representation of EXTRA.S in dat.bin
     /// </summary>
-    public class ExtraFile : DataFile
+    public class ExtraFile : DataFile, ITranslatableFile
     {
         /// <summary>
         /// The list of BGM extra data
@@ -126,6 +126,29 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
 
             return sb.ToString();
+        }
+
+        /// <inheritdoc/>
+        public List<TranslatableString> GetTranslatableStrings()
+        {
+            return Bgms.Select(b => new TranslatableString { Key = $"BGM{b.Index:D3}", Comment = $"Name of BGM{b.Index:D3} in Extra mode", Line = b.Name })
+                .Concat(Cgs.Select(c => new TranslatableString { Key = $"CG{c.BgId:D3}", Comment = $"Name of CG{c.BgId:D3} in Extra mode", Line = c.Name })).ToList();
+        }
+
+        /// <inheritdoc/>
+        public void ReplaceTranslatableStrings(List<TranslatableString> newTranslations)
+        {
+            foreach (TranslatableString str in newTranslations)
+            {
+                if (str.Key.StartsWith("BGM"))
+                {
+                    Bgms.First(b => b.Index == int.Parse(str.Key[3..])).Name = str.Line;
+                }
+                else
+                {
+                    Cgs.First(c => c.BgId == int.Parse(str.Key[2..])).Name = str.Line;
+                }
+            }
         }
     }
 

@@ -8,7 +8,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// <summary>
     /// Represents MESS.S in dat.bin
     /// </summary>
-    public class MessageFile : DataFile
+    public class MessageFile : DataFile, ITranslatableFile
     {
         /// <summary>
         /// The list of messages as defined in the file
@@ -78,6 +78,21 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
 
             return sb.ToString();
+        }
+
+        /// <inheritdoc/>
+        public List<TranslatableString> GetTranslatableStrings()
+        {
+            return Messages.Select((m, i) => new TranslatableString { Key = $"MESS{i:D3}", Comment = "UI text", Line = m }).ToList();
+        }
+
+        /// <inheritdoc/>
+        public void ReplaceTranslatableStrings(List<TranslatableString> newTranslations)
+        {
+            foreach (TranslatableString str in newTranslations)
+            {
+                Messages[int.Parse(str.Key[4..])] = str.Line;
+            }
         }
     }
 }

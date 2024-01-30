@@ -3,6 +3,7 @@ using HaruhiChokuretsuLib.Archive.Event;
 using HaruhiChokuretsuLib.Font;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -14,7 +15,7 @@ namespace HaruhiChokuretsuCLI
     public class JsonExportCommand : Command
     {
         private string _inputArchive, _outputFolder, _charmapFile;
-        private bool _showHelp, _isDat;
+        private bool _showHelp;
 
         public JsonExportCommand() : base("json-export", "Export messages into json files")
         {
@@ -25,7 +26,6 @@ namespace HaruhiChokuretsuCLI
                 "",
                 { "i|input-archive=", "Archive to extract file from", i => _inputArchive = i },
                 { "o|output-folder=", "Folder path of extracted file", o => _outputFolder = o},
-                { "d|is-dat", "Whether input archive is dat.bin", d => _isDat = true },
                 { "c|charmap=", "Charset mapping file", c => _charmapFile = c },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
@@ -72,12 +72,19 @@ namespace HaruhiChokuretsuCLI
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             };
 
+            bool isDat = Path.GetFileName(_inputArchive).Equals("dat.bin", StringComparison.OrdinalIgnoreCase);
             foreach (var file in evtArchive.Files)
             {
-                if (_isDat) { file.InitializeDialogueForSpecialFiles(); }
+                if (isDat)
+                {
+                    file.InitializeDialogueForSpecialFiles();
+                }
                 if (file.DialogueLines.Count == 0)
                 {
-                    if (!_isDat) { file.InitializeDialogueForSpecialFiles(); }
+                    if (!isDat)
+                    {
+                        file.InitializeDialogueForSpecialFiles();
+                    }
                     if (file.DialogueLines.Count == 0)
                     {
                         continue;
@@ -98,11 +105,11 @@ namespace HaruhiChokuretsuCLI
                             text += c;
                         }
                     }
-                    output.Add(new List<string>() { line.SpeakerName, text });
+                    output.Add([line.SpeakerName, text]);
                 }
                 var outputJson = Encoding.UTF8.GetString(JsonSerializer.SerializeToUtf8Bytes(output, jsonOptions));
                 outputJson = outputJson.Replace(@"\u3000", "\u3000");
-                File.WriteAllText(Path.Combine(_outputFolder, $"{(_isDat ? "dat" : "evt")}_{file.Name}.json"), outputJson);
+                File.WriteAllText(Path.Combine(_outputFolder, $"{(isDat ? "dat" : "evt")}_{file.Name}.json"), outputJson);
             }
 
             return 0;

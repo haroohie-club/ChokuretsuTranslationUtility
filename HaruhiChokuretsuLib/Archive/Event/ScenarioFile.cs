@@ -13,13 +13,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <summary>
         /// If this file is SCENARIO.S this defines the scenario
         /// </summary>
-        public ScenarioStruct Scenario { get; set; }
+        public ScenarioFile Scenario { get; set; }
     }
 
     /// <summary>
     /// A representation of the scenario flow of the game defined in SCENARIO.S
     /// </summary>
-    public class ScenarioStruct
+    public class ScenarioFile
     {
         /// <summary>
         /// A list of scenario commands defining the flow of the game
@@ -40,7 +40,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <param name="data">Binary SCENARIO.S data</param>
         /// <param name="lines">List of dialogue lines for string reference</param>
         /// <param name="sections">List of event file sections</param>
-        public ScenarioStruct(IEnumerable<byte> data, List<DialogueLine> lines, List<EventFileSection> sections)
+        public ScenarioFile(IEnumerable<byte> data, List<DialogueLine> lines, List<EventFileSection> sections)
         {
             int commandsOffset = IO.ReadInt(data, sections[0].Pointer);
             int commandsCount = IO.ReadInt(data, sections[0].Pointer + 0x08);

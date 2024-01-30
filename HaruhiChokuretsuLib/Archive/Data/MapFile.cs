@@ -11,7 +11,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// <summary>
     /// Representation of a map file contained in dat.bin
     /// </summary>
-    public class MapFile : DataFile
+    public class MapFile : DataFile, ITranslatableFile
     {
         internal int NumSections { get; set; }
         internal int EndPointersOffset { get; set; }
@@ -314,6 +314,21 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
 
             return sb.ToString();
+        }
+
+        /// <inheritdoc/>
+        public List<TranslatableString> GetTranslatableStrings()
+        {
+            return InteractableObjects.Select(i => new TranslatableString { Key = $"IO{i.ObjectId:D3}", Comment = $"The name of interactable object {i.ObjectId:D3} on this map", Line = i.ObjectName }).ToList();
+        }
+
+        /// <inheritdoc/>
+        public void ReplaceTranslatableStrings(List<TranslatableString> newTranslations)
+        {
+            foreach (TranslatableString str in newTranslations)
+            {
+                InteractableObjects.First(i => i.ObjectId == int.Parse(str.Key[2..])).ObjectName = str.Line;
+            }
         }
     }
 
