@@ -31,6 +31,14 @@ namespace HaruhiChokuretsuLib.Save
         }
 
         /// <summary>
+        /// Clears the save slot, restoring it to being like a new save
+        /// </summary>
+        public virtual void Clear()
+        {
+            Flags = new byte[Flags.Length];
+        }
+
+        /// <summary>
         /// Calculates the checksum based on the current binary data
         /// </summary>
         /// <returns>Byte array of the binary checksum data</returns>

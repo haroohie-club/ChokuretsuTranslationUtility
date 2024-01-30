@@ -103,6 +103,34 @@ namespace HaruhiChokuretsuLib.Save
         /// </summary>
         public int CurrentScriptCommand { get; set; } = IO.ReadInt(data, 0x428);
 
+        /// <inheritdoc/>
+        public override void Clear()
+        {
+            base.Clear();
+            FirstCharacterSprite = 0;
+            SecondCharacterSprite = 0;
+            ThirdCharacterSprite = 0;
+            Unknown3F8 = 0;
+            Sprite1XOffset = 0;
+            Sprite2XOffset = 0;
+            Sprite3XOffset = 0;
+            TopScreenChibis = 0;
+            EpisodeHeader = 0;
+            Place = 0;
+            BgPalEffect = 0;
+            Unknown40A = 0;
+            BgIndex = 0;
+            KbgIndex = 0;
+            CgIndex = 0;
+            Unknown412 = 0;
+            Unknown414 = 0;
+            Unknown418 = 0;
+            Unknown41C = 0;
+            CurrentScript = 0;
+            CurrentScriptBlock = 0;
+            CurrentScriptCommand = 0;
+        }
+
         /// <summary>
         /// Get the binary representation of the data portion of the section not including the checksum
         /// </summary>

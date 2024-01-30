@@ -104,6 +104,27 @@ namespace HaruhiChokuretsuLib.Save
             Footer = data.Skip(0x2A8).Take(0x144).ToArray();
         }
 
+        /// <inheritdoc/>
+        public override void Clear()
+        {
+            base.Clear();
+            SaveTime = DateTimeOffset.MinValue;
+            ScenarioPosition = 0;
+            EpisodeNumber = 0;
+            HaruhiMeter = 0;
+            Unknown296 = 0;
+            Unknown298 = 0;
+            Unknown29C = 0;
+            Unknown29E = 0;
+            HaruhiFriendshipLevel = 0;
+            MikuruFriendshipLevel = 0;
+            NagatoFriendshipLevel = 0;
+            KoizumiFriendshipLevel = 0;
+            UnknownFriendshipLevel = 0;
+            TsuruyaFriendshipLevel = 0;
+            Footer = new byte[Footer.Length];
+        }
+
         /// <summary>
         /// Get the binary representation of the data portion of the section not including the checksum
         /// </summary>
