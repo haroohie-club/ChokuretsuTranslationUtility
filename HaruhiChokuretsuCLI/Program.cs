@@ -18,8 +18,6 @@ namespace HaruhiChokuretsuCLI
                 new ReplaceCommand(),
                 new ImportResxCommand(),
                 new LocalizeSourceFilesCommand(),
-                new PatchArm9Command(),
-                new PatchOverlaysCommand(),
                 new HexSearchCommand(),
                 new VersionScreenCommand(),
                 new ConvertAudioCommand(),
@@ -29,6 +27,8 @@ namespace HaruhiChokuretsuCLI
                 new ExportLayoutCommand(),
                 new ExportIncludeCommand(),
                 new ScriptCommandSearchCommand(),
+                new RecalculateSaveFileChecksumsCommand(),
+                new CompareSavesCommand(),
             };
 
             return commands.Run(args);

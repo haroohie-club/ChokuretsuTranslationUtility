@@ -1,12 +1,10 @@
-﻿using HaruhiChokuretsuLib;
-using HaruhiChokuretsuLib.Archive;
+﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Event;
 using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace HaruhiChokuretsuTests
 {
@@ -24,7 +22,7 @@ namespace HaruhiChokuretsuTests
             EventFile @event = new() { Name = "EV0_TESTS" };
             @event.Initialize(eventFileOnDisk, 0, _log);
 
-            Assert.AreEqual(eventFileOnDisk, @event.GetBytes());
+            ClassicAssert.AreEqual(eventFileOnDisk, @event.GetBytes());
         }
 
         [Test]
@@ -42,7 +40,7 @@ namespace HaruhiChokuretsuTests
             @event.EditDialogueLine(0, $"{originalLine}あ");
             @event.EditDialogueLine(0, $"{originalLine}");
 
-            Assert.AreEqual(eventFileOnDisk, @event.GetBytes());
+            ClassicAssert.AreEqual(eventFileOnDisk, @event.GetBytes());
         }
 
         [Test]
@@ -52,24 +50,24 @@ namespace HaruhiChokuretsuTests
         {
             ConsoleLogger log = new();
             ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(evtFile, _log);
-            Assert.AreEqual(evt.NumFiles, evt.Files.Count);
+            ClassicAssert.AreEqual(evt.NumFiles, evt.Files.Count);
 
             foreach (EventFile eventFile in evt.Files)
             {
-                Assert.AreEqual(eventFile.Offset, evt.RecalculateFileOffset(eventFile));
+                ClassicAssert.AreEqual(eventFile.Offset, evt.RecalculateFileOffset(eventFile));
             }
 
             byte[] newEvtBytes = evt.GetBytes();
             Console.WriteLine($"Efficiency: {(double)newEvtBytes.Length / File.ReadAllBytes(evtFile).Length * 100}%");
 
             ArchiveFile<EventFile> newEvtFile = new(newEvtBytes, log);
-            Assert.AreEqual(evt.Files.Count, newEvtFile.Files.Count);
+            ClassicAssert.AreEqual(evt.Files.Count, newEvtFile.Files.Count);
             for (int i = 0; i < newEvtFile.Files.Count; i++)
             {
-                Assert.AreEqual(evt.Files[i].Data, newEvtFile.Files[i].Data, $"Failed at file {i} (offset: 0x{evt.Files[i].Offset:X8}; index: {evt.Files[i].Index:X4}");
+                ClassicAssert.AreEqual(evt.Files[i].Data, newEvtFile.Files[i].Data, $"Failed at file {i} (offset: 0x{evt.Files[i].Offset:X8}; index: {evt.Files[i].Index:X4}");
             }
 
-            Assert.AreEqual(newEvtBytes, newEvtFile.GetBytes());
+            ClassicAssert.AreEqual(newEvtBytes, newEvtFile.GetBytes());
         }
     }
 }

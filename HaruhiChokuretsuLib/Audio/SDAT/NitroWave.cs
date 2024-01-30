@@ -243,7 +243,18 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
     /// </summary>
     public enum PcmFormat : byte
     {
-        SignedPCM8, PCM16, Encoded
+        /// <summary>
+        /// Signed 8-bit PCM
+        /// </summary>
+        SignedPCM8,
+        /// <summary>
+        /// 16-bit PCM
+        /// </summary>
+        PCM16,
+        /// <summary>
+        /// Encoded
+        /// </summary>
+        Encoded
     }
 
 }

@@ -6,30 +6,44 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
+    /// <summary>
+    /// A (fake) generic section used for generic operations
+    /// </summary>
     public class GenericSection : IEventSection<object>, IConvertible
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
+        /// <inheritdoc/>
         public List<object> Objects { get; set; }
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return this;
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             return string.Empty;
         }
 
+        /// <inheritdoc/>
         public TypeCode GetTypeCode()
         {
             return TypeCode.Object;
@@ -60,6 +74,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
         DateTime IConvertible.ToDateTime(IFormatProvider provider) => ThrowNotSupported<DateTime>();
         string IConvertible.ToString(IFormatProvider provider) => ThrowNotSupported<string>();
 
+        /// <summary>
+        /// Converts a generic section to a specific section type
+        /// </summary>
+        /// <param name="conversionType">The type to convert to</param>
+        /// <param name="provider">Unused</param>
+        /// <returns>The converted type</returns>
         public object ToType(Type conversionType, IFormatProvider provider)
         {
             if (conversionType == typeof(SettingsSection))
@@ -143,16 +163,27 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The settings section of the event file
+    /// </summary>
     public class SettingsSection : IEventSection<EventFileSettings>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<EventFileSettings> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<EventFileSettings> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -162,14 +193,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
             SectionType = typeof(SettingsSection);
             ObjectType = typeof(EventFileSettings);
 
-            Objects = new() { new(data) };
+            Objects = [new(data)];
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt)
         {
             StringBuilder sb = new();
@@ -203,7 +236,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].LabelsSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word LABELS");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.DialogueSection.Objects.Count - 1}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].DialogueSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word DIALOGUESECTION");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.ConditionalsSection?.Objects.Count ?? 0}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.ConditionalsSection?.Objects.Count - 1 ?? 0}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].ConditionalsSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word CONDITIONALS");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {evt.ScriptSections.Count}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].ScriptSectionDefinitionsSectionPointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word SCRIPTDEFINITIONS");
@@ -218,16 +251,27 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A pointer section of the event file containing pointers to other sections
+    /// </summary>
     public class PointerSection : IEventSection<PointerStruct>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<PointerStruct> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<PointerStruct> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -253,7 +297,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
-        public static (int sectionIndex, PointerSection section) ParseSection(List<EventFileSection> eventFileSections, int pointer, string name, IEnumerable<byte> data, ILogger log)
+        internal static (int sectionIndex, PointerSection section) ParseSection(List<EventFileSection> eventFileSections, int pointer, string name, IEnumerable<byte> data, ILogger log)
         {
             int sectionIndex = eventFileSections.FindIndex(s => s.Pointer == pointer);
             PointerSection section = new();
@@ -264,7 +308,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return (sectionIndex, section);
         }
 
-        public static PointerSection GetForSection<T>(IEventSection<T> section)
+        internal static PointerSection GetForSection<T>(IEventSection<T> section)
         {
             return new() 
             { 
@@ -273,18 +317,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 ObjectLength = 12,
                 SectionType = typeof(PointerSection),
                 ObjectType = typeof(PointerStruct),
-                Objects = new()
-                {
+                Objects =
+                [
                     new() { Pointer = 1, Padding2 = section.Objects.Count - 1 }, // doesn't matter since we're only creating this for the ASM output,
-                }
+                ]
             };
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -305,28 +351,52 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A struct used by pointer sections to define pointers to other sections
+    /// </summary>
     public struct PointerStruct
     {
+        /// <summary>
+        /// Padding
+        /// </summary>
         public int Padding1 { get; set; }
+        /// <summary>
+        /// The pointer
+        /// </summary>
         public int Pointer { get; set; }
+        /// <summary>
+        /// Padding
+        /// </summary>
         public int Padding2 { get; set; }
 
-        public override string ToString()
+        /// <inheritdoc/>
+        public override readonly string ToString()
         {
             return $"0x{Pointer:X4}";
         }
     }
 
+    /// <summary>
+    /// An "integer section" used by sections which only contain integers
+    /// </summary>
     public class IntegerSection : IEventSection<int>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<int> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<int> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -347,11 +417,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -366,16 +438,27 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The section containing definitions for interactable objects
+    /// </summary>
     public class InteractableObjectsSection : IEventSection<InteractableObjectEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<InteractableObjectEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<InteractableObjectEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -401,11 +484,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -426,28 +511,52 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// An entry for interactable objects
+    /// </summary>
     public class InteractableObjectEntry
     {
+        /// <summary>
+        /// An index containing the interactable object's ID
+        /// </summary>
         public short ObjectId { get; set; }
+        /// <summary>
+        /// The script block the interactable object triggers
+        /// </summary>
         public short ScriptBlock { get; set; }
+        /// <summary>
+        /// Padding
+        /// </summary>
         public short Padding { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"({ObjectId}, {ScriptBlock}, {Padding})";
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown03Section : IEventSection<Unknown03SectionEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<Unknown03SectionEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<Unknown03SectionEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -473,11 +582,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -494,28 +605,52 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown03SectionEntry
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt1 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt2 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt3 { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"({UnknownInt1}, {UnknownInt2}, {UnknownInt3})";
         }
     }
 
+    /// <summary>
+    /// The section defining the chibis which appear on the top screen at the start of the event
+    /// </summary>
     public class StartingChibisSection : IEventSection<StartingChibiEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<StartingChibiEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<StartingChibiEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -544,11 +679,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -568,31 +705,64 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// An entry defining a starting chibi
+    /// </summary>
     public class StartingChibiEntry
     {
+        /// <summary>
+        /// The index of the chibi into CHIBI.S in dat.bin
+        /// </summary>
         public short ChibiIndex { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort2 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort3 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort4 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort5 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort6 { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return ChibiIndex.ToString();
         }
     }
 
+    /// <summary>
+    /// The section defining which characters appear on the map for the investigation phase
+    /// </summary>
     public class MapCharactersSection : IEventSection<MapCharactersSectionEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<MapCharactersSectionEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<MapCharactersSectionEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -621,11 +791,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -648,32 +820,65 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return sb.ToString();
         }
     }
-
+    
+    /// <summary>
+    /// A map character entry in the map characters section of an event file
+    /// </summary>
     public class MapCharactersSectionEntry
     {
+        /// <summary>
+        /// The index of character as defined by their chibi in CHIBI.S
+        /// </summary>
         public int CharacterIndex { get; set; }
+        /// <summary>
+        /// The direction the character faces by default (from 0 to 3, down left, down right, up left, up right)
+        /// </summary>
         public short FacingDirection { get; set; }
+        /// <summary>
+        /// The X position of the chibi on the map (in terms of tiles)
+        /// </summary>
         public short X { get; set; }
+        /// <summary>
+        /// The Y position of the chibi on the map (in terms of tiles)
+        /// </summary>
         public short Y { get; set; }
+        /// <summary>
+        /// The script block that triggers when talking to the character
+        /// </summary>
         public short TalkScriptBlock { get; set; }
+        /// <summary>
+        /// Padding
+        /// </summary>
         public short Padding { get; set; }
-        
+
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{CharacterIndex}: ({FacingDirection}, {X}, {Y}, {TalkScriptBlock}, {Padding})";
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown07Section : IEventSection<Unknown07SectionEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<Unknown07SectionEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<Unknown07SectionEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -698,11 +903,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -718,27 +925,48 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown07SectionEntry
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort1 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short UnknownShort2 { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"({UnknownShort1}, {UnknownShort2})";
         }
     }
 
+    /// <summary>
+    /// The section that defines the choices used by the SELECT command in event files
+    /// </summary>
     public class ChoicesSection : IEventSection<ChoicesSectionEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<ChoicesSectionEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<ChoicesSectionEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset = -1)
         {
             Name = name;
@@ -762,11 +990,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -800,30 +1030,60 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A choice as defined in an event file
+    /// </summary>
     public class ChoicesSectionEntry
     {
+        /// <summary>
+        /// The ID of the choice as will be referenced by the SELECT command
+        /// </summary>
         public int Id { get; set; }
+        /// <summary>
+        /// Padding
+        /// </summary>
         public int Padding1 { get; set; }
+        /// <summary>
+        /// Padding
+        /// </summary>
         public int Padding2 { get; set; }
+        /// <summary>
+        /// The text of the choice
+        /// </summary>
         public string Text { get; set; }
+        /// <summary>
+        /// Padding
+        /// </summary>
         public int Padding3 { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{Id}: {Text}";
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown08Section : IEventSection<Unknown08SectionEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<Unknown08SectionEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<Unknown08SectionEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -850,11 +1110,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -872,29 +1134,56 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown08SectionEntry
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt1 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt2 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt3 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt4 { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"({UnknownInt1}, {UnknownInt2}, {UnknownInt3}, {UnknownInt4})";
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown09Section : IEventSection<Unknown09SectionEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<Unknown09SectionEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<Unknown09SectionEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -919,11 +1208,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -939,27 +1230,48 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown09SectionEntry
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt1 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt2 { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"({UnknownInt1}, {UnknownInt2})";
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown10Section : IEventSection<Unknown10SectionEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<Unknown10SectionEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<Unknown10SectionEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -984,11 +1296,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -1004,27 +1318,48 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// Unknown
+    /// </summary>
     public class Unknown10SectionEntry
     {
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt1 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownInt2 { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"({UnknownInt1}, {UnknownInt2})";
         }
     }
 
+    /// <summary>
+    /// The section that defines the names of the different script blocks
+    /// </summary>
     public class LabelsSection : IEventSection<LabelsSectionEntry>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<LabelsSectionEntry> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<LabelsSectionEntry> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -1044,11 +1379,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -1080,29 +1417,52 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A label for a script block in an event file
+    /// </summary>
     public class LabelsSectionEntry
     {
+        /// <summary>
+        /// The position of the script block
+        /// </summary>
         public short Id { get; set; }
+        /// <summary>
+        /// The name of the script block
+        /// </summary>
         public string Name { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{Id}: {Name}";
         }
     }
 
+    /// <summary>
+    /// A dramatis personae (character name) section
+    /// </summary>
     public class DramatisPersonaeSection : IEventSection<string>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<string> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<string> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
+        /// <inheritdoc/>
         public int Offset { get; set; }
+        /// <inheritdoc/>
         public int Index { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -1115,11 +1475,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Objects.Add(Encoding.GetEncoding("Shift-JIS").GetString(data.TakeWhile(b => b != 0x00).ToArray()));
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -1132,16 +1494,27 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The dialogue section containing dialogue lines used in an event file
+    /// </summary>
     public class DialogueSection : IEventSection<DialogueLine>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<DialogueLine> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<DialogueLine> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -1162,7 +1535,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
-        public void InitializeDramatisPersonaeIndices(List<DramatisPersonaeSection> dramatisPersonae)
+        /// <summary>
+        /// Initializes the dramatis personae indices for dialogue lines
+        /// </summary>
+        /// <param name="dramatisPersonae">List of dramatis personae sections</param>
+        internal void InitializeDramatisPersonaeIndices(List<DramatisPersonaeSection> dramatisPersonae)
         {
             for (int i = 0; i < NumObjects; i++)
             {
@@ -1173,11 +1550,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -1203,16 +1582,27 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The section of conditionals used in an event file
+    /// </summary>
     public class ConditionalSection : IEventSection<string>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<string> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<string> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -1235,11 +1625,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -1269,17 +1661,29 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The section which defines the various script sections in an event file
+    /// </summary>
     public class ScriptSectionDefinitionsSection : IEventSection<ScriptSectionDefinition>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
+        /// <inheritdoc/>
         public List<string> Labels { get; set; }
-        public List<ScriptSectionDefinition> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<ScriptSectionDefinition> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -1300,11 +1704,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt)
         {
             StringBuilder sb = new();
@@ -1328,24 +1734,45 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// A definition of a script section in an event file
+    /// </summary>
     public class ScriptSectionDefinition
     {
-        public string Name { get; set; }
-        public int NumCommands { get; set; }
-        public int Pointer { get; set; }
+        /// <summary>
+        /// The name of the script section (determined in the labels section)
+        /// </summary>
+        public string Name { get; internal set; }
+        /// <summary>
+        /// The number of commands in the script section
+        /// </summary>
+        public int NumCommands { get; internal set; }
+        internal int Pointer { get; set; }
     }
 
+    /// <summary>
+    /// A script section used in an event file
+    /// </summary>
     public class ScriptSection : IEventSection<ScriptCommandInvocation>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<ScriptCommandInvocation> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<ScriptCommandInvocation> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
+        /// <inheritdoc/>
         public List<ScriptCommand> CommandsAvailable { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -1361,10 +1788,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
+
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
@@ -1381,16 +1811,27 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// The event name section defining the title of the event
+    /// </summary>
     public class EventNameSection : IEventSection<string>
     {
+        /// <inheritdoc/>
         public string Name { get; set; }
+        /// <inheritdoc/>
         public List<byte> Data { get; set; }
+        /// <inheritdoc/>
         public int NumObjects { get; set; }
+        /// <inheritdoc/>
         public int ObjectLength { get; set; }
-        public List<string> Objects { get; set; } = new();
+        /// <inheritdoc/>
+        public List<string> Objects { get; set; } = [];
+        /// <inheritdoc/>
         public Type SectionType { get; set; }
+        /// <inheritdoc/>
         public Type ObjectType { get; set; }
 
+        /// <inheritdoc/>
         public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
@@ -1402,11 +1843,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Objects.Add(Encoding.ASCII.GetString(data.ToArray()));
         }
 
+        /// <inheritdoc/>
         public IEventSection<object> GetGeneric()
         {
             return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
+        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();

@@ -11,194 +11,476 @@ using System.Text.RegularExpressions;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
+    /// <summary>
+    /// Representation of all the files contained within evt.bin (including special files)
+    /// Note: this class is frankly a mess and needs refactoring. I'm sorry in advance if you're trying to use it.
+    /// </summary>
     public partial class EventFile : FileInArchive, ISourceFile
     {
+        /// <summary>
+        /// The number of sections in the event file
+        /// </summary>
         public int NumSections { get; set; }
 
-        public List<EventFileSection> SectionPointersAndCounts { get; set; } = new();
-        public int PointerToEndPointerSection { get; set; }
-        public List<int> EndPointers { get; set; } = new();
-        public List<int> EndPointerPointers { get; set; } = new();
+        /// <summary>
+        /// A list of all the event file sections
+        /// </summary>
+        public List<EventFileSection> EventFileSections { get; set; } = [];
+        internal int PointerToEndPointerSection { get; set; }
+        internal List<int> EndPointers { get; set; } = [];
+        internal List<int> EndPointerPointers { get; set; } = [];
+        /// <summary>
+        /// The internal title of the event file (if defined, same as name in archive)
+        /// </summary>
         public string Title { get; set; }
 
+        /// <summary>
+        /// The event file settings object
+        /// </summary>
         public EventFileSettings Settings { get; set; }
-        public Dictionary<int, string> DramatisPersonae { get; set; } = new();
-        public List<DialogueLine> DialogueLines { get; set; } = new();
+        /// <summary>
+        /// A list of "dramatis personae" (characters who appear in the event file)
+        /// </summary>
+        public Dictionary<int, string> DramatisPersonae { get; set; } = [];
+        /// <summary>
+        /// A list of dialogue lines which are used in this file
+        /// </summary>
+        public List<DialogueLine> DialogueLines { get; set; } = [];
 
+        /// <summary>
+        /// The section containing the name of the event file
+        /// </summary>
         public EventNameSection EventNameSection { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public IntegerSection UnknownSection01 { get; set; }
+        /// <summary>
+        /// The section containing data on interactable objects (if the event has them)
+        /// </summary>
         public InteractableObjectsSection InteractableObjectsSection { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown03Section UnknownSection03 { get; set; }
+        /// <summary>
+        /// The section containing the list of chibis that appear on the top screen at the start of the event
+        /// </summary>
         public StartingChibisSection StartingChibisSection { get; set; }
+        /// <summary>
+        /// The section containing definitions of which characters appear on the map and where for investigation phase events
+        /// </summary>
         public MapCharactersSection MapCharactersSection { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public IntegerSection UnknownSection06 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown07Section UnknownSection07 { get; set; }
+        /// <summary>
+        /// The section containing the choices used by the SELECT command
+        /// </summary>
         public ChoicesSection ChoicesSection { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown08Section UnknownSection08 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown09Section UnknownSection09 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public Unknown10Section UnknownSection10 { get; set; }
+        /// <summary>
+        /// The section which contains the labels for the script sections
+        /// </summary>
         public LabelsSection LabelsSection { get; set; }
-        public List<DramatisPersonaeSection> DramatisPersonaeSections { get; set; } = new();
+        /// <summary>
+        /// The set of sections containing the dramatis personae (one section per character)
+        /// </summary>
+        public List<DramatisPersonaeSection> DramatisPersonaeSections { get; set; } = [];
+        /// <summary>
+        /// The section containing the dialogue lines
+        /// </summary>
         public DialogueSection DialogueSection { get; set; }
+        /// <summary>
+        /// The section containing any conditionals used in the scripts
+        /// </summary>
         public ConditionalSection ConditionalsSection { get; set; }
-        public List<ScriptSection> ScriptSections { get; private set; } = new();
+        /// <summary>
+        /// The set of sections which contain the script commands
+        /// </summary>
+        public List<ScriptSection> ScriptSections { get; private set; } = [];
+        /// <summary>
+        /// The section defining settings for the event
+        /// </summary>
         public SettingsSection SettingsSection { get; set; }
 
+        /// <summary>
+        /// A list defining the commands that can be used in scripts
+        /// </summary>
         public static List<ScriptCommand> CommandsAvailable { get; set; } = new()
         {
-            new(0x00, nameof(CommandVerb.INIT_READ_FLAG), Array.Empty<string>()),
-            new(0x01, nameof(CommandVerb.DIALOGUE), new string[] { "dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition", "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed", "textEntranceEffect", "spriteLayer", "dontClearText", "noLipFlap" }),
-            new(0x02, nameof(CommandVerb.KBG_DISP), new string[] { "kbgIndex" }),
-            new(0x03, nameof(CommandVerb.PIN_MNL), new string[] { "dialogueIndex" }),
-            new(0x04, nameof(CommandVerb.BG_DISP), new string[] { "bgIndex" }),
-            new(0x05, nameof(CommandVerb.SCREEN_FADEIN), new string[] { "timeToFade", "unused", "fadeLocation", "fadeColor" }),
-            new(0x06, nameof(CommandVerb.SCREEN_FADEOUT), new string[] { "timeToFade", "unknown1", "fadeColorRed", "fadeColorGreen", "fadeColorBlue", "fadeLocation", "unknown6" }),
-            new(0x07, nameof(CommandVerb.SCREEN_FLASH), new string[] { "fadeInTime", "holdTime", "fadeOutTime", "flashColorRed", "flashColorGreen", "flashColorBlue" }),
-            new(0x08, nameof(CommandVerb.SND_PLAY), new string[] { "soundIndex", "mode", "volume", "crossfadeDupe", "crossfadeTime" }),
-            new(0x09, nameof(CommandVerb.REMOVED), Array.Empty<string>()),
-            new(0x0A, nameof(CommandVerb.UNKNOWN0A), Array.Empty<string>()),
-            new(0x0B, nameof(CommandVerb.BGM_PLAY), new string[] { "bgmIndex", "mode", "volume", "fadeInTime", "fadeOutTime" }),
-            new(0x0C, nameof(CommandVerb.VCE_PLAY), new string[] { "vceIndex" }),
-            new(0x0D, nameof(CommandVerb.FLAG), new string[] { "flag", "set" }),
-            new(0x0E, nameof(CommandVerb.TOPIC_GET), new string[] { "topicId" }),
-            new(0x0F, nameof(CommandVerb.TOGGLE_DIALOGUE), new string[] { "show" }),
-            new(0x10, nameof(CommandVerb.SELECT), new string[] { "option1", "option2", "option3", "option4", "unknown04", "unknown05", "unknown06", "unknown07" }),
-            new(0x11, nameof(CommandVerb.SCREEN_SHAKE), new string[] { "duration", "horizontalIntensity", "verticalIntensity" }),
-            new(0x12, nameof(CommandVerb.SCREEN_SHAKE_STOP), Array.Empty<string>()),
-            new(0x13, nameof(CommandVerb.GOTO), new string[] { "blockId" }),
-            new(0x14, nameof(CommandVerb.SCENE_GOTO), new string[] { "conditionalIndex" }),
-            new(0x15, nameof(CommandVerb.WAIT), new string[] { "frames" }),
-            new(0x16, nameof(CommandVerb.HOLD), Array.Empty<string>()),
-            new(0x17, nameof(CommandVerb.NOOP1), Array.Empty<string>()),
-            new(0x18, nameof(CommandVerb.VGOTO), new string[] { "conditionalIndex", "unused", "gotoId" }),
-            new(0x19, nameof(CommandVerb.HARUHI_METER), new string[] { "unused", "addValue", "setValue" }),
-            new(0x1A, nameof(CommandVerb.HARUHI_METER_NOSHOW), new string[] { "addValue" }),
-            new(0x1B, nameof(CommandVerb.PALEFFECT), new string[] { "paletteMode", "transitionTime", "unknownBool" }),
-            new(0x1C, nameof(CommandVerb.BG_FADE), new string[] { "bgIndex", "bgIndexSuper", "fadeTime" }),
-            new(0x1D, nameof(CommandVerb.TRANS_OUT), new string[] { "index" }),
-            new(0x1E, nameof(CommandVerb.TRANS_IN), new string[] { "index" }),
-            new(0x1F, nameof(CommandVerb.SET_PLACE), new string[] { "display", "placeIndex" }),
-            new(0x20, nameof(CommandVerb.ITEM_DISPIMG), new string[] { "itemIndex", "x", "y" }),
-            new(0x21, nameof(CommandVerb.BACK), Array.Empty<string>()),
-            new(0x22, nameof(CommandVerb.STOP), Array.Empty<string>()),
-            new(0x23, nameof(CommandVerb.NOOP2), Array.Empty<string>()),
-            new(0x24, nameof(CommandVerb.LOAD_ISOMAP), new string[] { "mapFileIndex" }),
-            new(0x25, nameof(CommandVerb.INVEST_START), new string[] { "unknown00", "unknown01", "unknown02", "unknown03", "endScriptBlock" }),
-            new(0x26, nameof(CommandVerb.INVEST_END), Array.Empty<string>()),
-            new(0x27, nameof(CommandVerb.CHIBI_EMOTE), new string[] { "chibiIndex", "emoteIndex" }),
-            new(0x28, nameof(CommandVerb.NEXT_SCENE), Array.Empty<string>()),
-            new(0x29, nameof(CommandVerb.SKIP_SCENE), new string[] { "scenesToSkip" }),
-            new(0x2A, nameof(CommandVerb.MODIFY_FRIENDSHIP), new string[] { "flIndex", "value" }),
-            new(0x2B, nameof(CommandVerb.CHIBI_ENTEREXIT), new string[] { "chibiIndex", "mode", "delay" }),
-            new(0x2C, nameof(CommandVerb.AVOID_DISP), Array.Empty<string>()),
-            new(0x2D, nameof(CommandVerb.GLOBAL2D), new string[] { "value" }),
-            new(0x2E, nameof(CommandVerb.CHESS_LOAD), new string[] { "chessFileIndex" }),
-            new(0x2F, nameof(CommandVerb.CHESS_VGOTO), new string[] { "clearBlock", "missBlock" , "miss2Block" }),
-            new(0x30, nameof(CommandVerb.CHESS_MOVE), new string[] { "whiteSpaceBegin", "whiteSpaceEnd", "blackSpaceBegin", "blackSpaceEnd" }),
-            new(0x31, nameof(CommandVerb.CHESS_TOGGLE_GUIDE), new string[] { "piece1", "piece2", "piece3", "piece4" }),
-            new(0x32, nameof(CommandVerb.CHESS_TOGGLE_HIGHLIGHT), new string[] { "space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16" }),
-            new(0x33, nameof(CommandVerb.CHESS_TOGGLE_CROSS), new string[] { "space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16" }),
-            new(0x34, nameof(CommandVerb.CHESS_CLEAR_ANNOTATIONS), Array.Empty<string>()),
-            new(0x35, nameof(CommandVerb.CHESS_RESET), Array.Empty<string>()),
-            new(0x36, nameof(CommandVerb.SCENE_GOTO2), new string[] { "conditionalIndex" }),
-            new(0x37, nameof(CommandVerb.EPHEADER), new string[] { "headerIndex" }),
-            new(0x38, nameof(CommandVerb.NOOP3), Array.Empty<string>()),
-            new(0x39, nameof(CommandVerb.CONFETTI), new string[] { "on" }),
-            new(0x3A, nameof(CommandVerb.BG_DISPCG), new string[] { "bgIndex", "displayBottom" }),
-            new(0x3B, nameof(CommandVerb.BG_SCROLL), new string[] { "scrollDirection", "scrollSpeed" }),
-            new(0x3C, nameof(CommandVerb.OP_MODE), Array.Empty<string>()),
-            new(0x3D, nameof(CommandVerb.WAIT_CANCEL), new string[] { "frames" }),
-            new(0x3E, nameof(CommandVerb.BG_REVERT), Array.Empty<string>()),
-            new(0x3F, nameof(CommandVerb.BG_DISP2), new string[] { "bgIndex" }),
+            new(0x00, nameof(CommandVerb.INIT_READ_FLAG), []),
+            new(0x01, nameof(CommandVerb.DIALOGUE), ["dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition", "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed", "textEntranceEffect", "spriteLayer", "dontClearText", "noLipFlap"]),
+            new(0x02, nameof(CommandVerb.KBG_DISP), ["kbgIndex"]),
+            new(0x03, nameof(CommandVerb.PIN_MNL), ["dialogueIndex"]),
+            new(0x04, nameof(CommandVerb.BG_DISP), ["bgIndex"]),
+            new(0x05, nameof(CommandVerb.SCREEN_FADEIN), ["timeToFade", "unused", "fadeLocation", "fadeColor"]),
+            new(0x06, nameof(CommandVerb.SCREEN_FADEOUT), ["timeToFade", "unknown1", "fadeColorRed", "fadeColorGreen", "fadeColorBlue", "fadeLocation", "unknown6"]),
+            new(0x07, nameof(CommandVerb.SCREEN_FLASH), ["fadeInTime", "holdTime", "fadeOutTime", "flashColorRed", "flashColorGreen", "flashColorBlue"]),
+            new(0x08, nameof(CommandVerb.SND_PLAY), ["soundIndex", "mode", "volume", "crossfadeDupe", "crossfadeTime"]),
+            new(0x09, nameof(CommandVerb.REMOVED), []),
+            new(0x0A, nameof(CommandVerb.UNKNOWN0A), []),
+            new(0x0B, nameof(CommandVerb.BGM_PLAY), ["bgmIndex", "mode", "volume", "fadeInTime", "fadeOutTime"]),
+            new(0x0C, nameof(CommandVerb.VCE_PLAY), ["vceIndex"]),
+            new(0x0D, nameof(CommandVerb.FLAG), ["flag", "set"]),
+            new(0x0E, nameof(CommandVerb.TOPIC_GET), ["topicId"]),
+            new(0x0F, nameof(CommandVerb.TOGGLE_DIALOGUE), ["show"]),
+            new(0x10, nameof(CommandVerb.SELECT), ["option1", "option2", "option3", "option4", "unknown04", "unknown05", "unknown06", "unknown07"]),
+            new(0x11, nameof(CommandVerb.SCREEN_SHAKE), ["duration", "horizontalIntensity", "verticalIntensity"]),
+            new(0x12, nameof(CommandVerb.SCREEN_SHAKE_STOP), []),
+            new(0x13, nameof(CommandVerb.GOTO), ["blockId"]),
+            new(0x14, nameof(CommandVerb.SCENE_GOTO), ["conditionalIndex"]),
+            new(0x15, nameof(CommandVerb.WAIT), ["frames"]),
+            new(0x16, nameof(CommandVerb.HOLD), []),
+            new(0x17, nameof(CommandVerb.NOOP1), []),
+            new(0x18, nameof(CommandVerb.VGOTO), ["conditionalIndex", "unused", "gotoId"]),
+            new(0x19, nameof(CommandVerb.HARUHI_METER), ["unused", "addValue", "setValue"]),
+            new(0x1A, nameof(CommandVerb.HARUHI_METER_NOSHOW), ["addValue"]),
+            new(0x1B, nameof(CommandVerb.PALEFFECT), ["paletteMode", "transitionTime", "unknownBool"]),
+            new(0x1C, nameof(CommandVerb.BG_FADE), ["bgIndex", "bgIndexSuper", "fadeTime"]),
+            new(0x1D, nameof(CommandVerb.TRANS_OUT), ["index"]),
+            new(0x1E, nameof(CommandVerb.TRANS_IN), ["index"]),
+            new(0x1F, nameof(CommandVerb.SET_PLACE), ["display", "placeIndex"]),
+            new(0x20, nameof(CommandVerb.ITEM_DISPIMG), ["itemIndex", "x", "y"]),
+            new(0x21, nameof(CommandVerb.BACK), []),
+            new(0x22, nameof(CommandVerb.STOP), []),
+            new(0x23, nameof(CommandVerb.NOOP2), []),
+            new(0x24, nameof(CommandVerb.LOAD_ISOMAP), ["mapFileIndex"]),
+            new(0x25, nameof(CommandVerb.INVEST_START), ["unknown00", "unknown01", "unknown02", "unknown03", "endScriptBlock"]),
+            new(0x26, nameof(CommandVerb.INVEST_END), []),
+            new(0x27, nameof(CommandVerb.CHIBI_EMOTE), ["chibiIndex", "emoteIndex"]),
+            new(0x28, nameof(CommandVerb.NEXT_SCENE), []),
+            new(0x29, nameof(CommandVerb.SKIP_SCENE), ["scenesToSkip"]),
+            new(0x2A, nameof(CommandVerb.MODIFY_FRIENDSHIP), ["flIndex", "value"]),
+            new(0x2B, nameof(CommandVerb.CHIBI_ENTEREXIT), ["chibiIndex", "mode", "delay"]),
+            new(0x2C, nameof(CommandVerb.AVOID_DISP), []),
+            new(0x2D, nameof(CommandVerb.GLOBAL2D), ["value"]),
+            new(0x2E, nameof(CommandVerb.CHESS_LOAD), ["chessFileIndex"]),
+            new(0x2F, nameof(CommandVerb.CHESS_VGOTO), ["clearBlock", "missBlock" , "miss2Block"]),
+            new(0x30, nameof(CommandVerb.CHESS_MOVE), ["whiteSpaceBegin", "whiteSpaceEnd", "blackSpaceBegin", "blackSpaceEnd"]),
+            new(0x31, nameof(CommandVerb.CHESS_TOGGLE_GUIDE), ["piece1", "piece2", "piece3", "piece4"]),
+            new(0x32, nameof(CommandVerb.CHESS_TOGGLE_HIGHLIGHT), ["space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16"]),
+            new(0x33, nameof(CommandVerb.CHESS_TOGGLE_CROSS), ["space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16"]),
+            new(0x34, nameof(CommandVerb.CHESS_CLEAR_ANNOTATIONS), []),
+            new(0x35, nameof(CommandVerb.CHESS_RESET), []),
+            new(0x36, nameof(CommandVerb.SCENE_GOTO2), ["conditionalIndex"]),
+            new(0x37, nameof(CommandVerb.EPHEADER), ["headerIndex"]),
+            new(0x38, nameof(CommandVerb.NOOP3), []),
+            new(0x39, nameof(CommandVerb.CONFETTI), ["on"]),
+            new(0x3A, nameof(CommandVerb.BG_DISPCG), ["bgIndex", "displayBottom"]),
+            new(0x3B, nameof(CommandVerb.BG_SCROLL), ["scrollDirection", "scrollSpeed"]),
+            new(0x3C, nameof(CommandVerb.OP_MODE), []),
+            new(0x3D, nameof(CommandVerb.WAIT_CANCEL), ["frames"]),
+            new(0x3E, nameof(CommandVerb.BG_REVERT), []),
+            new(0x3F, nameof(CommandVerb.BG_DISP2), ["bgIndex"]),
         };
 
+        /// <summary>
+        /// An enum defining the names of the commands
+        /// </summary>
         public enum CommandVerb
         {
+
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#init_read_flag-0x00
+            /// </summary>
             INIT_READ_FLAG,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#dialogue-0x01
+            /// </summary>
             DIALOGUE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#kbg_disp-0x02
+            /// </summary>
             KBG_DISP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#pin_mnl-0x03
+            /// </summary>
             PIN_MNL,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_disp-0x04
+            /// </summary>
             BG_DISP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_fadein-0x05
+            /// </summary>
             SCREEN_FADEIN,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_fadeout-0x06
+            /// </summary>
             SCREEN_FADEOUT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_flash-0x07
+            /// </summary>
             SCREEN_FLASH,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#snd_play-0x08
+            /// </summary>
             SND_PLAY,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#removed-0x09
+            /// </summary>
             REMOVED,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#unknown0a-0x0a
+            /// </summary>
             UNKNOWN0A,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bgm_play-0x0b
+            /// </summary>
             BGM_PLAY,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#vce_play-0x0c
+            /// </summary>
             VCE_PLAY,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#flag-0x0d
+            /// </summary>
             FLAG,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#topic_get-0x0e
+            /// </summary>
             TOPIC_GET,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#toggle_dialogue-0x0f
+            /// </summary>
             TOGGLE_DIALOGUE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#select-0x10
+            /// </summary>
             SELECT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_shake-0x11
+            /// </summary>
             SCREEN_SHAKE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#screen_shake_stop-0x12
+            /// </summary>
             SCREEN_SHAKE_STOP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#goto-0x13
+            /// </summary>
             GOTO,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#scene_goto-0x14
+            /// </summary>
             SCENE_GOTO,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#wait-0x15
+            /// </summary>
             WAIT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#hold-0x16
+            /// </summary>
             HOLD,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#noop1-0x17
+            /// </summary>
             NOOP1,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#vgoto-0x18
+            /// </summary>
             VGOTO,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#haruhi_meter-0x19
+            /// </summary>
             HARUHI_METER,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#haruhi_meter_noshow-0x1a
+            /// </summary>
             HARUHI_METER_NOSHOW,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#paleffect-0x1b
+            /// </summary>
             PALEFFECT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_fade-0x1c
+            /// </summary>
             BG_FADE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#trans_out-0x1d
+            /// </summary>
             TRANS_OUT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#trans_in-0x1e
+            /// </summary>
             TRANS_IN,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#set_place-0x1f
+            /// </summary>
             SET_PLACE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#item_dispimg-0x20
+            /// </summary>
             ITEM_DISPIMG,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#back-0x21
+            /// </summary>
             BACK,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#stop-0x22
+            /// </summary>
             STOP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#noop2-0x23
+            /// </summary>
             NOOP2,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#load_isomap-0x24
+            /// </summary>
             LOAD_ISOMAP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#invest_start-0x25
+            /// </summary>
             INVEST_START,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#invest_end-0x26
+            /// </summary>
             INVEST_END,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chibi_emote-0x27
+            /// </summary>
             CHIBI_EMOTE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#next_scene-0x28
+            /// </summary>
             NEXT_SCENE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#skip_scene-0x29
+            /// </summary>
             SKIP_SCENE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#modify_friendship-0x2a
+            /// </summary>
             MODIFY_FRIENDSHIP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chibi_enterexit-0x2b
+            /// </summary>
             CHIBI_ENTEREXIT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#avoid_disp-0x2c
+            /// </summary>
             AVOID_DISP,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#global2d-0x2d
+            /// </summary>
             GLOBAL2D,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_load-0x2e
+            /// </summary>
             CHESS_LOAD,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_vgoto-0x2f
+            /// </summary>
             CHESS_VGOTO,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_move-0x30
+            /// </summary>
             CHESS_MOVE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_toggle_guide-0x31
+            /// </summary>
             CHESS_TOGGLE_GUIDE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_toggle_highlight-0x32
+            /// </summary>
             CHESS_TOGGLE_HIGHLIGHT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_toggle_cross-0x33
+            /// </summary>
             CHESS_TOGGLE_CROSS,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_clear_annotations-0x34
+            /// </summary>
             CHESS_CLEAR_ANNOTATIONS,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#chess_reset-0x35
+            /// </summary>
             CHESS_RESET,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#scene_goto2-0x36
+            /// </summary>
             SCENE_GOTO2,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#epheader-0x37
+            /// </summary>
             EPHEADER,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#noop3-0x38
+            /// </summary>
             NOOP3,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#confetti-0x39
+            /// </summary>
             CONFETTI,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_dispcg-0x3a
+            /// </summary>
             BG_DISPCG,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_scroll-0x3b
+            /// </summary>
             BG_SCROLL,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#op_mode-0x3c
+            /// </summary>
             OP_MODE,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#wait_cancel-0x3d
+            /// </summary>
             WAIT_CANCEL,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_revert-0x3e
+            /// </summary>
             BG_REVERT,
+            /// <summary>
+            /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_disp2-0x3f
+            /// </summary>
             BG_DISP2
         }
 
+        /// <summary>
+        /// Creates an empty event file
+        /// </summary>
         public EventFile()
         {
         }
 
-        public FontReplacementDictionary FontReplacementMap { get; set; } = new();
+        /// <summary>
+        /// The font replacement map to be used during dialogue replacement (this is specific to the translated ROMs)
+        /// </summary>
+        public FontReplacementDictionary FontReplacementMap { get; set; } = [];
 
         private const int DIALOGUE_LINE_LENGTH = 230;
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
 
             NumSections = BitConverter.ToInt32(decompressedData.Take(4).ToArray());
             for (int i = 0; i < NumSections; i++)
             {
-                SectionPointersAndCounts.Add(new()
+                EventFileSections.Add(new()
                 {
                     Pointer = BitConverter.ToInt32(decompressedData.Skip(0x0C + 0x08 * i).Take(4).ToArray()),
                     ItemCount = BitConverter.ToInt32(decompressedData.Skip(0x10 + 0x08 * i).Take(4).ToArray()),
@@ -206,10 +488,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
 
             SettingsSection = new();
-            SettingsSection.Initialize(decompressedData.Skip(SectionPointersAndCounts[0].Pointer).Take(EventFileSettings.SETTINGS_LENGTH), 1, "SETTINGS", log, SectionPointersAndCounts[0].Pointer);
+            SettingsSection.Initialize(decompressedData.Skip(EventFileSections[0].Pointer).Take(EventFileSettings.SETTINGS_LENGTH), 1, "SETTINGS", log, EventFileSections[0].Pointer);
             Settings = SettingsSection.Objects[0];
-            SectionPointersAndCounts[0].Section = SettingsSection.GetGeneric();
-            int dialogueSectionPointerIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
+            EventFileSections[0].Section = SettingsSection.GetGeneric();
+            int dialogueSectionPointerIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
 
             if (Name == "BGTESTS" || Regex.IsMatch(Name, @"[MCT][AHKNTR]\d{2}S") || Regex.IsMatch(Name, @"CHS_\w{3}_\d{2}S") || Regex.IsMatch(Name, @"E[VD]\d?_[HKMNT]?\d{2,3}S"))
             {
@@ -217,141 +499,141 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     string name = "UNKNOWNSECTION01";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection01Pointer, name, Data, log);
-                    SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.UnknownSection01Pointer, name, Data, log);
+                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    int unknownSection01Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int unknownSection01Index = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     UnknownSection01 = new();
-                    UnknownSection01.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection01Index].Pointer)
-                        .Take(SectionPointersAndCounts[unknownSection01Index + 1].Pointer - SectionPointersAndCounts[unknownSection01Index].Pointer),
-                        SectionPointersAndCounts[unknownSection01Index].ItemCount,
-                        name, log, SectionPointersAndCounts[unknownSection01Index].Pointer);
-                    SectionPointersAndCounts[unknownSection01Index].Section = UnknownSection01.GetGeneric();
+                    UnknownSection01.Initialize(Data.Skip(EventFileSections[unknownSection01Index].Pointer)
+                        .Take(EventFileSections[unknownSection01Index + 1].Pointer - EventFileSections[unknownSection01Index].Pointer),
+                        EventFileSections[unknownSection01Index].ItemCount,
+                        name, log, EventFileSections[unknownSection01Index].Pointer);
+                    EventFileSections[unknownSection01Index].Section = UnknownSection01.GetGeneric();
                 }
 
                 if (Settings.InteractableObjectsPointer > 0)
                 {
                     string name = "INTERACTABLEOBJECTS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.InteractableObjectsPointer, name, Data, log);
-                    SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.InteractableObjectsPointer, name, Data, log);
+                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    int interactableObjectsPointer = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int interactableObjectsPointer = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     InteractableObjectsSection = new();
-                    InteractableObjectsSection.Initialize(Data.Skip(SectionPointersAndCounts[interactableObjectsPointer].Pointer)
-                        .Take(SectionPointersAndCounts[interactableObjectsPointer + 1].Pointer - SectionPointersAndCounts[interactableObjectsPointer].Pointer),
-                        SectionPointersAndCounts[interactableObjectsPointer].ItemCount,
-                        name, log, SectionPointersAndCounts[interactableObjectsPointer].Pointer);
-                    SectionPointersAndCounts[interactableObjectsPointer].Section = InteractableObjectsSection.GetGeneric();
+                    InteractableObjectsSection.Initialize(Data.Skip(EventFileSections[interactableObjectsPointer].Pointer)
+                        .Take(EventFileSections[interactableObjectsPointer + 1].Pointer - EventFileSections[interactableObjectsPointer].Pointer),
+                        EventFileSections[interactableObjectsPointer].ItemCount,
+                        name, log, EventFileSections[interactableObjectsPointer].Pointer);
+                    EventFileSections[interactableObjectsPointer].Section = InteractableObjectsSection.GetGeneric();
                 }
 
                 if (Settings.UnknownSection03Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION03";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection03Pointer, name, Data, log);
-                    SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.UnknownSection03Pointer, name, Data, log);
+                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    int unknownSection03Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int unknownSection03Index = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     UnknownSection03 = new();
-                    UnknownSection03.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection03Index].Pointer)
-                        .Take(SectionPointersAndCounts[unknownSection03Index + 1].Pointer - SectionPointersAndCounts[unknownSection03Index].Pointer),
-                        SectionPointersAndCounts[unknownSection03Index].ItemCount,
-                        name, log, SectionPointersAndCounts[unknownSection03Index].Pointer);
-                    SectionPointersAndCounts[unknownSection03Index].Section = UnknownSection03.GetGeneric();
+                    UnknownSection03.Initialize(Data.Skip(EventFileSections[unknownSection03Index].Pointer)
+                        .Take(EventFileSections[unknownSection03Index + 1].Pointer - EventFileSections[unknownSection03Index].Pointer),
+                        EventFileSections[unknownSection03Index].ItemCount,
+                        name, log, EventFileSections[unknownSection03Index].Pointer);
+                    EventFileSections[unknownSection03Index].Section = UnknownSection03.GetGeneric();
                 }
 
                 if (Settings.StartingChibisSectionPointer > 0)
                 {
                     string name = "STARTINGCHIBIS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.StartingChibisSectionPointer, name, Data, log);
-                    SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.StartingChibisSectionPointer, name, Data, log);
+                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    int startingChibisSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int startingChibisSectionIndex = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     StartingChibisSection = new();
-                    StartingChibisSection.Initialize(Data.Skip(SectionPointersAndCounts[startingChibisSectionIndex].Pointer)
-                        .Take(SectionPointersAndCounts[startingChibisSectionIndex + 1].Pointer - SectionPointersAndCounts[startingChibisSectionIndex].Pointer),
-                        SectionPointersAndCounts[startingChibisSectionIndex].ItemCount,
-                        name, log, SectionPointersAndCounts[startingChibisSectionIndex].Pointer);
-                    SectionPointersAndCounts[startingChibisSectionIndex].Section = StartingChibisSection.GetGeneric();
+                    StartingChibisSection.Initialize(Data.Skip(EventFileSections[startingChibisSectionIndex].Pointer)
+                        .Take(EventFileSections[startingChibisSectionIndex + 1].Pointer - EventFileSections[startingChibisSectionIndex].Pointer),
+                        EventFileSections[startingChibisSectionIndex].ItemCount,
+                        name, log, EventFileSections[startingChibisSectionIndex].Pointer);
+                    EventFileSections[startingChibisSectionIndex].Section = StartingChibisSection.GetGeneric();
                 }
 
                 if (Settings.MapCharactersSectionPointer > 0)
                 {
                     string name = "MAPCHARACTERS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.MapCharactersSectionPointer, name, Data, log);
-                    SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.MapCharactersSectionPointer, name, Data, log);
+                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    int mapCharactersSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int mapCharactersSectionIndex = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     MapCharactersSection = new();
-                    MapCharactersSection.Initialize(Data.Skip(SectionPointersAndCounts[mapCharactersSectionIndex].Pointer)
-                        .Take(SectionPointersAndCounts[mapCharactersSectionIndex + 1].Pointer - SectionPointersAndCounts[mapCharactersSectionIndex].Pointer),
-                        SectionPointersAndCounts[mapCharactersSectionIndex].ItemCount,
-                        name, log, SectionPointersAndCounts[mapCharactersSectionIndex].Pointer);
-                    SectionPointersAndCounts[mapCharactersSectionIndex].Section = MapCharactersSection.GetGeneric();
+                    MapCharactersSection.Initialize(Data.Skip(EventFileSections[mapCharactersSectionIndex].Pointer)
+                        .Take(EventFileSections[mapCharactersSectionIndex + 1].Pointer - EventFileSections[mapCharactersSectionIndex].Pointer),
+                        EventFileSections[mapCharactersSectionIndex].ItemCount,
+                        name, log, EventFileSections[mapCharactersSectionIndex].Pointer);
+                    EventFileSections[mapCharactersSectionIndex].Section = MapCharactersSection.GetGeneric();
                 }
 
                 if (Settings.UnknownSection06Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION06";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection06Pointer, name, Data, log);
-                    SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.UnknownSection06Pointer, name, Data, log);
+                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    int unknownSection06Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int unknownSection06Index = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     UnknownSection06 = new();
-                    UnknownSection06.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection06Index].Pointer)
-                        .Take(SectionPointersAndCounts[unknownSection06Index + 1].Pointer - SectionPointersAndCounts[unknownSection06Index].Pointer),
-                        SectionPointersAndCounts[unknownSection06Index].ItemCount,
-                        name, log, SectionPointersAndCounts[unknownSection06Index].Pointer);
-                    SectionPointersAndCounts[unknownSection06Index].Section = UnknownSection06.GetGeneric();
+                    UnknownSection06.Initialize(Data.Skip(EventFileSections[unknownSection06Index].Pointer)
+                        .Take(EventFileSections[unknownSection06Index + 1].Pointer - EventFileSections[unknownSection06Index].Pointer),
+                        EventFileSections[unknownSection06Index].ItemCount,
+                        name, log, EventFileSections[unknownSection06Index].Pointer);
+                    EventFileSections[unknownSection06Index].Section = UnknownSection06.GetGeneric();
                 }
 
                 if (Settings.UnknownSection07Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION07";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, Settings.UnknownSection07Pointer, name, Data, log);
-                    SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.UnknownSection07Pointer, name, Data, log);
+                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
-                    int unknownSection07Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int unknownSection07Index = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     UnknownSection07 = new();
-                    UnknownSection07.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection07Index].Pointer)
-                        .Take(SectionPointersAndCounts[unknownSection07Index + 1].Pointer - SectionPointersAndCounts[unknownSection07Index].Pointer),
-                        SectionPointersAndCounts[unknownSection07Index].ItemCount,
-                        name, log, SectionPointersAndCounts[unknownSection07Index].Pointer);
-                    SectionPointersAndCounts[unknownSection07Index].Section = UnknownSection07.GetGeneric();
+                    UnknownSection07.Initialize(Data.Skip(EventFileSections[unknownSection07Index].Pointer)
+                        .Take(EventFileSections[unknownSection07Index + 1].Pointer - EventFileSections[unknownSection07Index].Pointer),
+                        EventFileSections[unknownSection07Index].ItemCount,
+                        name, log, EventFileSections[unknownSection07Index].Pointer);
+                    EventFileSections[unknownSection07Index].Section = UnknownSection07.GetGeneric();
                 }
 
-                int choicesSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.ChoicesSectionPointer);
+                int choicesSectionIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.ChoicesSectionPointer);
                 if (Settings.ChoicesSectionPointer > 0)
                 {
                     string name = "CHOICES";
 
                     ChoicesSection = new();
-                    ChoicesSection.Initialize(Data.Skip(SectionPointersAndCounts[choicesSectionIndex].Pointer)
-                        .Take(SectionPointersAndCounts[choicesSectionIndex + 1].Pointer - SectionPointersAndCounts[choicesSectionIndex].Pointer),
-                        SectionPointersAndCounts[choicesSectionIndex].ItemCount,
-                        name, log, SectionPointersAndCounts[choicesSectionIndex].Pointer);
-                    SectionPointersAndCounts[choicesSectionIndex].Section = ChoicesSection.GetGeneric();
+                    ChoicesSection.Initialize(Data.Skip(EventFileSections[choicesSectionIndex].Pointer)
+                        .Take(EventFileSections[choicesSectionIndex + 1].Pointer - EventFileSections[choicesSectionIndex].Pointer),
+                        EventFileSections[choicesSectionIndex].ItemCount,
+                        name, log, EventFileSections[choicesSectionIndex].Pointer);
+                    EventFileSections[choicesSectionIndex].Section = ChoicesSection.GetGeneric();
                 }
 
-                int unknownSection09Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.UnknownSection09Pointer);
+                int unknownSection09Index = EventFileSections.FindIndex(s => s.Pointer == Settings.UnknownSection09Pointer);
                 if (unknownSection09Index > choicesSectionIndex + 1)
                 {
                     string name = "UNKNOWNSECTION08";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionPointersAndCounts, SectionPointersAndCounts[choicesSectionIndex + 2].Pointer, name, Data, log);
-                    SectionPointersAndCounts[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, EventFileSections[choicesSectionIndex + 2].Pointer, name, Data, log);
+                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
 
                     UnknownSection08 = new();
-                    UnknownSection08.Initialize(Data.Skip(SectionPointersAndCounts[choicesSectionIndex + 1].Pointer)
-                        .Take(SectionPointersAndCounts[choicesSectionIndex + 2].Pointer - SectionPointersAndCounts[choicesSectionIndex + 1].Pointer),
-                        SectionPointersAndCounts[choicesSectionIndex + 1].ItemCount,
-                        name, log, SectionPointersAndCounts[choicesSectionIndex + 1].Pointer);
-                    SectionPointersAndCounts[choicesSectionIndex + 1].Section = UnknownSection08.GetGeneric();
+                    UnknownSection08.Initialize(Data.Skip(EventFileSections[choicesSectionIndex + 1].Pointer)
+                        .Take(EventFileSections[choicesSectionIndex + 2].Pointer - EventFileSections[choicesSectionIndex + 1].Pointer),
+                        EventFileSections[choicesSectionIndex + 1].ItemCount,
+                        name, log, EventFileSections[choicesSectionIndex + 1].Pointer);
+                    EventFileSections[choicesSectionIndex + 1].Section = UnknownSection08.GetGeneric();
                 }
 
                 if (Settings.UnknownSection09Pointer > 0)
@@ -359,37 +641,37 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     string name = "UNKNOWNSECTION09";
 
                     UnknownSection09 = new();
-                    UnknownSection09.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection09Index].Pointer)
-                        .Take(SectionPointersAndCounts[unknownSection09Index + 1].Pointer - SectionPointersAndCounts[unknownSection09Index].Pointer),
-                        SectionPointersAndCounts[unknownSection09Index].ItemCount,
-                        name, log, SectionPointersAndCounts[unknownSection09Index].Pointer);
-                    SectionPointersAndCounts[unknownSection09Index].Section = UnknownSection09.GetGeneric();
+                    UnknownSection09.Initialize(Data.Skip(EventFileSections[unknownSection09Index].Pointer)
+                        .Take(EventFileSections[unknownSection09Index + 1].Pointer - EventFileSections[unknownSection09Index].Pointer),
+                        EventFileSections[unknownSection09Index].ItemCount,
+                        name, log, EventFileSections[unknownSection09Index].Pointer);
+                    EventFileSections[unknownSection09Index].Section = UnknownSection09.GetGeneric();
                 }
 
                 if (Settings.UnknownSection10Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION10";
 
-                    int unknownSection10Index = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.UnknownSection10Pointer);
+                    int unknownSection10Index = EventFileSections.FindIndex(s => s.Pointer == Settings.UnknownSection10Pointer);
                     UnknownSection10 = new();
-                    UnknownSection10.Initialize(Data.Skip(SectionPointersAndCounts[unknownSection10Index].Pointer)
-                        .Take(SectionPointersAndCounts[unknownSection10Index + 1].Pointer - SectionPointersAndCounts[unknownSection10Index].Pointer),
-                        SectionPointersAndCounts[unknownSection10Index].ItemCount,
-                        name, log, SectionPointersAndCounts[unknownSection10Index].Pointer);
-                    SectionPointersAndCounts[unknownSection10Index].Section = UnknownSection10.GetGeneric();
+                    UnknownSection10.Initialize(Data.Skip(EventFileSections[unknownSection10Index].Pointer)
+                        .Take(EventFileSections[unknownSection10Index + 1].Pointer - EventFileSections[unknownSection10Index].Pointer),
+                        EventFileSections[unknownSection10Index].ItemCount,
+                        name, log, EventFileSections[unknownSection10Index].Pointer);
+                    EventFileSections[unknownSection10Index].Section = UnknownSection10.GetGeneric();
                 }
 
-                int labelsSectionPointerIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.LabelsSectionPointer);
+                int labelsSectionPointerIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.LabelsSectionPointer);
                 LabelsSection = new();
                 if (Settings.LabelsSectionPointer > 0)
                 {
                     string name = "LABELS";
 
-                    LabelsSection.Initialize(Data.Skip(SectionPointersAndCounts[labelsSectionPointerIndex].Pointer)
-                        .Take(SectionPointersAndCounts[labelsSectionPointerIndex + 1].Pointer - SectionPointersAndCounts[labelsSectionPointerIndex].Pointer),
-                        SectionPointersAndCounts[labelsSectionPointerIndex].ItemCount,
-                        name, log, SectionPointersAndCounts[labelsSectionPointerIndex].Pointer);
-                    SectionPointersAndCounts[labelsSectionPointerIndex].Section = LabelsSection.GetGeneric();
+                    LabelsSection.Initialize(Data.Skip(EventFileSections[labelsSectionPointerIndex].Pointer)
+                        .Take(EventFileSections[labelsSectionPointerIndex + 1].Pointer - EventFileSections[labelsSectionPointerIndex].Pointer),
+                        EventFileSections[labelsSectionPointerIndex].ItemCount,
+                        name, log, EventFileSections[labelsSectionPointerIndex].Pointer);
+                    EventFileSections[labelsSectionPointerIndex].Section = LabelsSection.GetGeneric();
                 }
 
                 if (dialogueSectionPointerIndex > labelsSectionPointerIndex + 1)
@@ -399,11 +681,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
                         string name = $"DRAMATISPERSONAE{i - labelsSectionPointerIndex}";
 
                         DramatisPersonaeSection dramatisPersonaeSection = new() { Index = i - labelsSectionPointerIndex };
-                        dramatisPersonaeSection.Initialize(Data.Skip(SectionPointersAndCounts[i].Pointer)
-                            .Take(SectionPointersAndCounts[i + 1].Pointer - SectionPointersAndCounts[i].Pointer),
-                            SectionPointersAndCounts[i].ItemCount,
-                            name, log, SectionPointersAndCounts[i].Pointer);
-                        SectionPointersAndCounts[i].Section = dramatisPersonaeSection.GetGeneric();
+                        dramatisPersonaeSection.Initialize(Data.Skip(EventFileSections[i].Pointer)
+                            .Take(EventFileSections[i + 1].Pointer - EventFileSections[i].Pointer),
+                            EventFileSections[i].ItemCount,
+                            name, log, EventFileSections[i].Pointer);
+                        EventFileSections[i].Section = dramatisPersonaeSection.GetGeneric();
                         DramatisPersonaeSections.Add(dramatisPersonaeSection);
                     }
                 }
@@ -414,36 +696,36 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                     DialogueSection = new();
                     DialogueSection.Initialize(Data,
-                        SectionPointersAndCounts[dialogueSectionPointerIndex].ItemCount,
-                        name, log, SectionPointersAndCounts[dialogueSectionPointerIndex].Pointer);
+                        EventFileSections[dialogueSectionPointerIndex].ItemCount,
+                        name, log, EventFileSections[dialogueSectionPointerIndex].Pointer);
                     DialogueSection.InitializeDramatisPersonaeIndices(DramatisPersonaeSections);
-                    SectionPointersAndCounts[dialogueSectionPointerIndex].Section = DialogueSection.GetGeneric();
+                    EventFileSections[dialogueSectionPointerIndex].Section = DialogueSection.GetGeneric();
                 }
 
-                int conditionalSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.ConditionalsSectionPointer);
+                int conditionalSectionIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.ConditionalsSectionPointer);
                 if (Settings.ConditionalsSectionPointer > 0)
                 {
                     string name = "CONDITIONALS";
 
                     ConditionalsSection = new();
                     ConditionalsSection.Initialize(Data,
-                        SectionPointersAndCounts[conditionalSectionIndex].ItemCount,
-                        name, log, SectionPointersAndCounts[conditionalSectionIndex].Pointer);
-                    SectionPointersAndCounts[conditionalSectionIndex].Section = ConditionalsSection.GetGeneric();
+                        EventFileSections[conditionalSectionIndex].ItemCount,
+                        name, log, EventFileSections[conditionalSectionIndex].Pointer);
+                    EventFileSections[conditionalSectionIndex].Section = ConditionalsSection.GetGeneric();
                 }
 
-                int scriptSectionDefinitionsSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.ScriptSectionDefinitionsSectionPointer);
+                int scriptSectionDefinitionsSectionIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.ScriptSectionDefinitionsSectionPointer);
                 ScriptSectionDefinitionsSection scriptSectionDefinitionsSection = new() { Labels = LabelsSection.Objects.Select(l => l.Name.Replace("/", "")).ToList() };
                 if (Settings.ScriptSectionDefinitionsSectionPointer > 0)
                 {
                     string name = "SCRIPTDEFINITIONS";
 
                     scriptSectionDefinitionsSection.Initialize(Data
-                        .Skip(SectionPointersAndCounts[scriptSectionDefinitionsSectionIndex].Pointer),
+                        .Skip(EventFileSections[scriptSectionDefinitionsSectionIndex].Pointer),
                         Settings.NumScriptSections,
                         name, log,
-                        SectionPointersAndCounts[scriptSectionDefinitionsSectionIndex].Pointer);
-                    SectionPointersAndCounts[scriptSectionDefinitionsSectionIndex].Section = scriptSectionDefinitionsSection.GetGeneric();
+                        EventFileSections[scriptSectionDefinitionsSectionIndex].Pointer);
+                    EventFileSections[scriptSectionDefinitionsSectionIndex].Section = scriptSectionDefinitionsSection.GetGeneric();
                 }
 
                 for (int i = 0; i < scriptSectionDefinitionsSection.Objects.Count; i++)
@@ -455,7 +737,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                             scriptSectionDefinitionsSection.Objects[i].NumCommands,
                             string.IsNullOrEmpty(LabelsSection.Objects[i].Name) ? $"SCRIPT{i:D2}" : LabelsSection.Objects[i].Name.Replace("/", ""),
                             log, scriptSectionDefinitionsSection.Objects[i].Pointer);
-                        SectionPointersAndCounts[SectionPointersAndCounts.IndexOf(SectionPointersAndCounts.First(s => s.Pointer == scriptSectionDefinitionsSection.Objects[i].Pointer))].Section = scriptSection.GetGeneric();
+                        EventFileSections[EventFileSections.IndexOf(EventFileSections.First(s => s.Pointer == scriptSectionDefinitionsSection.Objects[i].Pointer))].Section = scriptSection.GetGeneric();
                         ScriptSections.Add(scriptSection);
                     }
                 }
@@ -463,35 +745,35 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     for (int i = 4; i > 1; i--)
                     {
-                        SectionPointersAndCounts[SectionPointersAndCounts.IndexOf(SectionPointersAndCounts.First(s => s.Section.Name == ScriptSections[i].Name))].Section.Name = ScriptSections[i - 1].Name;
+                        EventFileSections[EventFileSections.IndexOf(EventFileSections.First(s => s.Section.Name == ScriptSections[i].Name))].Section.Name = ScriptSections[i - 1].Name;
                         ScriptSections[i].Name = ScriptSections[i - 1].Name;
                     }
-                    SectionPointersAndCounts[SectionPointersAndCounts.IndexOf(SectionPointersAndCounts.First(s => s.Section.Name == ScriptSections[1].Name))].Section.Name = "SCRIPT01";
+                    EventFileSections[EventFileSections.IndexOf(EventFileSections.First(s => s.Section.Name == ScriptSections[1].Name))].Section.Name = "SCRIPT01";
                     ScriptSections[1].Name = "SCRIPT01";
                 }
 
-                int eventNameSectionIndex = SectionPointersAndCounts.FindIndex(s => s.Pointer == Settings.EventNamePointer);
+                int eventNameSectionIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.EventNamePointer);
                 if (Settings.EventNamePointer > 0)
                 {
                     string name = "EVENTNAME";
 
                     EventNameSection = new();
-                    EventNameSection.Initialize(Data.Skip(SectionPointersAndCounts[eventNameSectionIndex].Pointer).TakeWhile(b => b != 0),
-                        SectionPointersAndCounts[eventNameSectionIndex].ItemCount, name, log, SectionPointersAndCounts[eventNameSectionIndex].Pointer);
-                    SectionPointersAndCounts[eventNameSectionIndex].Section = EventNameSection.GetGeneric();
+                    EventNameSection.Initialize(Data.Skip(EventFileSections[eventNameSectionIndex].Pointer).TakeWhile(b => b != 0),
+                        EventFileSections[eventNameSectionIndex].ItemCount, name, log, EventFileSections[eventNameSectionIndex].Pointer);
+                    EventFileSections[eventNameSectionIndex].Section = EventNameSection.GetGeneric();
                 }
             }
 
-            for (int i = SectionPointersAndCounts.FindIndex(f => f.Pointer == Settings.LabelsSectionPointer) + 1; i < dialogueSectionPointerIndex; i++)
+            for (int i = EventFileSections.FindIndex(f => f.Pointer == Settings.LabelsSectionPointer) + 1; i < dialogueSectionPointerIndex; i++)
             {
-                DramatisPersonae.Add(SectionPointersAndCounts[i].Pointer,
-                    Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(SectionPointersAndCounts[i].Pointer).TakeWhile(b => b != 0x00).ToArray()));
+                DramatisPersonae.Add(EventFileSections[i].Pointer,
+                    Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(EventFileSections[i].Pointer).TakeWhile(b => b != 0x00).ToArray()));
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset);
         }
 
-        protected void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset, bool @override = false)
+        internal void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset, bool @override = false)
         {
             if (Name != "CHESSS" && Name != "EVTTBLS" && Name != "TOPICS" && Name != "SCENARIOS" && Name != "TUTORIALS" && Name != "VOICEMAPS"
                 && Name != "MESSS"
@@ -509,7 +791,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     }
 
                     DramatisPersonae.TryGetValue(speakerPointer, out string speakerName);
-                    DialogueLines.Add(new DialogueLine((Speaker)character, speakerName, speakerPointer, dialoguePointer, Data.ToArray()));
+                    DialogueLines.Add(new DialogueLine((Speaker)character, speakerName, speakerPointer, dialoguePointer, [.. Data]));
                 }
             }
 
@@ -534,40 +816,60 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
-        public void IdentifyEventFileTopics(IList<TopicStruct> availableTopics)
+        /// <summary>
+        /// Collates a list of topics used in given out in the event file
+        /// </summary>
+        /// <param name="availableTopics">A list of all topics from the TOPIC.S file in evt.bin</param>
+        public void IdentifyEventFileTopics(IList<Topic> availableTopics)
         {
-            int topicsSectionPointer = SectionPointersAndCounts.Where(s => s.Pointer > DialogueLines.Last(d => d.SpeakerName != "CHOICE").Pointer).Select(s => s.Pointer).ToArray()[3]; // third pointer after dialogue section
+            int topicsSectionPointer = EventFileSections.Where(s => s.Pointer > DialogueLines.Last(d => d.SpeakerName != "CHOICE").Pointer).Select(s => s.Pointer).ToArray()[3]; // third pointer after dialogue section
             for (int i = topicsSectionPointer; i < PointerToEndPointerSection; i += 0x24)
             {
                 int controlSwitch = BitConverter.ToInt32(Data.Skip(i).Take(4).ToArray());
                 if (controlSwitch == 0x0E)
                 {
                     int topicId = BitConverter.ToInt32(Data.Skip(i + 4).Take(4).ToArray());
-                    TopicStruct topic = availableTopics.FirstOrDefault(t => t.Id == topicId);
+                    Topic topic = availableTopics.FirstOrDefault(t => t.Id == topicId);
                     if (topic is not null)
                     {
-                        TopicStructs.Add(topic);
+                        Topics.Add(topic);
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// Initializes "dialogue lines" for special files (honestly this should be deprecated but currently isn't for...reasons)
+        /// </summary>
         public void InitializeDialogueForSpecialFiles()
         {
             DialogueLines.Clear();
             for (int i = 0; i < EndPointerPointers.Count; i++)
             {
-                DialogueLines.Add(new DialogueLine(Speaker.INFO, "INFO", 0, EndPointerPointers[i], Data.ToArray()));
+                DialogueLines.Add(new DialogueLine(Speaker.INFO, "INFO", 0, EndPointerPointers[i], [.. Data]));
             }
         }
+
+        /// <summary>
+        /// Initializes SCENARIO.S (should be its own class but alas, here we are)
+        /// </summary>
         public void InitializeScenarioFile()
         {
             InitializeDialogueForSpecialFiles();
-            Scenario = new(Data, DialogueLines, SectionPointersAndCounts);
+            Scenario = new(Data, DialogueLines, EventFileSections);
         }
 
+        /// <summary>
+        /// Returns the binary data representing this file
+        /// </summary>
+        /// <returns>Byte array of file data</returns>
         public override byte[] GetBytes() => Data.ToArray();
 
+        /// <summary>
+        /// Replaces a specific dialogue line
+        /// </summary>
+        /// <param name="index">The index of the dialogue line to edit</param>
+        /// <param name="newText">The new text to replace the line with (in the original Shift-JIS charset)</param>
         public virtual void EditDialogueLine(int index, string newText)
         {
             Edited = true;
@@ -576,8 +878,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             DialogueLines[index].NumPaddingZeroes = 4 - DialogueLines[index].Length % 4;
             int lengthDifference = DialogueLines[index].Length + DialogueLines[index].NumPaddingZeroes - oldLength;
 
-            List<byte> toWrite = new();
-            toWrite.AddRange(DialogueLines[index].Data);
+            List<byte> toWrite = [.. DialogueLines[index].Data];
             for (int i = 0; i < DialogueLines[index].NumPaddingZeroes; i++)
             {
                 toWrite.Add(0);
@@ -589,15 +890,15 @@ namespace HaruhiChokuretsuLib.Archive.Event
             ShiftPointers(DialogueLines[index].Pointer, lengthDifference);
         }
 
-        public virtual void ShiftPointers(int shiftLocation, int shiftAmount)
+        internal virtual void ShiftPointers(int shiftLocation, int shiftAmount)
         {
-            for (int i = 0; i < SectionPointersAndCounts.Count; i++)
+            for (int i = 0; i < EventFileSections.Count; i++)
             {
-                if (SectionPointersAndCounts[i].Pointer > shiftLocation)
+                if (EventFileSections[i].Pointer > shiftLocation)
                 {
-                    SectionPointersAndCounts[i].Pointer += shiftAmount;
+                    EventFileSections[i].Pointer += shiftAmount;
                     Data.RemoveRange(0x0C + 0x08 * i, 4);
-                    Data.InsertRange(0x0C + 0x08 * i, BitConverter.GetBytes(SectionPointersAndCounts[i].Pointer));
+                    Data.InsertRange(0x0C + 0x08 * i, BitConverter.GetBytes(EventFileSections[i].Pointer));
                 }
             }
             if (PointerToEndPointerSection > shiftLocation)
@@ -633,6 +934,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <summary>
+        /// Writes a RESX file containing the file's dialogue to disk
+        /// </summary>
+        /// <param name="fileName">The location to output the RESX file</param>
         public void WriteResxFile(string fileName)
         {
             using ResXResourceWriter resxWriter = new(fileName);
@@ -646,6 +951,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
         }
 
+        /// <summary>
+        /// Loads a RESX file from disk and replaces all the dialogue lines in the files with ones from the RESX
+        /// </summary>
+        /// <param name="fileName">The RESX file on disk to load</param>
         public void ImportResxFile(string fileName)
         {
             Edited = true;
@@ -743,18 +1052,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     {
                         type = "choice";
                     }
-                    _log.LogWarning($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[0..Math.Min(15, dialogueText.Length - 1)]})");
+                    Log.LogWarning($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[0..Math.Min(15, dialogueText.Length - 1)]})");
                 }
 
                 EditDialogueLine(dialogueIndex, dialogueText);
             }
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{Index:X3} {Index:D3} 0x{Offset:X8} '{Name}'";
         }
 
+        /// <inheritdoc/>
         public string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             if (Name == "CHESSS")
@@ -768,11 +1079,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
             else if (Name == "SCENARIOS")
             {
                 InitializeScenarioFile();
-                return Scenario.GetSource(includes, _log);
+                return Scenario.GetSource(includes, Log);
             }
             else if (Name == "TOPICS")
             {
-                if (!TopicStructs.Any())
+                if (!Topics.Any())
                 {
                     InitializeTopicFile();
                 }
@@ -782,24 +1093,24 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine(".word END_POINTERS");
                 sb.AppendLine(".word FILE_START");
                 sb.AppendLine(".word TOPICS");
-                sb.AppendLine($".word {TopicStructs.Count + 1}");
+                sb.AppendLine($".word {Topics.Count + 1}");
                 sb.AppendLine();
 
                 sb.AppendLine("FILE_START:");
                 sb.AppendLine("TOPICS:");
                 int numEndPointers = 0;
-                for (int i = 0; i < TopicStructs.Count; i++)
+                for (int i = 0; i < Topics.Count; i++)
                 {
-                    sb.AppendLine(TopicStructs[i].GetSource(i, ref numEndPointers));
+                    sb.AppendLine(Topics[i].GetSource(i, ref numEndPointers));
                 }
                 sb.AppendLine(".skip 0x24");
 
-                for (int i = 0; i < TopicStructs.Count; i++)
+                for (int i = 0; i < Topics.Count; i++)
                 {
-                    sb.AppendLine($"TOPICTITL{i:D3}: .string \"{TopicStructs[i].Title.EscapeShiftJIS()}\"");
-                    sb.AsmPadString(TopicStructs[i].Title, Encoding.GetEncoding("Shift-JIS"));
-                    sb.AppendLine($"TOPICDESC{i:D3}: .string \"{TopicStructs[i].Description.EscapeShiftJIS()}\"");
-                    sb.AsmPadString(TopicStructs[i].Description, Encoding.GetEncoding("Shift-JIS"));
+                    sb.AppendLine($"TOPICTITL{i:D3}: .string \"{Topics[i].Title.EscapeShiftJIS()}\"");
+                    sb.AsmPadString(Topics[i].Title, Encoding.GetEncoding("Shift-JIS"));
+                    sb.AppendLine($"TOPICDESC{i:D3}: .string \"{Topics[i].Description.EscapeShiftJIS()}\"");
+                    sb.AsmPadString(Topics[i].Description, Encoding.GetEncoding("Shift-JIS"));
                 }
 
                 sb.AppendLine("END_POINTERS:");
@@ -1054,54 +1365,116 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// An abstract container of an event file section
+    /// </summary>
     public class EventFileSection
     {
-        public int Pointer { get; set; }
-        public int ItemCount { get; set; }
+        internal int Pointer { get; set; }
+        internal int ItemCount { get; set; }
+        /// <summary>
+        /// A representation of the section itself
+        /// </summary>
         public IEventSection<object> Section { get; set; }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"0x{Pointer:X8}, {ItemCount}";
         }
     }
 
+    /// <summary>
+    /// The settings for a standard event file
+    /// </summary>
     public class EventFileSettings
     {
-        public const int SETTINGS_LENGTH = 0x128;
+        internal const int SETTINGS_LENGTH = 0x128;
 
-        public int EventNamePointer { get; set; }
-        public int NumUnknown01 { get; set; }
-        public int UnknownSection01Pointer { get; set; } // probably straight up unused
-        public int NumInteractableObjects { get; set; }
-        public int InteractableObjectsPointer { get; set; } // potentially something to do with flag setting after you've investigated something
-        public int NumUnknown03 { get; set; }
-        public int UnknownSection03Pointer { get; set; } // probably straight up unused
-        public int NumStartingChibisSections { get; set; }
-        public int StartingChibisSectionPointer { get; set; } // array indices of some kind
-        public int NumMapCharacterSections { get; set; }
-        public int MapCharactersSectionPointer { get; set; } // flag setting (investigation-related)
-        public int NumUnknown06 { get; set; }
-        public int UnknownSection06Pointer { get; set; } // probably straigt up unused
-        public int NumUnknown07 { get; set; }
-        public int UnknownSection07Pointer { get; set; } // more flags stuff (investigation-related)
-        public int NumChoices { get; set; }
-        public int ChoicesSectionPointer { get; set; }
+        internal int EventNamePointer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int NumUnknown01 { get; private set; }
+        internal int UnknownSection01Pointer { get; set; } // probably straight up unused
+        /// <summary>
+        /// Number of interactable objects sections defined in the event file
+        /// </summary>
+        public int NumInteractableObjects { get; private set; }
+        internal int InteractableObjectsPointer { get; set; } // potentially something to do with flag setting after you've investigated something
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int NumUnknown03 { get; private set; }
+        internal int UnknownSection03Pointer { get; set; } // probably straight up unused
+        /// <summary>
+        /// Number of "starting chibis" sections define in the file
+        /// </summary>
+        public int NumStartingChibisSections { get; private set; }
+        internal int StartingChibisSectionPointer { get; set; }
+        /// <summary>
+        /// Number of map character sections defined in the file
+        /// </summary>
+        public int NumMapCharacterSections { get; private set; }
+        internal int MapCharactersSectionPointer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int NumUnknown06 { get; private set; }
+        internal int UnknownSection06Pointer { get; set; } // probably straigt up unused
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int NumUnknown07 { get; private set; }
+        internal int UnknownSection07Pointer { get; set; } // more flags stuff (investigation-related)
+        /// <summary>
+        /// Number of choices defined in the file
+        /// </summary>
+        public int NumChoices { get; private set; }
+        internal int ChoicesSectionPointer { get; set; }
+        /// <summary>
+        /// Unused
+        /// </summary>
         public int Unused44 { get; set; }
+        /// <summary>
+        /// Unused
+        /// </summary>
         public int Unused48 { get; set; }
-        public int NumUnknown09 { get; set; }
-        public int UnknownSection09Pointer { get; set; } // maybe unused
-        public int NumUnknown10 { get; set; }
-        public int UnknownSection10Pointer { get; set; } // seems unused
-        public int NumLabels { get; set; }
-        public int LabelsSectionPointer { get; set; }
-        public int NumDialogueEntries { get; set; }
-        public int DialogueSectionPointer { get; set; }
-        public int NumConditionals { get; set; }
-        public int ConditionalsSectionPointer { get; set; }
-        public int NumScriptSections { get; set; }
-        public int ScriptSectionDefinitionsSectionPointer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int NumUnknown09 { get; private set; }
+        internal int UnknownSection09Pointer { get; set; } // maybe unused
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int NumUnknown10 { get; private set; }
+        internal int UnknownSection10Pointer { get; set; } // seems unused
+        /// <summary>
+        /// Number of labels defined in the file
+        /// </summary>
+        public int NumLabels { get; private set; }
+        internal int LabelsSectionPointer { get; set; }
+        /// <summary>
+        /// Number of dialogue entries defined in the file
+        /// </summary>
+        public int NumDialogueEntries { get; internal set; }
+        internal int DialogueSectionPointer { get; set; }
+        /// <summary>
+        /// Number of conditionals defined in the file
+        /// </summary>
+        public int NumConditionals { get; private set; }
+        internal int ConditionalsSectionPointer { get; set; }
+        /// <summary>
+        /// Number of script sections defined in the file
+        /// </summary>
+        public int NumScriptSections { get; private set; }
+        internal int ScriptSectionDefinitionsSectionPointer { get; set; }
 
+        /// <summary>
+        /// Creates an event file settings instance
+        /// </summary>
+        /// <param name="data">Data from the event file</param>
         public EventFileSettings(IEnumerable<byte> data)
         {
             if (data.Count() < 0x128)
@@ -1142,19 +1515,45 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// Representation of a line of dialogue from an event file
+    /// </summary>
     public class DialogueLine
     {
+        /// <summary>
+        /// The pointer to the dialogue line. This will eventually be internal, but for now it needs to be public due to quirks in how the dialogue replacement engine works
+        /// </summary>
         public int Pointer { get; set; }
-        public byte[] Data { get; set; }
-        public int NumPaddingZeroes { get; set; }
+        internal byte[] Data { get; set; }
+        internal int NumPaddingZeroes { get; set; }
+        /// <summary>
+        /// The text of the line (Shift-JIS encoded)
+        /// </summary>
         public string Text { get => Encoding.GetEncoding("Shift-JIS").GetString(Data); set => Data = Encoding.GetEncoding("Shift-JIS").GetBytes(value); }
+        /// <summary>
+        /// The length of the line (in Shift-JIS encoded bytes)
+        /// </summary>
         public int Length => Data.Length;
 
-        public int SpeakerIndex { get; set; }
-        public int SpeakerPointer { get; set; }
+        internal int SpeakerIndex { get; set; }
+        internal int SpeakerPointer { get; set; }
+        /// <summary>
+        /// The speaker of the line
+        /// </summary>
         public Speaker Speaker { get; set; }
+        /// <summary>
+        /// The name of the speaker (derived from the dramatis personae section)
+        /// </summary>
         public string SpeakerName { get; set; }
 
+        /// <summary>
+        /// Extracts a dialogue line from an event file
+        /// </summary>
+        /// <param name="speaker">The speaker of the line</param>
+        /// <param name="speakerName">The name of the speaker as a string</param>
+        /// <param name="speakerPointer">The pointer to the speaker in the dramatis personae section</param>
+        /// <param name="pointer">The pointer to the string data in the file</param>
+        /// <param name="file">The binary representation of the event file</param>
         public DialogueLine(Speaker speaker, string speakerName, int speakerPointer, int pointer, byte[] file)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -1168,10 +1567,15 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else
             {
-                Data = Array.Empty<byte>();
+                Data = [];
             }
             NumPaddingZeroes = 4 - Length % 4;
         }
+        /// <summary>
+        /// Creates a dialogue line from scratch
+        /// </summary>
+        /// <param name="line">The text of the line</param>
+        /// <param name="script">The event file it should be inserted into</param>
         public DialogueLine(string line, EventFile script)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -1198,38 +1602,117 @@ namespace HaruhiChokuretsuLib.Archive.Event
             SpeakerIndex = script.DramatisPersonaeSections.Count;
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return Text;
         }
     }
 
+    /// <summary>
+    /// The enum which defines speakers
+    /// </summary>
     public enum Speaker
     {
+        /// <summary>
+        /// Kyon
+        /// </summary>
         KYON = 0x01,
+        /// <summary>
+        /// Haruhi Suzumiya
+        /// </summary>
         HARUHI = 0x02,
+        /// <summary>
+        /// Mikuru Asahina
+        /// </summary>
         MIKURU = 0x03,
+        /// <summary>
+        /// Yuki Nagato
+        /// </summary>
         NAGATO = 0x04,
+        /// <summary>
+        /// Itsuki Koizumi
+        /// </summary>
         KOIZUMI = 0x05,
+        /// <summary>
+        /// Kyon's Little Sister
+        /// </summary>
         KYON_SIS = 0x06,
+        /// <summary>
+        /// Tsuruya-san
+        /// </summary>
         TSURUYA = 0x07,
+        /// <summary>
+        /// Taniguchi
+        /// </summary>
         TANIGUCHI = 0x08,
+        /// <summary>
+        /// Kunikida
+        /// </summary>
         KUNIKIDA = 0x09,
+        /// <summary>
+        /// The Computer Research Society President
+        /// </summary>
         CLUB_PRES = 0x0A,
+        /// <summary>
+        /// Computer Research Society Member A
+        /// </summary>
         CLUB_MEM_A = 0x0B,
+        /// <summary>
+        /// Computer Research Society Member B
+        /// </summary>
         CLUB_MEM_B = 0x0C,
+        /// <summary>
+        /// Computer Research Society Member C
+        /// </summary>
         CLUB_MEM_C = 0x0D,
+        /// <summary>
+        /// Computer Research Society Member D
+        /// </summary>
         CLUB_MEM_D = 0x0E,
+        /// <summary>
+        /// Okabe-sensei
+        /// </summary>
         OKABE = 0x0F,
+        /// <summary>
+        /// Captain of the baseball team
+        /// </summary>
         BASEBALL_CAPTAIN = 0x10,
+        /// <summary>
+        /// Grocer
+        /// </summary>
         GROCER = 0x11,
+        /// <summary>
+        /// Mystery Girl
+        /// </summary>
         GIRL = 0x12,
+        /// <summary>
+        /// Old Lady
+        /// </summary>
         OLD_LADY = 0x13,
+        /// <summary>
+        /// Fake Haruhi
+        /// </summary>
         FAKE_HARUHI = 0x14,
+        /// <summary>
+        /// A stray cat
+        /// </summary>
         STRAY_CAT = 0x15,
+        /// <summary>
+        /// ???
+        /// </summary>
         UNKNOWN = 0x16,
+        /// <summary>
+        /// Info
+        /// </summary>
         INFO = 0x17,
+        /// <summary>
+        /// Kyon's monologue
+        /// </summary>
         MONOLOGUE = 0x18,
+        /// <summary>
+        /// Text message
+        /// </summary>
         MAIL = 0x19,
     }
 }

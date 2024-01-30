@@ -9,50 +9,126 @@ using System.Text.RegularExpressions;
 
 namespace HaruhiChokuretsuLib.Archive.Graphics
 {
+    /// <summary>
+    /// Represents all files in grp.bin
+    /// </summary>
     public partial class GraphicsFile : FileInArchive
     {
+        /// <summary>
+        /// Palette data for texture files
+        /// </summary>
         public List<byte> PaletteData { get; set; }
-        public List<SKColor> Palette { get; set; } = new();
+        /// <summary>
+        /// SKColor representation of the palette for texture files
+        /// </summary>
+        public List<SKColor> Palette { get; set; } = [];
+        /// <summary>
+        /// Raw pixel data for textures
+        /// </summary>
         public List<byte> PixelData { get; set; }
+        /// <summary>
+        /// Texture file width
+        /// </summary>
         public int Width { get; set; }
+        /// <summary>
+        /// Texture file height
+        /// </summary>
         public int Height { get; set; }
+        /// <summary>
+        /// The function of a particular graphics file
+        /// </summary>
         public Function FileFunction { get; set; }
+        /// <summary>
+        /// The tile form (4bpp or 8bpp) of a texture file
+        /// </summary>
         public TileForm ImageTileForm { get; set; }
+        /// <summary>
+        /// Determines which screen the texture is optimized for
+        /// </summary>
         public Form ImageForm { get; set; }
+        /// <summary>
+        /// Initial bytes used in determining the file type
+        /// </summary>
         public string Determinant { get; set; }
 
-        public static int PNG_QUALITY = 100;
+        /// <summary>
+        /// The quality level of exported PNGs
+        /// </summary>
+        public const int PNG_QUALITY = 100;
 
-        private readonly static int[] VALID_WIDTHS = new int[] { 8, 16, 32, 64, 128, 256, 512, 1024 };
+        /// <summary>
+        /// The valid widths of an image
+        /// </summary>
+        private readonly static int[] VALID_WIDTHS = [8, 16, 32, 64, 128, 256, 512, 1024];
 
+        /// <summary>
+        /// An enum representing the number of colors in a texture
+        /// </summary>
         public enum TileForm
         {
             // corresponds to number of colors
+            /// <summary>
+            /// 4 bits per pixel i.e. 16 colors
+            /// </summary>
             GBA_4BPP = 0x10,
+            /// <summary>
+            /// 8 bits per pixel i.e. 256 colors
+            /// </summary>
             GBA_8BPP = 0x100,
         }
 
+        /// <summary>
+        /// An enum representing the function of a graphics file
+        /// </summary>
         public enum Function
         {
+            /// <summary>
+            /// Unknown function
+            /// </summary>
             UNKNOWN,
+            /// <summary>
+            /// Shade Texture graphic
+            /// </summary>
             SHTX,
+            /// <summary>
+            /// Top screen VRAM-optimized graphic
+            /// </summary>
             SCREEN,
+            /// <summary>
+            /// Layout file
+            /// </summary>
             LAYOUT,
+            /// <summary>
+            /// Animation file
+            /// </summary>
             ANIMATION,
         }
 
+        /// <summary>
+        /// An enum representing which screen the texture is optimized for (TILE = top, TEXTURE = bottom)
+        /// </summary>
         public enum Form
         {
+            /// <summary>
+            /// Unknown to be tile or texture
+            /// </summary>
             UNKNOWN,
+            /// <summary>
+            /// Texture (bottom screen optimized)
+            /// </summary>
             TEXTURE,
+            /// <summary>
+            /// Tile (top screen OAM optimized)
+            /// </summary>
             TILE,
         }
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
             byte[] magicBytes = Data.Take(4).ToArray();
             if (Encoding.ASCII.GetString(magicBytes) == "SHTX")
             {
@@ -64,7 +140,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 int paletteLength = 0x200;
                 if (ImageTileForm == TileForm.GBA_4BPP && !Name.StartsWith("CHS_SYS_"))
                 {
-                    paletteLength = 0x40;
+                    paletteLength = 0x60;
                 }
 
                 PaletteData = Data.Skip(0x14).Take(paletteLength).ToList();
@@ -137,9 +213,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
         }
 
+        /// <inheritdoc/>
         public override void NewFile(string filename, ILogger log)
         {
-            _log = log;
+            Log = log;
             SKBitmap bitmap = SKBitmap.Decode(filename);
             string[] fileComponents = Path.GetFileNameWithoutExtension(filename).Split('_');
             ImageTileForm = fileComponents[1].ToLower() switch
@@ -155,7 +232,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 _ => throw new ArgumentException($"Image {filename} does not have its image form (third argument should be 'texture' or 'tile')")
             };
             Name = fileComponents.Last().ToUpper();
-            Data = new();
+            Data = [];
             FileFunction = Function.SHTX;
             int transparentIndex = -1;
             Match transparentIndexMatch = Regex.Match(filename, @"tidx(?<transparentIndex>\d+)");
@@ -164,8 +241,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 transparentIndex = int.Parse(transparentIndexMatch.Groups["transparentIndex"].Value);
             }
 
-            PaletteData = new();
-            PixelData = new();
+            PaletteData = [];
+            PixelData = [];
             if (ImageTileForm == TileForm.GBA_4BPP)
             {
                 Palette.AddRange(new SKColor[16]);
@@ -198,12 +275,15 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             SetImage(bitmap, setPalette: true, transparentIndex: transparentIndex);
         }
 
+        /// <summary>
+        /// Initializes ZENFONT.DNX (special font file)
+        /// </summary>
         public void InitializeFontFile()
         {
             ImageTileForm = TileForm.GBA_4BPP;
             // grayscale palette
-            Palette = new()
-            {
+            Palette =
+            [
                 new SKColor(0x00, 0x00, 0x00),
                 new SKColor(0x1F, 0x1F, 0xF),
                 new SKColor(0x2F, 0x2F, 0x2F),
@@ -220,12 +300,16 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 new SKColor(0xDF, 0xDF, 0xDF),
                 new SKColor(0xEF, 0xEF, 0xEF),
                 new SKColor(0xFF, 0xFF, 0xFF),
-            };
+            ];
             PixelData = Data;
             Width = 16;
             Height = PixelData.Count / 8;
         }
 
+        /// <summary>
+        /// Hardocded method determining whether a file is top screen or bottom screen optimized
+        /// </summary>
+        /// <returns>True if optimized for bottom screen; false otherwise</returns>
         // Hardcoding these until we figure out how the game knows what to do lol
         public bool IsTexture()
         {
@@ -259,59 +343,75 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 && Index != 0xE50;
         }
 
+        /// <inheritdoc/>
         public override byte[] GetBytes()
         {
             if (FileFunction == Function.SHTX)
             {
-                List<byte> data = new();
-                data.AddRange(Data.Take(0x14)); // get header
-                data.AddRange(PaletteData);
-                data.AddRange(PixelData);
+                List<byte> data =
+                [
+                    .. Data.Take(0x14), // get header
+                    .. PaletteData,
+                    .. PixelData,
+                ];
 
-                return data.ToArray();
+                return [.. data];
             }
             else if (FileFunction == Function.LAYOUT)
             {
-                List<byte> data = new();
-                data.AddRange(Data.Take(0x08)); // get header
+                List<byte> data =
+                [
+                    .. Data.Take(0x08), // get header
+                ];
                 foreach (LayoutEntry entry in LayoutEntries)
                 {
                     data.AddRange(entry.GetBytes());
                 }
 
-                return data.ToArray();
+                return [.. data];
             }
             else if (FileFunction == Function.ANIMATION && AnimationEntries.FirstOrDefault().GetType() == typeof(FrameAnimationEntry))
             {
-                List<byte> data = new();
-                data.AddRange(BitConverter.GetBytes(0x10));
-                data.AddRange(BitConverter.GetBytes(AnimationX));
-                data.AddRange(BitConverter.GetBytes(AnimationY));
-                data.AddRange(BitConverter.GetBytes(ChibiAnimationType));
-                data.AddRange(new byte[] { 0x00, 0xFF, 0x00, 0x00, 0xFF, 0xFF });
+                List<byte> data =
+                [
+                    .. BitConverter.GetBytes(0x10),
+                    .. BitConverter.GetBytes(AnimationX),
+                    .. BitConverter.GetBytes(AnimationY),
+                    .. BitConverter.GetBytes(ChibiAnimationType),
+                    .. new byte[] { 0x00, 0xFF, 0x00, 0x00, 0xFF, 0xFF },
+                ];
                 foreach (FrameAnimationEntry frame in AnimationEntries.Cast<FrameAnimationEntry>())
                 {
                     data.AddRange(frame.GetBytes());
                 }
                 data.AddRange(new byte[10]);
 
-                return data.ToArray();
+                return [.. data];
             }
             else if (Index == 0xE50) // more special casing for the font file
             {
-                return PixelData.ToArray();
+                return [.. PixelData];
             }
             else
             {
-                return Data.ToArray();
+                return [.. Data];
             }
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{Index:X3} {Index:D4} 0x{Offset:X8} ({FileFunction}) - {Name}";
         }
 
+        /// <summary>
+        /// Renders a bitmap image of the texture or screen image
+        /// </summary>
+        /// <param name="width">(Optional) Specifies a width other than the default width</param>
+        /// <param name="transparentIndex">(Optional) Specifies a transparent index for the palette (should be 0 if specified)</param>
+        /// <param name="paletteOffset">(Optional) specifies a palette offset</param>
+        /// <param name="tilesGrp">(Optional) Specifies a tiles graphics file for screen images</param>
+        /// <returns>A rendered SKBitmap of the texture/screen graphic</returns>
         public SKBitmap GetImage(int width = -1, int transparentIndex = -1, int paletteOffset = 0, GraphicsFile tilesGrp = null)
         {
             if (FileFunction == Function.SCREEN)
@@ -428,6 +528,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return bmp;
         }
 
+        /// <summary>
+        /// Returns a bitmap representation of the graphics file palette
+        /// </summary>
+        /// <returns>A bitmap with every color in the palette placed in order</returns>
         public SKBitmap GetPalette()
         {
             SKBitmap palette = new(256, Palette.Count);
@@ -444,6 +548,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return palette;
         }
 
+        /// <summary>
+        /// Sets the palette for the graphics file
+        /// </summary>
+        /// <param name="palette">The palette to replace the current one with</param>
+        /// <param name="transparentIndex">The transparent index of the palette</param>
+        /// <param name="suppressOutput">If true, doesn't log when replacing palette</param>
         public void SetPalette(List<SKColor> palette, int transparentIndex = -1, bool suppressOutput = false)
         {
             Palette = palette;
@@ -452,10 +562,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 Palette.Insert(transparentIndex, SKColors.Transparent);
             }
 
-            PaletteData = new();
+            PaletteData = [];
             if (!suppressOutput)
             {
-                _log.Log($"Using provided palette for #{Index:X3}... ");
+                Log.Log($"Using provided palette for #{Index:X3}... ");
             }
 
             for (int i = 0; i < Palette.Count; i++)
@@ -469,6 +579,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// Replaces the current pixel data with a bitmap image on disk
         /// </summary>
         /// <param name="bitmapFile">Path to bitmap file to import</param>
+        /// <param name="setPalette">(Optional) If true, sets the palette of the graphics file from the provided image</param>
+        /// <param name="transparentIndex">(Optional) Sets the transparent index (if existing, usually 0)</param>
+        /// <param name="newSize">(Optional) If true, resizes the image</param>
+        /// <param name="associatedTiles">(Optional) If attempting to render a screen image, has these associated tiles</param>
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
@@ -480,6 +594,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// Replaces the current pixel data with a bitmap image in memory
         /// </summary>
         /// <param name="bitmap">Bitmap image in memory</param>
+        /// <param name="setPalette">(Optional) If true, sets the palette of the graphics file from the provided image</param>
+        /// <param name="transparentIndex">(Optional) Sets the transparent index (if existing, usually 0)</param>
+        /// <param name="newSize">(Optional) If true, resizes the image</param>
+        /// <param name="associatedTiles">(Optional) If attempting to render a screen image, has these associated tiles</param>
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
@@ -515,7 +633,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, 256, texture: true, dither: true, firstTransparent, setPalette, _log);
+            quantizer.QuantizeImage(bitmap, this, 256, texture: true, dither: true, firstTransparent, setPalette, Log);
 
             return bitmap.Width;
         }
@@ -529,7 +647,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             int calculatedHeight = PixelData.Count / (bitmap.Width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
             if (newSize)
             {
-                _log.LogWarning("Resizing... ");
+                Log.LogWarning("Resizing... ");
                 PixelData = new(new byte[bitmap.Width * bitmap.Height]);
             }
             else if (bitmap.Height < calculatedHeight)
@@ -537,7 +655,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
             }
 
-            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, texture: false, dither: true, firstTransparent, setPalette, _log);           
+            quantizer.QuantizeImage(bitmap, this, ImageTileForm == TileForm.GBA_4BPP ? 16 : 256, texture: false, dither: true, firstTransparent, setPalette, Log);           
 
             return bitmap.Width;
         }

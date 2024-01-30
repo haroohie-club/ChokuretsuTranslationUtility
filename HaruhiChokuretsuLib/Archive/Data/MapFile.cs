@@ -8,26 +8,48 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Representation of a map file contained in dat.bin
+    /// </summary>
     public class MapFile : DataFile
     {
-        public int NumSections { get; set; }
-        public int EndPointersOffset { get; set; }
-        public int HeaderEndPointer { get; set; }
-        public List<DataFileSection> SectionOffsetsAndCounts { get; set; } = new();
+        internal int NumSections { get; set; }
+        internal int EndPointersOffset { get; set; }
+        internal int HeaderEndPointer { get; set; }
+        /// <summary>
+        /// Data file sections of the map file
+        /// </summary>
+        public List<DataFileSection> SectionOffsetsAndCounts { get; set; } = [];
 
+        /// <summary>
+        /// Map file's settings
+        /// </summary>
         public MapFileSettings Settings { get; set; }
-        public List<UnknownMapObject2> UnknownMapObject2s { get; set; } = new();
-        public List<UnknownMapObject3> UnknownMapObject3s { get; set; } = new();
-        public List<InteractableObject> InteractableObjects { get; set; } = new();
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public List<UnknownMapObject2> UnknownMapObject2s { get; set; } = [];
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public List<UnknownMapObject3> UnknownMapObject3s { get; set; } = [];
+        /// <summary>
+        /// List of interactable objects found on the map
+        /// </summary>
+        public List<InteractableObject> InteractableObjects { get; set; } = [];
+        /// <summary>
+        /// A 2D byte-array representing the pathing/walkability of each space on the map
+        /// </summary>
         public byte[][] PathingMap { get; set; }
-
+        
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
 
             NumSections = BitConverter.ToInt32(Data.Take(4).ToArray());
             EndPointersOffset = BitConverter.ToInt32(Data.Skip(0x04).Take(4).ToArray());
@@ -89,6 +111,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <summary>
+        /// Generates an image of the overall map and (depending on the map) the map's background image
+        /// </summary>
+        /// <param name="grp">ArchiveFile object for grp.bin</param>
+        /// <param name="maxLayoutIndex">(Optional) The maximum layout index to render up to (used to exclude layers not seen in-game when rendering previews)</param>
+        /// <param name="grpReplacement">(Optional) A replacement graphics file for one of the map's textures (used to generate animation frames)</param>
+        /// <param name="replacementIndex">(Optional) The index of the graphics file to replace with grpReplacement</param>
+        /// <returns>A tuple of an SKBitmap of the rendered map and an SKBitmap of the map's background image (null if there is no BG image)</returns>
         public (SKBitmap mapBitmap, SKBitmap bgBitmap) GetMapImages(ArchiveFile<GraphicsFile> grp, int maxLayoutIndex = -1, GraphicsFile grpReplacement = null, int replacementIndex = 1)
         {
             List<GraphicsFile> textures = Settings.TextureFileIndices.Select(i => grp.Files.First(f => f.Index == i)).ToList();
@@ -111,6 +141,13 @@ namespace HaruhiChokuretsuLib.Archive.Data
             return (mapBitmap, bgBitmap);
         }
 
+        /// <summary>
+        /// Generates an image of the overall map and (depending on the map) the map's background image; used for debugging primarily
+        /// </summary>
+        /// <param name="grp">ArchiveFile object for grp.bin</param>
+        /// <param name="start">Starting layer to render on the map's layout</param>
+        /// <param name="length">Number of layers to render on the map's layout</param>
+        /// <returns>An SKBitmap of the rendered map</returns>
         public SKBitmap GetMapImages(ArchiveFile<GraphicsFile> grp, int start, int length)
         {
             List<GraphicsFile> textures = Settings.TextureFileIndices.Select(i => grp.Files.First(f => f.Index == i)).ToList();
@@ -119,6 +156,10 @@ namespace HaruhiChokuretsuLib.Archive.Data
             return layout.GetLayout(textures, start, length, false, true).bitmap;
         }
 
+        /// <summary>
+        /// Generates an image of the pathing/walkability map
+        /// </summary>
+        /// <returns>An image of the pathing/walkability map for the map</returns>
         public SKBitmap GetPathingImage()
         {
             SKBitmap pathingImage;
@@ -154,6 +195,10 @@ namespace HaruhiChokuretsuLib.Archive.Data
             return pathingImage;
         }
 
+        /// <summary>
+        /// Generates an image of the map's background gradient
+        /// </summary>
+        /// <returns>A 64x64 image of the map's background gradient</returns>
         public SKBitmap GetBackgroundGradient()
         {
             SKBitmap bgGradient = new(64, 64);
@@ -164,8 +209,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
             paint.Shader = SKShader.CreateLinearGradient(
                 new SKPoint((rect.Left + rect.Right) / 2, rect.Top),
                 new SKPoint((rect.Left + rect.Right) / 2, rect.Bottom),
-                new SKColor[] { Settings.TopGradient, Settings.BottomGradient },
-                new float[] { 0, 1 },
+                [Settings.TopGradient, Settings.BottomGradient],
+                [0.0f, 1.0f],
                 SKShaderTileMode.Repeat);
 
             canvas.DrawRect(rect, paint);
@@ -184,6 +229,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             };
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             StringBuilder sb = new();
@@ -271,39 +317,125 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// A representation of the settings section of a map file
+    /// </summary>
     public class MapFileSettings
     {
+        /// <summary>
+        /// "Singularity Mode", true indicates that this map is a puzzle phase map
+        /// </summary>
         public bool SlgMode { get; set; }
+        /// <summary>
+        /// The width of the map in tiles
+        /// </summary>
         public int MapWidth { get; set; }
+        /// <summary>
+        /// The height of the map in tiles
+        /// </summary>
         public int MapHeight { get; set; }
-        public List<short> TextureFileIndices { get; set; } = new();
+        /// <summary>
+        /// A list of grp.bin indices of the texture files used in the map layout
+        /// </summary>
+        public List<short> TextureFileIndices { get; set; } = [];
+        /// <summary>
+        /// The grp.bin index of the layout file which defines the map
+        /// </summary>
         public short LayoutFileIndex { get; set; }
+        /// <summary>
+        /// The index of the layout layer which defines the screen size of the layout
+        /// (specifically, the ScreenX and ScreenY properties of the specified entry define the map size)
+        /// </summary>
         public int LayoutSizeDefinitionIndex { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown18 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownLayoutIndex1C { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownLayoutIndex20 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownLayoutIndex24 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown28 { get; set; }
+        /// <summary>
+        /// The index of the layout layer at which the background image starts
+        /// </summary>
         public int BackgroundLayoutStartIndex { get; set; }
+        /// <summary>
+        /// The index of the layout layer at which the background image ends
+        /// </summary>
         public int BackgroundLayoutEndIndex { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown34 { get; set; }
+        /// <summary>
+        /// The color of the top of the background gradient
+        /// </summary>
         public SKColor TopGradient { get; set; }
+        /// <summary>
+        /// The color of the bottom of the background gradient
+        /// </summary>
         public SKColor BottomGradient { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int UnknownLayoutIndex40 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown44 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown48 { get; set; }
+        /// <summary>
+        /// The starting position (in terms of tiles) of the player character
+        /// </summary>
         public (int x, int y) StartingPosition { get; set; }
+        /// <summary>
+        /// If the map uses color animation, this is the grp.bin index of that animation file
+        /// </summary>
         public int ColorAnimationFileIndex { get; set; }
+        /// <summary>
+        /// If the map uses palette animation, this is the grp.bin index of that animation file
+        /// </summary>
         public int PaletteAnimationFileIndex { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int Unknown5C { get; set; }
-        public int Unknown2Count { get; set; }
-        public int Unknown2SectionPointer { get; set; }
-        public int InteractableObjectsCount { get; set; }
-        public int InteractableObjectsSectionPointer { get; set; }
-        public int WalkabilityMapPointer { get; set; }
-        public int Unknown3Count { get; set; }
-        public int Unknown3SectionPointer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int Unknown2Count { get; internal set; }
+        internal int Unknown2SectionPointer { get; set; }
+        /// <summary>
+        /// The number of interactable objects on the map
+        /// </summary>
+        public int InteractableObjectsCount { get; internal set; }
+        internal int InteractableObjectsSectionPointer { get; set; }
+        internal int WalkabilityMapPointer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int Unknown3Count { get; internal set; }
+        internal int Unknown3SectionPointer { get; set; }
 
+        /// <summary>
+        /// Constructs map file settings
+        /// </summary>
+        /// <param name="data">The data from the map file</param>
         public MapFileSettings(IEnumerable<byte> data)
         {
             SlgMode = BitConverter.ToInt32(data.Take(4).ToArray()) > 0;
@@ -340,7 +472,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             Unknown2SectionPointer = BitConverter.ToInt32(data.Skip(0x78).Take(4).ToArray());
         }
 
-        public string GetAsm(int indent, List<DataFileSection> sections, ref int currentPointer)
+        internal string GetAsm(int indent, List<DataFileSection> sections, ref int currentPointer)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{Helpers.Indent(indent)}.word {(SlgMode ? 1 : 0)}");
@@ -381,18 +513,21 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
-    public class UnknownMapObject2
+    /// <summary>
+    /// Unknown
+    /// </summary>
+    public class UnknownMapObject2(IEnumerable<byte> data)
     {
-        public short UnknownShort1 { get; set; }
-        public short UnknownShort2 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short UnknownShort1 { get; set; } = BitConverter.ToInt16(data.Take(2).ToArray());
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short UnknownShort2 { get; set; } = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
 
-        public UnknownMapObject2(IEnumerable<byte> data)
-        {
-            UnknownShort1 = BitConverter.ToInt16(data.Take(2).ToArray());
-            UnknownShort2 = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
-        }
-
-        public string GetAsm(int indent)
+        internal string GetAsm(int indent)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{Helpers.Indent(indent)}.short {UnknownShort1}");
@@ -402,20 +537,25 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
-    public class UnknownMapObject3
+    /// <summary>
+    /// Unknown
+    /// </summary>
+    public class UnknownMapObject3(IEnumerable<byte> data)
     {
-        public short UnknownShort1 { get; set; }
-        public short UnknownShort2 { get; set; }
-        public short UnknownShort3 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short UnknownShort1 { get; set; } = BitConverter.ToInt16(data.Take(2).ToArray());
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short UnknownShort2 { get; set; } = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short UnknownShort3 { get; set; } = BitConverter.ToInt16(data.Skip(4).Take(2).ToArray());
 
-        public UnknownMapObject3(IEnumerable<byte> data)
-        {
-            UnknownShort1 = BitConverter.ToInt16(data.Take(2).ToArray());
-            UnknownShort2 = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
-            UnknownShort3 = BitConverter.ToInt16(data.Skip(4).Take(2).ToArray());
-        }
-
-        public string GetAsm(int indent)
+        internal string GetAsm(int indent)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{Helpers.Indent(indent)}.short {UnknownShort1}");
@@ -426,22 +566,31 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
-    public class InteractableObject
+    /// <summary>
+    /// Representation of an interactable object on a map
+    /// </summary>
+    /// <param name="data">The interactable object entry data from the map file</param>
+    /// <param name="offset">The starting offset of the interactable object data in the file</param>
+    public class InteractableObject(IEnumerable<byte> data, int offset)
     {
-        public short ObjectX { get; set; }
-        public short ObjectY { get; set; }
-        public int ObjectId { get; set; }
-        public string ObjectName { get; set; }
+        /// <summary>
+        /// The X-position of the object (in terms of tiles) on the map
+        /// </summary>
+        public short ObjectX { get; set; } = BitConverter.ToInt16(data.Skip(offset).Take(2).ToArray());
+        /// <summary>
+        /// The Y-position of the object (in terms of tiles) on the map
+        /// </summary>
+        public short ObjectY { get; set; } = BitConverter.ToInt16(data.Skip(offset + 2).Take(2).ToArray());
+        /// <summary>
+        /// The ID of the object
+        /// </summary>
+        public int ObjectId { get; set; } = BitConverter.ToInt32(data.Skip(offset + 4).Take(4).ToArray());
+        /// <summary>
+        /// The name of the object
+        /// </summary>
+        public string ObjectName { get; set; } = Encoding.GetEncoding("Shift-JIS").GetString(data.Skip(BitConverter.ToInt32(data.Skip(offset + 8).Take(4).ToArray())).TakeWhile(b => b != 0x00).ToArray());
 
-        public InteractableObject(IEnumerable<byte> data, int offset)
-        {
-            ObjectX = BitConverter.ToInt16(data.Skip(offset).Take(2).ToArray());
-            ObjectY = BitConverter.ToInt16(data.Skip(offset + 2).Take(2).ToArray());
-            ObjectId = BitConverter.ToInt32(data.Skip(offset+ 4).Take(4).ToArray());
-            ObjectName = Encoding.GetEncoding("Shift-JIS").GetString(data.Skip(BitConverter.ToInt32(data.Skip(offset + 8).Take(4).ToArray())).TakeWhile(b => b != 0x00).ToArray());
-        }
-
-        public string GetAsm(int indent, ref int currentPointer)
+        internal string GetAsm(int indent, ref int currentPointer)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{Helpers.Indent(indent)}.short {ObjectX}");

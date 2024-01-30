@@ -5,19 +5,26 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Represents MESS.S in dat.bin
+    /// </summary>
     public class MessageFile : DataFile
     {
-        public List<string> Messages { get; set; } = new();
+        /// <summary>
+        /// The list of messages as defined in the file
+        /// </summary>
+        public List<string> Messages { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             int numSections = IO.ReadInt(decompressedData, 0);
             if (numSections != 1)
             {
-                _log.LogError($"MESS.S should only have 1 section, but {numSections} were detected.");
+                Log.LogError($"MESS.S should only have 1 section, but {numSections} were detected.");
                 return;
             }
 
@@ -34,6 +41,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             StringBuilder sb = new();

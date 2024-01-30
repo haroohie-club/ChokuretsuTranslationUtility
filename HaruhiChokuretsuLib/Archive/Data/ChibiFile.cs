@@ -5,21 +5,28 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// A representation of CHIBI.S in dat.bin
+    /// </summary>
     public class ChibiFile : DataFile
     {
-        public List<Chibi> Chibis = new();
+        /// <summary>
+        /// The list of chibis defined in the file
+        /// </summary>
+        public List<Chibi> Chibis { get; set; } = [];
         private const int NUM_CHIBI_ENTRIES = 57;
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
 
             int numSections = IO.ReadInt(decompressedData, 0);
             int numChibis = IO.ReadInt(decompressedData, 0x10) - 2;
 
             if (numSections != numChibis + 1)
             {
-                _log.LogError($"Number of sections ({numSections}) does not match number of chibis ({numChibis}) + 1");
+                Log.LogError($"Number of sections ({numSections}) does not match number of chibis ({numChibis}) + 1");
                 return;
             }
 
@@ -30,11 +37,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             if (!includes.ContainsKey("GRPBIN"))
             {
-                _log.LogError("Includes needs GRPBIN to be present.");
+                Log.LogError("Includes needs GRPBIN to be present.");
                 return null;
             }
 
@@ -105,15 +113,31 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// A representation of a set of chibi sprites used in the investigation phase or on the top screen corresponding to a particular character
+    /// </summary>
     public class Chibi
     {
-        public List<ChibiEntry> ChibiEntries { get; set; } = new();
+        /// <summary>
+        /// A list of chibi entries defining the chibi data
+        /// </summary>
+        public List<ChibiEntry> ChibiEntries { get; set; } = [];
+        /// <summary>
+        /// Indexes into the list of chibi entries by name rather than index
+        /// </summary>
+        /// <param name="entryName">The name of the chibi entry</param>
+        /// <returns>The chibi entry in question</returns>
         public ChibiEntry this[ChibiEntryName entryName]
         {
             get => ChibiEntries[(int)entryName];
             set { ChibiEntries[(int)entryName] = value; }
         }
 
+        /// <summary>
+        /// Create a chibi given data from CHIBI.S
+        /// </summary>
+        /// <param name="data">Binary data from the CHIBI.S entry</param>
+        /// <param name="numChibiEntries">The number of chibi entries present (defined as 57 without hacking to change that value)</param>
         public Chibi(IEnumerable<byte> data, int numChibiEntries)
         {
             for (int i = 0; i < numChibiEntries; i++)
@@ -123,74 +147,255 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// A struct representing a particular chibi sprite
+    /// </summary>
     public struct ChibiEntry
     {
+        /// <summary>
+        /// The grp.bin index of the chibi sprite's texture
+        /// </summary>
         public short Texture { get; set; }
+        /// <summary>
+        /// The grp.bin index of the chibi sprite's animation file
+        /// </summary>
         public short Animation { get; set; }
 
-        public override string ToString()
+        /// <inheritdoc/>
+        public override readonly string ToString()
         {
             return $"{Texture}, {Animation}";
         }
     }
 
+    /// <summary>
+    /// The name of the chibi entry (corresponds to pose and animation)
+    /// </summary>
     public enum ChibiEntryName
     {
+        /// <summary>
+        /// Idle animation, facing down to the left
+        /// </summary>
         IDLE_BOTTOM_LEFT,
+        /// <summary>
+        /// Idle animation, facing down to the right
+        /// </summary>
         IDLE_BOTTOM_RIGHT,
+        /// <summary>
+        /// Idle animation, facing up to the left
+        /// </summary>
         IDLE_UPPER_LEFT,
+        /// <summary>
+        /// Idle animation, facing up to the right
+        /// </summary>
         IDLE_UPPER_RIGHT,
+        /// <summary>
+        /// Walk cycle animation, facing down to the left
+        /// </summary>
         WALK_BOTTOM_LEFT,
+        /// <summary>
+        /// Walk cycle animation, facing down to the right
+        /// </summary>
         WALK_BOTTOM_RIGHT,
+        /// <summary>
+        /// Walk cycle animation, facing up to the left
+        /// </summary>
         WALK_UPPER_LEFT,
+        /// <summary>
+        /// Walk cycle animation, facing up to the right
+        /// </summary>
         WALK_UPPER_RIGHT,
+        /// <summary>
+        /// Search for singularity animation, facing down to the left
+        /// </summary>
         INVESTIGATE_BOTTOM_LEFT,
+        /// <summary>
+        /// Search for singularity animation, facing down to the right
+        /// </summary>
         INVESTIGATE_BOTTOM_RIGHT,
+        /// <summary>
+        /// Search for singularity animation, facing up to the left
+        /// </summary>
         INVESTIGATE_UPPER_LEFT,
+        /// <summary>
+        /// Search for singularity animation, facing up to the right
+        /// </summary>
         INVESTIGATE_UPPER_RIGHT,
+        /// <summary>
+        /// Erase singularity animation, facing down to the left
+        /// </summary>
         ERASE_BOTTOM_LEFT,
+        /// <summary>
+        /// Erase singularity animation, facing down to the right
+        /// </summary>
         ERASE_BOTTOM_RIGHT,
+        /// <summary>
+        /// Erase singularity animation, facing up to the left
+        /// </summary>
         ERASE_UPPER_LEFT,
+        /// <summary>
+        /// Erase singularity animation, facing up to the right
+        /// </summary>
         ERASE_UPPER_RIGHT,
+        /// <summary>
+        /// Puzzle phase failure animation, facing down to the left
+        /// </summary>
         FAILURE_BOTTOM_LEFT,
+        /// <summary>
+        /// Puzzle phase failure animation, facing down to the right
+        /// </summary>
         FAILURE_BOTTOM_RIGHT,
+        /// <summary>
+        /// Puzzle phase failure animation, facing up to the left
+        /// </summary>
         FAILURE_UPPER_LEFT,
+        /// <summary>
+        /// Puzzle phase failure animation, facing up to the right
+        /// </summary>
         FAILURE_UPPER_RIGHT,
+        /// <summary>
+        /// Puzzle phase success animation, facing down to the left
+        /// </summary>
         SUCCESS_BOTTOM_LEFT,
+        /// <summary>
+        /// Puzzle phase success animation, facing down to the right
+        /// </summary>
         SUCCESS_BOTTOM_RIGHT,
+        /// <summary>
+        /// Puzzle phase success animation, facing up to the left
+        /// </summary>
         SUCCESS_UPPER_LEFT,
+        /// <summary>
+        /// Puzzle phase success animation, facing up to the right
+        /// </summary>
         SUCCESS_UPPER_RIGHT,
+        /// <summary>
+        /// Puzzle phase ability use animation, facing down to the left
+        /// </summary>
         ABILITY_BOTTOM_LEFT,
+        /// <summary>
+        /// Puzzle phase ability use animation, facing down to the right
+        /// </summary>
         ABILITY_BOTTOM_RIGHT,
+        /// <summary>
+        /// Puzzle phase ability use animation, facing up to the left
+        /// </summary>
         ABILITY_UPPER_LEFT,
+        /// <summary>
+        /// Puzzle phase ability use animation, facing up to the right
+        /// </summary>
         ABILITY_UPPER_RIGHT,
+        /// <summary>
+        /// Puzzle phase ability failure animation, facing down to the left
+        /// </summary>
         ABILITY_FAIL_BOTTOM_LEFT,
+        /// <summary>
+        /// Puzzle phase ability failure animation, facing down to the right
+        /// </summary>
         ABILITY_FAIL_BOTTOM_RIGHT,
+        /// <summary>
+        /// Puzzle phase ability failure animation, facing up to the left
+        /// </summary>
         ABILITY_FAIL_UPPER_LEFT,
+        /// <summary>
+        /// Puzzle phase ability failure animation, facing up to the right
+        /// </summary>
         ABILITY_FAIL_UPPER_RIGHT,
+        /// <summary>
+        /// Run cycle animation, facing down to the left
+        /// </summary>
         RUN_BOTTOM_LEFT,
+        /// <summary>
+        /// Run cycle animation, facing down to the right
+        /// </summary>
         RUN_BOTTOM_RIGHT,
+        /// <summary>
+        /// Run cycle animation, facing up to the left
+        /// </summary>
         RUN_UPPER_LEFT,
+        /// <summary>
+        /// Run cycle animation, facing up to the right
+        /// </summary>
         RUN_UPPER_RIGHT,
+        /// <summary>
+        /// Unknown
+        /// </summary>
         UNKNONW09_BOTTOM_LEFT,
+        /// <summary>
+        /// Unknown
+        /// </summary>
         UNKNOWN09_BOTTOM_RIGHT,
+        /// <summary>
+        /// Unknown
+        /// </summary>
         UNKNOWN09_UPPER_LEFT,
+        /// <summary>
+        /// Unknown
+        /// </summary>
         UNKNOWN09_UPPER_RIGHT,
+        /// <summary>
+        /// Look animation, facing down to the left
+        /// </summary>
         LOOK_BOTTOM_LEFT,
+        /// <summary>
+        /// Look animation, facing down to the right
+        /// </summary>
         LOOK_BOTTOM_RIGHT,
+        /// <summary>
+        /// Look animation, facing up to the left
+        /// </summary>
         LOOK_UPPER_LEFT,
+        /// <summary>
+        /// Look animation, facing up to the right
+        /// </summary>
         LOOK_UPPER_RIGHT,
+        /// <summary>
+        /// Static pose 97, facing down to the left
+        /// </summary>
         STATICPOSE97_BOTTOM_LEFT,
+        /// <summary>
+        /// Static pose 97, facing down to the right
+        /// </summary>
         STATICPOSE97_BOTTOM_RIGHT,
+        /// <summary>
+        /// Static pose 97, facing up to the left
+        /// </summary>
         STATICPOSE97_UPPER_LEFT,
+        /// <summary>
+        /// Static pose 97, facing up to the right
+        /// </summary>
         STATICPOSE97_UPPER_RIGHT,
+        /// <summary>
+        /// Static pose 98, facing down to the left
+        /// </summary>
         STATICPOSE98_BOTTOM_LEFT,
+        /// <summary>
+        /// Static pose 98, facing down to the right
+        /// </summary>
         STATICPOSE98_BOTTOM_RIGHT,
+        /// <summary>
+        /// Static pose 98, facing up to the left
+        /// </summary>
         STATICPOSE98_UPPER_LEFT,
+        /// <summary>
+        /// Static pose 98, facing up to the right
+        /// </summary>
         STATICPOSE98_UPPER_RIGHT,
+        /// <summary>
+        /// Static pose 99, facing down to the left
+        /// </summary>
         STATICPOSE99_BOTTOM_LEFT,
+        /// <summary>
+        /// Static pose 99, facing down to the right
+        /// </summary>
         STATICPOSE99_BOTTOM_RIGHT,
+        /// <summary>
+        /// Static pose 99, facing up to the left
+        /// </summary>
         STATICPOSE99_UPPER_LEFT,
+        /// <summary>
+        /// Static pose 99, facing up to the right
+        /// </summary>
         STATICPOSE99_UPPER_RIGHT,
     }
 }

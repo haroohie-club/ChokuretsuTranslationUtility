@@ -5,22 +5,39 @@ using System.Linq;
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio.ADX
 {
+    /// <summary>
+    /// Decoder for CriWare ADX files
+    /// </summary>
     public class AdxDecoder : IAdxDecoder
     {
+        /// <summary>
+        /// ADX header data
+        /// </summary>
         public AdxHeader Header { get; set; }
-        public List<byte> Data { get; set; }
-        public List<Sample> Samples { get; set; } = new();
-        public Sample PreviousSample { get; set; }
-        public Sample PrevPrevSample { get; set; }
-        public int Coeff1 { get; set; }
-        public int Coeff2 { get; set; }
-        public uint AlignmentSamples { get; set; }
-        public uint CurrentSample { get; set; }
+        internal List<byte> Data { get; set; }
+        internal List<Sample> Samples { get; set; } = [];
+        internal Sample PreviousSample { get; set; }
+        internal Sample PrevPrevSample { get; set; }
+        internal int Coeff1 { get; set; }
+        internal int Coeff2 { get; set; }
+        internal uint AlignmentSamples { get; set; }
+        internal uint CurrentSample { get; set; }
+        /// <summary>
+        /// Defines how the audio loops
+        /// </summary>
         public LoopReadInfo? LoopReadInfo { get; set; }
+        /// <summary>
+        /// If true, we will actually loop (needs to not be true for converting a whole file)
+        /// </summary>
         public bool DoLoop { get; set; }
 
+        /// <inheritdoc/>
         public uint Channels => Header.ChannelCount;
+
+        /// <inheritdoc/>
         public uint SampleRate => Header.SampleRate;
+
+        /// <inheritdoc/>
         public LoopInfo LoopInfo => Header.Version == 3 || Header.Version == 4 ? new()
         {
             StartSample = Header.LoopInfo.BeginSample - Header.LoopInfo.AlignmentSamples,
@@ -30,6 +47,11 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         private int _currentOffset = 0;
         private int _currentBit = 0;
 
+        /// <summary>
+        /// Wraps an audio file with an ADX decoder
+        /// </summary>
+        /// <param name="data">The ADX audio file to decode</param>
+        /// <param name="log">ILogger instance for logging</param>
         public AdxDecoder(IEnumerable<byte> data, ILogger log)
         {
             Header = new(data, log);
@@ -53,7 +75,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             _currentOffset = Header.HeaderSize;
         }
 
-        public List<Sample> ReadFrame()
+        private List<Sample> ReadFrame()
         {
             uint samplesPerBlock = ((uint)Header.BlockSize - 2) * 8 / Header.SampleBitdepth;
             List<Sample> samples = new(new Sample[samplesPerBlock]);
@@ -104,6 +126,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             return samples;
         }
 
+        /// <inheritdoc/>
         public Sample NextSample()
         {
             if (LoopReadInfo is not null)
@@ -137,10 +160,22 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         }
     }
 
+    /// <summary>
+    /// Info on how to read the loop
+    /// </summary>
     public struct LoopReadInfo
     {
+        /// <summary>
+        /// Beginning loop byte
+        /// </summary>
         public int BeginByte { get; set; }
+        /// <summary>
+        /// Beginning loop sample
+        /// </summary>
         public int BeginSample { get; set; }
+        /// <summary>
+        /// Last loop sample before looping back to beginning loop sample
+        /// </summary>
         public int EndSample { get; set; }
     }
 }

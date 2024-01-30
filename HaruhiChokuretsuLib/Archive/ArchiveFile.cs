@@ -8,33 +8,75 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive
 {
+    /// <summary>
+    /// Representation of a bin archive file
+    /// </summary>
+    /// <typeparam name="T">The type of file contained by this archive</typeparam>
     public class ArchiveFile<T>
         where T : FileInArchive, new()
     {
+        /// <summary>
+        /// Offset of first magic integer
+        /// </summary>
         public const int FirstMagicIntegerOffset = 0x20;
 
+        /// <summary>
+        /// Name of the archive
+        /// </summary>
         public string FileName { get; set; }
-        public int NumFiles { get; set; }
-        public int FileSpacing { get; set; }
-        public int MagicIntegerLsbMultiplier { get; set; }
-        public int MagicIntegerLsbMask { get; set; }
-        public int MagicIntegerMsbShift { get; set; }
-        public int FileNamesLength { get; set; }
-        public uint Unknown1 { get; set; }
-        public uint Unknown2 { get; set; }
-        public List<uint> MagicIntegers { get; set; } = new();
-        public List<uint> SecondHeaderNumbers { get; set; } = new();
+        /// <summary>
+        /// Number of files in the archive
+        /// </summary>
+        public int NumFiles { get; internal set; }
+        /// <summary>
+        /// Spacing of the files
+        /// </summary>
+        public int FileSpacing { get; private set; }
+        internal int MagicIntegerLsbMultiplier { get; set; }
+        internal int MagicIntegerLsbMask { get; set; }
+        internal int MagicIntegerMsbShift { get; set; }
+        internal int FileNamesLength { get; set; }
+        internal uint Unknown1 { get; set; }
+        internal uint Unknown2 { get; set; }
+        /// <summary>
+        /// List of magic integers in the archive
+        /// </summary>
+        public List<uint> MagicIntegers { get; set; } = [];
+        /// <summary>
+        /// Unknown second header numbers section data
+        /// </summary>
+        public List<uint> SecondHeaderNumbers { get; set; } = [];
+        /// <summary>
+        /// Filenames section data
+        /// </summary>
         public List<byte> FileNamesSection { get; set; }
-        public List<T> Files { get; set; } = new();
-        public Dictionary<int, int> LengthToMagicIntegerMap { get; private set; } = new();
-        private ILogger _log { get; set; }
+        /// <summary>
+        /// List of files in the archive
+        /// </summary>
+        public List<T> Files { get; set; } = [];
+        private readonly Dictionary<int, int> _lengthToMagicIntegerMap = [];
+        private readonly ILogger _log;
 
+        /// <summary>
+        /// Creates an ArchiveFile object from a file on disk
+        /// </summary>
+        /// <param name="fileName">The file on disk</param>
+        /// <param name="log">ILogger instance for logging</param>
+        /// <param name="dontThrow">(Optional) If set to true, will not throw errors during archive decompression (but will log them)</param>
+        /// <returns></returns>
         public static ArchiveFile<T> FromFile(string fileName, ILogger log, bool dontThrow = true)
         {
             byte[] archiveBytes = File.ReadAllBytes(fileName);
             return new ArchiveFile<T>(archiveBytes, log, dontThrow) { FileName = Path.GetFileName(fileName) };
         }
 
+        /// <summary>
+        /// Creates a new archive file give binary bin archive data
+        /// </summary>
+        /// <param name="archiveBytes">Binary data from a bin archive</param>
+        /// <param name="log">ILogger instance for logging</param>
+        /// <param name="dontThrow">(Optional) If set to true, will not throw errors during archive decompression (but will log them)</param>
+        /// <exception cref="ArchiveLoadException"></exception>
         public ArchiveFile(byte[] archiveBytes, ILogger log, bool dontThrow = true)
         {
             _log = log;
@@ -55,9 +97,9 @@ namespace HaruhiChokuretsuLib.Archive
             for (int i = 0; i <= MagicIntegerLsbMask; i++)
             {
                 int length = GetFileLength((uint)i);
-                if (!LengthToMagicIntegerMap.ContainsKey(length))
+                if (!_lengthToMagicIntegerMap.ContainsKey(length))
                 {
-                    LengthToMagicIntegerMap.Add(length, i);
+                    _lengthToMagicIntegerMap.Add(length, i);
                 }
             }
 
@@ -104,8 +146,8 @@ namespace HaruhiChokuretsuLib.Archive
             {
                 int offset = GetFileOffset(MagicIntegers[i]);
                 int compressedLength = GetFileLength(MagicIntegers[i]);
-                byte[] fileBytes = archiveBytes.Skip(offset).Take(compressedLength).ToArray();
-                if (fileBytes.Length > 0)
+                IEnumerable<byte> fileBytes = archiveBytes.Skip(offset).Take(compressedLength);
+                if (fileBytes.Any())
                 {
                     T file = new();
                     try
@@ -133,17 +175,21 @@ namespace HaruhiChokuretsuLib.Archive
             }
         }
 
+        /// <summary>
+        /// Lists all files in an ARM assembly include file
+        /// </summary>
+        /// <returns>A string of valid ARM assembly setting macros for all files and their indices</returns>
         public string GetSourceInclude()
         {
             return string.Join("\n", Files.Select(f => $".set {f.Name}, {f.Index}")) + "\n";
         }
 
-        public int GetFileOffset(uint magicInteger)
+        private int GetFileOffset(uint magicInteger)
         {
             return (int)((magicInteger >> MagicIntegerMsbShift) * FileSpacing);
         }
 
-        public int GetFileLength(uint magicInteger)
+        private int GetFileLength(uint magicInteger)
         {
             // absolutely unhinged routine
             int magicLengthInt = 0x7FF + (int)((magicInteger & (uint)MagicIntegerLsbMask) * (uint)MagicIntegerLsbMultiplier);
@@ -201,20 +247,29 @@ namespace HaruhiChokuretsuLib.Archive
             return magicLengthInt * 0x800;
         }
 
+        /// <summary>
+        /// Recalculates a file offset
+        /// </summary>
+        /// <param name="file">The file whose offset to recalculate</param>
+        /// <returns>The offset of the file</returns>
         public int RecalculateFileOffset(T file)
         {
             return GetFileOffset(file.MagicInteger);
         }
 
-        public uint GetNewMagicInteger(T file, int compressedLength)
+        private uint GetNewMagicInteger(T file, int compressedLength)
         {
             uint offsetComponent = (uint)(file.Offset / FileSpacing) << MagicIntegerMsbShift;
             int newLength = (compressedLength + 0x7FF) & ~0x7FF; // round to nearest 0x800
-            int newLengthComponent = LengthToMagicIntegerMap[newLength];
+            int newLengthComponent = _lengthToMagicIntegerMap[newLength];
 
             return offsetComponent | (uint)newLengthComponent;
         }
 
+        /// <summary>
+        /// Adds a file to the archive
+        /// </summary>
+        /// <param name="filename">The path to the file to be added</param>
         public void AddFile(string filename)
         {
             T file = new();
@@ -223,6 +278,10 @@ namespace HaruhiChokuretsuLib.Archive
             AddFile(file);
         }
 
+        /// <summary>
+        /// Adds a file to the archive
+        /// </summary>
+        /// <param name="file">The file to be added to the archive</param>
         public void AddFile(T file)
         {
             file.Edited = true;
@@ -240,17 +299,22 @@ namespace HaruhiChokuretsuLib.Archive
             Files.Add(file);
         }
 
+        /// <summary>
+        /// Gets the binary archive data
+        /// </summary>
+        /// <returns>The binary bin archive data</returns>
         public byte[] GetBytes()
         {
-            List<byte> bytes = new();
-
-            bytes.AddRange(BitConverter.GetBytes(NumFiles));
-            bytes.AddRange(BitConverter.GetBytes(FileSpacing));
-            bytes.AddRange(BitConverter.GetBytes(MagicIntegerLsbMultiplier));
-            bytes.AddRange(BitConverter.GetBytes(MagicIntegerMsbShift));
-            bytes.AddRange(BitConverter.GetBytes(MagicIntegerLsbMask));
-            bytes.AddRange(BitConverter.GetBytes(Unknown1));
-            bytes.AddRange(BitConverter.GetBytes(Unknown2));
+            List<byte> bytes =
+            [
+                .. BitConverter.GetBytes(NumFiles),
+                .. BitConverter.GetBytes(FileSpacing),
+                .. BitConverter.GetBytes(MagicIntegerLsbMultiplier),
+                .. BitConverter.GetBytes(MagicIntegerMsbShift),
+                .. BitConverter.GetBytes(MagicIntegerLsbMask),
+                .. BitConverter.GetBytes(Unknown1),
+                .. BitConverter.GetBytes(Unknown2),
+            ];
 
             List<byte> namesSectionBytes = new();
             foreach (string filename in Files.Select(f => f.Name))
@@ -339,7 +403,7 @@ namespace HaruhiChokuretsuLib.Archive
                 bytes.Add(0);
             }
 
-            return bytes.ToArray();
+            return [.. bytes];
         }
     }
 }

@@ -8,77 +8,94 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
+    /// <summary>
+    /// A custom file built for the translation that maps subtitle text to voice files
+    /// </summary>
     public class VoiceMapFile : EventFile
     {
-        public int VoiceMapStructSectionOffset { get; set; }
+        /// <summary>
+        /// Offset of voice map entries
+        /// </summary>
+        public int VoiceMapEntriesSectionOffset { get; set; }
+        /// <summary>
+        /// Pointer to dialogue lines
+        /// </summary>
         public int DialogueLinesPointer { get; set; }
-        public List<VoiceMapStruct> VoiceMapStructs { get; set; } = new();
+        /// <summary>
+        /// List of voice map entries
+        /// </summary>
+        public List<VoiceMapEntry> VoiceMapEntries { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
 
             int numFrontPointers = BitConverter.ToInt32(decompressedData.Take(4).ToArray());
             for (int i = 0; i < numFrontPointers; i++)
             {
-                SectionPointersAndCounts.Add(new()
+                EventFileSections.Add(new()
                 {
                     Pointer = BitConverter.ToInt32(decompressedData.Skip(0x0C + 0x08 * i).Take(4).ToArray()),
                     ItemCount = BitConverter.ToInt32(decompressedData.Skip(0x10 + 0x08 * i).Take(4).ToArray()),
                 });
             }
             Settings = new(new byte[0x128]);
-            VoiceMapStructSectionOffset = SectionPointersAndCounts[0].Pointer;
-            Settings.DialogueSectionPointer = SectionPointersAndCounts[1].Pointer;
-            DialogueLinesPointer = Settings.DialogueSectionPointer + (SectionPointersAndCounts.Count - 1) * 12;
+            VoiceMapEntriesSectionOffset = EventFileSections[0].Pointer;
+            Settings.DialogueSectionPointer = EventFileSections[1].Pointer;
+            DialogueLinesPointer = Settings.DialogueSectionPointer + (EventFileSections.Count - 1) * 12;
             Settings.NumDialogueEntries = numFrontPointers - 2;
 
-            for (int i = 2; i < SectionPointersAndCounts.Count; i++)
+            for (int i = 2; i < EventFileSections.Count; i++)
             {
-                DramatisPersonae.Add(SectionPointersAndCounts[i].Pointer, Encoding.ASCII.GetString(Data.Skip(SectionPointersAndCounts[i].Pointer).TakeWhile(b => b != 0).ToArray()));
+                DramatisPersonae.Add(EventFileSections[i].Pointer, Encoding.ASCII.GetString(Data.Skip(EventFileSections[i].Pointer).TakeWhile(b => b != 0).ToArray()));
             }
 
-            for (int i = 0; i < SectionPointersAndCounts.Count - 2; i++)
+            for (int i = 0; i < EventFileSections.Count - 2; i++)
             {
-                VoiceMapStructs.Add(new(Data.Skip(VoiceMapStructSectionOffset + i * VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH).Take(VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH), _log));
-                VoiceMapStructs[^1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapStructs.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
-                VoiceMapStructs[^1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapStructs.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray())[4..], recenter: false);
+                VoiceMapEntries.Add(new(Data.Skip(VoiceMapEntriesSectionOffset + i * VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH).Take(VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH), Log));
+                VoiceMapEntries[^1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapEntries.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
+                VoiceMapEntries[^1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapEntries.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray())[4..], recenter: false);
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset, @override: true);
         }
 
+        /// <summary>
+        /// Gets ARM assembly source of this file
+        /// </summary>
+        /// <returns>A string containing an ARM assembly representation of this file</returns>
         public string GetSource()
         {
             StringBuilder sb = new();
 
-            sb.AppendLine($".word {VoiceMapStructs.Count + 2}");
+            sb.AppendLine($".word {VoiceMapEntries.Count + 2}");
             sb.AppendLine(".word END_POINTERS");
             sb.AppendLine(".ascii \"SUBS\"");
-            sb.AppendLine(".word STRUCT_SECTION");
+            sb.AppendLine(".word ENTRY_SECTION");
             sb.AppendLine(".word 1");
             sb.AppendLine(".word DIALOGUE_SECTION");
             sb.AppendLine(".word 1");
 
-            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            for (int i = 0; i < VoiceMapEntries.Count; i++)
             {
                 sb.AppendLine($".word FILENAME{i:D3}");
                 sb.AppendLine(".word 1");
             }
 
-            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            for (int i = 0; i < VoiceMapEntries.Count; i++)
             {
-                sb.AppendLine($"FILENAME{i:D3}: .string \"{VoiceMapStructs[i].VoiceFileName}\"");
-                sb.AsmPadString(VoiceMapStructs[i].VoiceFileName, Encoding.ASCII);
+                sb.AppendLine($"FILENAME{i:D3}: .string \"{VoiceMapEntries[i].VoiceFileName}\"");
+                sb.AsmPadString(VoiceMapEntries[i].VoiceFileName, Encoding.ASCII);
             }
 
             sb.AppendLine("DIALOGUE_SECTION:");
-            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            for (int i = 0; i < VoiceMapEntries.Count; i++)
             {
-                if (SpeakerCodeMap.TryGetValue(VoiceMapStructs[i].VoiceFileName.Split('_')[0], out Speaker speaker))
+                if (SpeakerCodeMap.TryGetValue(VoiceMapEntries[i].VoiceFileName.Split('_')[0], out Speaker speaker))
                 {
                     sb.AppendLine($".word {(int)speaker}");
                 }
@@ -90,43 +107,44 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"DIALOGUE{i:D3}: .word SUBTITLE{i:D3}");
             }
             sb.AppendLine(".skip 12");
-            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            for (int i = 0; i < VoiceMapEntries.Count; i++)
             {
-                sb.AppendLine($"SUBTITLE{i:D3}: .string \"{VoiceMapStructs[i].GetRawSubtitle().EscapeShiftJIS()}\"");
-                sb.AsmPadString(VoiceMapStructs[i].GetRawSubtitle(), Encoding.GetEncoding("Shift-JIS"));
+                sb.AppendLine($"SUBTITLE{i:D3}: .string \"{VoiceMapEntries[i].GetRawSubtitle().EscapeShiftJIS()}\"");
+                sb.AsmPadString(VoiceMapEntries[i].GetRawSubtitle(), Encoding.GetEncoding("Shift-JIS"));
             }
             sb.AppendLine(".skip 4");
 
-            sb.AppendLine("STRUCT_SECTION:");
-            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            sb.AppendLine("ENTRY_SECTION:");
+            for (int i = 0; i < VoiceMapEntries.Count; i++)
             {
-                sb.AppendLine(VoiceMapStructs[i].GetSource(i));
+                sb.AppendLine(VoiceMapEntries[i].GetSource(i));
             }
-            sb.AppendLine($".skip {VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH}");
+            sb.AppendLine($".skip {VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH}");
 
             sb.AppendLine("END_POINTERS:");
-            sb.AppendLine($".word {VoiceMapStructs.Count * 4}");
-            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            sb.AppendLine($".word {VoiceMapEntries.Count * 4}");
+            for (int i = 0; i < VoiceMapEntries.Count; i++)
             {
                 sb.AppendLine($".word DRAMPERS{i:D3}");
                 sb.AppendLine($".word DIALOGUE{i:D3}");
             }
-            for (int i = 0; i < VoiceMapStructs.Count; i++)
+            for (int i = 0; i < VoiceMapEntries.Count; i++)
             {
-                sb.AppendLine($".word STRUCTFILE{i:D3}");
-                sb.AppendLine($".word STRUCTSUBS{i:D3}");
+                sb.AppendLine($".word ENTRYFILE{i:D3}");
+                sb.AppendLine($".word ENTRYSUBS{i:D3}");
             }
 
             return sb.ToString();
         }
 
+        /// <inheritdoc/>
         public override void NewFile(string filename, ILogger log)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Data = new();
             string[] csvData = File.ReadAllLines(filename);
             Name = "VOICEMAPS";
-            _log = log;
+            Log = log;
 
             List<int> filenamePointers = new();
             List<byte> filenameSection = new();
@@ -160,7 +178,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Data.AddRange(BitConverter.GetBytes(numFrontPointers));
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for end pointers pointer
             Data.AddRange(Encoding.ASCII.GetBytes("SUBS")); // Add magic identifier
-            Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for struct section
+            Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for entry section
             Data.AddRange(BitConverter.GetBytes(1));
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for dialogue section
             Data.AddRange(BitConverter.GetBytes(1));
@@ -219,13 +237,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     speaker = parsedSpeaker;
                 }
-                DialogueLines.Add(new(speaker, filenames[i], filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer, Data.ToArray()));
+                DialogueLines.Add(new(speaker, filenames[i], filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer, [.. Data]));
             }
 
-            // Go back and insert the pointer to the struct section
-            VoiceMapStructSectionOffset = Data.Count;
+            // Go back and insert the pointer to the entry section
+            VoiceMapEntriesSectionOffset = Data.Count;
             Data.RemoveRange(0x0C, 4);
-            Data.InsertRange(0x0C, BitConverter.GetBytes(VoiceMapStructSectionOffset));
+            Data.InsertRange(0x0C, BitConverter.GetBytes(VoiceMapEntriesSectionOffset));
 
             for (int i = 0; i < csvData.Length; i++)
             {
@@ -234,21 +252,21 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                 EndPointers.AddRange(new int[] { Data.Count, Data.Count + 4 }); // Add the next two pointers to end pointers
                 EndPointerPointers.AddRange(new int[] { filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer });
-                VoiceMapStruct vmStruct = new()
+                VoiceMapEntry vmEntry = new()
                 {
                     VoiceFileNamePointer = filenamePointers[i] + filenameSectionStart,
                     SubtitlePointer = dialogueLinePointers[i] + DialogueLinesPointer,
                     X = CenterSubtitle(lineLength),
-                    YPos = Enum.Parse<VoiceMapStruct.YPosition>(fields[2]),
+                    YPos = Enum.Parse<VoiceMapEntry.YPosition>(fields[2]),
                     FontSize = 100,
-                    TargetScreen = Enum.Parse<VoiceMapStruct.Screen>(fields[3]),
+                    TargetScreen = Enum.Parse<VoiceMapEntry.Screen>(fields[3]),
                     Timer = ushort.Parse(fields[4]),
                 };
 
-                VoiceMapStructs.Add(vmStruct);
-                Data.AddRange(vmStruct.GetBytes());
+                VoiceMapEntries.Add(vmEntry);
+                Data.AddRange(vmEntry.GetBytes());
             }
-            Data.AddRange(new byte[VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH]);
+            Data.AddRange(new byte[VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH]);
 
             // Go back and insert the pointer to the end pointers section
             int endPointersSectionStart = Data.Count;
@@ -259,6 +277,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Data.AddRange(EndPointers.SelectMany(e => BitConverter.GetBytes(e)));
         }
 
+        /// <inheritdoc/>
         public override void EditDialogueLine(int index, string newText)
         {
             newText = $"#P07{newText}";
@@ -267,38 +286,38 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             if (DialogueLines[index].Text.Contains('\n'))
             {
-                _log.LogWarning($"File {Index} has subtitle too long ({index}) (starting with: {DialogueLines[index].Text[4..20]})");
+                Log.LogWarning($"File {Index} has subtitle too long ({index}) (starting with: {DialogueLines[index].Text[4..20]})");
             }
 
             string actualText = newText[4..];
             int lineLength = actualText.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
-            VoiceMapStructs[index].X = CenterSubtitle(lineLength);
-            Data.RemoveRange(VoiceMapStructSectionOffset + VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH * index + 8, 2); // Replace X in Data
-            Data.InsertRange(VoiceMapStructSectionOffset + VoiceMapStruct.VOICE_MAP_STRUCT_LENGTH * index + 8, BitConverter.GetBytes(VoiceMapStructs[index].X));
+            VoiceMapEntries[index].X = CenterSubtitle(lineLength);
+            Data.RemoveRange(VoiceMapEntriesSectionOffset + VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH * index + 8, 2); // Replace X in Data
+            Data.InsertRange(VoiceMapEntriesSectionOffset + VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH * index + 8, BitConverter.GetBytes(VoiceMapEntries[index].X));
         }
 
-        public override void ShiftPointers(int shiftLocation, int shiftAmount)
+        internal override void ShiftPointers(int shiftLocation, int shiftAmount)
         {
             base.ShiftPointers(shiftLocation, shiftAmount);
 
-            if (VoiceMapStructSectionOffset > shiftLocation)
+            if (VoiceMapEntriesSectionOffset > shiftLocation)
             {
-                VoiceMapStructSectionOffset += shiftAmount;
+                VoiceMapEntriesSectionOffset += shiftAmount;
             }
             if (DialogueLinesPointer > shiftLocation)
             {
                 DialogueLinesPointer += shiftAmount;
             }
 
-            foreach (VoiceMapStruct vmStruct in VoiceMapStructs)
+            foreach (VoiceMapEntry vmEntry in VoiceMapEntries)
             {
-                if (vmStruct.VoiceFileNamePointer > shiftLocation)
+                if (vmEntry.VoiceFileNamePointer > shiftLocation)
                 {
-                    vmStruct.VoiceFileNamePointer += shiftAmount;
+                    vmEntry.VoiceFileNamePointer += shiftAmount;
                 }
-                if (vmStruct.SubtitlePointer > shiftLocation)
+                if (vmEntry.SubtitlePointer > shiftLocation)
                 {
-                    vmStruct.SubtitlePointer += shiftAmount;
+                    vmEntry.SubtitlePointer += shiftAmount;
                 }
             }
         }
@@ -308,6 +327,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return (short)((256 - lineLength) / 2);
         }
 
+        /// <summary>
+        /// Map between voice file codes and speakers
+        /// </summary>
         public static readonly Dictionary<string, Speaker> SpeakerCodeMap = new()
         {
             { "ANZ", Speaker.GIRL },
@@ -322,34 +344,85 @@ namespace HaruhiChokuretsuLib.Archive.Event
             { "TRY", Speaker.TSURUYA },
         };
 
-        public class VoiceMapStruct
+        /// <summary>
+        /// Individual 
+        /// </summary>
+        public class VoiceMapEntry
         {
-            public const int VOICE_MAP_STRUCT_LENGTH = 20;
+            /// <summary>
+            /// Length of a voice map entry in bytes
+            /// </summary>
+            public const int VOICE_MAP_ENTRY_LENGTH = 20;
 
+            /// <summary>
+            /// The screen that the voicemap struct should be placed on
+            /// </summary>
             public enum Screen
             {
+                /// <summary>
+                /// The bottom screen (optimal)
+                /// </summary>
                 BOTTOM = 0,
+                /// <summary>
+                /// The top screen (risky)
+                /// </summary>
                 TOP = 1,
             }
 
+            /// <summary>
+            /// Y position of the subtitle on a particular screen
+            /// </summary>
             public enum YPosition : short
             {
+                /// <summary>
+                /// Top of the screen
+                /// </summary>
                 TOP = 16,
+                /// <summary>
+                /// Just below the top of the screen
+                /// </summary>
                 BELOW_TOP = 40,
+                /// <summary>
+                /// Just above the bottom of the screen
+                /// </summary>
                 ABOVE_BOTTOM = 160,
+                /// <summary>
+                /// Bottom of the screen
+                /// </summary>
                 BOTTOM = 176,
             }
 
             private string _subtitle;
             private YPosition _yPosition;
 
-            public List<byte> Data { get; set; } = new();
+            internal List<byte> Data { get; set; } = [];
+            /// <summary>
+            /// Pointer to voice filename
+            /// </summary>
             public int VoiceFileNamePointer { get; set; }
+            /// <summary>
+            /// The voice filename
+            /// </summary>
             public string VoiceFileName { get; set; }
+            /// <summary>
+            /// Pointer to subtitle
+            /// </summary>
             public int SubtitlePointer { get; set; }
+            /// <summary>
+            /// The subtitle
+            /// </summary>
             public string Subtitle { get => _subtitle[4..]; }
+            /// <summary>
+            /// The X position of the subtitle
+            /// </summary>
             public short X { get; set; }
+            /// <summary>
+            /// The Y position of the subtitle
+            /// </summary>
             public short Y { get; private set; }
+            /// <summary>
+            /// Easier way to map the Y-position
+            /// </summary>
             public YPosition YPos 
             { 
                 get => _yPosition; 
@@ -357,21 +430,38 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     Y = (short)value;
                     _yPosition = value;
-                } 
+                }
             }
+            /// <summary>
+            /// The font size of the subtitle
+            /// </summary>
             public short FontSize { get; set; }
+            /// <summary>
+            /// The target screen for the subtitle (top or bottom)
+            /// </summary>
             public Screen TargetScreen { get; set; }
+            /// <summary>
+            /// The number of frames the subtitle should remain on screen for
+            /// </summary>
             public int Timer { get; set; }
 
-            public VoiceMapStruct()
+            /// <summary>
+            /// Empty constructor
+            /// </summary>
+            public VoiceMapEntry()
             {
             }
 
-            public VoiceMapStruct(IEnumerable<byte> data, ILogger log)
+            /// <summary>
+            /// Create a voice map entry from VOICEMAP.S data
+            /// </summary>
+            /// <param name="data">VOICEMAP.S binary data</param>
+            /// <param name="log">ILogger instance for error logging</param>
+            public VoiceMapEntry(IEnumerable<byte> data, ILogger log)
             {
-                if (data.Count() != VOICE_MAP_STRUCT_LENGTH)
+                if (data.Count() != VOICE_MAP_ENTRY_LENGTH)
                 {
-                    log.LogError($"Voice map struct data length must be 0x{VOICE_MAP_STRUCT_LENGTH:X2}, was 0x{data.Count():X2}");
+                    log.LogError($"Voice map struct data length must be 0x{VOICE_MAP_ENTRY_LENGTH:X2}, was 0x{data.Count():X2}");
                     return;
                 }
 
@@ -387,11 +477,17 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 Data = data.ToList();
             }
 
-            public string GetRawSubtitle()
+            internal string GetRawSubtitle()
             {
                 return _subtitle;
             }
 
+            /// <summary>
+            /// Sets and optionally recenters the subtitle
+            /// </summary>
+            /// <param name="value">The new text of the subtitle</param>
+            /// <param name="fontReplacementMap">The font replacement map for character replacement</param>
+            /// <param name="recenter">(Optional)If true, recenters the subtitle in the middle of the screen</param>
             public void SetSubtitle(string value, FontReplacementDictionary fontReplacementMap = null, bool recenter = true)
             {
                 _subtitle = $"#P07{value}";
@@ -401,7 +497,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 }
             }
 
-            public string GetSource(int currentVoiceFile)
+            internal string GetSource(int currentVoiceFile)
             {
                 StringBuilder sb = new();
 
@@ -417,7 +513,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 return sb.ToString();
             }
 
-            public byte[] GetBytes()
+            internal byte[] GetBytes()
             {
                 Data.Clear();
 
@@ -429,7 +525,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 Data.AddRange(BitConverter.GetBytes((short)TargetScreen));
                 Data.AddRange(BitConverter.GetBytes(Timer));
 
-                return Data.ToArray();
+                return [.. Data];
             }
         }
     }

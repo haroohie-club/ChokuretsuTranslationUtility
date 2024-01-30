@@ -7,18 +7,32 @@ using System.Threading;
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio.ADX
 {
+    /// <summary>
+    /// An encoder for ADX audio
+    /// </summary>
     public class AdxEncoder : IAdxEncoder
     {
+        /// <summary>
+        /// Highpass frequency
+        /// </summary>
         public const uint HIGHPASS_FREQ = 0x01F4;
 
-        public BinaryWriter Writer { get; set; }
+        internal BinaryWriter Writer { get; set; }
+        /// <summary>
+        /// The ADX specification to write with
+        /// </summary>
         public AdxSpec Spec { get; set; }
-        public uint HeaderSize { get; set; }
-        public uint AlignmentSamples { get; set; }
-        public (int Coeff1, int Coeff2) Coefficients { get; set; }
-        public uint SamplesEncoded { get; set; }
-        public Frame CurrentFrame { get; set; }
+        internal uint HeaderSize { get; set; }
+        internal uint AlignmentSamples { get; set; }
+        internal (int Coeff1, int Coeff2) Coefficients { get; set; }
+        internal uint SamplesEncoded { get; set; }
+        internal Frame CurrentFrame { get; set; }
 
+        /// <summary>
+        /// Creates an ADX encoder
+        /// </summary>
+        /// <param name="writer">A BinaryWriter to write the ADX file to</param>
+        /// <param name="spec">The ADX specification to follow</param>
         public AdxEncoder(BinaryWriter writer, AdxSpec spec)
         {
             if (spec.LoopInfo is not null)
@@ -61,6 +75,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             }
         }
 
+        /// <inheritdoc/>
         public void EncodeData(IEnumerable<Sample> samples, CancellationToken cancellationToken)
         {
             foreach (Sample sample in samples)
@@ -79,6 +94,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             }
         }
 
+        /// <inheritdoc/>
         public void Finish()
         {
             if (!CurrentFrame.IsEmpty)
@@ -137,7 +153,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             Writer.Flush();
         }
 
-        public static uint SampleToByte(uint startSample, uint channels)
+        private static uint SampleToByte(uint startSample, uint channels)
         {
             uint frames = startSample / 32;
             if (startSample % 32 != 32)

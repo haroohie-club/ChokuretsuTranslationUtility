@@ -5,18 +5,25 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Representation of PLACE.S in dat.bin
+    /// </summary>
     public class PlaceFile : DataFile
     {
-        public List<int> PlaceGraphicIndices { get; set; } = new();
+        /// <summary>
+        /// A list of grp.bin indices of the place graphics
+        /// </summary>
+        public List<int> PlaceGraphicIndices { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
 
             int numSections = IO.ReadInt(decompressedData, 0);
             if (numSections != 1)
             {
-                _log.LogError($"PLACE file should only have 1 section; {numSections} specified.");
+                Log.LogError($"PLACE file should only have 1 section; {numSections} specified.");
                 return;
             }
 
@@ -28,11 +35,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             if (!includes.ContainsKey("GRPBIN"))
             {
-                _log.LogError("Includes needs GRPBIN to be present.");
+                Log.LogError("Includes needs GRPBIN to be present.");
                 return null;
             }
             StringBuilder sb = new();

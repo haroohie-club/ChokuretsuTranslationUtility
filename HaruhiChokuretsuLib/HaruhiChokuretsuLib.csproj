@@ -1,21 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <Company>Haroohie Translation Club</Company>
-    <Version>0.34.9</Version>
+    <Version>0.36.6</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   
   <ItemGroup>
     <PackageReference Include="GotaSequenceLib" Version="1.1.0" />
     <PackageReference Include="GotaSoundBank" Version="1.0.0" />
     <PackageReference Include="GotaSoundIO" Version="2.1.0" />
-    <PackageReference Include="NAudio.Core" Version="2.1.0" />
-    <PackageReference Include="ResXResourceReader.NetStandard" Version="1.1.0" />
-    <PackageReference Include="SkiaSharp" Version="2.88.3" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.3" />
+    <PackageReference Include="NAudio.Core" Version="2.2.1" />
+    <PackageReference Include="ResXResourceReader.NetStandard" Version="1.2.0" />
+    <PackageReference Include="SkiaSharp" Version="2.88.6" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.6" />
     <PackageReference Include="SoundFont2" Version="1.1.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
   
   <ItemGroup>

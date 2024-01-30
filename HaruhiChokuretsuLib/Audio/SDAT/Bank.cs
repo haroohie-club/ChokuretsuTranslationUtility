@@ -153,7 +153,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             //Instruments.
             if (Instruments.Count > 0)
             {
-                Instruments = Instruments.OrderBy(x => x.Index).ToList();
+                Instruments = [.. Instruments.OrderBy(x => x.Index)];
                 w.Write((uint)(Instruments.Last().Index + 1));
                 Dictionary<int, long> bakPos = new Dictionary<int, long>();
                 for (int i = 0; i <= Instruments.Last().Index; i++)

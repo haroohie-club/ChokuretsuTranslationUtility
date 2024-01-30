@@ -434,7 +434,7 @@ namespace HaruhiChokuretsuLib.Util
 
             Pnnquan(pixels, ref palette, ref nMaxColors, log);
 
-            return palette.ToList();
+            return [.. palette];
         }
 
         public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, bool firstTransparent, bool replacePalette, ILogger log)
@@ -449,11 +449,11 @@ namespace HaruhiChokuretsuLib.Util
             SKColor[] palette;
             if (dest.Palette.Count < nMaxColors)
             {
-                palette = dest.Palette.Concat(new SKColor[nMaxColors - dest.Palette.Count]).ToArray();
+                palette = [.. dest.Palette, .. new SKColor[nMaxColors - dest.Palette.Count]];
             }
             else
             {
-                palette = dest.Palette.ToArray();
+                palette = [.. dest.Palette];
             }
             if (firstTransparent)
             {
@@ -485,7 +485,7 @@ namespace HaruhiChokuretsuLib.Util
             _closestMap.Clear();
             _nearestMap.Clear();
 
-            dest.Palette = palette.ToList();
+            dest.Palette = [.. palette];
             if (firstTransparent)
             {
                 dest.Palette.Insert(0, _transparentColor);

@@ -5,23 +5,40 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
+    /// <summary>
+    /// Represents a command in an script event file
+    /// This represents the actual abstract command; for an invocation use ScriptCommandInvocation
+    /// </summary>
     public class ScriptCommand
     {
+        /// <summary>
+        /// The ID of this command
+        /// </summary>
         public int CommandId { get; set; }
+        /// <summary>
+        /// The mnemonic for this command
+        /// </summary>
         public string Mnemonic { get; set; }
+        /// <summary>
+        /// The parameters for this command
+        /// </summary>
         public string[] Parameters { get; set; }
 
-        public ScriptCommand(int commandId, string mnemonic, string[] parameters)
+        internal ScriptCommand(int commandId, string mnemonic, string[] parameters)
         {
             CommandId = commandId;
             Mnemonic = mnemonic;
             Parameters = parameters;
             if (Mnemonic.StartsWith("UNKNOWN") && Parameters.Length == 0)
             {
-                Parameters = new string[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p" };
+                Parameters = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"];
             }
         }
 
+        /// <summary>
+        /// Gets the ARM assembly macro for this command
+        /// </summary>
+        /// <returns>A string containing the ASM macro for this command</returns>
         public string GetMacro()
         {
             StringBuilder macroBuilder = new();
@@ -47,17 +64,35 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
     }
 
+    /// <summary>
+    /// Represents an invocation of a ScriptCommand
+    /// </summary>
     public class ScriptCommandInvocation
     {
+        /// <summary>
+        /// The script command that this is invoking
+        /// </summary>
         public ScriptCommand Command { get; set; }
-        public List<short> Parameters { get; set; } = new();
+        /// <summary>
+        /// The parameters set for this invocation
+        /// </summary>
+        public List<short> Parameters { get; set; } = [];
 
+        /// <summary>
+        /// Creates a blank script command invocation
+        /// </summary>
+        /// <param name="command">The command to invoke</param>
         public ScriptCommandInvocation(ScriptCommand command)
         {
             Command = command;
             Parameters.AddRange(new short[16]);
         }
 
+        /// <summary>
+        /// Creates a script command invocation from event file data
+        /// </summary>
+        /// <param name="data">The binary data for the script command invocation</param>
+        /// <param name="commandsAvailable">The list of available commands</param>
         public ScriptCommandInvocation(IEnumerable<byte> data, List<ScriptCommand> commandsAvailable)
         {
             Command = commandsAvailable.FirstOrDefault(c => c.CommandId == BitConverter.ToInt32(data.Take(4).ToArray()));

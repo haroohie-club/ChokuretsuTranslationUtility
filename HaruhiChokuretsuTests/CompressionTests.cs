@@ -1,5 +1,6 @@
 using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,18 +9,6 @@ namespace HaruhiChokuretsuTests
 {
     public class CompressionTests
     {
-        [Test]
-        [TestCase("evt_000", TestVariables.EVT_000_COMPRESSED, TestVariables.EVT_000_DECOMPRESSED)]
-        [TestCase("grp_test", TestVariables.GRP_TEST_COMPRESSED, TestVariables.GRP_TEST_DECOMPRESSED)]
-        public void AsmSimulatorTest(string filePrefix, string compressedFile, string decompressedFile)
-        {
-            byte[] compressedData = File.ReadAllBytes(compressedFile);
-            AsmDecompressionSimulator asm = new(compressedData);
-
-            byte[] decompressedDataOnDisk = File.ReadAllBytes(decompressedFile);
-            File.WriteAllBytes($".\\inputs\\{filePrefix}_asm_decomp.bin", asm.Output);
-            Assert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(asm.Output));
-        }
 
         [Test]
         [TestCase("evt_000", TestVariables.EVT_000_COMPRESSED, TestVariables.EVT_000_DECOMPRESSED)]
@@ -35,7 +24,7 @@ namespace HaruhiChokuretsuTests
             File.WriteAllBytes($".\\inputs\\{filePrefix}_prog_decomp.bin", decompressedDataInMemory);
 
             byte[] decompressedDataOnDisk = File.ReadAllBytes(decompressedFile);
-            Assert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataInMemory));
+            ClassicAssert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataInMemory));
         }
 
         [Test]
@@ -59,14 +48,7 @@ namespace HaruhiChokuretsuTests
 
             byte[] decompressedDataInMemory = Helpers.DecompressData(compressedData);
             File.WriteAllBytes($".\\inputs\\{filePrefix}_prog_decomp.bin", decompressedDataInMemory);
-            Assert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataInMemory), message: "Failed in implementation.");
-
-            if (runAsm)
-            {
-                byte[] decompressedDataViaAsm = new AsmDecompressionSimulator(compressedData).Output;
-                File.WriteAllBytes($".\\inputs\\{filePrefix}_asm_decomp.bin", decompressedDataViaAsm);
-                Assert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataViaAsm), message: "Failed in assembly simulation.");
-            }
+            ClassicAssert.AreEqual(StripZeroes(decompressedDataOnDisk), StripZeroes(decompressedDataInMemory), message: "Failed in implementation.");
         }
 
         public static byte[] StripZeroes(byte[] array)

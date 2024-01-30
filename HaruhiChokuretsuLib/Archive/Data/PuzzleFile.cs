@@ -6,24 +6,37 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// A representation of puzzle files in dat.bin
+    /// </summary>
     public class PuzzleFile : DataFile
     {
-        public List<(int Offset, int ItemCount)> SectionOffsetsAndCounts { get; set; } = new();
+        internal List<(int Offset, int ItemCount)> SectionOffsetsAndCounts { get; set; } = [];
 
-        public List<(int Topic, int Unknown)> AssociatedTopics { get; set; } = new();
-        public List<PuzzleHaruhiRoute> HaruhiRoutes { get; set; } = new();
+        /// <summary>
+        /// The list of the puzzle's associated topics
+        /// </summary>
+        public List<(int Topic, int Unknown)> AssociatedTopics { get; set; } = [];
+        /// <summary>
+        /// The list of the puzzle's Haruhi Routes
+        /// </summary>
+        public List<PuzzleHaruhiRoute> HaruhiRoutes { get; set; } = [];
+        /// <summary>
+        /// A representation of the puzzle's settings
+        /// </summary>
         public PuzzleSettings Settings { get; set; }
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
             Offset = offset;
-            Data = decompressedData.ToList();
+            Data = [.. decompressedData];
 
             int numSections = IO.ReadInt(decompressedData, 0x00);
             if (numSections != 13)
             {
-                _log.LogError($"Detected more than 13 sections in a puzzle file ({numSections} detected)");
+                Log.LogError($"A puzzle file must have 13 sections but {numSections} were detected in one");
                 return;
             }
             int fileStart = IO.ReadInt(decompressedData, 0x08);
@@ -43,11 +56,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
-            if (!includes.ContainsKey("GRPBIN"))
+            if (!includes.TryGetValue("GRPBIN", out IncludeEntry[] grpBinInclude))
             {
-                _log.LogError("Includes needs GRPBIN to be present.");
+                Log.LogError("Includes needs GRPBIN to be present.");
                 return null;
             }
 
@@ -116,13 +130,13 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine($"   .word {Settings.Unknown04}");
             sb.AppendLine($"   .word {Settings.TargetNumber}");
             sb.AppendLine($"   .word {(Settings.ContinueOnFailure ? 1 : 0)}");
-            sb.AppendLine($"   .word {(Settings.AccompanyingCharacter.StartsWith("UNKNOWN") ? Settings.AccompanyingCharacter[(Settings.AccompanyingCharacter.IndexOf('(') + 1)..(Settings.AccompanyingCharacter.LastIndexOf(')'))] : Settings.AccompanyingCharacter)}");
-            sb.AppendLine($"   .word {(Settings.PowerCharacter1.StartsWith("UNKNOWN") ? Settings.AccompanyingCharacter[(Settings.PowerCharacter1.IndexOf('(') + 1)..(Settings.PowerCharacter1.LastIndexOf(')'))] : Settings.PowerCharacter1)}");
-            sb.AppendLine($"   .word {(Settings.PowerCharacter2.StartsWith("UNKNOWN") ? Settings.AccompanyingCharacter[(Settings.PowerCharacter2.IndexOf('(') + 1)..(Settings.PowerCharacter1.LastIndexOf(')'))] : Settings.PowerCharacter2)}");
-            sb.AppendLine($"   .word {includes["GRPBIN"].First(i => i.Value == Settings.SingularityTexture).Name}");
-            sb.AppendLine($"   .word {includes["GRPBIN"].First(i => i.Value == Settings.SingularityLayout).Name}");
-            sb.AppendLine($"   .word {(Settings.SingularityAnim1 - 1 > 0 ? includes["GRPBIN"].First(i => i.Value == Settings.SingularityAnim1).Name : 0)}");
-            sb.AppendLine($"   .word {(Settings.SingularityAnim2 - 1 > 0 ? includes["GRPBIN"].First(i => i.Value == Settings.SingularityAnim2).Name : 0)}");
+            sb.AppendLine($"   .word {(Settings.AccompanyingCharacterName.StartsWith("UNKNOWN") ? Settings.AccompanyingCharacter : Settings.AccompanyingCharacterName)}");
+            sb.AppendLine($"   .word {(Settings.PowerCharacter1Name.StartsWith("UNKNOWN") ? Settings.PowerCharacter1 : Settings.PowerCharacter1Name)}");
+            sb.AppendLine($"   .word {(Settings.PowerCharacter2Name.StartsWith("UNKNOWN") ? Settings.PowerCharacter2 : Settings.PowerCharacter2Name)}");
+            sb.AppendLine($"   .word {grpBinInclude.First(i => i.Value == Settings.SingularityTexture).Name}");
+            sb.AppendLine($"   .word {grpBinInclude.First(i => i.Value == Settings.SingularityLayout).Name}");
+            sb.AppendLine($"   .word {(Settings.SingularityAnim1 - 1 > 0 ? grpBinInclude.First(i => i.Value == Settings.SingularityAnim1).Name : 0)}");
+            sb.AppendLine($"   .word {(Settings.SingularityAnim2 - 1 > 0 ? grpBinInclude.First(i => i.Value == Settings.SingularityAnim2).Name : 0)}");
             sb.AppendLine($"   .word {Settings.TopicSet}");
             sb.AppendLine($"   .word {Settings.Unknown15}");
             sb.AppendLine($"   .word {Settings.Unknown16}");
@@ -141,23 +155,54 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// A representation of one of the Haruhi Routes for a puzzle
+    /// </summary>
     public class PuzzleHaruhiRoute
     {
+        /// <summary>
+        /// An enum representing the different kinds of events that can exist on a Haruhi route
+        /// </summary>
         public enum RouteEventType : byte
         {
+            /// <summary>
+            /// No event occurs
+            /// </summary>
             NOTHING,
+            /// <summary>
+            /// A topic can be used
+            /// </summary>
             TOPIC,
+            /// <summary>
+            /// An accident occurs
+            /// </summary>
             ACCIDENT
         }
 
+        /// <summary>
+        /// A struct representing a route event
+        /// </summary>
         public struct RouteEvent
         {
+            /// <summary>
+            /// The type of the route event
+            /// </summary>
             public RouteEventType EventType;
+            /// <summary>
+            /// If the event is an accident, the associated index of the main topic in TOPIC.S
+            /// </summary>
             public byte AssociatedTopicIndex;
         }
 
-        public List<RouteEvent> HaruhiRoute { get; set; } = new();
+        /// <summary>
+        /// The list of route events comprising this Haruhi Route
+        /// </summary>
+        public List<RouteEvent> HaruhiRoute { get; set; } = [];
 
+        /// <summary>
+        /// Constructs a Haruhi Route
+        /// </summary>
+        /// <param name="data">The data from the puzzle file</param>
         public PuzzleHaruhiRoute(byte[] data)
         {
             for (int i = 0; i < data.Length - 1; i += 2)
@@ -166,6 +211,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             string str = string.Empty;
@@ -190,50 +236,99 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
-    public class PuzzleSettings
+    /// <summary>
+    /// Representation of a puzzle's settings section
+    /// </summary>
+    public class PuzzleSettings(IEnumerable<byte> data)
     {
-        public int MapId { get; set; }
-        public int BaseTime { get; set; }
-        public int NumSingularities { get; set; }
-        public int Unknown04 { get; set; }
-        public int TargetNumber { get; set; }
-        public bool ContinueOnFailure { get; set; }
-        public string AccompanyingCharacter { get; set; }
-        public string PowerCharacter1 { get; set; }
-        public string PowerCharacter2 { get; set; }
-        public int SingularityTexture { get; set; }
-        public int SingularityLayout { get; set; }
-        public int SingularityAnim1 { get; set; }
-        public int SingularityAnim2 { get; set; }
-        public int TopicSet { get; set; }
-        public int Unknown15 { get; set; }
-        public int Unknown16 { get; set; }
-        public int Unknown17 { get; set; }
-        public int PointersSectionOffset { get; set; }
+        /// <summary>
+        /// The ID of the map to use for the puzzle
+        /// </summary>
+        public int MapId { get; set; } = IO.ReadInt(data, 0);
+        /// <summary>
+        /// The base amount of time to solve the puzzle; will be modified by the Haruhi Meter
+        /// </summary>
+        public int BaseTime { get; set; } = IO.ReadInt(data, 0x04);
+        /// <summary>
+        /// The number of singularities to place in the puzzle
+        /// </summary>
+        public int NumSingularities { get; set; } = IO.ReadInt(data, 0x08);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int Unknown04 { get; set; } = IO.ReadInt(data, 0x0C);
+        /// <summary>
+        /// The number of singularities which need to be cleared in order for the player to clear the puzzle
+        /// </summary>
+        public int TargetNumber { get; set; } = IO.ReadInt(data, 0x10);
+        /// <summary>
+        /// If true, failing the puzzle will not result in game over (the story will continue; used in the tutorial puzzle)
+        /// </summary>
+        public bool ContinueOnFailure { get; set; } = IO.ReadInt(data, 0x14) > 0;
+        /// <summary>
+        /// The index of the character who will accompany Haruhi while the puzzle is solved (1 = KYON, 2 = HARUHI, 3 = MIKURU, 4 = NAGATO, 5 = KOIZUMI, 22 = ANY)
+        /// </summary>
+        public int AccompanyingCharacter { get; set; } = IO.ReadInt(data, 0x18);
+        /// <summary>
+        /// The name the accompanying character
+        /// </summary>
+        public string AccompanyingCharacterName => CharacterSwitch(AccompanyingCharacter);
+        /// <summary>
+        /// The index of the first character whose powers can be used (3 = MIKURU, 4 = NAGATO, 5 = KOIZUMI, 22 = ANY)
+        /// </summary>
+        public int PowerCharacter1 { get; set; } = IO.ReadInt(data, 0x1C);
+        /// <summary>
+        /// The name the first power character
+        /// </summary>
+        public string PowerCharacter1Name => CharacterSwitch(PowerCharacter1);
+        /// <summary>
+        /// The index of the second character whose powers can be used (3 = MIKURU, 4 = NAGATO, 5 = KOIZUMI, 22 = ANY)
+        /// </summary>
+        public int PowerCharacter2 { get; set; } = IO.ReadInt(data, 0x20);
+        /// <summary>
+        /// The name the second power character
+        /// </summary>
+        public string PowerCharacter2Name => CharacterSwitch(PowerCharacter2);
+        /// <summary>
+        /// The grp.bin index of the texture to use for singularities
+        /// </summary>
+        public int SingularityTexture { get; set; } = IO.ReadInt(data, 0x24);
+        /// <summary>
+        /// The grp.bin index of the layout to use for singularities
+        /// </summary>
+        public int SingularityLayout { get; set; } = IO.ReadInt(data, 0x28);
+        /// <summary>
+        /// The grp.bin index of the first animation to use for singularities
+        /// </summary>
+        public int SingularityAnim1 { get; set; } = IO.ReadInt(data, 0x2C);
+        /// <summary>
+        /// The grp.bin index of the second animation to use for singularities
+        /// </summary>
+        public int SingularityAnim2 { get; set; } = IO.ReadInt(data, 0x30);
+        /// <summary>
+        /// The topic set to for this puzzle
+        /// </summary>
+        public int TopicSet { get; set; } = IO.ReadInt(data, 0x34);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int Unknown15 { get; set; } = IO.ReadInt(data, 0x38);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int Unknown16 { get; set; } = IO.ReadInt(data, 0x3C);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int Unknown17 { get; set; } = IO.ReadInt(data, 0x40);
+        internal int PointersSectionOffset { get; set; } = IO.ReadInt(data, 0x44);
 
-        public PuzzleSettings(IEnumerable<byte> data)
-        {
-            MapId = IO.ReadInt(data, 0);
-            BaseTime = IO.ReadInt(data, 0x04);
-            NumSingularities = IO.ReadInt(data, 0x08);
-            Unknown04 = IO.ReadInt(data, 0x0C);
-            TargetNumber = IO.ReadInt(data, 0x10);
-            ContinueOnFailure = IO.ReadInt(data, 0x14) > 0;
-            AccompanyingCharacter = CharacterSwitch(IO.ReadInt(data, 0x18));
-            PowerCharacter1 = CharacterSwitch(IO.ReadInt(data, 0x1C));
-            PowerCharacter2 = CharacterSwitch(IO.ReadInt(data, 0x20));
-            SingularityTexture = IO.ReadInt(data, 0x24);
-            SingularityLayout = IO.ReadInt(data, 0x28);
-            SingularityAnim1 = IO.ReadInt(data, 0x2C);
-            SingularityAnim2 = IO.ReadInt(data, 0x30);
-            TopicSet = IO.ReadInt(data, 0x34);
-            Unknown15 = IO.ReadInt(data, 0x38);
-            Unknown16 = IO.ReadInt(data, 0x3C);
-            Unknown17 = IO.ReadInt(data, 0x40);
-            PointersSectionOffset = IO.ReadInt(data, 0x44);
-        }
-
-        public string GetMapName(List<byte> qmapData)
+        /// <summary>
+        /// Gets the name of the map by pulling from QMAP.S
+        /// </summary>
+        /// <param name="qmapData">QMap binary data</param>
+        /// <returns>The name of the map this puzzle uses</returns>
+        public string GetMapName(IEnumerable<byte> qmapData)
         {
             return Encoding.ASCII.GetString(
                 qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + MapId * 8).Take(4).ToArray()))
@@ -242,23 +337,16 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
         private static string CharacterSwitch(int characterCode)
         {
-            switch (characterCode)
+            return characterCode switch
             {
-                default:
-                    return $"UNKNOWN ({characterCode})";
-                case 1:
-                    return "KYON";
-                case 2:
-                    return "HARUHI";
-                case 3:
-                    return "MIKURU";
-                case 4:
-                    return "NAGATO";
-                case 5:
-                    return "KOIZUMI";
-                case 22:
-                    return "ANY";
-            }
+                1 => "KYON",
+                2 => "HARUHI",
+                3 => "MIKURU",
+                4 => "NAGATO",
+                5 => "KOIZUMI",
+                22 => "ANY",
+                _ => $"UNKNOWN ({characterCode})",
+            };
         }
     }
 }

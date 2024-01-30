@@ -8,7 +8,7 @@ namespace HaruhiChokuretsuTests
         [Test]
         public void BitReaderTest()
         {
-            byte[] bytes = new byte[] { 0xAA, 0xAB, 0xA5, 0x80, 0xFF, 0xFF, 0x00, 0x00 };
+            byte[] bytes = [0xAA, 0xAB, 0xA5, 0x80, 0xFF, 0xFF, 0x00, 0x00];
 
             Assert.That(BigEndianIO.ReadBits(bytes, 0, 0, 16), Is.EqualTo(0xAAAB));
             Assert.That(BigEndianIO.ReadBits(bytes, 0, 16, 4), Is.EqualTo(0x0A));

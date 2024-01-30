@@ -4,6 +4,7 @@ using HaruhiChokuretsuLib.Archive.Event;
 using HaruhiChokuretsuLib.Archive.Graphics;
 using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,8 +20,8 @@ namespace HaruhiChokuretsuTests
     {
         private ConsoleLogger _log = new();
 
-        private static readonly string[] _mapFileNames = new string[]
-        {
+        private static readonly string[] _mapFileNames =
+        [
             "BUND0S",
             "BUNN0S",
             "BUNN1S",
@@ -53,10 +54,10 @@ namespace HaruhiChokuretsuTests
             "AKID0S",
             "XTRD0S",
             "SL8D0S",
-        };
+        ];
 
-        private static readonly string[] _puzzleFileNames = new string[]
-        {
+        private static readonly string[] _puzzleFileNames =
+        [
             "SLG01S",
             "SLG10S",
             "SLG11S",
@@ -67,11 +68,11 @@ namespace HaruhiChokuretsuTests
             "SLG60S",
             "SLG70S",
             "SLG80S",
-        };
+        ];
 
         private static int[] GetEvtFileIndices()
         {
-            List<int> indices = new();
+            List<int> indices = [];
             for (int i = 1; i <= 588; i++)
             {
                 if (!new int[] { 106, 537, 580, 581, 588 }.Contains(i))
@@ -173,7 +174,7 @@ namespace HaruhiChokuretsuTests
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(mapFile.Data, newBytesList);
+            ClassicAssert.AreEqual(mapFile.Data, newBytesList);
         }
 
         [Test]
@@ -192,7 +193,7 @@ namespace HaruhiChokuretsuTests
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(puzzleFile.Data, newBytesList);
+            ClassicAssert.AreEqual(puzzleFile.Data, newBytesList);
         }
 
         [Test]
@@ -204,14 +205,14 @@ namespace HaruhiChokuretsuTests
             ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
             EventFile eventFile = evt.Files.First(f => f.Index == evtFileIndex);
 
-            byte[] newBytes = await CompileFromSource(eventFile.GetSource(new()));
+            byte[] newBytes = await CompileFromSource(eventFile.GetSource([]));
             List<byte> newBytesList = new(newBytes);
             if (newBytes.Length % 16 > 0)
             {
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(eventFile.Data, newBytesList);
+            ClassicAssert.AreEqual(eventFile.Data, newBytesList);
         }
 
         [Test]
@@ -228,7 +229,7 @@ namespace HaruhiChokuretsuTests
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(qmapFile.Data, newBytesList);
+            ClassicAssert.AreEqual(qmapFile.Data, newBytesList);
         }
 
         [Test]
@@ -245,7 +246,7 @@ namespace HaruhiChokuretsuTests
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(messageInfoFile.Data, newBytesList);
+            ClassicAssert.AreEqual(messageInfoFile.Data, newBytesList);
         }
 
         [Test]
@@ -262,7 +263,7 @@ namespace HaruhiChokuretsuTests
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(placeFile.Data, newBytesList);
+            ClassicAssert.AreEqual(placeFile.Data, newBytesList);
         }
 
         [Test]
@@ -279,7 +280,7 @@ namespace HaruhiChokuretsuTests
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(chibiFile.Data, newBytesList);
+            ClassicAssert.AreEqual(chibiFile.Data, newBytesList);
         }
 
         [Test]
@@ -296,7 +297,7 @@ namespace HaruhiChokuretsuTests
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(characterDataFile.Data, newBytesList);
+            ClassicAssert.AreEqual(characterDataFile.Data, newBytesList);
         }
 
         [Test]
@@ -313,7 +314,24 @@ namespace HaruhiChokuretsuTests
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(extraFile.Data, newBytesList);
+            ClassicAssert.AreEqual(extraFile.Data, newBytesList);
+        }
+
+        [Test]
+        public async Task ItemSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ItemFile itemFile = dat.Files.First(f => f.Name == "ITEMS").CastTo<ItemFile>();
+
+            byte[] newBytes = await CompileFromSource(itemFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            ClassicAssert.AreEqual(itemFile.Data, newBytesList);
         }
 
         [Test]
@@ -330,7 +348,7 @@ namespace HaruhiChokuretsuTests
                 newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
             }
 
-            Assert.AreEqual(scenarioFile.Data, newBytesList);
+            ClassicAssert.AreEqual(scenarioFile.Data, newBytesList);
         }
     }
 }

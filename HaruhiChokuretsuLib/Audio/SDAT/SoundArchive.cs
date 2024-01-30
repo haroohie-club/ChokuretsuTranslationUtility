@@ -520,14 +520,14 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             w.InitFile<SDATHeader>("SDAT", ByteOrder.LittleEndian, null, SaveSymbols ? 4 : 3);
 
             //Sort everything.
-            Sequences = Sequences.OrderBy(x => x.Index).ToList();
-            SequenceArchives = SequenceArchives.OrderBy(x => x.Index).ToList();
-            Banks = Banks.OrderBy(x => x.Index).ToList();
-            WaveArchives = WaveArchives.OrderBy(x => x.Index).ToList();
-            Players = Players.OrderBy(x => x.Index).ToList();
-            Groups = Groups.OrderBy(x => x.Index).ToList();
-            StreamPlayers = StreamPlayers.OrderBy(x => x.Index).ToList();
-            Streams = Streams.OrderBy(x => x.Index).ToList();
+            Sequences = [.. Sequences.OrderBy(x => x.Index)];
+            SequenceArchives = [.. SequenceArchives.OrderBy(x => x.Index)];
+            Banks = [.. Banks.OrderBy(x => x.Index)];
+            WaveArchives = [.. WaveArchives.OrderBy(x => x.Index)];
+            Players = [.. Players.OrderBy(x => x.Index)];
+            Groups = [.. Groups.OrderBy(x => x.Index)];
+            StreamPlayers = [.. StreamPlayers.OrderBy(x => x.Index)];
+            Streams = [.. Streams.OrderBy(x => x.Index)];
 
             //Symbol block.
             if (SaveSymbols)

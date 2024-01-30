@@ -8,11 +8,28 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 {
     public partial class GraphicsFile
     {
-        public List<AnimationEntry> AnimationEntries { get; set; } = new();
+        /// <summary>
+        /// In an animation file, the list of animation entries
+        /// </summary>
+        public List<AnimationEntry> AnimationEntries { get; set; } = [];
+        /// <summary>
+        /// The X coordinate of where the animation should be drawn on the layout canvas
+        /// </summary>
         public short AnimationX { get; set; }
+        /// <summary>
+        /// The Y coordinate of where the animation should be drawn on the layout canvas
+        /// </summary>
         public short AnimationY { get; set; }
+        /// <summary>
+        /// The type of chibi animation (if this is a chibi animation)
+        /// </summary>
         public short ChibiAnimationType { get; set; }
 
+        /// <summary>
+        /// Gets the frames of an animation
+        /// </summary>
+        /// <param name="texture">A graphics file to pull texture data from</param>
+        /// <returns>A list of GraphicsFiles each representing a distinct animation frame</returns>
         public List<GraphicsFile> GetAnimationFrames(GraphicsFile texture)
         {
             List<GraphicsFile> graphicFrames = new();
@@ -30,7 +47,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                         FileFunction = Function.SHTX,
                         ImageForm = Form.TEXTURE,
                         ImageTileForm = TileForm.GBA_8BPP,
-                        _log = _log,
+                        Log = Log,
                         Palette = texture.Palette
                     };
                     if (frame.Palette.Count > 0)
@@ -40,7 +57,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                     frame.PaletteData = texture.PaletteData;
                     frame.Width = animationEntry.FrameWidth;
                     frame.Height = animationEntry.FrameHeight;
-                    frame.PixelData = new();
+                    frame.PixelData = [];
                     for (int i = animationEntry.FrameOffset; i < (texture.PixelData?.Count ?? 0); i += AnimationEntries.DistinctBy(a => ((FrameAnimationEntry)a).FrameOffset).Count() * animationEntry.FrameWidth)
                     {
                         frame.PixelData.AddRange(texture.PixelData.Skip(i).Take(animationEntry.FrameWidth));
@@ -63,17 +80,17 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                             {
                                 case 1:
                                     texture.SetPalette(texture.Palette.RotateSectionRight(animationEntry.PaletteOffset, animationEntry.SwapAreaSize).ToList(), suppressOutput: true);
-                                    texture.Data = texture.GetBytes().ToList();
+                                    texture.Data = [.. texture.GetBytes()];
                                     break;
                                 case 2:
                                     texture.SetPalette(texture.Palette.RotateSectionLeft(animationEntry.PaletteOffset, animationEntry.SwapAreaSize).ToList(), suppressOutput: true);
-                                    texture.Data = texture.GetBytes().ToList();
+                                    texture.Data = [.. texture.GetBytes()];
                                     break;
                                 case 3:
-                                    _log.LogError($"Case 3 animation frames not implemented.");
+                                    Log.LogError($"Case 3 animation frames not implemented.");
                                     break;
                                 default:
-                                    _log.LogError($"Invalid animation type on palette rotation animation entry ({animationEntry.AnimationType})");
+                                    Log.LogError($"Invalid animation type on palette rotation animation entry ({animationEntry.AnimationType})");
                                     break;
                             }
                         }
@@ -191,17 +208,17 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                         iterator = 0;
                     }
                     texture.SetPalette(texture.Palette, suppressOutput: true);
-                    texture.Data = texture.GetBytes().ToList();
+                    texture.Data = [.. texture.GetBytes()];
                     graphicFrames.Add(texture.CastTo<GraphicsFile>());
 
                     if (f == 0)
                     {
-                        originalPalette = texture.Palette.ToArray();
+                        originalPalette = [.. texture.Palette];
                     }
                     else if (f > 0 && !changedOnce && !graphicFrames[f].Palette.SequenceEqual(originalPalette))
                     {
                         changedOnce = true;
-                        originalPalette = texture.Palette.ToArray();
+                        originalPalette = [.. texture.Palette];
                     }
                     else if (f > 0 && changedOnce && !changedTwice && !graphicFrames[f].Palette.SequenceEqual(originalPalette))
                     {
@@ -217,20 +234,26 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             return graphicFrames;
         }
 
+        /// <summary>
+        /// For frame animations, given a list of frames and timings and a palette, creates a new animation and texture for that animation
+        /// </summary>
+        /// <param name="framesAndTimings">A list of tuples containing the SKBitmap frames and short timings for each animation frame</param>
+        /// <param name="palette">The palette to use for the texture file</param>
+        /// <returns>A GraphicsFile representing the texture the animation file will use</returns>
         public GraphicsFile SetFrameAnimationAndGetTexture(List<(SKBitmap Frame, short Time)> framesAndTimings, List<SKColor> palette)
         {
             if (framesAndTimings is null || framesAndTimings.Count == 0)
             {
-                _log.LogError("No frames provided!");
+                Log.LogError("No frames provided!");
                 return null;
             }
             if (framesAndTimings.DistinctBy(ft => ft.Frame.Width).Count() > 1 || framesAndTimings.DistinctBy(ft => ft.Frame.Height).Count() > 1)
             {
-                _log.LogError("Frames are not all the same width/height!");
+                Log.LogError("Frames are not all the same width/height!");
                 return null;
             }
 
-            List<SKBitmap> uniqueFrames = new();
+            List<SKBitmap> uniqueFrames = [];
             List<(int index, short time)> indicesAndTimings = new();
             foreach ((SKBitmap frame, short time) in framesAndTimings)
             {
@@ -265,12 +288,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 FileFunction = Function.SHTX,
                 ImageForm = Form.TEXTURE,
                 ImageTileForm = TileForm.GBA_8BPP,
-                _log = _log,
+                Log = Log,
                 Palette = palette,
                 Width = newTextureBitmap.Width,
                 Height = newTextureBitmap.Height,
-                PixelData = new(),
-                PaletteData = new(),
+                PixelData = [],
+                PaletteData = [],
             };
             newTexture.SetImage(newTextureBitmap, newSize: true);
 
@@ -284,17 +307,42 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         }
     }
 
+    /// <summary>
+    /// Inherited class for animation entries
+    /// </summary>
     public class AnimationEntry
     {
     }
 
+    /// <summary>
+    /// Animation entry for frame-based animation files
+    /// </summary>
     public class FrameAnimationEntry : AnimationEntry
     {
+        /// <summary>
+        /// The offset into the texture file for this frame
+        /// </summary>
         public int FrameOffset { get; set; }
+        /// <summary>
+        /// The width of the frame
+        /// </summary>
         public short FrameWidth { get; set; }
+        /// <summary>
+        /// The height of the frame
+        /// </summary>
         public short FrameHeight { get; set; }
+        /// <summary>
+        /// The amount of time to display the frame (in frames as in fps)
+        /// </summary>
         public short Time { get; set; }
 
+        /// <summary>
+        /// Creates an animation frame from scratch
+        /// </summary>
+        /// <param name="frameOffset">The frame offset</param>
+        /// <param name="frameWidth">The frame width</param>
+        /// <param name="frameHeight">The frame height</param>
+        /// <param name="time">The amount of time to display the frame</param>
         public FrameAnimationEntry(int frameOffset, short frameWidth, short frameHeight, short time)
         {
             FrameOffset = frameOffset;
@@ -302,6 +350,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             FrameHeight = frameHeight;
             Time = time;
         }
+        /// <summary>
+        /// Creates an animation frame from data
+        /// </summary>
+        /// <param name="data">Animation frame data</param>
         public FrameAnimationEntry(IEnumerable<byte> data)
         {
             FrameOffset = IO.ReadInt(data, 0);
@@ -310,30 +362,64 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Time = IO.ReadShort(data, 8);
         }
 
+        /// <summary>
+        /// Gets binary representation of this frame animation entry
+        /// </summary>
+        /// <returns>Byte array of the frame animation entry data</returns>
         public List<byte> GetBytes()
         {
-            List<byte> bytes = new();
-            bytes.AddRange(BitConverter.GetBytes(FrameOffset));
-            bytes.AddRange(BitConverter.GetBytes(FrameWidth));
-            bytes.AddRange(BitConverter.GetBytes(FrameHeight));
-            bytes.AddRange(BitConverter.GetBytes(Time));
+            List<byte> bytes =
+            [
+                .. BitConverter.GetBytes(FrameOffset),
+                .. BitConverter.GetBytes(FrameWidth),
+                .. BitConverter.GetBytes(FrameHeight),
+                .. BitConverter.GetBytes(Time),
+            ];
             return bytes;
         }
     }
 
+    /// <summary>
+    /// Animation entry for palette color animations
+    /// </summary>
     public class PaletteColorAnimationEntry : AnimationEntry
     {
+        /// <summary>
+        /// The offset into the palette where the animation will take place
+        /// </summary>
         public short PaletteOffset { get; set; }
-        public byte Determinant { get; set; }
-        public byte ColorIndexer { get; set; }
-        public List<short> ColorArray { get; set; } = new();
+        internal byte Determinant { get; set; }
+        internal byte ColorIndexer { get; set; }
+        /// <summary>
+        /// A little complicated, but an array of colors that helps determine the animation
+        /// </summary>
+        public List<short> ColorArray { get; set; } = [];
+        /// <summary>
+        /// Red shift component
+        /// </summary>
         public short RedComponent { get; set; }
+        /// <summary>
+        /// Green shift component
+        /// </summary>
         public short GreenComponent { get; set; }
+        /// <summary>
+        /// Blue shift component
+        /// </summary>
         public short BlueComponent { get; set; }
+        /// <summary>
+        /// Overall color shift
+        /// </summary>
         public short Color { get; set; }
 
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public int NumColors { get; set; }
 
+        /// <summary>
+        /// Creates a palette color animation entry from data
+        /// </summary>
+        /// <param name="data">Data from animation file</param>
         public PaletteColorAnimationEntry(IEnumerable<byte> data)
         {
             PaletteOffset = IO.ReadShort(data, 0);
@@ -349,6 +435,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Color = IO.ReadShort(data, 0xCA);
         }
 
+        /// <summary>
+        /// Shift the colors on a graphics file for color animation
+        /// </summary>
+        /// <param name="texture"></param>
         public void Prepare(GraphicsFile texture)
         {
             ColorIndexer = 0;
@@ -367,29 +457,40 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Color = (short)((ushort)RedComponent | (ushort)(GreenComponent << 5) | (ushort)(BlueComponent << 10));
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"CAN Off: {PaletteOffset:X4} Unk: {Determinant:X4}";
         }
     }
 
-    public class PaletteRotateAnimationEntry : AnimationEntry
+    /// <summary>
+    /// Animation enetry for palette rotation animations
+    /// </summary>
+    public class PaletteRotateAnimationEntry(IEnumerable<byte> data) : AnimationEntry
     {
-        public short PaletteOffset { get; set; }
-        public short SwapSize { get; set; }
-        public byte SwapAreaSize { get; set; }
-        public byte FramesPerTick { get; set; }
-        public short AnimationType { get; set; }
+        /// <summary>
+        /// Offset into the palette to rotate
+        /// </summary>
+        public short PaletteOffset { get; set; } = IO.ReadShort(data, 0);
+        /// <summary>
+        /// Number of colors to swap at once
+        /// </summary>
+        public short SwapSize { get; set; } = IO.ReadShort(data, 0x02);
+        /// <summary>
+        /// Size of rotation swatch
+        /// </summary>
+        public byte SwapAreaSize { get; set; } = data.ElementAt(0x04);
+        /// <summary>
+        /// Speed of the animation; higher values are slower
+        /// </summary>
+        public byte FramesPerTick { get; set; } = data.ElementAt(0x05);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short AnimationType { get; set; } = IO.ReadShort(data, 0x06);
 
-        public PaletteRotateAnimationEntry(IEnumerable<byte> data)
-        {
-            PaletteOffset = IO.ReadShort(data, 0);
-            SwapSize = IO.ReadShort(data, 0x02);
-            SwapAreaSize = data.ElementAt(0x04);
-            FramesPerTick = data.ElementAt(0x05);
-            AnimationType = IO.ReadShort(data, 0x06);
-        }
-
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"PAN Off: {PaletteOffset:X4} Type: {AnimationType} FPT: {FramesPerTick} Size: {SwapSize}x{SwapAreaSize}";

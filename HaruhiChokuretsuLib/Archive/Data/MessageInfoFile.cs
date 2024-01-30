@@ -5,18 +5,25 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Representation of MESSINFO.S in dat.bin
+    /// </summary>
     public class MessageInfoFile : DataFile
     {
-        public List<MessageInfo> MessageInfos { get; set; } = new();
+        /// <summary>
+        /// The list of message info entries in the file
+        /// </summary>
+        public List<MessageInfo> MessageInfos { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
 
             int numSections = IO.ReadInt(decompressedData, 0);
             if (numSections != 1)
             {
-                _log.LogError($"MESSAGEINFO file should only have 1 section; {numSections} specified.");
+                Log.LogError($"MESSAGEINFO file should only have 1 section; {numSections} specified.");
                 return;
             }
 
@@ -35,6 +42,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             StringBuilder sb = new();
@@ -72,11 +80,27 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
+    /// <summary>
+    /// A representation of a "message info" entry which defines a particular speaker's settings
+    /// </summary>
     public class MessageInfo
     {
+        /// <summary>
+        /// The index of the character (represented here by the Speaker enum)
+        /// </summary>
         public Speaker Character { get; set; }
+        /// <summary>
+        /// The SND_DS.S index of the voice font to use
+        /// </summary>
         public short VoiceFont { get; set; }
+        /// <summary>
+        /// The length of the text timer (the timer that ticks down to when the next character should be displayed on-screen); 
+        /// the lower this value, the faster text is displayed
+        /// </summary>
         public short TextTimer { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
         public short Unknown { get; set; }
     }
 }

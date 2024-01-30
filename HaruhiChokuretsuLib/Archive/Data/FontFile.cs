@@ -5,10 +5,17 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Representation of FONT.S in dat.bin 
+    /// </summary>
     public class FontFile : DataFile
     {
-        public List<char> CharMap { get; set; } = new();
+        /// <summary>
+        /// The map of characters that can be used in-game (corresponds to their position in the font graphic)
+        /// </summary>
+        public List<char> CharMap { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

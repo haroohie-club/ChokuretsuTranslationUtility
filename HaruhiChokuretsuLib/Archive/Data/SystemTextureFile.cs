@@ -5,24 +5,37 @@ using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
+    /// <summary>
+    /// Representation of SYSTEX.S in dat.bin
+    /// </summary>
     public class SystemTextureFile : DataFile
     {
-        public int NumSections { get; set; }
-        public int EndPointersOffset { get; set; }
-        public int HeaderEndOffset { get; set; }
-        public List<DataFileSection> SectionOffsetsAndCounts { get; set; } = new();
+        internal int NumSections { get; set; }
+        internal int EndPointersOffset { get; set; }
+        internal int HeaderEndOffset { get; set; }
+        /// <summary>
+        /// Data file sections
+        /// </summary>
+        public List<DataFileSection> SectionOffsetsAndCounts { get; set; } = [];
 
-        public List<SystemTexture> SystemTextures { get; set; } = new();
-        public List<short> LoadOrders { get; set; } = new();
+        /// <summary>
+        /// The list of system textures
+        /// </summary>
+        public List<SystemTexture> SystemTextures { get; set; } = [];
+        /// <summary>
+        /// A list of indices into the system texture list which determine the order in which certain system textures are loaded
+        /// </summary>
+        public List<short> LoadOrders { get; set; } = [];
 
+        /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
-            _log = log;
+            Log = log;
 
             NumSections = IO.ReadInt(decompressedData, 0x00);
             if (NumSections != 2)
             {
-                _log.LogError($"SYSTEX.S should only have 2 sections but {NumSections} were detected.");
+                Log.LogError($"SYSTEX.S should only have 2 sections but {NumSections} were detected.");
                 return;
             }
             EndPointersOffset = IO.ReadInt(decompressedData, 0x04);
@@ -42,6 +55,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
         }
 
+        /// <inheritdoc/>
         public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
             StringBuilder sb = new();
@@ -102,56 +116,105 @@ namespace HaruhiChokuretsuLib.Archive.Data
         }
     }
 
-    public class SystemTexture
+    /// <summary>
+    /// A representation of a system texture defined in SYSTEX.S
+    /// </summary>
+    public class SystemTexture(IEnumerable<byte> data)
     {
+        /// <summary>
+        /// The name of the system texture (defined for readability based on the textures)
+        /// </summary>
         public string Name { get; set; }
-        public SysTexScreen Screen { get; set; }
-        public short GrpIndex { get; set; }
-        public short Tpage { get; set; }
-        public short PaletteNumber { get; set; }
-        public short ValidateTex { get; set; }
-        public short LoadMethod { get; set; }
-        public short Unknown0E { get; set; }
-        public ushort MaxVram { get; set; }
-        public short Unknown12 { get; set; }
-        public ushort Unknown14 { get; set; }
-        public short Unknown16 { get; set; }
-        public short AnimationIndex { get; set; }
-        public short TileWidth { get; set; }
-        public short TileHeight { get; set; }
-        public short Unknown1E { get; set; }
-        public short Unknown20 { get; set; }
-        public short Unknown22 { get; set; }
-        public int Unknown24 { get; set; }
-        public int Unknown28 { get; set; }
-
-        public SystemTexture(IEnumerable<byte> data)
-        {
-            Screen = (SysTexScreen)IO.ReadInt(data, 0x00);
-            GrpIndex = IO.ReadShort(data, 0x04);
-            Tpage = IO.ReadShort(data, 0x06);
-            PaletteNumber = IO.ReadShort(data, 0x08);
-            ValidateTex = IO.ReadShort(data, 0x0A);
-            LoadMethod = IO.ReadShort(data, 0x0C);
-            Unknown0E = IO.ReadShort(data, 0x0E);
-            MaxVram = IO.ReadUShort(data, 0x10);
-            Unknown12 = IO.ReadShort(data, 0x12);
-            Unknown14 = IO.ReadUShort(data, 0x14);
-            Unknown16 = IO.ReadShort(data, 0x16);
-            AnimationIndex = IO.ReadShort(data, 0x18);
-            TileWidth = IO.ReadShort(data, 0x1A);
-            TileHeight = IO.ReadShort(data, 0x1C);
-            Unknown1E = IO.ReadShort(data, 0x1E);
-            Unknown20 = IO.ReadShort(data, 0x20);
-            Unknown22 = IO.ReadShort(data, 0x22);
-            Unknown24 = IO.ReadShort(data, 0x24);
-            Unknown28 = IO.ReadShort(data, 0x28);
-        }
+        /// <summary>
+        /// The screen for which the texture is optimized
+        /// </summary>
+        public SysTexScreen Screen { get; set; } = (SysTexScreen)IO.ReadInt(data, 0x00);
+        /// <summary>
+        /// The grp.bin index of the graphics file to use as the texture
+        /// </summary>
+        public short GrpIndex { get; set; } = IO.ReadShort(data, 0x04);
+        /// <summary>
+        /// The name of this parameter is known through debug strings found in the binary, but exactly what it does is not quite understood at this point
+        /// </summary>
+        public short Tpage { get; set; } = IO.ReadShort(data, 0x06);
+        /// <summary>
+        /// The index of the palette to use in 4bpp/16-color images (0-15)
+        /// </summary>
+        public short PaletteNumber { get; set; } = IO.ReadShort(data, 0x08);
+        /// <summary>
+        /// If false, the game will skip some of the validation routines while loading the texture
+        /// </summary>
+        public short ValidateTex { get; set; } = IO.ReadShort(data, 0x0A);
+        /// <summary>
+        /// The method by which the texture should be loaded (not well-understood at this point)
+        /// </summary>
+        public short LoadMethod { get; set; } = IO.ReadShort(data, 0x0C);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown0E { get; set; } = IO.ReadShort(data, 0x0E);
+        /// <summary>
+        /// The name of this parameter is known through debug strings found in the binary, but exactly what it does is not quite understood at this point
+        /// </summary>
+        public ushort MaxVram { get; set; } = IO.ReadUShort(data, 0x10);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown12 { get; set; } = IO.ReadShort(data, 0x12);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public ushort Unknown14 { get; set; } = IO.ReadUShort(data, 0x14);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown16 { get; set; } = IO.ReadShort(data, 0x16);
+        /// <summary>
+        /// The index of the animation used by the system texture
+        /// </summary>
+        public short AnimationIndex { get; set; } = IO.ReadShort(data, 0x18);
+        /// <summary>
+        /// If a texture optimized for the top screen, the width of the tiles (used by the OAM)
+        /// </summary>
+        public short TileWidth { get; set; } = IO.ReadShort(data, 0x1A);
+        /// <summary>
+        /// If a texture optimized for the top screen, the height of the tiles (used by the OAM)
+        /// </summary>
+        public short TileHeight { get; set; } = IO.ReadShort(data, 0x1C);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown1E { get; set; } = IO.ReadShort(data, 0x1E);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown20 { get; set; } = IO.ReadShort(data, 0x20);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown22 { get; set; } = IO.ReadShort(data, 0x22);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int Unknown24 { get; set; } = IO.ReadShort(data, 0x24);
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public int Unknown28 { get; set; } = IO.ReadShort(data, 0x28);
     }
 
+    /// <summary>
+    /// The screen the texture is optimized for
+    /// </summary>
     public enum SysTexScreen
     {
+        /// <summary>
+        /// NDS bottom screen
+        /// </summary>
         BOTTOM_SCREEN,
+        /// <summary>
+        /// NDS top screen
+        /// </summary>
         TOP_SCREEN,
     }
 }

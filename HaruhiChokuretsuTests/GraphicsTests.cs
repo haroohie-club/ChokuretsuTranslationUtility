@@ -1,10 +1,9 @@
-﻿using HaruhiChokuretsuLib;
-using HaruhiChokuretsuLib.Archive;
+﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Graphics;
 using HaruhiChokuretsuLib.Util;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -25,7 +24,7 @@ namespace HaruhiChokuretsuTests
 
             foreach (GraphicsFile graphicsFile in grp.Files)
             {
-                Assert.AreEqual(graphicsFile.Offset, grp.RecalculateFileOffset(graphicsFile));
+                ClassicAssert.AreEqual(graphicsFile.Offset, grp.RecalculateFileOffset(graphicsFile));
             }
 
             byte[] newGrpBytes = grp.GetBytes();
@@ -33,16 +32,16 @@ namespace HaruhiChokuretsuTests
 
             ArchiveFile<GraphicsFile> newGrpFile = new(newGrpBytes, log);
             newGrpFile.Files.First(f => f.Index == 0xE50).InitializeFontFile();
-            Assert.AreEqual(grp.Files.Count, newGrpFile.Files.Count);
+            ClassicAssert.AreEqual(grp.Files.Count, newGrpFile.Files.Count);
             for (int i = 0; i < newGrpFile.Files.Count; i++)
             {
                 if (grp.Files[i].Data is not null && newGrpFile.Files[i].Data is not null)
                 {
-                    Assert.AreEqual(grp.Files[i].Data, newGrpFile.Files[i].Data, $"Failed at file {i} (offset: 0x{grp.Files[i].Offset:X8}; index: {grp.Files[i].Index:X4}");
+                    ClassicAssert.AreEqual(grp.Files[i].Data, newGrpFile.Files[i].Data, $"Failed at file {i} (offset: 0x{grp.Files[i].Offset:X8}; index: {grp.Files[i].Index:X4}");
                 }
             }
 
-            Assert.AreEqual(newGrpBytes, newGrpFile.GetBytes());
+            ClassicAssert.AreEqual(newGrpBytes, newGrpFile.GetBytes());
         }
     }
 }

@@ -51,7 +51,7 @@ namespace HaruhiChokuretsuEditor
                 _evtFile = ArchiveFile<EventFile>.FromFile(openFileDialog.FileName, _log);
                 _evtFile.Files.First(f => f.Index == 580).InitializeScenarioFile();
                 _evtFile.Files.First(f => f.Index == 581).InitializeTopicFile();
-                _evtFile.Files.Where(f => f.Index is >= 359 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.Files.First(f => f.Index == 581).TopicStructs));
+                _evtFile.Files.Where(f => f.Index is >= 359 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.Files.First(f => f.Index == 581).Topics));
 
                 EventFile voiceMapFile = _evtFile.Files.FirstOrDefault(f => f.Index == 589);
                 if (voiceMapFile is not null)
@@ -154,10 +154,9 @@ namespace HaruhiChokuretsuEditor
                     dialogueStackPanel.Children.Add(textBox);
                     editStackPanel.Children.Add(dialogueStackPanel);
                 }
-                foreach (TopicStruct topic in selectedFile.TopicStructs)
+                foreach (Topic topic in selectedFile.Topics)
                 {
                     StackPanel topicStackPanel = new() { Orientation = Orientation.Horizontal };
-                    topicStackPanel.Children.Add(new TextBlock { Text = $"0x{topic.Id:X4} {topic.TopicDialogueIndex} {topic.Title}:\t" });
                     topicStackPanel.Children.Add(new TextBlock { Text = $"{topic.EventIndex} (0x{topic.EventIndex:X3})" });
                     eventsTopicsStackPanel.Children.Add(topicStackPanel);
                 }
@@ -185,13 +184,11 @@ namespace HaruhiChokuretsuEditor
                 //}
                 if (selectedFile.Settings is not null)
                 {
-                    eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.EventNamePointer)}: {selectedFile.Settings.EventNamePointer}" });
                     eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumUnknown01)}: {selectedFile.Settings.NumUnknown01}" });
-                    eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.UnknownSection01Pointer)}: {selectedFile.Settings.UnknownSection01Pointer}" });
                     eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumUnknown01)}: {selectedFile.Settings.NumUnknown01}" });
                     eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumChoices)}: {selectedFile.Settings.NumChoices}" });
                     
-                    foreach (EventFileSection section in selectedFile.SectionPointersAndCounts)
+                    foreach (EventFileSection section in selectedFile.EventFileSections)
                     {
                         if (section.Section is not null)
                         {
@@ -199,20 +196,6 @@ namespace HaruhiChokuretsuEditor
                                 $"{string.Join(", ", section.Section.Objects.Where(o => o is not null).Select(o => ((dynamic)Convert.ChangeType(o, section.Section.ObjectType)).ToString()))}" });
                         }
                     }
-                }
-                foreach (EventFileSection frontPointer in selectedFile.SectionPointersAndCounts)
-                {
-                    StackPanel fpStackPanel = new() { Orientation = Orientation.Horizontal };
-                    fpStackPanel.Children.Add(new TextBlock { Text = $"0x{frontPointer:X8}\t\t" });
-                    fpStackPanel.Children.Add(new TextBox { Text = $"{BitConverter.ToInt32(selectedFile.Data.Skip(frontPointer.Pointer).Take(4).ToArray()):X8}" });
-                    frontPointersStackPanel.Children.Add(fpStackPanel);
-                }
-                foreach (int endPointer in selectedFile.EndPointers)
-                {
-                    StackPanel epStackPanel = new() { Orientation = Orientation.Horizontal };
-                    epStackPanel.Children.Add(new TextBlock { Text = $"0x{endPointer:X8}\t\t" });
-                    epStackPanel.Children.Add(new TextBox { Text = $"{BitConverter.ToInt32(selectedFile.Data.Skip(endPointer).Take(4).ToArray()):X8}" });
-                    endPointersStackPanel.Children.Add(epStackPanel);
                 }
             }
         }
@@ -306,7 +289,7 @@ namespace HaruhiChokuretsuEditor
                 if (saveFileDialog.ShowDialog() == true)
                 {
                     List<string> topics = _evtFile.Files.Where(f => f.Index >= ((EventFile)eventsListBox.SelectedItem).Index && f.Index <= topicDialogBox.FinalFileIndex)
-                        .SelectMany(e => e.TopicStructs)
+                        .SelectMany(e => e.Topics)
                         .Distinct()
                         .Select(t => t.ToCsvLine())
                         .ToList();
@@ -862,7 +845,6 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown15)}: {puzzle.Settings.Unknown15}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown16)}: {puzzle.Settings.Unknown16}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.Unknown17)}: {puzzle.Settings.Unknown17}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.PointersSectionOffset)}: {puzzle.Settings.PointersSectionOffset}" });
                     foreach (PuzzleHaruhiRoute haruhiRoute in puzzle.HaruhiRoutes)
                     {
                         dataEditStackPanel.Children.Add(new TextBlock { Text = haruhiRoute.ToString() });
@@ -910,9 +892,7 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PaletteAnimationFileIndex)}: 0x{map.Settings.PaletteAnimationFileIndex:X3}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown5C)}: {map.Settings.Unknown5C}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown2Count)}: {map.Settings.Unknown2Count}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown2SectionPointer)}: {map.Settings.Unknown2SectionPointer}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.InteractableObjectsCount)}: {map.Settings.InteractableObjectsCount}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.InteractableObjectsSectionPointer)}: {map.Settings.InteractableObjectsSectionPointer}" });
 
                     SKBitmap bgGradient = map.GetBackgroundGradient();
                     dataEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bgGradient), Width = bgGradient.Width });
