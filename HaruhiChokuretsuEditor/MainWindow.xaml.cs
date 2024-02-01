@@ -123,6 +123,7 @@ namespace HaruhiChokuretsuEditor
                 EventFile newEventFile = new();
                 newEventFile.Initialize(File.ReadAllBytes(openFileDialog.FileName), _evtFile.Files[eventsListBox.SelectedIndex].Offset, _log);
                 newEventFile.Index = _evtFile.Files[eventsListBox.SelectedIndex].Index;
+                newEventFile.Name = _evtFile.Files[eventsListBox.SelectedIndex].Name;
                 newEventFile.Offset = _evtFile.Files[eventsListBox.SelectedIndex].Offset;
                 _evtFile.Files[eventsListBox.SelectedIndex] = newEventFile;
                 _evtFile.Files[eventsListBox.SelectedIndex].Edited = true;
@@ -507,6 +508,7 @@ namespace HaruhiChokuretsuEditor
                 newGraphicsFile.CompressedData = compressedData;
                 newGraphicsFile.Initialize(compressedData, _grpFile.Files[graphicsListBox.SelectedIndex].Offset, _log);
                 newGraphicsFile.Index = _grpFile.Files[graphicsListBox.SelectedIndex].Index;
+                newGraphicsFile.Name = _grpFile.Files[graphicsListBox.SelectedIndex].Name;
                 _grpFile.Files[graphicsListBox.SelectedIndex] = newGraphicsFile;
                 _grpFile.Files[graphicsListBox.SelectedIndex].Edited = true;
                 graphicsListBox.Items.Refresh();
@@ -808,6 +810,8 @@ namespace HaruhiChokuretsuEditor
                 DataFile newDataFile = new();
                 newDataFile.Initialize(File.ReadAllBytes(openFileDialog.FileName), _datFile.Files[dataListBox.SelectedIndex].Offset, _log);
                 newDataFile.Index = _datFile.Files[dataListBox.SelectedIndex].Index;
+                newDataFile.Name = _datFile.Files[dataListBox.SelectedIndex].Name;
+                newDataFile.Offset = _datFile.Files[dataListBox.SelectedIndex].Offset;
                 _datFile.Files[dataListBox.SelectedIndex] = newDataFile;
                 _datFile.Files[dataListBox.SelectedIndex].Edited = true;
                 graphicsListBox.Items.Refresh();

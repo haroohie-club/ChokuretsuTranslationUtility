@@ -29,9 +29,9 @@ namespace HaruhiChokuretsuLib.Archive
         /// </summary>
         public int NumFiles { get; internal set; }
         /// <summary>
-        /// Spacing of the files
+        /// Alignment in bytes of the files
         /// </summary>
-        public int FileSpacing { get; private set; }
+        public int FileAlignment { get; private set; }
         internal int MagicIntegerLsbMultiplier { get; set; }
         internal int MagicIntegerLsbMask { get; set; }
         internal int MagicIntegerMsbShift { get; set; }
@@ -84,7 +84,7 @@ namespace HaruhiChokuretsuLib.Archive
             // Convert the main header components
             NumFiles = BitConverter.ToInt32(archiveBytes.Take(4).ToArray());
 
-            FileSpacing = BitConverter.ToInt32(archiveBytes.Skip(0x04).Take(4).ToArray());
+            FileAlignment = BitConverter.ToInt32(archiveBytes.Skip(0x04).Take(4).ToArray());
             MagicIntegerLsbMultiplier = BitConverter.ToInt32(archiveBytes.Skip(0x08).Take(4).ToArray());
 
             MagicIntegerLsbMask = BitConverter.ToInt32(archiveBytes.Skip(0x10).Take(4).ToArray());
@@ -186,7 +186,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         private int GetFileOffset(uint magicInteger)
         {
-            return (int)((magicInteger >> MagicIntegerMsbShift) * FileSpacing);
+            return (int)((magicInteger >> MagicIntegerMsbShift) * FileAlignment);
         }
 
         private int GetFileLength(uint magicInteger)
@@ -259,7 +259,7 @@ namespace HaruhiChokuretsuLib.Archive
 
         private uint GetNewMagicInteger(T file, int compressedLength)
         {
-            uint offsetComponent = (uint)(file.Offset / FileSpacing) << MagicIntegerMsbShift;
+            uint offsetComponent = (uint)(file.Offset / FileAlignment) << MagicIntegerMsbShift;
             int newLength = (compressedLength + 0x7FF) & ~0x7FF; // round to nearest 0x800
             int newLengthComponent = _lengthToMagicIntegerMap[newLength];
 
@@ -308,7 +308,7 @@ namespace HaruhiChokuretsuLib.Archive
             List<byte> bytes =
             [
                 .. BitConverter.GetBytes(NumFiles),
-                .. BitConverter.GetBytes(FileSpacing),
+                .. BitConverter.GetBytes(FileAlignment),
                 .. BitConverter.GetBytes(MagicIntegerLsbMultiplier),
                 .. BitConverter.GetBytes(MagicIntegerMsbShift),
                 .. BitConverter.GetBytes(MagicIntegerLsbMask),
@@ -316,7 +316,7 @@ namespace HaruhiChokuretsuLib.Archive
                 .. BitConverter.GetBytes(Unknown2),
             ];
 
-            List<byte> namesSectionBytes = new();
+            List<byte> namesSectionBytes = [];
             foreach (string filename in Files.Select(f => f.Name))
             {
                 byte[] nameBytes = Encoding.ASCII.GetBytes(filename);
@@ -382,12 +382,12 @@ namespace HaruhiChokuretsuLib.Archive
                     // the next file’s offset, that means we need to adjust the next file’s offset
                     if (bytes.Count > Files[i + 1].Offset)
                     {
-                        pointerShift = ((bytes.Count - Files[i + 1].Offset) / FileSpacing) + 1;
+                        pointerShift = ((bytes.Count - Files[i + 1].Offset) / FileAlignment) + 1;
                     }
                     if (pointerShift > 0)
                     {
                         // Calculate the new magic integer factoring in pointer shift
-                        Files[i + 1].Offset = ((Files[i + 1].Offset / FileSpacing) + pointerShift) * FileSpacing;
+                        Files[i + 1].Offset = ((Files[i + 1].Offset / FileAlignment) + pointerShift) * FileAlignment;
                         int magicIntegerOffset = FirstMagicIntegerOffset + (i + 1) * 4;
                         uint newMagicInteger = GetNewMagicInteger(Files[i + 1], Files[i + 1].Length);
                         Files[i + 1].MagicInteger = newMagicInteger;
