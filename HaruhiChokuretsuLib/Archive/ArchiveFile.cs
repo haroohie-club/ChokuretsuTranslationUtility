@@ -316,7 +316,7 @@ namespace HaruhiChokuretsuLib.Archive
                 .. BitConverter.GetBytes(Unknown2),
             ];
 
-            List<byte> namesSectionBytes = [];
+            List<byte> namesSectionBytes = new();
             foreach (string filename in Files.Select(f => f.Name))
             {
                 byte[] nameBytes = Encoding.ASCII.GetBytes(filename);
@@ -327,7 +327,7 @@ namespace HaruhiChokuretsuLib.Archive
                         || (nameBytes[j] >= 65 && nameBytes[j] <= 67)
                         || (nameBytes[j] >= 72 && nameBytes[j] <= 75)
                         || (nameBytes[j] >= 80 && nameBytes[j] <= 83)
-                        || nameBytes[j] >= 107)
+                        || (nameBytes[j] >= 88 && nameBytes[j] <= 94))
                     {
                         nameBytes[j] += 19;
                     }
