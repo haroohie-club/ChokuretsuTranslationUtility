@@ -327,7 +327,7 @@ namespace HaruhiChokuretsuLib.Archive
                         || (nameBytes[j] >= 65 && nameBytes[j] <= 67)
                         || (nameBytes[j] >= 72 && nameBytes[j] <= 75)
                         || (nameBytes[j] >= 80 && nameBytes[j] <= 83)
-                        || nameBytes[j] >= 88)
+                        || nameBytes[j] >= 107)
                     {
                         nameBytes[j] += 19;
                     }
