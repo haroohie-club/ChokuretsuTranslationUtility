@@ -11,6 +11,8 @@ namespace HaruhiChokuretsuCLI
                 "Usage: HaruhiChokuretsuCLI COMMAND [OPTIONS]",
                 "",
                 "Available commands:",
+                new JsonExportCommand(),
+                new JsonImportCommand(),
                 new UnpackCommand(),
                 new ExtractCommand(),
                 new ReplaceCommand(),
