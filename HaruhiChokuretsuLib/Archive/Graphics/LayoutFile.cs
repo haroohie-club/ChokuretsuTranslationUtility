@@ -49,10 +49,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 canvas.DrawRect(0, 0, layoutBitmap.Width, layoutBitmap.Height, new() { Color = SKColors.Black });
             }
 
-            List<SKBitmap> textures;
+            Dictionary<int, SKBitmap> textures;
             if (preprocessedList)
             {
-                textures = grpFiles.Select(g => g.GetTexture(transparentIndex: 0)).ToList();
+                textures = grpFiles.Select((g, i) => (i, g.GetTexture(transparentIndex: 0))).ToDictionary();
             }
             else
             {
@@ -69,7 +69,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                             i++;
                         }
                     }
-                    textures.Add(grpFiles.First(g => g.Index == grpIndex - 1).GetTexture(transparentIndex: 0));
+                    textures.Add(index, grpFiles.First(g => g.Index == grpIndex - 1).GetTexture(transparentIndex: 0));
                 }
             }
 

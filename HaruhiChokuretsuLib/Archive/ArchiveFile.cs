@@ -316,7 +316,7 @@ namespace HaruhiChokuretsuLib.Archive
                 .. BitConverter.GetBytes(Unknown2),
             ];
 
-            List<byte> namesSectionBytes = new();
+            List<byte> namesSectionBytes = [];
             foreach (string filename in Files.Select(f => f.Name))
             {
                 byte[] nameBytes = Encoding.ASCII.GetBytes(filename);
