@@ -82,10 +82,10 @@ namespace HaruhiChokuretsuCLI
                 int fileIndex = _fileIndex;
                 if (fileIndex < 0)
                 {
-                    fileIndex = grpArchive.Files.First(f => f.Name == _fileName).Index;
+                    fileIndex = grpArchive.GetFileByName(_fileName).Index;
                 }
 
-                GraphicsFile grpFile = grpArchive.Files.First(f => f.Index == fileIndex);
+                GraphicsFile grpFile = grpArchive.GetFileByIndex(fileIndex);
 
                 if (grpFile.Index == 0xE50)
                 {
@@ -103,9 +103,9 @@ namespace HaruhiChokuretsuCLI
                 int fileIndex = _fileIndex;
                 if (fileIndex < 0)
                 {
-                    fileIndex = evtArchive.Files.First(f => f.Name == _fileName).Index;
+                    fileIndex = evtArchive.GetFileByName(_fileName).Index;
                 }
-                EventFile evtFile = evtArchive.Files.First(f => f.Index == fileIndex);
+                EventFile evtFile = evtArchive.GetFileByIndex(fileIndex);
 
                 if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase) || (_fileIndex >= 580 && _fileIndex <= 581))
                 {
@@ -126,9 +126,9 @@ namespace HaruhiChokuretsuCLI
                 int fileIndex = _fileIndex;
                 if (fileIndex < 0)
                 {
-                    fileIndex = archive.Files.First(f => f.Name == _fileName).Index;
+                    fileIndex = archive.GetFileByName(_fileName).Index;
                 }
-                DataFile file = archive.Files.First(f => f.Index == fileIndex);
+                DataFile file = archive.GetFileByIndex(fileIndex);
 
                 Dictionary<string, IncludeEntry[]> includes = new();
                 if (_includes is not null)
@@ -145,7 +145,7 @@ namespace HaruhiChokuretsuCLI
                 ISourceFile sourceFile;
                 if (archive.FileName.StartsWith("dat", StringComparison.OrdinalIgnoreCase))
                 {
-                    DataFile qmapDataFile = archive.Files.First(f => f.Name == "QMAPS");
+                    DataFile qmapDataFile = archive.GetFileByName("QMAPS");
                     QMapFile qmapFile = qmapDataFile.CastTo<QMapFile>();
                     archive.Files[archive.Files.IndexOf(qmapDataFile)] = qmapFile;
 
@@ -219,9 +219,9 @@ namespace HaruhiChokuretsuCLI
                 int fileIndex = _fileIndex;
                 if (fileIndex < 0)
                 {
-                    fileIndex = archive.Files.First(f => f.Name == _fileName).Index;
+                    fileIndex = archive.GetFileByName(_fileName).Index;
                 }
-                FileInArchive file = archive.Files.First(f => f.Index == fileIndex);
+                FileInArchive file = archive.GetFileByIndex(fileIndex);
 
                 if (_compressed)
                 {

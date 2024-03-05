@@ -98,7 +98,7 @@ namespace HaruhiChokuretsuCLI
                             text += c;
                         }
                     }
-                    output.Add(new List<string>() { line.SpeakerName, text });
+                    output.Add([line.SpeakerName, text]);
                 }
                 var outputJson = Encoding.UTF8.GetString(JsonSerializer.SerializeToUtf8Bytes(output, jsonOptions));
                 outputJson = outputJson.Replace(@"\u3000", "\u3000");

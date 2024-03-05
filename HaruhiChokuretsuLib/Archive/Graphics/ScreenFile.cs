@@ -178,7 +178,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         {
             GraphicsFile associatedTiles = grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[0..^3]));
             associatedTiles ??= grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[0..^8]));
-            associatedTiles ??= grp.Files.FirstOrDefault(f => f.Name == "BG_SLG_T00DNX");
+            associatedTiles ??= grp.GetFileByName("BG_SLG_T00DNX");
 
             return associatedTiles;
         }

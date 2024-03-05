@@ -47,7 +47,7 @@ namespace HaruhiChokuretsuCLI
                 return 1;
             }
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(_dat, log);
-            DataFile qmapDataFile = dat.Files.First(f => f.Name == "QMAPS");
+            DataFile qmapDataFile = dat.GetFileByName("QMAPS");
             QMapFile qmapFile = qmapDataFile.CastTo<QMapFile>();
             dat.Files[dat.Files.IndexOf(qmapDataFile)] = qmapFile;
             List<string> mapFileNames = qmapFile.QMaps.Select(q => q.Name).ToList();
@@ -89,8 +89,8 @@ namespace HaruhiChokuretsuCLI
             {
                 if (mapFileNames.Contains(dat.Files[i - 1].Name))
                 {
-                    DataFile oldMapFile = dat.Files.First(f => f.Index == i);
-                    MapFile mapFile = dat.Files.First(f => f.Index == i).CastTo<MapFile>();
+                    DataFile oldMapFile = dat.GetFileByIndex(i);
+                    MapFile mapFile = dat.GetFileByIndex(i).CastTo<MapFile>();
                     dat.Files[dat.Files.IndexOf(oldMapFile)] = mapFile;
                 }
             }
@@ -127,7 +127,7 @@ namespace HaruhiChokuretsuCLI
                     maxLayoutIndex = _maxLayoutIndices[m];
                 }
                 CommandSet.Out.WriteLine($"Exporting map for {mapName[0..^1]}...");
-                MapFile map = dat.Files.First(f => f.Name == mapName).CastTo<MapFile>();
+                MapFile map = dat.GetFileByName(mapName).CastTo<MapFile>();
 
                 if (_animated && (map.Settings.PaletteAnimationFileIndex > 0 || map.Settings.ColorAnimationFileIndex > 0))
                 {
@@ -135,11 +135,11 @@ namespace HaruhiChokuretsuCLI
                     int replacementIndex = 1;
                     if (map.Settings.ColorAnimationFileIndex > 0)
                     {
-                        animation = grp.Files.First(f => f.Index == map.Settings.ColorAnimationFileIndex);
+                        animation = grp.GetFileByIndex(map.Settings.ColorAnimationFileIndex);
                     }
                     else
                     {
-                        animation = grp.Files.First(f => f.Index == map.Settings.PaletteAnimationFileIndex);
+                        animation = grp.GetFileByIndex(map.Settings.PaletteAnimationFileIndex);
                     }
                     if (animation.Name.Contains("_BG_"))
                     {
@@ -153,7 +153,7 @@ namespace HaruhiChokuretsuCLI
                     {
                         replacementIndex = 2;
                     }
-                    GraphicsFile animatedTexture = grp.Files.First(f => f.Index == map.Settings.TextureFileIndices[replacementIndex]);
+                    GraphicsFile animatedTexture = grp.GetFileByIndex(map.Settings.TextureFileIndices[replacementIndex]);
                     List<GraphicsFile> graphicFrames = animation.GetAnimationFrames(animatedTexture);
                     Console.WriteLine($"Animated map will have {graphicFrames.Count} frames.");
 

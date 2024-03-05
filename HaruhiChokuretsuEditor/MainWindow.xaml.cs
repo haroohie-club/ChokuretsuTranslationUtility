@@ -49,11 +49,11 @@ namespace HaruhiChokuretsuEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 _evtFile = ArchiveFile<EventFile>.FromFile(openFileDialog.FileName, _log);
-                _evtFile.Files.First(f => f.Index == 580).InitializeScenarioFile();
-                _evtFile.Files.First(f => f.Index == 581).InitializeTopicFile();
-                _evtFile.Files.Where(f => f.Index is >= 359 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.Files.First(f => f.Index == 581).Topics));
+                _evtFile.GetFileByIndex(580).InitializeScenarioFile();
+                _evtFile.GetFileByIndex(581).InitializeTopicFile();
+                _evtFile.Files.Where(f => f.Index is >= 359 and <= 531).ToList().ForEach(f => f.IdentifyEventFileTopics(_evtFile.GetFileByIndex(581).Topics));
 
-                EventFile voiceMapFile = _evtFile.Files.FirstOrDefault(f => f.Index == 589);
+                EventFile voiceMapFile = _evtFile.GetFileByIndex(589);
                 if (voiceMapFile is not null)
                 {
                     _evtFile.Files[_evtFile.Files.IndexOf(voiceMapFile)] = voiceMapFile.CastTo<VoiceMapFile>();
@@ -271,7 +271,7 @@ namespace HaruhiChokuretsuEditor
                     {
                         if (int.TryParse(Regex.Match(file, @"(\d{3})\.[\w-]+\.resx").Groups[1].Value, out int fileIndex))
                         {
-                            _evtFile.Files.FirstOrDefault(f => f.Index == fileIndex).ImportResxFile(file);
+                            _evtFile.GetFileByIndex(fileIndex).ImportResxFile(file);
                         }
                     }
                 }
@@ -407,7 +407,7 @@ namespace HaruhiChokuretsuEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 _grpFile = ArchiveFile<GraphicsFile>.FromFile(openFileDialog.FileName, _log);
-                _grpFile.Files.First(f => f.Index == 0xE50).InitializeFontFile(); // initialize the font file
+                _grpFile.GetFileByIndex(0xE50).InitializeFontFile(); // initialize the font file
                 graphicsStatsStackPanel.Children.Clear();
                 graphicsListBox.ItemsSource = _grpFile.Files;
                 graphicsListBox.Items.Refresh();
@@ -658,7 +658,7 @@ namespace HaruhiChokuretsuEditor
                         }
                         else if (selectedFile.AnimationEntries[0].GetType() == typeof(FrameAnimationEntry))
                         {
-                            List<GraphicsFile> animationFrames = selectedFile.GetAnimationFrames(_grpFile.Files.First(f => f.Index == selectedFile.Index + 1));
+                            List<GraphicsFile> animationFrames = selectedFile.GetAnimationFrames(_grpFile.GetFileByIndex(selectedFile.Index + 1));
                             foreach (GraphicsFile animationFrame in animationFrames)
                             {
                                 tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(animationFrame.GetImage()), MaxWidth = animationFrame.Width });
@@ -744,7 +744,7 @@ namespace HaruhiChokuretsuEditor
                 _datFile = ArchiveFile<DataFile>.FromFile(openFileDialog.FileName, _log);
                 if (openFileDialog.FileName.Contains("dat.bin", StringComparison.OrdinalIgnoreCase))
                 {
-                    List<byte> qmapData = _datFile.Files.First(f => f.Name == "QMAPS").Data;
+                    List<byte> qmapData = _datFile.GetFileByName("QMAPS").Data;
                     List<string> mapFileNames = new();
                     for (int i = 0; i < BitConverter.ToInt32(qmapData.Skip(0x10).Take(4).ToArray()); i++)
                     {
@@ -755,18 +755,18 @@ namespace HaruhiChokuretsuEditor
                     {
                         if (mapFileNames.Contains(_datFile.Files[i - 1].Name))
                         {
-                            DataFile oldMapFile = _datFile.Files.First(f => f.Index == i);
-                            MapFile mapFile = _datFile.Files.First(f => f.Index == i).CastTo<MapFile>();
+                            DataFile oldMapFile = _datFile.GetFileByIndex(i);
+                            MapFile mapFile = _datFile.GetFileByIndex(i).CastTo<MapFile>();
                             _datFile.Files[_datFile.Files.IndexOf(oldMapFile)] = mapFile;
                         }
                     }
                     for (int i = 0x8E; i <= 0x97; i++)
                     {
-                        DataFile oldPuzzleFile = _datFile.Files.First(f => f.Index == i);
+                        DataFile oldPuzzleFile = _datFile.GetFileByIndex(i);
                         PuzzleFile puzzleFile = oldPuzzleFile.CastTo<PuzzleFile>();
                         _datFile.Files[_datFile.Files.IndexOf(oldPuzzleFile)] = puzzleFile;
                     }
-                    DataFile sysTexFile = _datFile.Files.First(f => f.Index == 0x9B);
+                    DataFile sysTexFile = _datFile.GetFileByIndex(0x9B);
                     _datFile.Files[_datFile.Files.IndexOf(sysTexFile)] = sysTexFile.CastTo<SystemTextureFile>();
                 }
                 dataListBox.ItemsSource = _datFile.Files;
@@ -831,7 +831,7 @@ namespace HaruhiChokuretsuEditor
                 {
                     PuzzleFile puzzle = (PuzzleFile)selectedFile;
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"Map: " +
-                        $"{puzzle.Settings.GetMapName(_datFile.Files.First(f => f.Name == "QMAPS").Data)} " +
+                        $"{puzzle.Settings.GetMapName(_datFile.GetFileByName("QMAPS").Data)} " +
                         $"({puzzle.Settings.MapId})" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.BaseTime)}: {puzzle.Settings.BaseTime}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(puzzle.Settings.NumSingularities)}: {puzzle.Settings.NumSingularities}" });
@@ -853,8 +853,8 @@ namespace HaruhiChokuretsuEditor
                     {
                         dataEditStackPanel.Children.Add(new TextBlock { Text = haruhiRoute.ToString() });
                     }
-                    GraphicsFile singularityLayout = _grpFile.Files.First(f => f.Index == puzzle.Settings.SingularityLayout);
-                    GraphicsFile singularityTexture = _grpFile.Files.First(f => f.Index == puzzle.Settings.SingularityTexture);
+                    GraphicsFile singularityLayout = _grpFile.GetFileByIndex(puzzle.Settings.SingularityLayout);
+                    GraphicsFile singularityTexture = _grpFile.GetFileByIndex(puzzle.Settings.SingularityTexture);
                     SKBitmap singularityImage = singularityLayout.GetLayout(
                             new List<GraphicsFile>() { singularityTexture },
                             0,
@@ -876,7 +876,7 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.MapWidth)}: {map.Settings.MapWidth}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.MapHeight)}: {map.Settings.MapHeight}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TextureFileIndices)}: {string.Join(", ", map.Settings.TextureFileIndices.Select(i => $"0x{i:X3}"))}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutFileIndex)}: 0x{map.Settings.LayoutFileIndex:X3} ({_grpFile.Files.First(f => f.Index == map.Settings.LayoutFileIndex).LayoutEntries.Count} entries)" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutFileIndex)}: 0x{map.Settings.LayoutFileIndex:X3} ({_grpFile.GetFileByIndex(map.Settings.LayoutFileIndex).LayoutEntries.Count} entries)" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutSizeDefinitionIndex)}: {map.Settings.LayoutSizeDefinitionIndex}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown18)}: {map.Settings.Unknown18}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.UnknownLayoutIndex1C)}: {map.Settings.UnknownLayoutIndex1C}" });
@@ -921,7 +921,7 @@ namespace HaruhiChokuretsuEditor
                     foreach (SystemTexture sysTex in sysTexFile.SystemTextures)
                     {
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Screen)}: {sysTex.Screen}" });
-                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.GrpIndex)}: {_grpFile?.Files.FirstOrDefault(f => f.Index == sysTex.GrpIndex)?.Name ?? $"{sysTex.GrpIndex}"} (0x{sysTex.GrpIndex:X3})" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.GrpIndex)}: {_grpFile?.GetFileByIndex(sysTex.GrpIndex)?.Name ?? $"{sysTex.GrpIndex}"} (0x{sysTex.GrpIndex:X3})" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Tpage)}: {sysTex.Tpage}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.PaletteNumber)}: {sysTex.PaletteNumber}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.ValidateTex)}: {sysTex.ValidateTex}" });
@@ -931,7 +931,7 @@ namespace HaruhiChokuretsuEditor
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown12)}: {sysTex.Unknown12}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown14)}: {sysTex.Unknown14}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown16)}: {sysTex.Unknown16}" });
-                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.AnimationIndex)}: {_grpFile.Files.FirstOrDefault(f => f.Index == sysTex.AnimationIndex)?.Name ?? $"{sysTex.AnimationIndex}"}" });
+                        dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.AnimationIndex)}: {_grpFile.GetFileByIndex(sysTex.AnimationIndex)?.Name ?? $"{sysTex.AnimationIndex}"}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.TileWidth)}: {sysTex.TileWidth}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.TileHeight)}: {sysTex.TileHeight}" });
                         dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(sysTex.Unknown1E)}: {sysTex.Unknown1E}" });
@@ -949,7 +949,7 @@ namespace HaruhiChokuretsuEditor
         {
             GraphicsLayoutCreationButton button = (GraphicsLayoutCreationButton)sender;
             MapFile map = (MapFile)dataListBox.SelectedItem;
-            GraphicsFile layout = _grpFile.Files.First(f => f.Index == map.Settings.LayoutFileIndex);
+            GraphicsFile layout = _grpFile.GetFileByIndex(map.Settings.LayoutFileIndex);
 
             if (string.IsNullOrWhiteSpace(button.StartTextBox.Text) || string.IsNullOrWhiteSpace(button.LengthTextBox.Text))
             {

@@ -10,7 +10,7 @@
     <PackageReference Include="FolderBrowserEx" Version="1.0.1" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="ResXResourceReader.NetStandard" Version="1.2.0" />
-    <PackageReference Include="SkiaSharp" Version="2.88.6" />
+    <PackageReference Include="SkiaSharp" Version="2.88.7" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
 

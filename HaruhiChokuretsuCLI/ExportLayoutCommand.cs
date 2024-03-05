@@ -47,21 +47,21 @@ namespace HaruhiChokuretsuCLI
             GraphicsFile layout;
             if (_layoutIndex < 0)
             {
-                layout = grp.Files.First(f => f.Name == _layoutName);
+                layout = grp.GetFileByName(_layoutName);
             }
             else
             {
-                layout = grp.Files.First(f => f.Index == _layoutIndex);
+                layout = grp.GetFileByIndex(_layoutIndex);
             }
 
             List<GraphicsFile> layoutTextures;
             if (_indices is null || _indices.Length == 0)
             {
-                layoutTextures = _names.Select(n => grp.Files.First(f => f.Name == n)).ToList();
+                layoutTextures = _names.Select(grp.GetFileByName).ToList();
             }
             else
             {
-                layoutTextures = _indices.Select(i => grp.Files.First(f => f.Index == i)).ToList();
+                layoutTextures = _indices.Select(grp.GetFileByIndex).ToList();
             }
 
             if (_layoutEnd == 0)

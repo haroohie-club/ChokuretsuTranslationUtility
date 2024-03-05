@@ -20,7 +20,7 @@ namespace HaruhiChokuretsuTests
         {
             ConsoleLogger log = new();
             ArchiveFile<GraphicsFile> grp = ArchiveFile<GraphicsFile>.FromFile(grpFile, _log);
-            grp.Files.First(f => f.Index == 0xE50).InitializeFontFile();
+            grp.GetFileByIndex(0xE50).InitializeFontFile();
 
             foreach (GraphicsFile graphicsFile in grp.Files)
             {
@@ -31,7 +31,7 @@ namespace HaruhiChokuretsuTests
             Console.WriteLine($"Efficiency: {(double)newGrpBytes.Length / File.ReadAllBytes(grpFile).Length * 100}%");
 
             ArchiveFile<GraphicsFile> newGrpFile = new(newGrpBytes, log);
-            newGrpFile.Files.First(f => f.Index == 0xE50).InitializeFontFile();
+            newGrpFile.GetFileByIndex(0xE50).InitializeFontFile();
             ClassicAssert.AreEqual(grp.Files.Count, newGrpFile.Files.Count);
             for (int i = 0; i < newGrpFile.Files.Count; i++)
             {

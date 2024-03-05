@@ -165,7 +165,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
-            MapFile mapFile = dat.Files.First(f => f.Name == mapFileName).CastTo<MapFile>();
+            MapFile mapFile = dat.GetFileByName(mapFileName).CastTo<MapFile>();
 
             byte[] newBytes = await CompileFromSource(mapFile.GetSource(new()));
             List<byte> newBytesList = new(newBytes);
@@ -184,7 +184,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
-            PuzzleFile puzzleFile = dat.Files.First(f => f.Name == puzzleFileName).CastTo<PuzzleFile>();
+            PuzzleFile puzzleFile = dat.GetFileByName(puzzleFileName).CastTo<PuzzleFile>();
 
             byte[] newBytes = await CompileFromSource(puzzleFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
             List<byte> newBytesList = new(newBytes);
@@ -203,7 +203,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
-            EventFile eventFile = evt.Files.First(f => f.Index == evtFileIndex);
+            EventFile eventFile = evt.GetFileByIndex(evtFileIndex);
 
             byte[] newBytes = await CompileFromSource(eventFile.GetSource([]));
             List<byte> newBytesList = new(newBytes);
@@ -220,7 +220,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
-            QMapFile qmapFile = dat.Files.First(f => f.Name == "QMAPS").CastTo<QMapFile>();
+            QMapFile qmapFile = dat.GetFileByName("QMAPS").CastTo<QMapFile>();
 
             byte[] newBytes = await CompileFromSource(qmapFile.GetSource(new()));
             List<byte> newBytesList = new(newBytes);
@@ -237,7 +237,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
-            MessageInfoFile messageInfoFile = dat.Files.First(f => f.Name == "MESSINFOS").CastTo<MessageInfoFile>();
+            MessageInfoFile messageInfoFile = dat.GetFileByName("MESSINFOS").CastTo<MessageInfoFile>();
 
             byte[] newBytes = await CompileFromSource(messageInfoFile.GetSource(new()));
             List<byte> newBytesList = new(newBytes);
@@ -254,7 +254,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
-            PlaceFile placeFile = dat.Files.First(f => f.Name == "PLACES").CastTo<PlaceFile>();
+            PlaceFile placeFile = dat.GetFileByName("PLACES").CastTo<PlaceFile>();
             
             byte[] newBytes = await CompileFromSource(placeFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
             List<byte> newBytesList = new(newBytes);
@@ -271,7 +271,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
-            ChibiFile chibiFile = dat.Files.First(f => f.Name == "CHIBIS").CastTo<ChibiFile>();
+            ChibiFile chibiFile = dat.GetFileByName("CHIBIS").CastTo<ChibiFile>();
 
             byte[] newBytes = await CompileFromSource(chibiFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
             List<byte> newBytesList = new(newBytes);
@@ -288,7 +288,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
-            CharacterDataFile characterDataFile = dat.Files.First(f => f.Name == "CHRDATAS").CastTo<CharacterDataFile>();
+            CharacterDataFile characterDataFile = dat.GetFileByName("CHRDATAS").CastTo<CharacterDataFile>();
 
             byte[] newBytes = await CompileFromSource(characterDataFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
             List<byte> newBytesList = new(newBytes);
@@ -305,7 +305,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
-            ExtraFile extraFile = dat.Files.First(f => f.Name == "EXTRAS").CastTo<ExtraFile>();
+            ExtraFile extraFile = dat.GetFileByName("EXTRAS").CastTo<ExtraFile>();
 
             byte[] newBytes = await CompileFromSource(extraFile.GetSource(new()));
             List<byte> newBytesList = new(newBytes);
@@ -322,7 +322,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
-            ItemFile itemFile = dat.Files.First(f => f.Name == "ITEMS").CastTo<ItemFile>();
+            ItemFile itemFile = dat.GetFileByName("ITEMS").CastTo<ItemFile>();
 
             byte[] newBytes = await CompileFromSource(itemFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
             List<byte> newBytesList = new(newBytes);
@@ -339,7 +339,7 @@ namespace HaruhiChokuretsuTests
         {
             // This file can be ripped directly from the ROM
             ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
-            EventFile scenarioFile = evt.Files.First(f => f.Name == "SCENARIOS").CastTo<EventFile>();
+            EventFile scenarioFile = evt.GetFileByName("SCENARIOS").CastTo<EventFile>();
 
             byte[] newBytes = await CompileFromSource(scenarioFile.GetSource(new() { { "DATBIN", File.ReadAllLines("DATBIN.INC").Select(i => new IncludeEntry(i)).ToArray() }, { "EVTBIN", File.ReadAllLines("EVTBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
             List<byte> newBytesList = new(newBytes);

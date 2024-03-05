@@ -325,8 +325,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             string parameterString = _verbIndex switch
             {
-                2 => $"\"{evt.Files.First(f => f.Index == Parameter).Name[0..^1]}\" ({Parameter})", // LOAD_SCENE
-                3 => $"\"{dat.Files.First(f => f.Index == Parameter).Name[0..^1]}\"", // PUZZLE_PHASE
+                2 => $"\"{evt.GetFileByIndex(Parameter).Name[0..^1]}\" ({Parameter})", // LOAD_SCENE
+                3 => $"\"{dat.GetFileByIndex(Parameter).Name[0..^1]}\"", // PUZZLE_PHASE
                 9 => $"\"MOVIE{Parameter:D2}\"", // PLAY_VIDEO
                 _ => Parameter.ToString(),
             };

@@ -85,7 +85,7 @@ namespace HaruhiChokuretsuCLI
             else
             {
                 evtArchive.Files.Where(f => f.Index is >= 580 and <= 581).ToList().ForEach(f => f.InitializeDialogueForSpecialFiles());
-                EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == 589);
+                EventFile evtVmFile = evtArchive.GetFileByIndex(589);
                 if (evtVmFile is not null)
                 {
                     VoiceMapFile newVmFile = new();
@@ -105,7 +105,7 @@ namespace HaruhiChokuretsuCLI
                 int fileIndex = int.Parse(Regex.Match(file, @"(?<index>\d{3})\.[\w-]+\.resx").Groups["index"].Value);
                 if (fileIndex == 589)
                 {
-                    EventFile evtVmFile = evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex);
+                    EventFile evtVmFile = evtArchive.GetFileByIndex(fileIndex);
                     VoiceMapFile vmFile = evtVmFile.CastTo<VoiceMapFile>();
                     vmFile.FontReplacementMap = evtVmFile.FontReplacementMap;
                     vmFile.ImportResxFile(file);
@@ -113,7 +113,7 @@ namespace HaruhiChokuretsuCLI
                 }
                 else
                 {
-                    evtArchive.Files.FirstOrDefault(f => f.Index == fileIndex).ImportResxFile(file);
+                    evtArchive.GetFileByIndex(fileIndex).ImportResxFile(file);
                 }
             }
             File.WriteAllBytes(_outputArchive, evtArchive.GetBytes());

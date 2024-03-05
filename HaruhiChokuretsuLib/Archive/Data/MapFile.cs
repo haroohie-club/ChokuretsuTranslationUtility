@@ -121,12 +121,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <returns>A tuple of an SKBitmap of the rendered map and an SKBitmap of the map's background image (null if there is no BG image)</returns>
         public (SKBitmap mapBitmap, SKBitmap bgBitmap) GetMapImages(ArchiveFile<GraphicsFile> grp, int maxLayoutIndex = -1, GraphicsFile grpReplacement = null, int replacementIndex = 1)
         {
-            List<GraphicsFile> textures = Settings.TextureFileIndices.Select(i => grp.Files.First(f => f.Index == i)).ToList();
+            List<GraphicsFile> textures = Settings.TextureFileIndices.Select(i => grp.GetFileByIndex(i)).ToList();
             if (grpReplacement is not null)
             {
                 textures[replacementIndex] = grpReplacement;
             }
-            GraphicsFile layout = grp.Files.First(f => f.Index == Settings.LayoutFileIndex);
+            GraphicsFile layout = grp.GetFileByIndex(Settings.LayoutFileIndex);
 
             int mapEndIndex = maxLayoutIndex >= 0 ? maxLayoutIndex : (Settings.BackgroundLayoutStartIndex == 0 ? layout.Length : Settings.BackgroundLayoutStartIndex);
 
@@ -150,8 +150,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <returns>An SKBitmap of the rendered map</returns>
         public SKBitmap GetMapImages(ArchiveFile<GraphicsFile> grp, int start, int length)
         {
-            List<GraphicsFile> textures = Settings.TextureFileIndices.Select(i => grp.Files.First(f => f.Index == i)).ToList();
-            GraphicsFile layout = grp.Files.First(f => f.Index == Settings.LayoutFileIndex);
+            List<GraphicsFile> textures = Settings.TextureFileIndices.Select(i => grp.GetFileByIndex(i)).ToList();
+            GraphicsFile layout = grp.GetFileByIndex(Settings.LayoutFileIndex);
 
             return layout.GetLayout(textures, start, length, false, true).bitmap;
         }

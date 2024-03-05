@@ -234,7 +234,7 @@ namespace HaruhiChokuretsuCLI
         /// <param name="index"></param>
         private static void ReplaceSingleGraphicsFile(ArchiveFile<FileInArchive> archive, string filePath, int index, Dictionary<int, List<SKColor>> sharedPalettes)
         {
-            FileInArchive file = archive.Files.FirstOrDefault(f => f.Index == index);
+            FileInArchive file = archive.GetFileByIndex(index);
             GraphicsFile grpFile = file.CastTo<GraphicsFile>();
 
             if (index == 0xE50)
@@ -284,8 +284,8 @@ namespace HaruhiChokuretsuCLI
         /// <param name="index">The index of the file in the archive to replace</param>
         private static void ReplaceSingleFile(ArchiveFile<FileInArchive> archive, string filePath, int index)
         {
-            FileInArchive file = archive.Files.FirstOrDefault(f => f.Index == index);
-            file.Data = File.ReadAllBytes(filePath).ToList();
+            FileInArchive file = archive.GetFileByIndex(index);
+            file.Data = [.. File.ReadAllBytes(filePath)];
             file.Edited = true;
             archive.Files[archive.Files.IndexOf(file)] = file;
         }

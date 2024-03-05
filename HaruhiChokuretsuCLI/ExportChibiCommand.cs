@@ -44,15 +44,15 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(_outputFolder);
             }
 
-            ChibiFile chibiFile = dat.Files.First(f => f.Name == "CHIBIS").CastTo<ChibiFile>();
+            ChibiFile chibiFile = dat.GetFileByName("CHIBIS").CastTo<ChibiFile>();
             foreach (ChibiEntry chibiEntry in chibiFile.Chibis[_chibiIndex - 1].ChibiEntries)
             {
                 if (chibiEntry.Texture == 0 || chibiEntry.Animation == 0)
                 {
                     continue;
                 }
-                GraphicsFile texture = grp.Files.First(f => f.Index == chibiEntry.Texture);
-                GraphicsFile animation = grp.Files.First(f => f.Index == chibiEntry.Animation);
+                GraphicsFile texture = grp.GetFileByIndex(chibiEntry.Texture);
+                GraphicsFile animation = grp.GetFileByIndex(chibiEntry.Animation);
 
                 List<GraphicsFile> animationFrames = animation.GetAnimationFrames(texture);
                 foreach (GraphicsFile animationFrame in animationFrames)

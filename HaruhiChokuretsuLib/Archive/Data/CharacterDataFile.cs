@@ -172,12 +172,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 return frames;
             }
 
-            List<GraphicsFile> textures = [grp.Files.First(f => f.Index == TextureIndex1), grp.Files.First(f => f.Index == TextureIndex2), grp.Files.First(f => f.Index == TextureIndex3)];
-            GraphicsFile layout = grp.Files.First(f => f.Index == LayoutIndex);
-            GraphicsFile eyeTexture = grp.Files.First(f => f.Index == EyeTextureIndex);
-            GraphicsFile eyeAnimation = grp.Files.First(f => f.Index == EyeAnimationIndex);
-            GraphicsFile mouthTexture = grp.Files.First(f => f.Index == MouthTextureIndex);
-            GraphicsFile mouthAnimation = grp.Files.First(f => f.Index == MouthAnimationIndex);
+            List<GraphicsFile> textures = [grp.GetFileByIndex(TextureIndex1), grp.GetFileByIndex(TextureIndex2), grp.GetFileByIndex(TextureIndex3)];
+            GraphicsFile layout = grp.GetFileByIndex(LayoutIndex);
+            GraphicsFile eyeTexture = grp.GetFileByIndex(EyeTextureIndex);
+            GraphicsFile eyeAnimation = grp.GetFileByIndex(EyeAnimationIndex);
+            GraphicsFile mouthTexture = grp.GetFileByIndex(MouthTextureIndex);
+            GraphicsFile mouthAnimation = grp.GetFileByIndex(MouthAnimationIndex);
             MessageInfo messageInfo = messageInfoFile.MessageInfos[(int)Character];
 
             (SKBitmap spriteBitmap, _) = layout.GetLayout(textures, 0, layout.LayoutEntries.Count, darkMode: false, preprocessedList: true);

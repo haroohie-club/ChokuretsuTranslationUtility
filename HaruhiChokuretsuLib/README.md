@@ -28,7 +28,7 @@ offsets and file sizes.
 * The standard way to instantiate an `ArchiveFile` is with the `ArchiveFile<T>.FromFile()` method.
 * Since file indices do not necessarily match up with the position in `Archive.Files`, the proper way to access a file by index is:
     ```csharp
-    archiveFile.Files.FirstOrDefault(f => f.Index == index);
+    archiveFile.GetFileByIndex(index);
     ``` 
 * To replace a file in a repo, you should create a new file of the archive's type, initialize it, set the `Edited` flag on the file,
     and then set the file in `archive.Files` at the replacement index to the new file. Example:
@@ -37,7 +37,7 @@ offsets and file sizes.
     int replacementIndex = 0xC1A;
     string decompressedFilePath = "path/to/decompressed_file";
 
-    GraphicsFile currentFile = grpArchive.Files.FirstOrDefault(f => f.Index == replacementIndex);
+    GraphicsFile currentFile = grpArchive.GetFileByIndex(index);
     GraphicsFile newGraphicsFile = new();
     newGraphicsFile.Initialize(File.ReadAllBytes(decompressedFilePath), currentFile.Offset);
     newGraphicsFile.Edited = true;

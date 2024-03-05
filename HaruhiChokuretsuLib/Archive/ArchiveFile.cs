@@ -176,6 +176,33 @@ namespace HaruhiChokuretsuLib.Archive
         }
 
         /// <summary>
+        /// Gets a file from the archive given a specified file index
+        /// </summary>
+        /// <param name="index">The index of the file to get</param>
+        /// <returns>A FileInArchive object</returns>
+        public T GetFileByIndex(int index)
+        {
+            if (index > 0 && index <= Files.Count)
+            {
+                return Files[index - 1];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets a file from the archive given a specified file name
+        /// </summary>
+        /// <param name="name">The name of the file to get</param>
+        /// <returns>A FileInArchive object</returns>
+        public T GetFileByName(string name)
+        {
+            return Files.AsParallel().FirstOrDefault(f => f.Name == name);
+        }
+
+        /// <summary>
         /// Lists all files in an ARM assembly include file
         /// </summary>
         /// <returns>A string of valid ARM assembly setting macros for all files and their indices</returns>

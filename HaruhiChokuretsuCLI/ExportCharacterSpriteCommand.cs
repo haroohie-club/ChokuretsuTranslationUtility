@@ -44,17 +44,17 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(_outputFolder);
             }
 
-            CharacterDataFile chrdata = dat.Files.First(f => f.Name == "CHRDATAS").CastTo<CharacterDataFile>();
+            CharacterDataFile chrdata = dat.GetFileByName("CHRDATAS").CastTo<CharacterDataFile>();
             CharacterSprite sprite = chrdata.Sprites[_spriteIndex];
 
             List<(SKBitmap frame, int timing)> animationFrames;
             if (_lipFlap)
             {
-                animationFrames = sprite.GetLipFlapAnimation(grp, dat.Files.First(f => f.Name == "MESSINFOS").CastTo<MessageInfoFile>());
+                animationFrames = sprite.GetLipFlapAnimation(grp, dat.GetFileByName("MESSINFOS").CastTo<MessageInfoFile>());
             }
             else
             {
-                animationFrames = sprite.GetClosedMouthAnimation(grp, dat.Files.First(f => f.Name == "MESSINFOS").CastTo<MessageInfoFile>());
+                animationFrames = sprite.GetClosedMouthAnimation(grp, dat.GetFileByName("MESSINFOS").CastTo<MessageInfoFile>());
             }
             List<SKBitmap> frames = new();
             foreach (var frame in animationFrames)
@@ -78,7 +78,7 @@ namespace HaruhiChokuretsuCLI
             }
             gif.Frames.RemoveFrame(0);
 
-            gif.SaveAsGif(Path.Combine(_outputFolder, $"{grp.Files.First(g => g.Index == sprite.EyeAnimationIndex).Name[0..^5]}.gif"));
+            gif.SaveAsGif(Path.Combine(_outputFolder, $"{grp.GetFileByIndex(sprite.EyeAnimationIndex).Name[0..^5]}.gif"));
 
             return 0;
         }
