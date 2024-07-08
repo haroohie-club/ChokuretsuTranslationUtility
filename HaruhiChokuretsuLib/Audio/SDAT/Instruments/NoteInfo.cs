@@ -149,6 +149,12 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.Instruments
             return n.Attack == Attack && n.BaseNote == BaseNote && n.Decay == Decay && n.InstrumentType == InstrumentType && n.Pan == Pan && n.Release == Release && n.Sustain == Sustain && n.WarId == WarId && n.WaveId == WaveId;
         }
 
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         /// <summary>
         /// Duplicate the note info.
         /// </summary>

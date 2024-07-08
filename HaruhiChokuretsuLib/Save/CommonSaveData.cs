@@ -8,7 +8,6 @@ namespace HaruhiChokuretsuLib.Save
     /// <summary>
     /// Represents the common save data (not specific to a particular slot)
     /// </summary>
-    /// <param name="data">The section of data representing the common save data</param>
     public class CommonSaveData : SaveSection
     {
         /// <summary>

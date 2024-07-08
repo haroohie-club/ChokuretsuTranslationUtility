@@ -119,23 +119,23 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             w.Write((uint)0x50);
 
             //Format.
-            PcmFormat pcmFormat = PcmFormat.Encoded;
+            //PcmFormat pcmFormat = PcmFormat.Encoded;
             uint blockSamples = (uint)Audio.NumSamples;
             uint blockSize = (uint)Audio.DataSize;
             if (Audio.EncodingType.Equals(typeof(PCM8Signed)))
             {
                 w.Write((byte)PcmFormat.SignedPCM8);
-                pcmFormat = PcmFormat.SignedPCM8;
+                //pcmFormat = PcmFormat.SignedPCM8;
             }
             else if (Audio.EncodingType.Equals(typeof(PCM16)))
             {
                 w.Write((byte)PcmFormat.PCM16);
-                pcmFormat = PcmFormat.PCM16;
+                //pcmFormat = PcmFormat.PCM16;
             }
             else if (Audio.EncodingType.Equals(typeof(ImaAdpcm)))
             {
                 w.Write((byte)PcmFormat.Encoded);
-                pcmFormat = PcmFormat.Encoded;
+                //pcmFormat = PcmFormat.Encoded;
                 blockSize = (uint)Audio.BlockSize;
                 blockSamples = (blockSize - 4) * 2;
             }

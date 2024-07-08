@@ -11,18 +11,22 @@ namespace HaruhiChokuretsuLib.Util
     // Modified to use SkiaSharp
     // Licensed under Apache License v2.0
     // Full text of license here: https://github.com/mcychan/nQuant.cs/blob/core/LICENSE
+
+    /// <summary>
+    /// A pairwise nearest neighbor quantizer
+    /// </summary>
     public class PnnQuantizer
     {
-        protected byte _alphaThreshold = 0xF;
-        protected bool _dither = true, _hasSemiTransparency = false;
-        protected int _transparentPixelIndex = -1;
-        protected SKColor _transparentColor = SKColors.Transparent;
-        protected readonly Random _rand = new();
-        protected readonly Dictionary<uint, ushort[]> _closestMap = new();
-        protected readonly Dictionary<uint, ushort> _nearestMap = new();
+        private byte _alphaThreshold = 0xF;
+        private bool _dither = true, _hasSemiTransparency = false;
+        private int _transparentPixelIndex = -1;
+        private SKColor _transparentColor = SKColors.Transparent;
+        private readonly Random _rand = new();
+        private readonly Dictionary<uint, ushort[]> _closestMap = new();
+        private readonly Dictionary<uint, ushort> _nearestMap = new();
 
-        protected double _PR = 0.299, _PG = 0.587, _PB = 0.114, _PA = .3333;
-        protected double _ratio = .5, _weight = 1;
+        private double _PR = 0.299, _PG = 0.587, _PB = 0.114, _PA = .3333;
+        private double _ratio = .5, _weight = 1;
 
         private static readonly float[,] _coeffs = new float[,] {
             {0.299f, 0.587f, 0.114f},
@@ -37,17 +41,22 @@ namespace HaruhiChokuretsuLib.Util
             internal float err;
         }
 
-        public static int GetARGBIndex(uint argb)
+        private static int GetARGBIndex(uint argb)
         {
             SKColor c = new(argb);
             return (c.Red & 0xF8) << 8 | (c.Green & 0xFC) << 3 | (c.Blue >> 3);
         }
 
-        public static float Sqr(float val)
+        private static float Sqr(float val)
         {
             return val * val;
         }
 
+        /// <summary>
+        /// Gets the index of the color in the palette
+        /// </summary>
+        /// <param name="argb">A uint representation of an ARBG color</param>
+        /// <returns></returns>
         public int GetColorIndex(uint argb)
         {
             return GetARGBIndex(argb);
@@ -119,7 +128,18 @@ namespace HaruhiChokuretsuLib.Util
             bin1.nn = nn;
         }
 
+        /// <summary>
+        /// Quantization function delegate
+        /// </summary>
+        /// <param name="cnt">The count of colors to quantize over</param>
+        /// <returns>A float representation of the quantization</returns>
         protected delegate float QuanFn(float cnt);
+        /// <summary>
+        /// Gets a default quantization function
+        /// </summary>
+        /// <param name="nMaxColors">Number of max colors</param>
+        /// <param name="quan_rt">Quantization rate</param>
+        /// <returns>The QuanFn delegate</returns>
         protected virtual QuanFn GetQuanFn(int nMaxColors, short quan_rt)
         {
             if (quan_rt > 0)
@@ -132,6 +152,13 @@ namespace HaruhiChokuretsuLib.Util
                 return cnt => (int)Math.Cbrt(cnt);
             return cnt => cnt;
         }
+        /// <summary>
+        /// Does pairwise nearest neighbor quantization
+        /// </summary>
+        /// <param name="pixels">ARBG representation of pixel data</param>
+        /// <param name="palette">SKColor represenation of palette</param>
+        /// <param name="nMaxColors">Max colors to quantize to</param>
+        /// <param name="log">A logging instance</param>
         protected virtual void Pnnquan(uint[] pixels, ref SKColor[] palette, ref int nMaxColors, ILogger log)
         {
             short quan_rt = 1;
@@ -284,6 +311,14 @@ namespace HaruhiChokuretsuLib.Util
                 log.Log("Maximum number of colors: " + palette.Length);
             }
         }
+
+        /// <summary>
+        /// Finds the nearest color index
+        /// </summary>
+        /// <param name="palette">The palette to work with</param>
+        /// <param name="pixel">A particular pixel to find the nearest color in the palette</param>
+        /// <param name="pos">Start position within the palette</param>
+        /// <returns>The nearest color index in the palette</returns>
         protected virtual ushort NearestColorIndex(SKColor[] palette, uint pixel, int pos)
         {
             if (_nearestMap.TryGetValue(pixel, out var k))
@@ -329,6 +364,13 @@ namespace HaruhiChokuretsuLib.Util
             return k;
         }
 
+        /// <summary>
+        /// Finds the closest color index
+        /// </summary>
+        /// <param name="palette">The palette to work with</param>
+        /// <param name="pixel">A particular pixel to find the closest color in the palette</param>
+        /// <param name="pos">Start position within the palette</param>
+        /// <returns>The closest color index in the palette</returns>
         protected virtual ushort ClosestColorIndex(SKColor[] palette, uint pixel, int pos)
         {
             ushort k = 0;
@@ -398,6 +440,13 @@ namespace HaruhiChokuretsuLib.Util
             return closest[idx];
         }
 
+        /// <summary>
+        /// Dithers a color index
+        /// </summary>
+        /// <param name="palette">The palette to work with</param>
+        /// <param name="pixel">The pixel to dither</param>
+        /// <param name="pos">The position within the palette</param>
+        /// <returns>The dithered pixel's index in the palette</returns>
         public virtual ushort DitherColorIndex(SKColor[] palette, uint pixel, int pos)
         {
             if (_dither)
@@ -405,6 +454,16 @@ namespace HaruhiChokuretsuLib.Util
             return ClosestColorIndex(palette, pixel, pos);
         }
 
+        /// <summary>
+        /// Dithers an image (array of pixels)
+        /// </summary>
+        /// <param name="pixels">Pixel data representing the image</param>
+        /// <param name="palette">Palette data</param>
+        /// <param name="semiTransCount">Representation of semi-transparent pixels</param>
+        /// <param name="width">Width of the image</param>
+        /// <param name="height">Height of the image</param>
+        /// <param name="dither">Whether to truly dither the image or not</param>
+        /// <returns>A dithered image</returns>
         protected virtual int[] Dither(uint[] pixels, SKColor[] palette, int semiTransCount, int width, int height, bool dither)
         {
             _dither = dither;
@@ -418,6 +477,13 @@ namespace HaruhiChokuretsuLib.Util
             return qPixels;
         }
 
+        /// <summary>
+        /// Gets a quantized palette from a set of images
+        /// </summary>
+        /// <param name="bitmaps">The set of images to get a palette from</param>
+        /// <param name="nMaxColors">The maximum number of colors in the palette</param>
+        /// <param name="log">A logging instance</param>
+        /// <returns>A palette constructed from the set of images</returns>
         public List<SKColor> GetPaletteFromImages(IEnumerable<SKBitmap> bitmaps, int nMaxColors, ILogger log)
         {
             uint[] pixels = bitmaps.SelectMany(b => b.Pixels).Select(p => (uint)p).ToArray();
@@ -437,6 +503,17 @@ namespace HaruhiChokuretsuLib.Util
             return [.. palette];
         }
 
+        /// <summary>
+        /// Quantizes a particular image
+        /// </summary>
+        /// <param name="source">An SKBitmap to quantize</param>
+        /// <param name="dest">A graphics file to save the quantized image data to</param>
+        /// <param name="nMaxColors">The maximum number of colors in the palette</param>
+        /// <param name="texture">Whether the file is a texture or tile</param>
+        /// <param name="dither">Whether to dither the image</param>
+        /// <param name="firstTransparent">Whether the first index should be transparent</param>
+        /// <param name="replacePalette">Whether to replace the palette or simply match the current one</param>
+        /// <param name="log">Logging instance</param>
         public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, bool firstTransparent, bool replacePalette, ILogger log)
         {
             var bitmapWidth = source.Width;

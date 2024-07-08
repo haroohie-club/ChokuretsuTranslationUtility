@@ -64,7 +64,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
         /// <param name="w">The writer.</param>
         public void Write(FileWriter w)
         {
-            w.Write((uint)(ReadingFileId | (LoadIndividually ? 0x01000000 : 0)));
+            w.Write(ReadingFileId | (uint)(LoadIndividually ? 0x01000000 : 0));
         }
 
         /// <summary>
