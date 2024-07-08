@@ -80,54 +80,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                     continue;
                 }
 
-                SKRect boundingBox = new()
-                {
-                    Left = currentEntry.TextureX,
-                    Top = currentEntry.TextureY,
-                    Right = currentEntry.TextureX + currentEntry.TextureW,
-                    Bottom = currentEntry.TextureY + currentEntry.TextureH,
-                };
-                SKRect destination = new()
-                {
-                    Left = currentEntry.ScreenX,
-                    Top = currentEntry.ScreenY,
-                    Right = currentEntry.ScreenX + Math.Abs(currentEntry.ScreenW),
-                    Bottom = currentEntry.ScreenY + Math.Abs(currentEntry.ScreenH),
-                };
-
-                SKBitmap texture = textures[currentEntry.RelativeShtxIndex];
-                int tileWidth = (int)Math.Abs(boundingBox.Right - boundingBox.Left);
-                int tileHeight = (int)Math.Abs(boundingBox.Bottom - boundingBox.Top);
-                SKBitmap tile = new(tileWidth, tileHeight);
-                SKCanvas transformCanvas = new(tile);
-
-                if (currentEntry.ScreenW < 0)
-                {
-                    transformCanvas.Scale(-1, 1, tileWidth / 2.0f, 0);
-                }
-                if (currentEntry.ScreenH < 0)
-                {
-                    transformCanvas.Scale(1, -1, 0, tileHeight / 2.0f);
-                }
-                transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, Math.Abs(tileWidth), Math.Abs(tileHeight)));
-                transformCanvas.Flush();
-
-                if (currentEntry.Tint != SKColors.White)
-                {
-                    for (int x = 0; x < tileWidth; x++)
-                    {
-                        for (int y = 0; y < tileHeight; y++)
-                        {
-                            SKColor pixelColor = tile.GetPixel(x, y);
-                            tile.SetPixel(x, y, new((byte)(pixelColor.Red * currentEntry.Tint.Red / 255),
-                                (byte)(pixelColor.Green * currentEntry.Tint.Green / 255),
-                                (byte)(pixelColor.Blue * currentEntry.Tint.Blue / 255),
-                                (byte)(pixelColor.Alpha * currentEntry.Tint.Alpha / 255)));
-                        }
-                    }
-                }
-
-                canvas.DrawBitmap(tile, destination);
+                canvas.DrawBitmap(currentEntry.GetTileBitmap(textures), currentEntry.GetDestination());
             }
 
             return (layoutBitmap, layoutEntries);
@@ -247,6 +200,80 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 .. BitConverter.GetBytes((uint)Tint),
             ];
             return [.. data];
+        }
+
+        /// <summary>
+        /// Gets an SKBitmap representation of the layout entry's tile
+        /// </summary>
+        /// <param name="textures">The dictionary of textures needed by this layout</param>
+        /// <returns>A tile representation of the layout with appropriate cropping, transforming, and tinting</returns>
+        public SKBitmap GetTileBitmap(Dictionary<int, SKBitmap> textures)
+        {
+            SKRect boundingBox = GetTileBounds();
+
+            SKBitmap texture = textures[RelativeShtxIndex];
+            int tileWidth = (int)Math.Abs(boundingBox.Right - boundingBox.Left);
+            int tileHeight = (int)Math.Abs(boundingBox.Bottom - boundingBox.Top);
+            SKBitmap tile = new(tileWidth, tileHeight);
+            SKCanvas transformCanvas = new(tile);
+
+            if (ScreenW < 0)
+            {
+                transformCanvas.Scale(-1, 1, tileWidth / 2.0f, 0);
+            }
+            if (ScreenH < 0)
+            {
+                transformCanvas.Scale(1, -1, 0, tileHeight / 2.0f);
+            }
+            transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, Math.Abs(tileWidth), Math.Abs(tileHeight)));
+            transformCanvas.Flush();
+
+            if (Tint != SKColors.White)
+            {
+                for (int x = 0; x < tileWidth; x++)
+                {
+                    for (int y = 0; y < tileHeight; y++)
+                    {
+                        SKColor pixelColor = tile.GetPixel(x, y);
+                        tile.SetPixel(x, y, new((byte)(pixelColor.Red * Tint.Red / 255),
+                            (byte)(pixelColor.Green * Tint.Green / 255),
+                            (byte)(pixelColor.Blue * Tint.Blue / 255),
+                            (byte)(pixelColor.Alpha * Tint.Alpha / 255)));
+                    }
+                }
+            }
+
+            return tile;
+        }
+
+        /// <summary>
+        /// Gets the bounding box of the tile on the source texture
+        /// </summary>
+        /// <returns>An SKRect representing the bounding box of the tile on the source texture</returns>
+        public SKRect GetTileBounds()
+        {
+            return new()
+            {
+                Left = TextureX,
+                Top = TextureY,
+                Right = TextureX + TextureW,
+                Bottom = TextureY + TextureH,
+            };
+        }
+
+        /// <summary>
+        /// Gets the definition of the location/size of the layout entry's tile to be drawn to the screen
+        /// </summary>
+        /// <returns>An SKRect representing the position and size of the tile on the screen</returns>
+        public SKRect GetDestination()
+        {
+            return new()
+            {
+                Left = ScreenX,
+                Top = ScreenY,
+                Right = ScreenX + Math.Abs(ScreenW),
+                Bottom = ScreenY + Math.Abs(ScreenH),
+            };
         }
 
         /// <inheritdoc/>

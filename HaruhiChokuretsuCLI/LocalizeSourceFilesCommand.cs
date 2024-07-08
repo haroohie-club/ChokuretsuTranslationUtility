@@ -74,7 +74,7 @@ namespace HaruhiChokuretsuCLI
             }
 
             string[] files = Directory.GetFiles(_sourceDir, "*.s", SearchOption.AllDirectories);
-            List<PlaceholderFile> filesWithPlaceholders = new();
+            List<PlaceholderFile> filesWithPlaceholders = [];
 
             foreach (string file in files)
             {
@@ -83,12 +83,12 @@ namespace HaruhiChokuretsuCLI
                 if (matches.Count > 0)
                 {
                     PlaceholderFile placeholderFile = new() { OriginalLocation = file };
-                    foreach (Match match in matches)
+                    foreach (Match match in matches.Cast<Match>())
                     {
                         string id = match.Groups["id"].Value;
-                        if (placeholders.ContainsKey(id))
+                        if (placeholders.TryGetValue(id, out string replacement))
                         {
-                            content = content.Replace($"{{{{{id}}}}}", string.Join("", Encoding.GetEncoding("Shift-JIS").GetBytes(placeholders[id])
+                            content = content.Replace($"{{{{{id}}}}}", string.Join("", Encoding.GetEncoding("Shift-JIS").GetBytes(replacement)
                                 .Select(b => $"\\x{b:X2}")));
                         }
                     }
