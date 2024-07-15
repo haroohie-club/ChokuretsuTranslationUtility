@@ -178,6 +178,33 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         }
 
         /// <summary>
+        /// Constructor for building a layout entry from scratch
+        /// </summary>
+        /// <param name="shtxIndex">The SHTX index of this entry</param>
+        /// <param name="srcX">The X position to begin cropping from on the source texture</param>
+        /// <param name="srcY">The Y position to begin cropping from on the source texture</param>
+        /// <param name="srcW">The width of the quad to crop from the source texture</param>
+        /// <param name="srcH">The height of the quad to crop from the source texture</param>
+        /// <param name="dstX">The X position on the screen to draw the quad</param>
+        /// <param name="dstY">The Y position on the screen to draw the quad</param>
+        /// <param name="dstW">The width of the quad to draw to the screen</param>
+        /// <param name="dstH">The height of the quad to draw to the screen</param>
+        /// <param name="tint">the tint to apply to the texture on the screen</param>
+        public LayoutEntry(short shtxIndex, short srcX, short srcY, short srcW, short srcH, short dstX, short dstY, short dstW, short dstH, SKColor tint)
+        {
+            RelativeShtxIndex = shtxIndex;
+            TextureX = srcX;
+            TextureY = srcY;
+            TextureW = srcW;
+            TextureH = srcH;
+            ScreenX = dstX;
+            ScreenY = dstY;
+            ScreenW = dstW;
+            ScreenH = dstH;
+            Tint = tint;
+        }
+
+        /// <summary>
         /// Gets binary representation of the layout
         /// </summary>
         /// <returns>Byte array of that binary representation</returns>

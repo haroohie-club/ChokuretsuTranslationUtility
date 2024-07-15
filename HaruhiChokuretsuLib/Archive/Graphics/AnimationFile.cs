@@ -32,7 +32,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <returns>A list of GraphicsFiles each representing a distinct animation frame</returns>
         public List<GraphicsFile> GetAnimationFrames(GraphicsFile texture)
         {
-            List<GraphicsFile> graphicFrames = new();
+            List<GraphicsFile> graphicFrames = [];
             if (texture.FileFunction != Function.SHTX)
             {
                 return graphicFrames;

@@ -268,7 +268,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 encodedWidth = (byte)Math.Ceiling(Math.Log2(bitmap.Width));
                 encodedHeight = (byte)Math.Ceiling(Math.Log2(bitmap.Height));
             }
-            Data.AddRange(new byte[] { 0x01, 0x00, 0x00, 0x01, 0xC0, 0x00, encodedWidth, encodedHeight, 0x00, 0xC0, 0x00, 0x00 });
+            Data.AddRange([0x01, 0x00, 0x00, 0x01, 0xC0, 0x00, encodedWidth, encodedHeight, 0x00, 0xC0, 0x00, 0x00]);
             Data.AddRange(PaletteData);
             Data.AddRange(PixelData);
 
@@ -374,9 +374,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             {
                 List<byte> data =
                 [
-                    .. BitConverter.GetBytes(0x10),
+                    .. BitConverter.GetBytes((short)0x10),
                     .. BitConverter.GetBytes(AnimationX),
                     .. BitConverter.GetBytes(AnimationY),
+                    .. new byte[] { 0x00, 0x00 },
                     .. BitConverter.GetBytes(ChibiAnimationType),
                     .. new byte[] { 0x00, 0xFF, 0x00, 0x00, 0xFF, 0xFF },
                 ];
