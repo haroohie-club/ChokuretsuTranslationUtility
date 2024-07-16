@@ -350,7 +350,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             {
                 List<byte> data =
                 [
-                    .. Data.Take(0x14), // get header
+                    .. Data.Take(0x06), // get magic
+                    .. BitConverter.GetBytes((short)ImageTileForm),
+                    .. Data.Skip(0x08).Take(0x06), // get header unknowns
+                    (byte)Math.Log2(Width),
+                    (byte)Math.Log2(Height),
+                    .. Data.Skip(0x10).Take(0x04), // get more header unknowns
                     .. PaletteData,
                     .. PixelData,
                 ];
@@ -587,7 +592,6 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
-            Edited = true;
             return SetImage(SKBitmap.Decode(bitmapFile), setPalette, transparentIndex, newSize, associatedTiles);
         }
 
@@ -602,6 +606,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
+            Edited = true;
             PnnQuantizer quantizer = new();
 
             if (FileFunction == Function.SCREEN)
@@ -610,11 +615,11 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             else if (IsTexture())
             {
-                return SetTexture(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false, setPalette);
+                return SetTexture(bitmap, quantizer, newSize, transparentIndex == 0, setPalette);
             }
             else
             {
-                return SetTiles(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false, setPalette);
+                return SetTiles(bitmap, quantizer, newSize, transparentIndex == 0, setPalette);
             }
         }
 
