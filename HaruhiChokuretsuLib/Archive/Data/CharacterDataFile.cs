@@ -141,6 +141,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public short MouthAnimationIndex { get; set; } = IO.ReadShort(data, 0x16);
 
+
         /// <summary>
         /// Gets the animation of the sprite blinking without lip flap animation
         /// </summary>
@@ -149,7 +150,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
         public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
         {
-            return GetAnimation(grp, messageInfoFile, false);
+            return GetAnimation(grp, messageInfoFile, false, null, null, null, null, null);
         }
 
         /// <summary>
@@ -160,10 +161,48 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
         public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
         {
-            return GetAnimation(grp, messageInfoFile, true);
+            return GetAnimation(grp, messageInfoFile, true, null, null, null, null, null);
         }
 
-        private List<(SKBitmap frame, int timing)> GetAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile, bool lipFlap)
+        /// <summary>
+        /// Gets the animation of the sprite blinking without lip flap animation
+        /// </summary>
+        /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
+        /// <param name="layout">The associated layout graphic</param>
+        /// <param name="eyeAnimation">The associated eye animation graphic</param>
+        /// <param name="eyeTexture">The associated eye texture graphic</param>
+        /// <param name="mouthAnimation">The associated mouth animation graphic</param>
+        /// <param name="mouthTexture">The associated mouth texture graphic</param>
+        /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
+        public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(MessageInfoFile messageInfoFile, GraphicsFile layout, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
+        {
+            return GetAnimation(null, messageInfoFile, false, layout, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
+        }
+
+        /// <summary>
+        /// Gets the animation of the sprite blinking and moving its lips
+        /// </summary>
+        /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
+        /// <param name="layout">The associated layout graphic</param>
+        /// <param name="eyeAnimation">The associated eye animation graphic</param>
+        /// <param name="eyeTexture">The associated eye texture graphic</param>
+        /// <param name="mouthAnimation">The associated mouth animation graphic</param>
+        /// <param name="mouthTexture">The associated mouth texture graphic</param>
+        /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
+        public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(MessageInfoFile messageInfoFile, GraphicsFile layout, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
+        {
+            return GetAnimation(null, messageInfoFile, true, layout, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
+        }
+
+        private List<(SKBitmap frame, int timing)> GetAnimation(
+            ArchiveFile<GraphicsFile> grp,
+            MessageInfoFile messageInfoFile,
+            bool lipFlap,
+            GraphicsFile layout,
+            GraphicsFile eyeAnimation,
+            GraphicsFile eyeTexture,
+            GraphicsFile mouthAnimation,
+            GraphicsFile mouthTexture)
         {
             List<(SKBitmap, int)> frames = [];
 
@@ -173,11 +212,20 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
 
             List<GraphicsFile> textures = [grp.GetFileByIndex(TextureIndex1), grp.GetFileByIndex(TextureIndex2), grp.GetFileByIndex(TextureIndex3)];
-            GraphicsFile layout = grp.GetFileByIndex(LayoutIndex);
-            GraphicsFile eyeTexture = grp.GetFileByIndex(EyeTextureIndex);
-            GraphicsFile eyeAnimation = grp.GetFileByIndex(EyeAnimationIndex);
-            GraphicsFile mouthTexture = grp.GetFileByIndex(MouthTextureIndex);
-            GraphicsFile mouthAnimation = grp.GetFileByIndex(MouthAnimationIndex);
+            if (layout is null && grp is not null)
+            {
+                layout = grp.GetFileByIndex(LayoutIndex);
+            }
+            if (eyeTexture is null && grp is not null)
+            {
+                eyeTexture = grp.GetFileByIndex(EyeTextureIndex);
+                eyeAnimation = grp.GetFileByIndex(EyeAnimationIndex);
+            }
+            if (mouthTexture is null && grp is not null)
+            {
+                mouthTexture = grp.GetFileByIndex(MouthTextureIndex);
+                mouthAnimation = grp.GetFileByIndex(MouthAnimationIndex);
+            }
             MessageInfo messageInfo = messageInfoFile.MessageInfos[(int)Character];
 
             (SKBitmap spriteBitmap, _) = layout.GetLayout(textures, 0, layout.LayoutEntries.Count, darkMode: false, preprocessedList: true);
