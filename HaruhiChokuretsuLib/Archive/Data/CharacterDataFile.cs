@@ -169,15 +169,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
         /// <param name="bodyLayout">The associated layout graphic</param>
-        /// <param name="bodyTexture">The associated main body texture graphic</param>
+        /// <param name="bodyTextures">The associated main body texture graphic</param>
         /// <param name="eyeAnimation">The associated eye animation graphic</param>
         /// <param name="eyeTexture">The associated eye texture graphic</param>
         /// <param name="mouthAnimation">The associated mouth animation graphic</param>
         /// <param name="mouthTexture">The associated mouth texture graphic</param>
         /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
-        public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(MessageInfoFile messageInfoFile, GraphicsFile bodyLayout, GraphicsFile bodyTexture, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
+        public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(MessageInfoFile messageInfoFile, GraphicsFile bodyLayout, IEnumerable<GraphicsFile> bodyTextures, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
         {
-            return GetAnimation(null, messageInfoFile, false, bodyLayout, bodyTexture, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
+            return GetAnimation(null, messageInfoFile, false, bodyLayout, bodyTextures, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
         }
 
         /// <summary>
@@ -185,15 +185,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
         /// <param name="bodyLayout">The associated layout graphic</param>
-        /// <param name="bodyTexture">The associated main body texture graphic</param>
+        /// <param name="bodyTextures">The associated main body texture graphics</param>
         /// <param name="eyeAnimation">The associated eye animation graphic</param>
         /// <param name="eyeTexture">The associated eye texture graphic</param>
         /// <param name="mouthAnimation">The associated mouth animation graphic</param>
         /// <param name="mouthTexture">The associated mouth texture graphic</param>
         /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
-        public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(MessageInfoFile messageInfoFile, GraphicsFile bodyLayout, GraphicsFile bodyTexture, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
+        public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(MessageInfoFile messageInfoFile, GraphicsFile bodyLayout, IEnumerable<GraphicsFile> bodyTextures, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
         {
-            return GetAnimation(null, messageInfoFile, true, bodyLayout, bodyTexture, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
+            return GetAnimation(null, messageInfoFile, true, bodyLayout, bodyTextures, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
         }
 
         private List<(SKBitmap frame, int timing)> GetAnimation(
@@ -201,7 +201,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             MessageInfoFile messageInfoFile,
             bool lipFlap,
             GraphicsFile bodyLayout,
-            GraphicsFile bodyTexture,
+            IEnumerable<GraphicsFile> bodyTextures,
             GraphicsFile eyeAnimation,
             GraphicsFile eyeTexture,
             GraphicsFile mouthAnimation,
@@ -221,7 +221,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
             else
             {
-                textures.Add(bodyTexture);
+                textures.AddRange(bodyTextures);
             }
             if (bodyLayout is null && grp is not null)
             {
