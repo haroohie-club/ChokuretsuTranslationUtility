@@ -627,6 +627,9 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             int calculatedHeight = PixelData.Count / bitmap.Width;
             if (newSize)
             {
+                Log.LogWarning("Resizing texture... ");
+                Width = bitmap.Width;
+                Height = bitmap.Height;
                 PixelData = new(new byte[bitmap.Width * bitmap.Height]);
             }
             else if (bitmap.Height < calculatedHeight)
@@ -648,7 +651,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             int calculatedHeight = PixelData.Count / (bitmap.Width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
             if (newSize)
             {
-                Log.LogWarning("Resizing... ");
+                Log.LogWarning("Resizing tiled image... ");
                 PixelData = new(new byte[bitmap.Width * bitmap.Height]);
             }
             else if (bitmap.Height < calculatedHeight)
