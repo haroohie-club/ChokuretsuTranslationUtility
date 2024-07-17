@@ -860,6 +860,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
 
         /// <summary>
+        /// Initializes EVTTBL.S (should be its own class but alas, here we are)
+        /// </summary>
+        public void InitializeEventTableFile()
+        {
+            EvtTbl = new(Data);
+        }
+
+        /// <summary>
         /// Returns the binary data representing this file
         /// </summary>
         /// <returns>Byte array of file data</returns>
@@ -1074,16 +1082,23 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "EVTTBLS")
             {
-                return "";
+                if (EvtTbl is null)
+                {
+                    InitializeEventTableFile();
+                }
+                return EvtTbl.GetSource(includes, Log);
             }
             else if (Name == "SCENARIOS")
             {
-                InitializeScenarioFile();
+                if (Scenario is null)
+                {
+                    InitializeScenarioFile();
+                }
                 return Scenario.GetSource(includes, Log);
             }
             else if (Name == "TOPICS")
             {
-                if (!Topics.Any())
+                if (Topics.Count == 0)
                 {
                     InitializeTopicFile();
                 }
@@ -1124,7 +1139,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "TUTORIALS")
             {
-                if (!Tutorials.Any())
+                if (Tutorials.Count == 0)
                 {
                     InitializeTutorialFile();
                 }
