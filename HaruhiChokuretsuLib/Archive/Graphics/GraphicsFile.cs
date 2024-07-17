@@ -27,6 +27,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         public List<byte> PixelData { get; set; }
         /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown08 { get; set; }
+        /// <summary>
         /// The width of the tiles that make up the graphic
         /// </summary>
         public short TileWidth { get; set; }
@@ -42,6 +46,14 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// Texture file height
         /// </summary>
         public int Height { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown10 { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown12 { get; set; }
         /// <summary>
         /// The function of a particular graphics file
         /// </summary>
@@ -360,14 +372,15 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             {
                 List<byte> data =
                 [
-                    .. Data.Take(0x06), // get magic
+                    .. Encoding.ASCII.GetBytes($"SHTX{Determinant}"),
                     .. BitConverter.GetBytes((short)ImageTileForm),
-                    .. Data.Skip(0x08).Take(0x02), // get a header unknown
+                    .. BitConverter.GetBytes(Unknown08),
                     .. BitConverter.GetBytes(TileWidth),
                     .. BitConverter.GetBytes(TileHeight),
                     (byte)Math.Log2(Width),
                     (byte)Math.Log2(Height),
-                    .. Data.Skip(0x10).Take(0x04), // get more header unknowns
+                    .. BitConverter.GetBytes(Unknown10),
+                    .. BitConverter.GetBytes(Unknown12),
                     .. PaletteData,
                     .. PixelData,
                 ];
