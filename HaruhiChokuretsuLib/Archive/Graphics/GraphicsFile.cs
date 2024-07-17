@@ -27,6 +27,14 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         public List<byte> PixelData { get; set; }
         /// <summary>
+        /// The width of the tiles that make up the graphic
+        /// </summary>
+        public short TileWidth { get; set; }
+        /// <summary>
+        /// The height of the tiles that make up the graphic
+        /// </summary>
+        public short TileHeight { get; set; }
+        /// <summary>
         /// Texture file width
         /// </summary>
         public int Width { get; set; }
@@ -135,8 +143,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 FileFunction = Function.SHTX;
                 Determinant = Encoding.ASCII.GetString(Data.Skip(4).Take(2).ToArray());
                 ImageTileForm = (TileForm)BitConverter.ToInt16(decompressedData.Skip(0x06).Take(2).ToArray());
-                Width = (int)Math.Pow(2, Data.Skip(0x0E).First());
-                Height = (int)Math.Pow(2, Data.Skip(0x0F).First());
+                TileWidth = IO.ReadShort(decompressedData, 0x0A);
+                TileHeight = IO.ReadShort(decompressedData, 0x0C);
+                Width = (int)Math.Pow(2, Data.ElementAt(0x0E));
+                Height = (int)Math.Pow(2, Data.ElementAt(0x0F));
                 int paletteLength = 0x200;
                 if (ImageTileForm == TileForm.GBA_4BPP && !Name.StartsWith("CHS_SYS_"))
                 {
@@ -352,7 +362,9 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 [
                     .. Data.Take(0x06), // get magic
                     .. BitConverter.GetBytes((short)ImageTileForm),
-                    .. Data.Skip(0x08).Take(0x06), // get header unknowns
+                    .. Data.Skip(0x08).Take(0x02), // get a header unknown
+                    .. BitConverter.GetBytes(TileWidth),
+                    .. BitConverter.GetBytes(TileHeight),
                     (byte)Math.Log2(Width),
                     (byte)Math.Log2(Height),
                     .. Data.Skip(0x10).Take(0x04), // get more header unknowns
