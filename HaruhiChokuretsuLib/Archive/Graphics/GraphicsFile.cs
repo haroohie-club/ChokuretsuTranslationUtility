@@ -155,10 +155,13 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 FileFunction = Function.SHTX;
                 Determinant = Encoding.ASCII.GetString(Data.Skip(4).Take(2).ToArray());
                 ImageTileForm = (TileForm)BitConverter.ToInt16(decompressedData.Skip(0x06).Take(2).ToArray());
+                Unknown08 = IO.ReadShort(decompressedData, 0x08);
                 TileWidth = IO.ReadShort(decompressedData, 0x0A);
                 TileHeight = IO.ReadShort(decompressedData, 0x0C);
                 Width = (int)Math.Pow(2, Data.ElementAt(0x0E));
                 Height = (int)Math.Pow(2, Data.ElementAt(0x0F));
+                Unknown10 = IO.ReadShort(decompressedData, 0x10);
+                Unknown12 = IO.ReadShort(decompressedData, 0x12);
                 int paletteLength = 0x200;
                 if (ImageTileForm == TileForm.GBA_4BPP && !Name.StartsWith("CHS_SYS_"))
                 {
