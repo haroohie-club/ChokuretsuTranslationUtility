@@ -384,7 +384,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                     .. BitConverter.GetBytes(TileHeight),
                     (byte)Math.Log2(Width),
                     (byte)Math.Ceiling(Math.Log2(Height)),
-                    .. BitConverter.GetBytes((ushort)(Width * Height)),
+                    .. BitConverter.GetBytes((ushort)(TileWidth * TileHeight)),
                     .. BitConverter.GetBytes(Unknown12),
                     .. PaletteData,
                     .. PixelData,
