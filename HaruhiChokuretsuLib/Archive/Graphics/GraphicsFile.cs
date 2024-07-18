@@ -49,10 +49,6 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <summary>
         /// Unknown
         /// </summary>
-        public short Unknown10 { get; set; }
-        /// <summary>
-        /// Unknown
-        /// </summary>
         public short Unknown12 { get; set; }
         /// <summary>
         /// The function of a particular graphics file
@@ -160,7 +156,6 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 TileHeight = IO.ReadShort(decompressedData, 0x0C);
                 Width = (int)Math.Pow(2, Data.ElementAt(0x0E));
                 Height = (int)Math.Pow(2, Data.ElementAt(0x0F));
-                Unknown10 = IO.ReadShort(decompressedData, 0x10);
                 Unknown12 = IO.ReadShort(decompressedData, 0x12);
                 int paletteLength = 0x200;
                 if (ImageTileForm == TileForm.GBA_4BPP && !Name.StartsWith("CHS_SYS_"))
@@ -256,6 +251,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 "tile" => Form.TILE,
                 _ => throw new ArgumentException($"Image {filename} does not have its image form (third argument should be 'texture' or 'tile')")
             };
+            Unknown08 = short.Parse(fileComponents[3]);
+            TileWidth = short.Parse(fileComponents[4]);
+            TileHeight = short.Parse(fileComponents[5]);
+            Unknown12 = 0;
             Name = fileComponents.Last().ToUpper();
             Data = [];
             FileFunction = Function.SHTX;
@@ -382,7 +381,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                     .. BitConverter.GetBytes(TileHeight),
                     (byte)Math.Log2(Width),
                     (byte)Math.Log2(Height),
-                    .. BitConverter.GetBytes(Unknown10),
+                    .. BitConverter.GetBytes((ushort)(Width * Height)),
                     .. BitConverter.GetBytes(Unknown12),
                     .. PaletteData,
                     .. PixelData,
