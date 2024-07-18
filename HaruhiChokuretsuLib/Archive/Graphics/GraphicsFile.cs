@@ -33,11 +33,11 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <summary>
         /// The width of the tiles that make up the graphic
         /// </summary>
-        public short TileWidth { get; set; }
+        public short RenderWidth { get; set; }
         /// <summary>
         /// The height of the tiles that make up the graphic
         /// </summary>
-        public short TileHeight { get; set; }
+        public short RenderHeight { get; set; }
         /// <summary>
         /// Texture file width
         /// </summary>
@@ -152,8 +152,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 Determinant = Encoding.ASCII.GetString(Data.Skip(4).Take(2).ToArray());
                 ImageTileForm = (TileForm)BitConverter.ToInt16(decompressedData.Skip(0x06).Take(2).ToArray());
                 Unknown08 = IO.ReadShort(decompressedData, 0x08);
-                TileWidth = IO.ReadShort(decompressedData, 0x0A);
-                TileHeight = IO.ReadShort(decompressedData, 0x0C);
+                RenderWidth = IO.ReadShort(decompressedData, 0x0A);
+                RenderHeight = IO.ReadShort(decompressedData, 0x0C);
                 Width = (int)Math.Pow(2, Data.ElementAt(0x0E));
                 Height = (int)Math.Pow(2, Data.ElementAt(0x0F));
                 Unknown12 = IO.ReadShort(decompressedData, 0x12);
@@ -253,8 +253,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 _ => throw new ArgumentException($"Image {filename} does not have its image form (third argument should be 'texture' or 'tile')")
             };
             Unknown08 = short.Parse(fileComponents[3]);
-            TileWidth = short.Parse(fileComponents[4]);
-            TileHeight = short.Parse(fileComponents[5]);
+            RenderWidth = short.Parse(fileComponents[4]);
+            RenderHeight = short.Parse(fileComponents[5]);
             Unknown12 = 0;
             Name = fileComponents.Last().ToUpper();
             Data = [];
@@ -380,11 +380,11 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                     .. Encoding.ASCII.GetBytes($"SHTX{Determinant}"),
                     .. BitConverter.GetBytes((short)ImageTileForm),
                     .. BitConverter.GetBytes(Unknown08),
-                    .. BitConverter.GetBytes(TileWidth),
-                    .. BitConverter.GetBytes(TileHeight),
+                    .. BitConverter.GetBytes(RenderWidth),
+                    .. BitConverter.GetBytes(RenderHeight),
                     (byte)Math.Log2(Width),
                     (byte)Math.Ceiling(Math.Log2(Height)),
-                    .. BitConverter.GetBytes((ushort)(TileWidth * TileHeight)),
+                    .. BitConverter.GetBytes((ushort)(RenderWidth * RenderHeight)),
                     .. BitConverter.GetBytes(Unknown12),
                     .. PaletteData,
                     .. PixelData,

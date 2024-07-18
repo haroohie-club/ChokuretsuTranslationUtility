@@ -609,7 +609,7 @@ namespace HaruhiChokuretsuEditor
                 tilesEditStackPanel.Children.Add(new TextBlock { Text = selectedFile.Name });
                 tilesEditStackPanel.Children.Add(new TextBlock { Text = $"{selectedFile.Determinant ?? ""} {selectedFile.Data?.Count ?? 0} bytes" });
                 tilesEditStackPanel.Children.Add(new TextBlock { Text = $"Actual compressed length: {selectedFile.CompressedData.Length:X}; Calculated length: {selectedFile.Length:X}" });
-                tilesEditStackPanel.Children.Add(new TextBlock { Text = $"Unknown08: {selectedFile.Unknown08}, Tile Width: {selectedFile.TileWidth}, Tile Height: {selectedFile.TileHeight}" });
+                tilesEditStackPanel.Children.Add(new TextBlock { Text = $"Unknown08: {selectedFile.Unknown08}, Tile Width: {selectedFile.RenderWidth}, Tile Height: {selectedFile.RenderHeight}" });
                 if (selectedFile.PixelData is not null)
                 {
                     ShtxWidthBox graphicsWidthBox = new() { Shtxds = selectedFile, Text = $"{selectedFile.Width}" };
