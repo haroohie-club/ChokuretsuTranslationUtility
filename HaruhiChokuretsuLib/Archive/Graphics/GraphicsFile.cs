@@ -239,6 +239,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Log = log;
             SKBitmap bitmap = SKBitmap.Decode(filename);
             string[] fileComponents = Path.GetFileNameWithoutExtension(filename).Split('_');
+            Determinant = "DS";
             ImageTileForm = fileComponents[1].ToLower() switch
             {
                 "4bpp" => TileForm.GBA_4BPP,
