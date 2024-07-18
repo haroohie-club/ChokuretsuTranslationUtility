@@ -301,6 +301,24 @@ namespace HaruhiChokuretsuTests
         }
 
         [Test]
+        public async Task EventTableSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
+            EventFile evtTblFile = evt.GetFileByName("EVTTBLS");
+            evtTblFile.InitializeEventTableFile();
+
+            byte[] newBytes = await CompileFromSource(evtTblFile.GetSource(new() { { "EVTBIN", File.ReadAllLines("EVTBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            Assert.That(evtTblFile.Data, Is.EqualTo(newBytesList));
+        }
+
+        [Test]
         public async Task ExtraSourceTest()
         {
             // This file can be ripped directly from the ROM

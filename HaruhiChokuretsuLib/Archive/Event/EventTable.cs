@@ -52,6 +52,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             StringBuilder sb = new();
 
+            sb.AppendLine(".include \"EVTBIN.INC\"");
+            sb.AppendLine();
             sb.AppendLine(".word 1");
             sb.AppendLine(".word END_POINTERS");
             sb.AppendLine(".word FILE_START");
@@ -67,11 +69,15 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             for (int i = 0; i < Entries.Count; i++)
             {
-                sb.AppendLine($"EVENT{i:D3}: .string \"{Entries[i].EventFileName}\"");
+                if (!string.IsNullOrEmpty(Entries[i].EventFileName))
+                {
+                    sb.AppendLine($"EVENT{i:D3}: .string \"{Entries[i].EventFileName}\"");
+                    sb.AsmPadString(Entries[i].EventFileName, Encoding.ASCII);
+                }
             }
             sb.AppendLine();
             sb.AppendLine("END_POINTERS:");
-            sb.AppendLine($".word {Entries.Count}");
+            sb.AppendLine($".word {Entries.Count(e => !string.IsNullOrEmpty(e.EventFileName))}");
             for (int i = 0; i < Entries.Count; i++)
             {
                 sb.AppendLine($".word ENDPOINTER{i:D3}");
@@ -89,7 +95,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <summary>
         /// The name of the event file referenced
         /// </summary>
-        public string EventFileName { get; set; } = IO.ReadAsciiString(data, IO.ReadInt(data, idx));
+        public string EventFileName { get; set; } = IO.ReadInt(data, idx) == 0 ? string.Empty : IO.ReadAsciiString(data, IO.ReadInt(data, idx));
         /// <summary>
         /// The index of the event file in evt.bin
         /// </summary>
@@ -112,8 +118,15 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public string GetSource(int idx, IncludeEntry[] evtIncludes)
         {
             StringBuilder sb = new();
-            sb.AppendLine($"ENDPOINTER{idx:D3}: .word EVENT{idx:D3}");
-            sb.AppendLine($".short {evtIncludes.First(i => i.Value == EventFileIndex).Name}");
+            if (string.IsNullOrEmpty(EventFileName))
+            {
+                sb.AppendLine(".word 0");
+            }
+            else
+            {
+                sb.AppendLine($"ENDPOINTER{idx:D3}: .word EVENT{idx:D3}");
+            }
+            sb.AppendLine($".short {evtIncludes.FirstOrDefault(i => i.Value == EventFileIndex)?.Name ?? EventFileIndex.ToString()}");
             sb.AppendLine($".short {SfxGroupIndex}");
             sb.AppendLine($".short {FirstReadFlag}");
             sb.AppendLine(".skip 2");
