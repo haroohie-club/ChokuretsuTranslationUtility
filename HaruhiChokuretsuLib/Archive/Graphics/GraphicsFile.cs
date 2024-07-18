@@ -285,14 +285,16 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             byte encodedWidth, encodedHeight;
             if (ImageForm == Form.TILE)
             {
-                encodedWidth = (byte)Math.Log2(256);
-                encodedHeight = (byte)Math.Ceiling(Math.Log2(bitmap.Height / (256 / bitmap.Width)));
+                Width = 256;
+                Height = bitmap.Height / (256 / bitmap.Width);
             }
             else
             {
-                encodedWidth = (byte)Math.Ceiling(Math.Log2(bitmap.Width));
-                encodedHeight = (byte)Math.Ceiling(Math.Log2(bitmap.Height));
+                Width = bitmap.Width;
+                Height = bitmap.Height;
             }
+            encodedWidth = (byte)Math.Log2(Width);
+            encodedHeight = (byte)Math.Ceiling(Math.Log2(Height));
             Data.AddRange([0x01, 0x00, 0x00, 0x01, 0xC0, 0x00, encodedWidth, encodedHeight, 0x00, 0xC0, 0x00, 0x00]);
             Data.AddRange(PaletteData);
             Data.AddRange(PixelData);
@@ -381,7 +383,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                     .. BitConverter.GetBytes(TileWidth),
                     .. BitConverter.GetBytes(TileHeight),
                     (byte)Math.Log2(Width),
-                    (byte)Math.Log2(Height),
+                    (byte)Math.Ceiling(Math.Log2(Height)),
                     .. BitConverter.GetBytes((ushort)(Width * Height)),
                     .. BitConverter.GetBytes(Unknown12),
                     .. PaletteData,
