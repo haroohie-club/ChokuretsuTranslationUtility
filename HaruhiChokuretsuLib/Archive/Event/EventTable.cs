@@ -29,7 +29,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public EventTable(List<byte> data)
         {
             int numEntries = IO.ReadInt(data, 0x10);
-            for (int idx = 0x14; idx < numEntries; idx += 0x0C)
+            for (int idx = 0x14; idx < 0x14 + 0x0C * numEntries; idx += 0x0C)
             {
                 Entries.Add(new(data, idx));
             }
@@ -88,7 +88,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <summary>
         /// The name of the event file referenced
         /// </summary>
-        public string EventFileName { get; set; } = IO.ReadAsciiString(data, idx + IO.ReadInt(data, 0x00));
+        public string EventFileName { get; set; } = IO.ReadAsciiString(data, IO.ReadInt(data, idx));
         /// <summary>
         /// The index of the event file in evt.bin
         /// </summary>
