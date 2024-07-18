@@ -1,6 +1,7 @@
 ﻿using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Event
@@ -90,24 +91,50 @@ namespace HaruhiChokuretsuLib.Archive.Event
     /// <summary>
     /// Representation of an entry in the event table (EVTTBL.S)
     /// </summary>
-    public class EventTableEntry(IEnumerable<byte> data, int idx)
+    public class EventTableEntry
     {
         /// <summary>
         /// The name of the event file referenced
         /// </summary>
-        public string EventFileName { get; set; } = IO.ReadInt(data, idx) == 0 ? string.Empty : IO.ReadAsciiString(data, IO.ReadInt(data, idx));
+        public string EventFileName { get; set; }
         /// <summary>
         /// The index of the event file in evt.bin
         /// </summary>
-        public short EventFileIndex { get; set; } = IO.ReadShort(data, idx + 0x04);
+        public short EventFileIndex { get; set; }
         /// <summary>
         /// The SDAT sound group index used by this event
         /// </summary>
-        public short SfxGroupIndex { get; set; } = IO.ReadShort(data, idx + 0x06);
+        public short SfxGroupIndex { get; set; }
         /// <summary>
         /// The first read flag for this event
         /// </summary>
-        public short FirstReadFlag { get; set; } = IO.ReadShort(data, idx + 0x08);
+        public short FirstReadFlag { get; set; }
+
+        /// <summary>
+        /// Parameter-based constructor
+        /// </summary>
+        /// <param name="eventFileIndex">The event file index</param>
+        /// <param name="sfxGroupIndex">The SFX group index</param>
+        /// <param name="firstReadFlag">The first read flag</param>
+        public EventTableEntry(short eventFileIndex, short sfxGroupIndex, short firstReadFlag)
+        {
+            EventFileIndex = eventFileIndex;
+            SfxGroupIndex = sfxGroupIndex;
+            FirstReadFlag = firstReadFlag;
+        }
+
+        /// <summary>
+        /// Data-based constructor
+        /// </summary>
+        /// <param name="data">The data for the entire event table file</param>
+        /// <param name="idx">The offset into the event table file where this struct begins</param>
+        public EventTableEntry(IEnumerable<byte> data, int idx)
+        {
+            EventFileName = IO.ReadInt(data, idx) == 0 ? string.Empty : IO.ReadAsciiString(data, IO.ReadInt(data, idx));
+            EventFileIndex = IO.ReadShort(data, idx + 0x04);
+            SfxGroupIndex = IO.ReadShort(data, idx + 0x06);
+            FirstReadFlag = IO.ReadShort(data, idx + 0x08);
+        }
 
         /// <summary>
         /// Gets a source representation of the entry
