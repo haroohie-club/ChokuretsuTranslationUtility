@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Event
@@ -112,7 +113,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"ENDPOINTER{idx:D3}: .word EVENT{idx:D3}");
-            sb.AppendLine($".short {evtIncludes[EventFileIndex].Name}");
+            sb.AppendLine($".short {evtIncludes.First(i => i.Value == EventFileIndex).Name}");
             sb.AppendLine($".short {SfxGroupIndex}");
             sb.AppendLine($".short {FirstReadFlag}");
             sb.AppendLine(".skip 2");
