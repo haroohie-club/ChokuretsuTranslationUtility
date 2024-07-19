@@ -5,6 +5,7 @@ using HaruhiChokuretsuLib.Audio.ADX;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
 using NAudio.Vorbis;
+using NAudio.Wave;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -100,7 +101,7 @@ namespace HaruhiChokuretsuCLI
             }
 
             // Create includes for source files
-            if (!string.IsNullOrEmpty(_inputArchive))
+            if (Path.HasExtension(_inputArchive))
             {
                 new ExportIncludeCommand().Invoke(["-c", "-o", "COMMANDS.INC"]);
                 new ExportIncludeCommand().Invoke(["-i", Path.Combine(Path.GetDirectoryName(_inputArchive), "grp.bin"), "-o", "GRPBIN.INC"]);
@@ -119,7 +120,7 @@ namespace HaruhiChokuretsuCLI
                 // so we copy the originals to the output directory
                 foreach (string file in Directory.GetFiles(_inputArchive))
                 {
-                    File.Copy(file, Path.Combine(_outputArchive, Path.GetFileName(file)));
+                    File.Copy(file, Path.Combine(_outputArchive, Path.GetFileName(file)), overwrite: true);
                 }
                 CommandSet.Out.WriteLine($"Beginning file replacement in {Path.GetFileName(_outputArchive)}...");
             }
@@ -151,51 +152,54 @@ namespace HaruhiChokuretsuCLI
 
             foreach (string filePath in filePaths)
             {
-                int? index = GetIndexByFileName(filePath);
-                if (index is not null)
+                if (Path.GetExtension(filePath).Equals(".ogg", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (index >= 0)
+                    CommandSet.Out.Write($"Replacing {Path.GetFileNameWithoutExtension(filePath)}... ");
+                    ReplaceSingleAudioFile(_outputArchive, filePath, log);
+                }
+                else
+                {
+                    int? index = GetIndexByFileName(filePath);
+                    if (index is not null)
                     {
-                        CommandSet.Out.Write($"Replacing #{index:X3}... ");
-                    }
-                    else
-                    {
-                        CommandSet.Out.Write($"Adding new file from {Path.GetFileName(filePath)}... ");
-                    }
-
-
-                    if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
-                    {
-                        AddNewFile(archive, filePath, log);
-                    }
-                    else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ReplaceSingleGraphicsFile(archive, filePath, index.Value, _palettes);
-                    }
-                    else if (Path.GetExtension(filePath).Equals(".s", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (string.IsNullOrEmpty(_devkitArm))
+                        if (index >= 0)
                         {
-                            CommandSet.Error.WriteLine("ERROR: DevkitARM must be supplied for replacing with source files");
-                            return 1;
+                            CommandSet.Out.Write($"Replacing #{index:X3}... ");
                         }
-                        await ReplaceSingleSourceFileAsync(archive, filePath, index.Value, _devkitArm);
-                    }
-                    else if (Path.GetExtension(filePath).Equals(".ogg", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ReplaceSingleAudioFile(_outputArchive, filePath, log);
-                    }
-                    else if (Path.GetExtension(filePath).Equals(".bin", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ReplaceSingleFile(archive, filePath, index.Value);
-                    }
-                    else
-                    {
-                        throw new ArgumentException($"Unsure what to do with file '{Path.GetFileName(filePath)}'");
-                    }
+                        else
+                        {
+                            CommandSet.Out.Write($"Adding new file from {Path.GetFileName(filePath)}... ");
+                        }
 
-                    CommandSet.Out.WriteLine("OK");
+                        if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
+                        {
+                            AddNewFile(archive, filePath, log);
+                        }
+                        else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ReplaceSingleGraphicsFile(archive, filePath, index.Value, _palettes);
+                        }
+                        else if (Path.GetExtension(filePath).Equals(".s", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (string.IsNullOrEmpty(_devkitArm))
+                            {
+                                CommandSet.Error.WriteLine("ERROR: DevkitARM must be supplied for replacing with source files");
+                                return 1;
+                            }
+                            await ReplaceSingleSourceFileAsync(archive, filePath, index.Value, _devkitArm);
+                        }
+                        else if (Path.GetExtension(filePath).Equals(".bin", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ReplaceSingleFile(archive, filePath, index.Value);
+                        }
+                        else
+                        {
+                            throw new ArgumentException($"Unsure what to do with file '{Path.GetFileName(filePath)}'");
+                        }
 
+                        CommandSet.Out.WriteLine("OK");
+
+                    }
                 }
             }
             if (archive is not null)
@@ -307,9 +311,16 @@ namespace HaruhiChokuretsuCLI
 
         private static void ReplaceSingleAudioFile(string audioDir, string filePath, ILogger log)
         {
-            VorbisWaveReader vorbisReader = new(filePath);
-            string replacementFile = Path.Combine(audioDir, $"{Path.GetFileNameWithoutExtension(filePath)}.bin");
-            AdxUtil.EncodeAudio(vorbisReader, replacementFile, Path.GetFileNameWithoutExtension(audioDir).Equals("vce", StringComparison.OrdinalIgnoreCase));
+            string tempWav = $"{Path.GetFileNameWithoutExtension(filePath)}.wav";
+            using VorbisWaveReader vorbisReader = new(filePath);
+            WaveFileWriter.CreateWaveFile(tempWav, vorbisReader.ToSampleProvider().ToWaveProvider16());
+
+            using (WaveFileReader waveFileReader = new(tempWav))
+            {
+                string replacementFile = Path.Combine(audioDir, $"{Path.GetFileNameWithoutExtension(filePath)}.bin");
+                AdxUtil.EncodeAudio(waveFileReader, replacementFile, Path.GetFileNameWithoutExtension(audioDir).Equals("vce", StringComparison.OrdinalIgnoreCase));
+            }
+            File.Delete(tempWav);
         }
 
         /// <summary>
