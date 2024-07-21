@@ -196,11 +196,11 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown24 { get; set; } = IO.ReadShort(data, 0x24);
+        public int Unknown24 { get; set; } = IO.ReadInt(data, 0x24);
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown28 { get; set; } = IO.ReadShort(data, 0x28);
+        public int Unknown28 { get; set; } = IO.ReadInt(data, 0x28);
     }
 
     /// <summary>

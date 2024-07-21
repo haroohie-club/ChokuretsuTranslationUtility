@@ -54,12 +54,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             for (int i = 0; i < selectionsCount; i++)
             {
-                int[] routeSelectionOffsets = new int[IO.ReadInt(data, selectionsOffset + i * 0x14)];
-                for (int j = 0; j < routeSelectionOffsets.Length; j++)
+                int[] activityOffset = new int[IO.ReadInt(data, selectionsOffset + i * 0x14)];
+                for (int j = 0; j < activityOffset.Length; j++)
                 {
-                    routeSelectionOffsets[j] = IO.ReadInt(data, selectionsOffset + i * 0x14 + (j + 1) * 4);
+                    activityOffset[j] = IO.ReadInt(data, selectionsOffset + i * 0x14 + (j + 1) * 4);
                 }
-                Selects.Add(new(routeSelectionOffsets, lines, data));
+                Selects.Add(new(activityOffset, lines, data));
             }
 
             for (int i = 0; i < 6; i++)
@@ -118,9 +118,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     sb.AppendLine($".word {route.KyonlessTopics.Count}");
                 }
                 
-                foreach (ScenarioActivity routeSelection in select.Activities.Where(rs => rs is not null))
+                foreach (ScenarioActivity activity in select.Activities.Where(rs => rs is not null))
                 {
-                    sb.AppendLine($".word ROUTESELECTION{routeSelection.TitleIndex:D2}");
+                    sb.AppendLine($".word ACTIVITY{activity.TitleIndex:D2}");
                     sb.AppendLine(".word 1");
                 }
             }
@@ -153,7 +153,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     }
                     else
                     {
-                        sb.AppendLine($"POINTER{currentPointer++:D2}: .word ROUTESELECTION{selection.Activities[i].TitleIndex:D2}");
+                        sb.AppendLine($"POINTER{currentPointer++:D2}: .word ACTIVITY{selection.Activities[i].TitleIndex:D2}");
                     }
                 }
             }
@@ -446,11 +446,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <summary>
         /// Tuple representing up to three brigade members comprising the defined "optimal group" for this activity
         /// </summary>
-        public (BrigadeMember, BrigadeMember, BrigadeMember) OptimalGroup { get; set; }
+        public (BrigadeMember FirstMember, BrigadeMember SecondMember, BrigadeMember ThirdMember) OptimalGroup { get; set; }
         /// <summary>
         /// Tuple representing up to three brigade members comprising the defined "worst group" for this activity
         /// </summary>
-        public (BrigadeMember, BrigadeMember, BrigadeMember) WorstGroup { get; set; }
+        public (BrigadeMember FirstMember, BrigadeMember SecondMember, BrigadeMember ThirdMember) WorstGroup { get; set; }
         /// <summary>
         /// A brigade member who is required to be assigned to this activity
         /// </summary>
@@ -490,16 +490,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
 
-            sb.AppendLine($"ROUTESELECTION{TitleIndex:D2}:");
-            sb.AppendLine($"   POINTER{currentPointer++}: .word ROUTESELECTIONTITLE{TitleIndex:D2}");
-            sb.AppendLine($"   POINTER{currentPointer++}: .word ROUTESELECTIONFUTUREDESC{TitleIndex:D2}");
-            sb.AppendLine($"   POINTER{currentPointer++}: .word ROUTESELECTIONPASTDESC{TitleIndex:D2}");
-            sb.AppendLine($"   .word {(int)OptimalGroup.Item1}");
-            sb.AppendLine($"   .word {(int)OptimalGroup.Item2}");
-            sb.AppendLine($"   .word {(int)OptimalGroup.Item3}");
-            sb.AppendLine($"   .word {(int)WorstGroup.Item1}");
-            sb.AppendLine($"   .word {(int)WorstGroup.Item2}");
-            sb.AppendLine($"   .word {(int)WorstGroup.Item3}");
+            sb.AppendLine($"ACTIVITY{TitleIndex:D2}:");
+            sb.AppendLine($"   POINTER{currentPointer++}: .word ACTIVITYTITLE{TitleIndex:D2}");
+            sb.AppendLine($"   POINTER{currentPointer++}: .word ACTIVITYFUTUREDESC{TitleIndex:D2}");
+            sb.AppendLine($"   POINTER{currentPointer++}: .word ACTIVITYPASTDESC{TitleIndex:D2}");
+            sb.AppendLine($"   .word {(int)OptimalGroup.FirstMember}");
+            sb.AppendLine($"   .word {(int)OptimalGroup.SecondMember}");
+            sb.AppendLine($"   .word {(int)OptimalGroup.ThirdMember}");
+            sb.AppendLine($"   .word {(int)WorstGroup.FirstMember}");
+            sb.AppendLine($"   .word {(int)WorstGroup.SecondMember}");
+            sb.AppendLine($"   .word {(int)WorstGroup.ThirdMember}");
             sb.AppendLine($"   .word {(int)RequiredBrigadeMember}");
             sb.AppendLine($"   .word {(HaruhiPresent ? 1 : 0)}");
 
@@ -511,11 +511,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine(".word -1");
             sb.AppendLine($".skip {0x100 - Routes.Count * 0x10 - 4}");
 
-            sb.AppendLine($"ROUTESELECTIONTITLE{TitleIndex:D2}: .string \"{Title.EscapeShiftJIS()}\"");
+            sb.AppendLine($"ACTIVITYTITLE{TitleIndex:D2}: .string \"{Title.EscapeShiftJIS()}\"");
             sb.AsmPadString(Title, Encoding.GetEncoding("Shift-JIS"));
-            sb.AppendLine($"ROUTESELECTIONFUTUREDESC{TitleIndex:D2}: .string \"{FutureDesc.EscapeShiftJIS()}\"");
+            sb.AppendLine($"ACTIVITYFUTUREDESC{TitleIndex:D2}: .string \"{FutureDesc.EscapeShiftJIS()}\"");
             sb.AsmPadString(FutureDesc, Encoding.GetEncoding("Shift-JIS"));
-            sb.AppendLine($"ROUTESELECTIONPASTDESC{TitleIndex:D2}: .string \"{PastDesc.EscapeShiftJIS()}\"");
+            sb.AppendLine($"ACTIVITYPASTDESC{TitleIndex:D2}: .string \"{PastDesc.EscapeShiftJIS()}\"");
             sb.AsmPadString(PastDesc, Encoding.GetEncoding("Shift-JIS"));
 
             foreach (ScenarioRoute route in Routes)
