@@ -27,6 +27,18 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         public List<byte> PixelData { get; set; }
         /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown08 { get; set; }
+        /// <summary>
+        /// The width of the tiles that make up the graphic
+        /// </summary>
+        public short RenderWidth { get; set; }
+        /// <summary>
+        /// The height of the tiles that make up the graphic
+        /// </summary>
+        public short RenderHeight { get; set; }
+        /// <summary>
         /// Texture file width
         /// </summary>
         public int Width { get; set; }
@@ -34,6 +46,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// Texture file height
         /// </summary>
         public int Height { get; set; }
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        public short Unknown12 { get; set; }
         /// <summary>
         /// The function of a particular graphics file
         /// </summary>
@@ -135,8 +151,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 FileFunction = Function.SHTX;
                 Determinant = Encoding.ASCII.GetString(Data.Skip(4).Take(2).ToArray());
                 ImageTileForm = (TileForm)BitConverter.ToInt16(decompressedData.Skip(0x06).Take(2).ToArray());
-                Width = (int)Math.Pow(2, Data.Skip(0x0E).First());
-                Height = (int)Math.Pow(2, Data.Skip(0x0F).First());
+                Unknown08 = IO.ReadShort(decompressedData, 0x08);
+                RenderWidth = IO.ReadShort(decompressedData, 0x0A);
+                RenderHeight = IO.ReadShort(decompressedData, 0x0C);
+                Width = (int)Math.Pow(2, Data.ElementAt(0x0E));
+                Height = (int)Math.Pow(2, Data.ElementAt(0x0F));
+                Unknown12 = IO.ReadShort(decompressedData, 0x12);
                 int paletteLength = 0x200;
                 if (ImageTileForm == TileForm.GBA_4BPP && !Name.StartsWith("CHS_SYS_"))
                 {
@@ -219,6 +239,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Log = log;
             SKBitmap bitmap = SKBitmap.Decode(filename);
             string[] fileComponents = Path.GetFileNameWithoutExtension(filename).Split('_');
+            Determinant = "DS";
             ImageTileForm = fileComponents[1].ToLower() switch
             {
                 "4bpp" => TileForm.GBA_4BPP,
@@ -231,6 +252,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 "tile" => Form.TILE,
                 _ => throw new ArgumentException($"Image {filename} does not have its image form (third argument should be 'texture' or 'tile')")
             };
+            Unknown08 = short.Parse(fileComponents[3]);
+            RenderWidth = short.Parse(fileComponents[4]);
+            RenderHeight = short.Parse(fileComponents[5]);
+            Unknown12 = 0;
             Name = fileComponents.Last().ToUpper();
             Data = [];
             FileFunction = Function.SHTX;
@@ -260,14 +285,16 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             byte encodedWidth, encodedHeight;
             if (ImageForm == Form.TILE)
             {
-                encodedWidth = (byte)Math.Log2(256);
-                encodedHeight = (byte)Math.Ceiling(Math.Log2(bitmap.Height / (256 / bitmap.Width)));
+                Width = 256;
+                Height = bitmap.Height / (256 / bitmap.Width);
             }
             else
             {
-                encodedWidth = (byte)Math.Ceiling(Math.Log2(bitmap.Width));
-                encodedHeight = (byte)Math.Ceiling(Math.Log2(bitmap.Height));
+                Width = bitmap.Width;
+                Height = bitmap.Height;
             }
+            encodedWidth = (byte)Math.Log2(Width);
+            encodedHeight = (byte)Math.Ceiling(Math.Log2(Height));
             Data.AddRange([0x01, 0x00, 0x00, 0x01, 0xC0, 0x00, encodedWidth, encodedHeight, 0x00, 0xC0, 0x00, 0x00]);
             Data.AddRange(PaletteData);
             Data.AddRange(PixelData);
@@ -350,7 +377,15 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             {
                 List<byte> data =
                 [
-                    .. Data.Take(0x14), // get header
+                    .. Encoding.ASCII.GetBytes($"SHTX{Determinant}"),
+                    .. BitConverter.GetBytes((short)ImageTileForm),
+                    .. BitConverter.GetBytes(Unknown08),
+                    .. BitConverter.GetBytes(RenderWidth),
+                    .. BitConverter.GetBytes(RenderHeight),
+                    (byte)Math.Log2(Width),
+                    (byte)Math.Ceiling(Math.Log2(Height)),
+                    .. BitConverter.GetBytes((ushort)(RenderWidth * RenderHeight)),
+                    .. BitConverter.GetBytes(Unknown12),
                     .. PaletteData,
                     .. PixelData,
                 ];
@@ -587,7 +622,6 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
-            Edited = true;
             return SetImage(SKBitmap.Decode(bitmapFile), setPalette, transparentIndex, newSize, associatedTiles);
         }
 
@@ -602,6 +636,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <returns>Width of new bitmap image</returns>
         public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
         {
+            Edited = true;
             PnnQuantizer quantizer = new();
 
             if (FileFunction == Function.SCREEN)
@@ -610,11 +645,11 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             else if (IsTexture())
             {
-                return SetTexture(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false, setPalette);
+                return SetTexture(bitmap, quantizer, newSize, transparentIndex == 0, setPalette);
             }
             else
             {
-                return SetTiles(bitmap, quantizer, newSize, transparentIndex == 0 ? true : false, setPalette);
+                return SetTiles(bitmap, quantizer, newSize, transparentIndex == 0, setPalette);
             }
         }
 
@@ -627,6 +662,9 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             int calculatedHeight = PixelData.Count / bitmap.Width;
             if (newSize)
             {
+                Log.LogWarning("Resizing texture... ");
+                Width = bitmap.Width;
+                Height = bitmap.Height;
                 PixelData = new(new byte[bitmap.Width * bitmap.Height]);
             }
             else if (bitmap.Height < calculatedHeight)
@@ -648,7 +686,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             int calculatedHeight = PixelData.Count / (bitmap.Width / (ImageTileForm == TileForm.GBA_4BPP ? 2 : 1));
             if (newSize)
             {
-                Log.LogWarning("Resizing... ");
+                Log.LogWarning("Resizing tiled image... ");
                 PixelData = new(new byte[bitmap.Width * bitmap.Height]);
             }
             else if (bitmap.Height < calculatedHeight)

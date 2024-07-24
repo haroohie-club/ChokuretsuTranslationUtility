@@ -135,13 +135,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x07, nameof(CommandVerb.SCREEN_FLASH), ["fadeInTime", "holdTime", "fadeOutTime", "flashColorRed", "flashColorGreen", "flashColorBlue"]),
             new(0x08, nameof(CommandVerb.SND_PLAY), ["soundIndex", "mode", "volume", "crossfadeDupe", "crossfadeTime"]),
             new(0x09, nameof(CommandVerb.REMOVED), []),
-            new(0x0A, nameof(CommandVerb.UNKNOWN0A), []),
+            new(0x0A, nameof(CommandVerb.SND_STOP), []),
             new(0x0B, nameof(CommandVerb.BGM_PLAY), ["bgmIndex", "mode", "volume", "fadeInTime", "fadeOutTime"]),
             new(0x0C, nameof(CommandVerb.VCE_PLAY), ["vceIndex"]),
             new(0x0D, nameof(CommandVerb.FLAG), ["flag", "set"]),
             new(0x0E, nameof(CommandVerb.TOPIC_GET), ["topicId"]),
             new(0x0F, nameof(CommandVerb.TOGGLE_DIALOGUE), ["show"]),
-            new(0x10, nameof(CommandVerb.SELECT), ["option1", "option2", "option3", "option4", "unknown04", "unknown05", "unknown06", "unknown07"]),
+            new(0x10, nameof(CommandVerb.SELECT), ["option1", "option2", "option3", "option4", "flag1", "flag2", "flag3", "flag4"]),
             new(0x11, nameof(CommandVerb.SCREEN_SHAKE), ["duration", "horizontalIntensity", "verticalIntensity"]),
             new(0x12, nameof(CommandVerb.SCREEN_SHAKE_STOP), []),
             new(0x13, nameof(CommandVerb.GOTO), ["blockId"]),
@@ -240,7 +240,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             /// <summary>
             /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#unknown0a-0x0a
             /// </summary>
-            UNKNOWN0A,
+            SND_STOP,
             /// <summary>
             /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bgm_play-0x0b
             /// </summary>
@@ -860,6 +860,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
 
         /// <summary>
+        /// Initializes EVTTBL.S (should be its own class but alas, here we are)
+        /// </summary>
+        public void InitializeEventTableFile()
+        {
+            EvtTbl = new(Data);
+        }
+
+        /// <summary>
         /// Returns the binary data representing this file
         /// </summary>
         /// <returns>Byte array of file data</returns>
@@ -1074,16 +1082,23 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "EVTTBLS")
             {
-                return "";
+                if (EvtTbl is null)
+                {
+                    InitializeEventTableFile();
+                }
+                return EvtTbl.GetSource(includes, Log);
             }
             else if (Name == "SCENARIOS")
             {
-                InitializeScenarioFile();
+                if (Scenario is null)
+                {
+                    InitializeScenarioFile();
+                }
                 return Scenario.GetSource(includes, Log);
             }
             else if (Name == "TOPICS")
             {
-                if (!Topics.Any())
+                if (Topics.Count == 0)
                 {
                     InitializeTopicFile();
                 }
@@ -1124,7 +1139,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             }
             else if (Name == "TUTORIALS")
             {
-                if (!Tutorials.Any())
+                if (Tutorials.Count == 0)
                 {
                     InitializeTutorialFile();
                 }

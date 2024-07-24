@@ -292,7 +292,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     Padding1 = BitConverter.ToInt32(data.Skip(i * ObjectLength).Take(4).ToArray()),
                     Pointer = BitConverter.ToInt32(data.Skip(i * ObjectLength + 4).Take(4).ToArray()),
-                    Padding2 = BitConverter.ToInt32(data.Skip(i * ObjectLength + 8).Take(4).ToArray()),
+                    ItemCount = BitConverter.ToInt32(data.Skip(i * ObjectLength + 8).Take(4).ToArray()),
                 });
             }
         }
@@ -319,7 +319,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 ObjectType = typeof(PointerStruct),
                 Objects =
                 [
-                    new() { Pointer = 1, Padding2 = section.Objects.Count - 1 }, // doesn't matter since we're only creating this for the ASM output,
+                    new() { Pointer = 1, ItemCount = section.Objects.Count - 1 }, // doesn't matter since we're only creating this for the ASM output,
                 ]
             };
         }
@@ -339,7 +339,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Padding1}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].Pointer == 0 ? ".word 0" : $"POINTER{currentPointer++}: .word {Name[0..Name.IndexOf('_')]}")}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Padding2}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].ItemCount}");
             }
             for (int i = 0; i < 3; i++)
             {
@@ -365,9 +365,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public int Pointer { get; set; }
         /// <summary>
-        /// Padding
+        /// Number of items in the section being pointed to
         /// </summary>
-        public int Padding2 { get; set; }
+        public int ItemCount { get; set; }
 
         /// <inheritdoc/>
         public override readonly string ToString()

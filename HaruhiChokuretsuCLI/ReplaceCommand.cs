@@ -1,8 +1,11 @@
 ﻿using HaruhiChokuretsuLib.Archive;
 using HaruhiChokuretsuLib.Archive.Event;
 using HaruhiChokuretsuLib.Archive.Graphics;
+using HaruhiChokuretsuLib.Audio.ADX;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
+using NAudio.Vorbis;
+using NAudio.Wave;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -29,12 +32,12 @@ namespace HaruhiChokuretsuCLI
                 "Usage: HaruhiChokuretsuCLI replace -i [inputArchive] -o [outputArchive] -r [replacementFileOrDirectory]",
                 "",
                 { "i|input-archive=", "Archive to replace file(s) in", i => _inputArchive = i },
-                { "o|output-archive=", "Location to save modified archive", o => _outputArchive = o },
-                { "r|replacement=", "File or directory to replace with/from; images must be .PNG files and other files must be .BIN files. " +
+                { "o|output-archive=", "Location to save modified archive (or directory)", o => _outputArchive = o },
+                { "r|replacement=", "File or directory to replace with/from; images must be .PNG files, source files must be .S, audio files must be .OGG, and other files must be .BIN files. " +
                                     "File names must follow a specific format: " +
                                     "\n\t\"(hex)|new[_newpal|_sharedpal(num)[_tidx(num)]][_(comments)].(ext)\"\n\t(hex) is a hex number representing the index " +
                                     "of the file to replace. You can alternatively specify \"new\" to add a file to the archive instead. New graphics " +
-                                    "files must additionally specify whether they are 4bpp or 8bpp and tiles or textures as well." +
+                                    "files must additionally specify whether they are 4bpp or 8bpp and tiles or textures as well their screen resolution and 'unknown08'." +
                                     "\n\tnewpal is an optional component for graphics files to specify that a new palette should be created for the" +
                                     "replaced image." +
                                     "\n\tsharedpal(num) is an optional component that can be used in place of newpal when multiple files must share the" +
@@ -86,7 +89,7 @@ namespace HaruhiChokuretsuCLI
                 Directory.CreateDirectory(outputDirectory);
             }
 
-            List<string> filePaths = new();
+            List<string> filePaths = [];
 
             if (Path.HasExtension(_replacement))
             {
@@ -98,13 +101,31 @@ namespace HaruhiChokuretsuCLI
             }
 
             // Create includes for source files
-            new ExportIncludeCommand().Invoke(new string[] { "-c", "-o", "COMMANDS.INC" });
-            new ExportIncludeCommand().Invoke(new string[] { "-i", Path.Combine(Path.GetDirectoryName(_inputArchive), "grp.bin"),  "-o", "GRPBIN.INC" });
+            if (Path.HasExtension(_inputArchive))
+            {
+                new ExportIncludeCommand().Invoke(["-c", "-o", "COMMANDS.INC"]);
+                new ExportIncludeCommand().Invoke(["-i", Path.Combine(Path.GetDirectoryName(_inputArchive), "grp.bin"), "-o", "GRPBIN.INC"]);
+            }
 
-            var archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive, log);
-            CommandSet.Out.WriteLine($"Beginning file replacement in {archive.FileName}...");
+            ArchiveFile<FileInArchive> archive;
+            if (Path.HasExtension(_inputArchive))
+            {
+                archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive, log);
+                CommandSet.Out.WriteLine($"Beginning file replacement in {archive.FileName}...");
+            }
+            else
+            {
+                archive = null;
+                // The input directory here is just the "original" files -- we want to make sure we replace cleanly every time,
+                // so we copy the originals to the output directory
+                foreach (string file in Directory.GetFiles(_inputArchive))
+                {
+                    File.Copy(file, Path.Combine(_outputArchive, Path.GetFileName(file)), overwrite: true);
+                }
+                CommandSet.Out.WriteLine($"Beginning file replacement in {Path.GetFileName(_outputArchive)}...");
+            }
 
-            Dictionary<int, List<string>> filesWithSharedPalettes = new();
+            Dictionary<int, List<string>> filesWithSharedPalettes = [];
             for (int i = 0; i < filePaths.Count; i++)
             {
                 Match match = Regex.Match(filePaths[i], @"sharedpal(?<index>\d+)", RegexOptions.IgnoreCase);
@@ -115,7 +136,7 @@ namespace HaruhiChokuretsuCLI
                     {
                         if (!filesWithSharedPalettes.ContainsKey(index))
                         {
-                            filesWithSharedPalettes.Add(index, new List<string>());
+                            filesWithSharedPalettes.Add(index, []);
                         }
                         filesWithSharedPalettes[index].Add(filePaths[i]);
                     }
@@ -131,50 +152,60 @@ namespace HaruhiChokuretsuCLI
 
             foreach (string filePath in filePaths)
             {
-                int? index = GetIndexByFileName(filePath);
-                if (index is not null)
+                if (Path.GetExtension(filePath).Equals(".ogg", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (index >= 0)
+                    CommandSet.Out.Write($"Replacing {Path.GetFileNameWithoutExtension(filePath)}... ");
+                    ReplaceSingleAudioFile(_outputArchive, filePath, log);
+                }
+                else
+                {
+                    int? index = GetIndexByFileName(filePath);
+                    if (index is not null)
                     {
-                        CommandSet.Out.Write($"Replacing #{index:X3}... ");
-                    }
-                    else
-                    {
-                        CommandSet.Out.Write($"Adding new file from {Path.GetFileName(filePath)}... ");
-                    }
-
-
-                    if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
-                    {
-                        AddNewFile(archive, filePath, log);
-                    }
-                    else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ReplaceSingleGraphicsFile(archive, filePath, index.Value, _palettes);
-                    }
-                    else if (Path.GetExtension(filePath).Equals(".s", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (string.IsNullOrEmpty(_devkitArm))
+                        if (index >= 0)
                         {
-                            CommandSet.Error.WriteLine("ERROR: DevkitARM must be supplied for replacing with source files");
-                            return 1;
+                            CommandSet.Out.Write($"Replacing #{index:X3}... ");
                         }
-                        await ReplaceSingleSourceFileAsync(archive, filePath, index.Value, _devkitArm);
-                    }
-                    else if (Path.GetExtension(filePath).Equals(".bin", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ReplaceSingleFile(archive, filePath, index.Value);
-                    }
-                    else
-                    {
-                        throw new ArgumentException($"Unsure what to do with file '{Path.GetFileName(filePath)}'");
-                    }
+                        else
+                        {
+                            CommandSet.Out.Write($"Adding new file from {Path.GetFileName(filePath)}... ");
+                        }
 
-                    CommandSet.Out.WriteLine("OK");
+                        if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
+                        {
+                            AddNewFile(archive, filePath, log);
+                        }
+                        else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ReplaceSingleGraphicsFile(archive, filePath, index.Value, _palettes);
+                        }
+                        else if (Path.GetExtension(filePath).Equals(".s", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (string.IsNullOrEmpty(_devkitArm))
+                            {
+                                CommandSet.Error.WriteLine("ERROR: DevkitARM must be supplied for replacing with source files");
+                                return 1;
+                            }
+                            await ReplaceSingleSourceFileAsync(archive, filePath, index.Value, _devkitArm);
+                        }
+                        else if (Path.GetExtension(filePath).Equals(".bin", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ReplaceSingleFile(archive, filePath, index.Value);
+                        }
+                        else
+                        {
+                            throw new ArgumentException($"Unsure what to do with file '{Path.GetFileName(filePath)}'");
+                        }
 
+                        CommandSet.Out.WriteLine("OK");
+
+                    }
                 }
             }
-            File.WriteAllBytes(_outputArchive, archive.GetBytes());
+            if (archive is not null)
+            {
+                File.WriteAllBytes(_outputArchive, archive.GetBytes());
+            }
 
             File.Delete("COMMANDS.INC");
             File.Delete("GRPBIN.INC");
@@ -220,8 +251,10 @@ namespace HaruhiChokuretsuCLI
             }
             else
             {
-                FileInArchive file = new();
-                file.Data = File.ReadAllBytes(filePath).ToList();
+                FileInArchive file = new()
+                {
+                    Data = [.. File.ReadAllBytes(filePath)]
+                };
                 archive.AddFile(file);
             }
         }
@@ -274,6 +307,20 @@ namespace HaruhiChokuretsuCLI
             ReplaceSingleFile(archive, binFile, index);
             File.Delete(objFile);
             File.Delete(binFile);
+        }
+
+        private static void ReplaceSingleAudioFile(string audioDir, string filePath, ILogger log)
+        {
+            string tempWav = $"{Path.GetFileNameWithoutExtension(filePath)}.wav";
+            using VorbisWaveReader vorbisReader = new(filePath);
+            WaveFileWriter.CreateWaveFile(tempWav, vorbisReader.ToSampleProvider().ToWaveProvider16());
+
+            using (WaveFileReader waveFileReader = new(tempWav))
+            {
+                string replacementFile = Path.Combine(audioDir, $"{Path.GetFileNameWithoutExtension(filePath)}.bin");
+                AdxUtil.EncodeAudio(waveFileReader, replacementFile, Path.GetFileNameWithoutExtension(audioDir).Equals("vce", StringComparison.OrdinalIgnoreCase));
+            }
+            File.Delete(tempWav);
         }
 
         /// <summary>

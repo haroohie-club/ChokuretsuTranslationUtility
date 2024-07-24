@@ -130,7 +130,7 @@ namespace HaruhiChokuretsuCLI
                 }
                 DataFile file = archive.GetFileByIndex(fileIndex);
 
-                Dictionary<string, IncludeEntry[]> includes = new();
+                Dictionary<string, IncludeEntry[]> includes = [];
                 if (_includes is not null)
                 {
                     foreach (string include in _includes)

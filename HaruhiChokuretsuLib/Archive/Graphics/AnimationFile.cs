@@ -254,7 +254,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
 
             List<SKBitmap> uniqueFrames = [];
-            List<(int index, short time)> indicesAndTimings = new();
+            List<(int index, short time)> indicesAndTimings = [];
             foreach ((SKBitmap frame, short time) in framesAndTimings)
             {
                 if (!uniqueFrames.Any(f => f.Pixels.SequenceEqual(frame.Pixels)))
