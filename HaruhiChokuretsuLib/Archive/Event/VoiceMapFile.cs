@@ -377,7 +377,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 /// <summary>
                 /// Top of the screen
                 /// </summary>
-                TOP = 16,
+                TOP = 2,
                 /// <summary>
                 /// Just below the top of the screen
                 /// </summary>
