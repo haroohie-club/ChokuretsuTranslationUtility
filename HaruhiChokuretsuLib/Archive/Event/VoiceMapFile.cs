@@ -270,7 +270,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     YPos = Enum.Parse<VoiceMapEntry.YPosition>(fields[2]),
                     FontSize = 100,
                     TargetScreen = Enum.Parse<VoiceMapEntry.Screen>(fields[3]),
-                    Timer = header is null ? int.Parse(fields[4]) : (int)((double)header.TotalSamples / header.SampleRate * 180), // 180 = 60fps * 3x/frame (the number of times the timer is decremented per frame)
+                    Timer = header is null ? int.Parse(fields[4]) : (int)((double)header.TotalSamples / header.SampleRate * 180 + 30), // 180 = 60fps * 3x/frame (the number of times the timer is decremented per frame); extra half-second for readability
                 };
 
                 VoiceMapEntries.Add(vmEntry);
