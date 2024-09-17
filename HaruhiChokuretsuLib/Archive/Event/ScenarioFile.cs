@@ -446,11 +446,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <summary>
         /// Tuple representing up to three brigade members comprising the defined "optimal group" for this activity
         /// </summary>
-        public (BrigadeMember FirstMember, BrigadeMember SecondMember, BrigadeMember ThirdMember) OptimalGroup { get; set; }
+        public List<BrigadeMember> OptimalGroup { get; set; }
         /// <summary>
         /// Tuple representing up to three brigade members comprising the defined "worst group" for this activity
         /// </summary>
-        public (BrigadeMember FirstMember, BrigadeMember SecondMember, BrigadeMember ThirdMember) WorstGroup { get; set; }
+        public List<BrigadeMember> WorstGroup { get; set; }
         /// <summary>
         /// A brigade member who is required to be assigned to this activity
         /// </summary>
@@ -475,8 +475,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             FutureDesc = lines[FutureDescIndex].Text;
             PastDesc = lines[PastDescIndex].Text;
 
-            OptimalGroup = ((BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x0C), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x10), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x14));
-            WorstGroup = ((BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x18), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x1C), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x20));
+            OptimalGroup = [(BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x0C), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x10), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x14)];
+            WorstGroup = [(BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x18), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x1C), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x20)];
             RequiredBrigadeMember = (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x24);
             HaruhiPresent = IO.ReadInt(data, dataStartIndex + 0x28) > 0;
 
@@ -494,12 +494,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
             sb.AppendLine($"   POINTER{currentPointer++}: .word ACTIVITYTITLE{TitleIndex:D2}");
             sb.AppendLine($"   POINTER{currentPointer++}: .word ACTIVITYFUTUREDESC{TitleIndex:D2}");
             sb.AppendLine($"   POINTER{currentPointer++}: .word ACTIVITYPASTDESC{TitleIndex:D2}");
-            sb.AppendLine($"   .word {(int)OptimalGroup.FirstMember}");
-            sb.AppendLine($"   .word {(int)OptimalGroup.SecondMember}");
-            sb.AppendLine($"   .word {(int)OptimalGroup.ThirdMember}");
-            sb.AppendLine($"   .word {(int)WorstGroup.FirstMember}");
-            sb.AppendLine($"   .word {(int)WorstGroup.SecondMember}");
-            sb.AppendLine($"   .word {(int)WorstGroup.ThirdMember}");
+            sb.AppendLine($"   .word {(int)OptimalGroup[0]}");
+            sb.AppendLine($"   .word {(int)OptimalGroup[1]}");
+            sb.AppendLine($"   .word {(int)OptimalGroup[2]}");
+            sb.AppendLine($"   .word {(int)WorstGroup[0]}");
+            sb.AppendLine($"   .word {(int)WorstGroup[1]}");
+            sb.AppendLine($"   .word {(int)WorstGroup[2]}");
             sb.AppendLine($"   .word {(int)RequiredBrigadeMember}");
             sb.AppendLine($"   .word {(HaruhiPresent ? 1 : 0)}");
 
