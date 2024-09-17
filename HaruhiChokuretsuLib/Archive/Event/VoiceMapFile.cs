@@ -1,4 +1,5 @@
-﻿using HaruhiChokuretsuLib.Font;
+﻿using HaruhiChokuretsuLib.Audio.ADX;
+using HaruhiChokuretsuLib.Font;
 using HaruhiChokuretsuLib.Util;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// List of voice map entries
         /// </summary>
         public List<VoiceMapEntry> VoiceMapEntries { get; set; } = [];
+        /// <summary>
+        /// Path to where voice files are contained; used only to get timings in NewFile()
+        /// </summary>
+        public string VceDirPath { get; set; }
 
         /// <inheritdoc/>
         public override void Initialize(byte[] decompressedData, int offset, ILogger log)
@@ -250,8 +255,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 string[] fields = csvData[i].Split(',');
                 int lineLength = DialogueLines[i].Text.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
 
-                EndPointers.AddRange(new int[] { Data.Count, Data.Count + 4 }); // Add the next two pointers to end pointers
-                EndPointerPointers.AddRange(new int[] { filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer });
+                EndPointers.AddRange([Data.Count, Data.Count + 4]); // Add the next two pointers to end pointers
+                EndPointerPointers.AddRange([filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer]);
+                AdxHeader header = null;
+                if (!string.IsNullOrEmpty(VceDirPath))
+                {
+                    header = new(File.ReadAllBytes(Path.Combine(VceDirPath, $"{filenames[i]}.bin")), log);
+                }
                 VoiceMapEntry vmEntry = new()
                 {
                     VoiceFileNamePointer = filenamePointers[i] + filenameSectionStart,
@@ -260,7 +270,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     YPos = Enum.Parse<VoiceMapEntry.YPosition>(fields[2]),
                     FontSize = 100,
                     TargetScreen = Enum.Parse<VoiceMapEntry.Screen>(fields[3]),
-                    Timer = ushort.Parse(fields[4]),
+                    Timer = header is null ? int.Parse(fields[4]) : (int)((double)header.TotalSamples / header.SampleRate * 180), // 180 = 60fps * 3x/frame (the number of times the timer is decremented per frame)
                 };
 
                 VoiceMapEntries.Add(vmEntry);

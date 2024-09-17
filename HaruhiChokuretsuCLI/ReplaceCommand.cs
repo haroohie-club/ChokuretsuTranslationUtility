@@ -20,7 +20,7 @@ namespace HaruhiChokuretsuCLI
 {
     public class ReplaceCommand : Command
     {
-        string _inputArchive, _outputArchive, _replacement, _devkitArm;
+        string _inputArchive, _outputArchive, _replacement, _devkitArm, _vceDir;
         private bool _showHelp;
         private Dictionary<int, List<SKColor>> _palettes = new();
 
@@ -47,6 +47,7 @@ namespace HaruhiChokuretsuCLI
                                     "\n\t(comments) are any comments on the contents of the image. These will be ignored during file replacement." +
                                     "\n\tFinally, a file containing the term \"ignore\" will be ignored by the replacement process.",
                     r => _replacement = r },
+                { "v|vce-dir=", "Location of the vce/ dir (used only for producing subtitles)", v => _vceDir = v },
                 { "d|devkitARM=", "Location of devkitARM (for assembling .s files)", d => _devkitArm = d },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
@@ -173,7 +174,7 @@ namespace HaruhiChokuretsuCLI
 
                         if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
                         {
-                            AddNewFile(archive, filePath, log);
+                            AddNewFile(archive, filePath, log, _vceDir);
                         }
                         else if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
                         {
@@ -235,7 +236,7 @@ namespace HaruhiChokuretsuCLI
             return null;
         }
 
-        private static void AddNewFile(ArchiveFile<FileInArchive> archive, string filePath, ILogger log)
+        private static void AddNewFile(ArchiveFile<FileInArchive> archive, string filePath, ILogger log, string vceDir = null)
         {
             if (Path.GetExtension(filePath).Equals(".png", StringComparison.OrdinalIgnoreCase))
             {
@@ -245,7 +246,10 @@ namespace HaruhiChokuretsuCLI
             }
             else if (filePath.EndsWith("_voicemap.csv", StringComparison.OrdinalIgnoreCase))
             {
-                VoiceMapFile voiceMapFile = new();
+                VoiceMapFile voiceMapFile = new()
+                {
+                    VceDirPath = vceDir,
+                };
                 voiceMapFile.NewFile(filePath, log);
                 archive.AddFile(voiceMapFile);
             }
