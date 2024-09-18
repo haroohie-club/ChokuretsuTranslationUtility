@@ -47,10 +47,6 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         public int Height { get; set; }
         /// <summary>
-        /// Unknown
-        /// </summary>
-        public short Unknown12 { get; set; }
-        /// <summary>
         /// The function of a particular graphics file
         /// </summary>
         public Function FileFunction { get; set; }
@@ -156,7 +152,6 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 RenderHeight = IO.ReadShort(decompressedData, 0x0C);
                 Width = (int)Math.Pow(2, Data.ElementAt(0x0E));
                 Height = (int)Math.Pow(2, Data.ElementAt(0x0F));
-                Unknown12 = IO.ReadShort(decompressedData, 0x12);
                 int paletteLength = 0x200;
                 if (ImageTileForm == TileForm.GBA_4BPP && !Name.StartsWith("CHS_SYS_"))
                 {
@@ -255,7 +250,6 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Unknown08 = short.Parse(fileComponents[3]);
             RenderWidth = short.Parse(fileComponents[4]);
             RenderHeight = short.Parse(fileComponents[5]);
-            Unknown12 = 0;
             Name = fileComponents.Last().ToUpper();
             Data = [];
             FileFunction = Function.SHTX;
@@ -384,8 +378,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                     .. BitConverter.GetBytes(RenderHeight),
                     (byte)Math.Log2(Width),
                     (byte)Math.Ceiling(Math.Log2(Height)),
-                    .. BitConverter.GetBytes((ushort)(RenderWidth * RenderHeight)),
-                    .. BitConverter.GetBytes(Unknown12),
+                    .. BitConverter.GetBytes(RenderWidth * RenderHeight),
                     .. PaletteData,
                     .. PixelData,
                 ];
