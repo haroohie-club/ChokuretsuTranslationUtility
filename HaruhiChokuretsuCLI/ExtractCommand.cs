@@ -111,14 +111,19 @@ namespace HaruhiChokuretsuCLI
                 {
                     evtFile.InitializeDialogueForSpecialFiles();
                 }
-                else if (_fileIndex == 589)
+                if (fileIndex == 589)
                 {
                     VoiceMapFile vmFile = evtFile.CastTo<VoiceMapFile>();
+                    CommandSet.Out.Write($"Extracting file #{evtFile.Index:X3} as RESX from archive {evtArchive.FileName}... ");
+                    vmFile.WriteResxFile(_outputFile);
+                    CommandSet.Out.WriteLine("OK");
                 }
-
-                CommandSet.Out.Write($"Extracting file #{evtFile.Index:X3} as RESX from archive {evtArchive.FileName}... ");
-                evtFile.WriteResxFile(_outputFile);
-                CommandSet.Out.WriteLine("OK");
+                else
+                {
+                    CommandSet.Out.Write($"Extracting file #{evtFile.Index:X3} as RESX from archive {evtArchive.FileName}... ");
+                    evtFile.WriteResxFile(_outputFile);
+                    CommandSet.Out.WriteLine("OK");
+                }
             }
             else if (Path.GetExtension(_outputFile).Equals(".s", StringComparison.OrdinalIgnoreCase))
             {
