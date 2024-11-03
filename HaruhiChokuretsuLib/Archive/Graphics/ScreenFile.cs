@@ -112,15 +112,15 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 }
             }
 
-            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 15, Log);
-            palette.Insert(0, SKColors.Transparent);
+            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16, Log);
+            PnnQuantizer pnn = new();
             foreach (SKBitmap tile in tiles)
             {
                 for (int y = 0; y < tile.Height; y++)
                 {
                     for (int x = 0; x < tile.Width; x++)
                     {
-                        tile.SetPixel(x, y, palette[Helpers.ClosestColorIndex(palette, tile.GetPixel(x, y), true)]);
+                        tile.SetPixel(x, y, palette[pnn.DitherColorIndex([.. palette], (uint)tile.GetPixel(x, y), 0)]);
                     }
                 }
             }

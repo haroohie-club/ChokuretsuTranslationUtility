@@ -483,11 +483,14 @@ namespace HaruhiChokuretsuLib.Util
         /// <param name="bitmaps">The set of images to get a palette from</param>
         /// <param name="nMaxColors">The maximum number of colors in the palette</param>
         /// <param name="log">A logging instance</param>
+        /// <param name="firstTransparent">Whether the first color in the palette should be transparent</param>
         /// <returns>A palette constructed from the set of images</returns>
-        public List<SKColor> GetPaletteFromImages(IEnumerable<SKBitmap> bitmaps, int nMaxColors, ILogger log)
+        public List<SKColor> GetPaletteFromImages(IEnumerable<SKBitmap> bitmaps, int nMaxColors, ILogger log, bool firstTransparent = false)
         {
             uint[] pixels = bitmaps.SelectMany(b => b.Pixels).Select(p => (uint)p).ToArray();
             SKColor[] palette = new SKColor[nMaxColors];
+
+            _transparentPixelIndex = firstTransparent ? 0 : -1;
 
             if (nMaxColors <= 32)
             {

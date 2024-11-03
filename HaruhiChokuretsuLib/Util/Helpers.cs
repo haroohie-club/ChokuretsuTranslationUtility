@@ -268,11 +268,12 @@ namespace HaruhiChokuretsuLib.Util
         /// <param name="bitmaps">A set of images to extract a palette from</param>
         /// <param name="numberOfColors">The number of colors in the palette</param>
         /// <param name="log">An ILogger instance</param>
+        /// <param name="firstTransparent">Whether the first color in the palette should be transparent</param>
         /// <returns></returns>
-        public static List<SKColor> GetPaletteFromImages(IList<SKBitmap> bitmaps, int numberOfColors, ILogger log)
+        public static List<SKColor> GetPaletteFromImages(IList<SKBitmap> bitmaps, int numberOfColors, ILogger log, bool firstTransparent = false)
         {
             PnnQuantizer quantizer = new();
-            return quantizer.GetPaletteFromImages(bitmaps, numberOfColors, log);
+            return quantizer.GetPaletteFromImages(bitmaps, numberOfColors, log, firstTransparent);
         }
 
         /// <summary>
@@ -281,11 +282,12 @@ namespace HaruhiChokuretsuLib.Util
         /// <param name="bitmap">The image to extract a palette from</param>
         /// <param name="numberOfColors">The number of colors in the palette</param>
         /// <param name="log">An ILogger instance</param>
+        /// <param name="firstTransparent">Whether the first color in the palette should be transparent</param>
         /// <returns></returns>
-        public static List<SKColor> GetPaletteFromImage(SKBitmap bitmap, int numberOfColors, ILogger log)
+        public static List<SKColor> GetPaletteFromImage(SKBitmap bitmap, int numberOfColors, ILogger log, bool firstTransparent = false)
         {
             PnnQuantizer quantizer = new();
-            return quantizer.GetPaletteFromImages([bitmap], numberOfColors, log);
+            return quantizer.GetPaletteFromImages([bitmap], numberOfColors, log, firstTransparent);
         }
 
         /// <summary>
