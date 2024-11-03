@@ -285,7 +285,7 @@ namespace HaruhiChokuretsuLib.Util
         public static List<SKColor> GetPaletteFromImage(SKBitmap bitmap, int numberOfColors, ILogger log)
         {
             PnnQuantizer quantizer = new();
-            return quantizer.GetPaletteFromImages(new SKBitmap[] { bitmap }, numberOfColors, log);
+            return quantizer.GetPaletteFromImages([bitmap], numberOfColors, log);
         }
 
         /// <summary>

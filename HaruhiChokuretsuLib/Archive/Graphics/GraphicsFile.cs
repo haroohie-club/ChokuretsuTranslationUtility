@@ -417,6 +417,17 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 
                 return [.. data];
             }
+            else if (FileFunction == Function.SCREEN)
+            {
+                List<byte> data = [.. BitConverter.GetBytes(ScreenData.Count)];
+                foreach (ScreenDataEntry entry in ScreenData)
+                {
+                    data.Add(entry.Index);
+                    data.Add((byte)((entry.Palette << 4) | (byte)entry.Flip));
+                }
+
+                return [.. data];
+            }
             else if (Index == 0xE50) // more special casing for the font file
             {
                 return [.. PixelData];

@@ -112,7 +112,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 }
             }
 
-            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16, Log);
+            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 15, Log);
+            palette.Insert(0, SKColors.Transparent);
             foreach (SKBitmap tile in tiles)
             {
                 for (int y = 0; y < tile.Height; y++)
