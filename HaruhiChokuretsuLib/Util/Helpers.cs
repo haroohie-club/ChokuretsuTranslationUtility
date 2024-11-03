@@ -196,21 +196,6 @@ namespace HaruhiChokuretsuLib.Util
         }
 
         /// <summary>
-        /// Finds the closet color in a palette to a given color
-        /// </summary>
-        /// <param name="colors">The palette of colors to search within</param>
-        /// <param name="color">The color to try to match</param>
-        /// <param name="firstTransparent">Whether to ignore the first entry as it's transparent</param>
-        /// <returns></returns>
-        public static int ClosestColorIndex(IList<SKColor> colors, SKColor color, bool firstTransparent)
-        {
-            int skip = firstTransparent ? 1 : 0;
-            var colorDistances = colors.Skip(skip).Select(c => ColorDistance(c, color)).ToList();
-
-            return colorDistances.IndexOf(colorDistances.Min());
-        }
-
-        /// <summary>
         /// Converts an RGB555 value to an SKColor
         /// </summary>
         /// <param name="rgb555">Color formatted as an RGB555 16-bit integer</param>

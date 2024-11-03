@@ -112,7 +112,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 }
             }
 
-            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16, Log);
+            List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16, Log, firstTransparent: true);
             PnnQuantizer pnn = new();
             foreach (SKBitmap tile in tiles)
             {
@@ -125,7 +125,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 }
             }
 
-            List<SKBitmap> distinctTiles = new();
+            List<SKBitmap> distinctTiles = [];
             foreach (SKBitmap tile in tiles)
             {
                 if (!distinctTiles.Any(t => t.Pixels.SequenceEqual(tile.Pixels)))
