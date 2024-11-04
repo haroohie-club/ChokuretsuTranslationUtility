@@ -155,6 +155,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             newTileCanvas.Flush();
 
+            palette.AddRange(new SKColor[32]);
             associatedTiles.SetPalette(palette);
             associatedTiles.SetImage(newTileImage, newSize: true);
 
