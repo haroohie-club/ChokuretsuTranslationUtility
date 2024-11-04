@@ -570,7 +570,7 @@ namespace HaruhiChokuretsuLib.Util
             {
                 dest.Palette.Insert(0, _transparentColor);
             }
-            dest.PaletteData = new();
+            dest.PaletteData = [];
             for (int i = 0; i < dest.Palette.Count; i++)
             {
                 byte[] color = BitConverter.GetBytes((short)(dest.Palette[i].Red / 8 | dest.Palette[i].Green / 8 << 5 | dest.Palette[i].Blue / 8 << 10));
@@ -590,7 +590,7 @@ namespace HaruhiChokuretsuLib.Util
             }
             else
             {
-                List<byte> pixelData = new();
+                List<byte> pixelData = [];
 
                 for (int row = 0; row < source.Height / 8 && pixelData.Count < dest.PixelData.Count; row++)
                 {

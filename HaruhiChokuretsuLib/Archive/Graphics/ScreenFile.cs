@@ -113,6 +113,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
 
             List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16, Log, firstTransparent: true);
+            palette = [.. palette.RotateSectionRight(0, palette.Count)];
             PnnQuantizer pnn = new();
             foreach (SKBitmap tile in tiles)
             {
@@ -154,8 +155,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             newTileCanvas.Flush();
 
-            associatedTiles.SetImage(newTileImage, newSize: true);
             associatedTiles.SetPalette(palette);
+            associatedTiles.SetImage(newTileImage, newSize: true);
 
             ScreenData.Clear();
             foreach (SKBitmap tile in tiles)
