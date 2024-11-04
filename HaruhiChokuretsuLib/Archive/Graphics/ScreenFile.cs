@@ -113,7 +113,19 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
 
             List<SKColor> palette = Helpers.GetPaletteFromImage(bitmap, 16, Log, firstTransparent: true);
-            palette = [.. palette.RotateSectionRight(0, palette.Count)];
+            if (palette.Contains(SKColors.Transparent))
+            {
+                palette = [.. palette.Swap(0, palette.IndexOf(SKColors.Transparent))];
+            }
+            else if (palette.Count < 16)
+            {
+                palette.Insert(0, SKColors.Transparent);
+            }
+            else
+            {
+                palette[15] = SKColors.Transparent;
+                palette = [.. palette.Swap(0, 15)];
+            }
             PnnQuantizer pnn = new();
             foreach (SKBitmap tile in tiles)
             {
