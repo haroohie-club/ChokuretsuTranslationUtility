@@ -83,13 +83,17 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <param name="bitmap">Bitmap to set the screen image to</param>
         /// <param name="quantizer">A PnnQuantizer to quantize the image</param>
         /// <param name="associatedTiles">A graphics file to which the associated tiles will be set</param>
+        /// <param name="suppressErrors">If true, error messages will not be logged</param>
         /// <returns>The width of the screen image or -1 if the replacement fails due to too complex a palette</returns>
-        public int SetScreenImage(SKBitmap bitmap, PnnQuantizer quantizer, GraphicsFile associatedTiles)
+        public int SetScreenImage(SKBitmap bitmap, PnnQuantizer quantizer, GraphicsFile associatedTiles, bool suppressErrors = false)
         {
             if (bitmap.Width != 256 || bitmap.Height != 192)
             {
-                Log.LogError("Screen image size must be 256x192");
-                return 256;
+                if (!suppressErrors)
+                {
+                    Log.LogError("Screen image size must be 256x192");
+                }
+                return -1;
             }
 
             List<SKBitmap> tiles = [];
@@ -149,7 +153,10 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
 
             if (distinctTiles.Count > 255)
             {
-                Log.LogError($"Error attempting to replace screen image {Name} ({Index}): more than 256 tiles ({distinctTiles.Count}) generated from image; please use a less complex image");
+                if (!suppressErrors)
+                {
+                    Log.LogError($"Error attempting to replace screen image {Name} ({Index}): more than 256 tiles ({distinctTiles.Count}) generated from image; please use a less complex image");
+                }
                 return -1;
             }
 
