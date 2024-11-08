@@ -2,7 +2,6 @@
 using HaruhiChokuretsuLib.Util;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 
@@ -421,27 +420,23 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <summary>
         /// Dialogue line index of Title
         /// </summary>
-        public int TitleIndex { get; internal set; }
+        internal int TitleIndex { get; set; }
         /// <summary>
         /// The title of the activity
         /// </summary>
-        public string Title { get; }
-        /// <summary>
-        /// Dialogue line index of FutureDesc
-        /// </summary>
-        public int FutureDescIndex { get; internal set; }
+        public string Title { get; set; }
+
+        private int _futureDescIndex;
         /// <summary>
         /// Future tense description of what the activity is
         /// </summary>
-        public string FutureDesc { get; }
-        /// <summary>
-        /// Dialogue line index of PastDesc
-        /// </summary>
-        public int PastDescIndex { get; internal set; }
+        public string FutureDesc { get; set; }
+
+        private int _pastDescIndex;
         /// <summary>
         /// Past tense description of what the activity is
         /// </summary>
-        public string PastDesc { get; }
+        public string PastDesc { get; set; }
 
         /// <summary>
         /// Tuple representing up to three brigade members comprising the defined "optimal group" for this activity
@@ -469,11 +464,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public ScenarioActivity(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
         {
             TitleIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex)));
-            FutureDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x04)));
-            PastDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x08)));
+            _futureDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x04)));
+            _pastDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x08)));
             Title = lines[TitleIndex].Text;
-            FutureDesc = lines[FutureDescIndex].Text;
-            PastDesc = lines[PastDescIndex].Text;
+            FutureDesc = lines[_futureDescIndex].Text;
+            PastDesc = lines[_pastDescIndex].Text;
 
             OptimalGroup = [(BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x0C), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x10), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x14)];
             WorstGroup = [(BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x18), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x1C), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x20)];
@@ -579,14 +574,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// the topics contained in this list will be given to the player
         /// </summary>
         public List<short> KyonlessTopics { get; set; } = [];
+
         /// <summary>
         /// The dialogue line index of Title
         /// </summary>
-        public int RouteTitleIndex { get; internal set; }
+        internal int RouteTitleIndex { get; set; }
         /// <summary>
         /// The title of the route
         /// </summary>
-        public string Title { get; }
+        public string Title { get; set; }
+        
         /// <summary>
         /// The characters who must be assigned to this route's activity to trigger this route
         /// </summary>

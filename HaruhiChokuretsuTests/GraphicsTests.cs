@@ -5,7 +5,6 @@ using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
 using System.IO;
-using System.Linq;
 
 namespace HaruhiChokuretsuTests
 {

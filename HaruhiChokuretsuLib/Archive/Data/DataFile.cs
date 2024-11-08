@@ -1,6 +1,5 @@
 ﻿using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {

@@ -3,7 +3,6 @@ using HaruhiChokuretsuLib.Archive.Event;
 using HaruhiChokuretsuLib.Font;
 using HaruhiChokuretsuLib.Util;
 using Mono.Options;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
