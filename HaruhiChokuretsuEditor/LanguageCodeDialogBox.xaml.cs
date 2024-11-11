@@ -1,6 +1,4 @@
-﻿using System.Windows;
-
-namespace HaruhiChokuretsuEditor
+﻿namespace HaruhiChokuretsuEditor
 {
     /// <summary>
     /// Interaction logic for LanguageCodeDialogBox.xaml

@@ -1,7 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Archive.Graphics;
 using SkiaSharp;
 using System.IO;
-using System.Windows.Media.Imaging;
 
 namespace HaruhiChokuretsuEditor
 {
