@@ -179,7 +179,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x33, nameof(CommandVerb.CHESS_TOGGLE_CROSS), ["space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16"]),
             new(0x34, nameof(CommandVerb.CHESS_CLEAR_ANNOTATIONS), []),
             new(0x35, nameof(CommandVerb.CHESS_RESET), []),
-            new(0x36, nameof(CommandVerb.SCENE_GOTO2), ["conditionalIndex"]),
+            new(0x36, nameof(CommandVerb.SCENE_GOTO_CHESS), ["conditionalIndex"]),
             new(0x37, nameof(CommandVerb.EPHEADER), ["headerIndex"]),
             new(0x38, nameof(CommandVerb.NOOP3), []),
             new(0x39, nameof(CommandVerb.CONFETTI), ["on"]),
@@ -416,7 +416,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             /// <summary>
             /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#scene_goto2-0x36
             /// </summary>
-            SCENE_GOTO2,
+            SCENE_GOTO_CHESS,
             /// <summary>
             /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#epheader-0x37
             /// </summary>
