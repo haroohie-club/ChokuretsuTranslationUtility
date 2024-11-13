@@ -158,8 +158,8 @@ namespace HaruhiChokuretsuLib.Archive
                     {
                         if (dontThrow)
                         {
-                            _log.LogError($"Failed to parse file {filenames[i]} (0x{i+1:X3}): {ex.Message}!" +
-                                          $"\n\n{ex.StackTrace}");
+                            _log.LogError($"Failed to parse file {filenames[i]} (0x{i + 1:X3}): {ex.Message}!");
+                            _log.LogWarning(ex.StackTrace);
                         }
                         else
                         {
