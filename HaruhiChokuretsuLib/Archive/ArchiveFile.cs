@@ -158,11 +158,12 @@ namespace HaruhiChokuretsuLib.Archive
                     {
                         if (dontThrow)
                         {
-                            _log.LogError($"Failed to parse file 0x{i:X3}!");
+                            _log.LogError($"Failed to parse file {filenames[i]} (0x{i+1:X3}): {ex.Message}!" +
+                                          $"\n\n{ex.StackTrace}");
                         }
                         else
                         {
-                            throw new ArchiveLoadException(i, i >= filenames.Count ? $"FILE{i}" : filenames[i], ex);
+                            throw new ArchiveLoadException(i, i >= filenames.Count ? $"FILE{i+1}" : filenames[i], ex);
                         }
                     }
                     file.Offset = offset;
