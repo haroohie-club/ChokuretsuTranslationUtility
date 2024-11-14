@@ -1,4 +1,6 @@
-﻿namespace HaruhiChokuretsuEditor
+﻿using System.Windows;
+
+namespace HaruhiChokuretsuEditor
 {
     /// <summary>
     /// Interaction logic for TopicDialogueBox.xaml

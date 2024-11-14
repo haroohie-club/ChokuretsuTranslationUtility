@@ -2,6 +2,7 @@
 using HaruhiChokuretsuLib.Archive.Graphics;
 using SkiaSharp;
 using System.Collections.Generic;
+using System.Windows.Controls;
 
 namespace HaruhiChokuretsuEditor
 {
