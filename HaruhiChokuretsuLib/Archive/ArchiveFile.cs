@@ -71,6 +71,13 @@ namespace HaruhiChokuretsuLib.Archive
         }
 
         /// <summary>
+        /// Parameterless constructor intended only for testing mocks. Do not use in production.
+        /// </summary>
+        public ArchiveFile()
+        {
+        }
+
+        /// <summary>
         /// Creates a new archive file give binary bin archive data
         /// </summary>
         /// <param name="archiveBytes">Binary data from a bin archive</param>
@@ -181,7 +188,7 @@ namespace HaruhiChokuretsuLib.Archive
         /// </summary>
         /// <param name="index">The index of the file to get</param>
         /// <returns>A FileInArchive object</returns>
-        public T GetFileByIndex(int index)
+        public virtual T GetFileByIndex(int index)
         {
             if (index > 0 && index <= Files.Count)
             {
@@ -198,7 +205,7 @@ namespace HaruhiChokuretsuLib.Archive
         /// </summary>
         /// <param name="name">The name of the file to get</param>
         /// <returns>A FileInArchive object</returns>
-        public T GetFileByName(string name)
+        public virtual T GetFileByName(string name)
         {
             return Files.AsParallel().FirstOrDefault(f => f.Name == name);
         }
