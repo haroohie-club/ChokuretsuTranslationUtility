@@ -70,6 +70,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
             HaruhiChess = new(data, IO.ReadInt(data, 0x34));
         }
 
+        /// <summary>
+        /// Gets an ASM source representation of CHESS.S
+        /// </summary>
+        /// <returns>An ASM source representation of CHESS.S</returns>
         public string GetSource()
         {
             StringBuilder sb = new();
@@ -270,8 +274,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <summary>
         /// Gets an ASM source representation of this puzzle definition (not including the title string)
         /// </summary>
-        /// <param name="currentEndPointer">The current end pointer while iterating through the file</param>
+        /// <param name="character"></param>
         /// <param name="currentDefinition">The current definition number while iterating through the file</param>
+        /// <param name="currentEndPointer">The current end pointer while iterating through the file</param>
         /// <returns>An ASM source representation of this puzzle definition</returns>
         public string GetSource(Speaker character, int currentDefinition, ref int currentEndPointer)
         {
