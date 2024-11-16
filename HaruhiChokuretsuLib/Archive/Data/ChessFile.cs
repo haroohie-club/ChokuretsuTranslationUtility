@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using HaruhiChokuretsuLib.Util;
 
 namespace HaruhiChokuretsuLib.Archive.Data
@@ -21,28 +22,60 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown0C { get; set; }
+        public int Unknown08 { get; set; }
         /// <summary>
         /// A 64-byte array representing each space on the chess board from the top left to the bottom right
         /// </summary>
         public ChessPiece[] Chessboard { get; set; }
 
         /// <summary>
-        /// Constructs a chess file given a data representation of one
+        /// Constructs a blank chess file
         /// </summary>
-        /// <param name="data">A binary representation of a dat.bin chess file</param>
-        /// <exception cref="DataException">Thrown if the data is invalid</exception>
-        public ChessFile(IEnumerable<byte> data)
+        public ChessFile()
         {
-            if (IO.ReadInt(data, 0x00) != 1 || data.Count() != 0x60)
+        }
+
+        /// <inheritdoc/>
+        public override void Initialize(byte[] decompressedData, int offset, ILogger log)
+        {
+            if (IO.ReadInt(decompressedData, 0x00) != 1)
             {
                 throw new DataException("Invalid chess file format.");
             }
             
-            Unknown00 = IO.ReadInt(data, 0x14);
-            Unknown04 = IO.ReadInt(data, 0x18);
-            Unknown0C = IO.ReadInt(data, 0x1C);
-            Chessboard = [.. data.Skip(0x20).Take(0x40).Select(b => (ChessPiece)b)];
+            Unknown00 = IO.ReadInt(decompressedData, 0x14);
+            Unknown04 = IO.ReadInt(decompressedData, 0x18);
+            Unknown08 = IO.ReadInt(decompressedData, 0x1C);
+            Chessboard = [.. decompressedData.Skip(0x20).Take(0x40).Select(b => (ChessPiece)b)];
+        }
+
+        /// <inheritdoc/>
+        public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
+        {
+            StringBuilder sb = new();
+
+            sb.AppendLine(".word 1");
+            sb.AppendLine(".word ENDPOINTERS");
+            sb.AppendLine(".word FILESTART");
+            sb.AppendLine(".word CHESS");
+            sb.AppendLine(".word 1");
+            sb.AppendLine();
+
+            sb.AppendLine("FILESTART:");
+            sb.AppendLine("CHESS:");
+            sb.AppendLine($".word {Unknown00}");
+            sb.AppendLine($".word {Unknown04}");
+            sb.AppendLine($".word {Unknown08}");
+
+            for (int i = 0; i < Chessboard.Length; i++)
+            {
+                sb.AppendLine($".byte 0x{(byte)Chessboard[i]:X2}");
+            }
+
+            sb.AppendLine("ENDPOINTERS:");
+            sb.AppendLine(".word 0");
+            
+            return sb.ToString();
         }
 
         /// <summary>

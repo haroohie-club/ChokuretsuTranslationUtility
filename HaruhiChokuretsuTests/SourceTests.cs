@@ -7,6 +7,7 @@ using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -80,6 +81,16 @@ namespace HaruhiChokuretsuTests
                 }
             }
             return indices.ToArray();
+        }
+
+        private static string[] GetChessFileIndices()
+        {
+            List<string> names = ["CHS00S"];
+            for (int i = 1; i <= 100; i++)
+            {
+                names.Add($"CHS{i:D3}S");
+            }
+            return names.ToArray();
         }
 
         private static async Task<byte[]> CompileFromSource(string source)
@@ -220,12 +231,8 @@ namespace HaruhiChokuretsuTests
             // This file can be ripped directly from the ROM
             ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
             EventFile chessFile = evt.GetFileByName("CHESSS");
-            File.WriteAllBytes("chess_orig.bin", [.. chessFile.Data]);
-
-            string src = chessFile.GetSource([]);
-            File.WriteAllText("chess.s", src);
-            byte[] newBytes = await CompileFromSource(src);
-            File.WriteAllBytes("chess.bin", newBytes);
+            
+            byte[] newBytes = await CompileFromSource(chessFile.GetSource([]));
             List<byte> newBytesList = new(newBytes);
             if (newBytes.Length % 16 > 0)
             {
@@ -387,6 +394,25 @@ namespace HaruhiChokuretsuTests
             }
 
             ClassicAssert.AreEqual(scenarioFile.Data, newBytesList);
+        }
+
+        [Test]
+        [TestCaseSource(nameof(GetChessFileIndices))]
+        [Parallelizable(ParallelScope.All)]
+        public async Task ChessSourceTest(string chessFileName)
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ChessFile chessFile = dat.GetFileByName(chessFileName).CastTo<ChessFile>();
+            
+            byte[] newBytes = await CompileFromSource(chessFile.GetSource([]));
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            ClassicAssert.AreEqual(chessFile.Data, newBytesList);
         }
     }
 }
