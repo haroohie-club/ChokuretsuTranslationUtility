@@ -52,7 +52,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             Dictionary<int, SKBitmap> textures;
             if (preprocessedList)
             {
-                textures = grpFiles.Select((g, i) => (i, g.GetTexture(transparentIndex: 0))).ToDictionary();
+                textures = grpFiles.Select((g, i) => (i, g.IsTexture() ? g.GetTexture(transparentIndex: 0) : g.GetTiles(transparentIndex: 0))).ToDictionary();
             }
             else
             {
@@ -69,7 +69,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                             i++;
                         }
                     }
-                    textures.Add(index, grpFiles.First(g => g.Index == grpIndex - 1).GetTexture(transparentIndex: 0));
+                    GraphicsFile curGrp = grpFiles.First(g => g.Index == grpIndex - 1);
+                    textures.Add(index, curGrp.IsTexture() ? curGrp.GetTexture(transparentIndex: 0) : curGrp.GetTiles(transparentIndex: 0));
                 }
             }
 
