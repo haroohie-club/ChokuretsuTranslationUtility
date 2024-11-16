@@ -107,7 +107,7 @@ namespace HaruhiChokuretsuCLI
                 }
                 EventFile evtFile = evtArchive.GetFileByIndex(fileIndex);
 
-                if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase) || (_fileIndex >= 580 && _fileIndex <= 581))
+                if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase) || (_fileIndex >= 580 && _fileIndex <= 581) || evtFile.Name == "CHESSS")
                 {
                     evtFile.InitializeDialogueForSpecialFiles();
                 }

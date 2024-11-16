@@ -846,7 +846,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             DialogueLines.Clear();
             for (int i = 0; i < EndPointerPointers.Count; i++)
             {
-                DialogueLines.Add(new DialogueLine(Speaker.INFO, "INFO", 0, EndPointerPointers[i], [.. Data]));
+                DialogueLines.Add(new(Speaker.INFO, "INFO", 0, EndPointerPointers[i], [.. Data]));
             }
         }
 
@@ -872,6 +872,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public void InitializeChessFile()
         {
+            InitializeDialogueForSpecialFiles();
             ChessFile = new(Data);
         }
 
@@ -1084,311 +1085,314 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string GetSource(Dictionary<string, IncludeEntry[]> includes)
         {
-            if (Name == "CHESSS")
+            switch (Name)
             {
-                if (ChessFile is null)
+                case "CHESSS":
                 {
-                    InitializeChessFile();
-                }
+                    if (ChessFile is null)
+                    {
+                        InitializeChessFile();
+                    }
 
-                return ChessFile.GetSource();
-            }
-            else if (Name == "EVTTBLS")
-            {
-                if (EvtTbl is null)
-                {
-                    InitializeEventTableFile();
+                    return ChessFile.GetSource();
                 }
-                return EvtTbl.GetSource(includes, Log);
-            }
-            else if (Name == "SCENARIOS")
-            {
-                if (Scenario is null)
+                case "EVTTBLS":
                 {
-                    InitializeScenarioFile();
+                    if (EvtTbl is null)
+                    {
+                        InitializeEventTableFile();
+                    }
+                    return EvtTbl.GetSource(includes, Log);
                 }
-                return Scenario.GetSource(includes, Log);
-            }
-            else if (Name == "TOPICS")
-            {
-                if (Topics.Count == 0)
+                case "SCENARIOS":
                 {
-                    InitializeTopicFile();
+                    if (Scenario is null)
+                    {
+                        InitializeScenarioFile();
+                    }
+                    return Scenario.GetSource(includes, Log);
                 }
-                StringBuilder sb = new();
+                case "TOPICS":
+                {
+                    if (Topics.Count == 0)
+                    {
+                        InitializeTopicFile();
+                    }
+                    StringBuilder sb = new();
 
-                sb.AppendLine($".word 1");
-                sb.AppendLine(".word END_POINTERS");
-                sb.AppendLine(".word FILE_START");
-                sb.AppendLine(".word TOPICS");
-                sb.AppendLine($".word {Topics.Count + 1}");
-                sb.AppendLine();
+                    sb.AppendLine($".word 1");
+                    sb.AppendLine(".word END_POINTERS");
+                    sb.AppendLine(".word FILE_START");
+                    sb.AppendLine(".word TOPICS");
+                    sb.AppendLine($".word {Topics.Count + 1}");
+                    sb.AppendLine();
 
-                sb.AppendLine("FILE_START:");
-                sb.AppendLine("TOPICS:");
-                int numEndPointers = 0;
-                for (int i = 0; i < Topics.Count; i++)
-                {
-                    sb.AppendLine(Topics[i].GetSource(i, ref numEndPointers));
-                }
-                sb.AppendLine(".skip 0x24");
+                    sb.AppendLine("FILE_START:");
+                    sb.AppendLine("TOPICS:");
+                    int numEndPointers = 0;
+                    for (int i = 0; i < Topics.Count; i++)
+                    {
+                        sb.AppendLine(Topics[i].GetSource(i, ref numEndPointers));
+                    }
+                    sb.AppendLine(".skip 0x24");
 
-                for (int i = 0; i < Topics.Count; i++)
-                {
-                    sb.AppendLine($"TOPICTITL{i:D3}: .string \"{Topics[i].Title.EscapeShiftJIS()}\"");
-                    sb.AsmPadString(Topics[i].Title, Encoding.GetEncoding("Shift-JIS"));
-                    sb.AppendLine($"TOPICDESC{i:D3}: .string \"{Topics[i].Description.EscapeShiftJIS()}\"");
-                    sb.AsmPadString(Topics[i].Description, Encoding.GetEncoding("Shift-JIS"));
-                }
+                    for (int i = 0; i < Topics.Count; i++)
+                    {
+                        sb.AppendLine($"TOPICTITL{i:D3}: .string \"{Topics[i].Title.EscapeShiftJIS()}\"");
+                        sb.AsmPadString(Topics[i].Title, Encoding.GetEncoding("Shift-JIS"));
+                        sb.AppendLine($"TOPICDESC{i:D3}: .string \"{Topics[i].Description.EscapeShiftJIS()}\"");
+                        sb.AsmPadString(Topics[i].Description, Encoding.GetEncoding("Shift-JIS"));
+                    }
 
-                sb.AppendLine("END_POINTERS:");
-                sb.AppendLine($".word {numEndPointers}");
-                for (int i = 0; i < numEndPointers; i++)
-                {
-                    sb.AppendLine($".word POINTER{i}");
-                }
+                    sb.AppendLine("END_POINTERS:");
+                    sb.AppendLine($".word {numEndPointers}");
+                    for (int i = 0; i < numEndPointers; i++)
+                    {
+                        sb.AppendLine($".word POINTER{i}");
+                    }
 
-                return sb.ToString();
-            }
-            else if (Name == "TUTORIALS")
-            {
-                if (Tutorials.Count == 0)
-                {
-                    InitializeTutorialFile();
+                    return sb.ToString();
                 }
-                StringBuilder sb = new();
+                case "TUTORIALS":
+                {
+                    if (Tutorials.Count == 0)
+                    {
+                        InitializeTutorialFile();
+                    }
+                    StringBuilder sb = new();
 
-                sb.AppendLine(".word 1");
-                sb.AppendLine(".word END_POINTERS");
-                sb.AppendLine(".word FILE_START");
-                sb.AppendLine(".word TUTORIALS");
-                sb.AppendLine($".word {Tutorials.Count}");
-                sb.AppendLine();
-                sb.AppendLine("FILE_START:");
-                sb.AppendLine("TUTORIALS:");
+                    sb.AppendLine(".word 1");
+                    sb.AppendLine(".word END_POINTERS");
+                    sb.AppendLine(".word FILE_START");
+                    sb.AppendLine(".word TUTORIALS");
+                    sb.AppendLine($".word {Tutorials.Count}");
+                    sb.AppendLine();
+                    sb.AppendLine("FILE_START:");
+                    sb.AppendLine("TUTORIALS:");
 
-                foreach (Tutorial tutorial in Tutorials)
-                {
-                    sb.AppendLine($".short {tutorial.Id}");
-                    sb.AppendLine($".short {tutorial.AssociatedScript}");
-                }
+                    foreach (Tutorial tutorial in Tutorials)
+                    {
+                        sb.AppendLine($".short {tutorial.Id}");
+                        sb.AppendLine($".short {tutorial.AssociatedScript}");
+                    }
 
-                sb.AppendLine("END_POINTERS:");
-                sb.AppendLine(".word 0");
+                    sb.AppendLine("END_POINTERS:");
+                    sb.AppendLine(".word 0");
 
-                return sb.ToString();
-            }
-            else if (Name == "VOICEMAPS")
-            {
-                VoiceMapFile voiceMapFile = CastTo<VoiceMapFile>();
-                return voiceMapFile.GetSource();
-            }
-            else
-            {
-                StringBuilder sb = new();
-                sb.AppendLine(".include \"COMMANDS.INC\"");
-                sb.AppendLine();
-                sb.AppendLine($".word {NumSections}");
-                sb.AppendLine(".word END_POINTERS");
-                sb.AppendLine(".word FILE_START");
+                    return sb.ToString();
+                }
+                case "VOICEMAPS":
+                {
+                    VoiceMapFile voiceMapFile = CastTo<VoiceMapFile>();
+                    return voiceMapFile.GetSource();
+                }
+                default:
+                {
+                    StringBuilder sb = new();
+                    sb.AppendLine(".include \"COMMANDS.INC\"");
+                    sb.AppendLine();
+                    sb.AppendLine($".word {NumSections}");
+                    sb.AppendLine(".word END_POINTERS");
+                    sb.AppendLine(".word FILE_START");
 
-                sb.AppendLine($".word {SettingsSection.Name}");
-                sb.AppendLine($".word {SettingsSection.Objects.Count}");
-                if (UnknownSection01 is not null)
-                {
-                    sb.AppendLine($".word {UnknownSection01.Name}");
-                    sb.AppendLine($".word {UnknownSection01.Objects.Count}");
-                    sb.AppendLine($".word {UnknownSection01.Name}_POINTER");
-                    sb.AppendLine($".word 2");
-                }
-                if (InteractableObjectsSection is not null)
-                {
-                    sb.AppendLine($".word {InteractableObjectsSection.Name}");
-                    sb.AppendLine($".word {InteractableObjectsSection.Objects.Count}");
-                    sb.AppendLine($".word {InteractableObjectsSection.Name}_POINTER");
-                    sb.AppendLine($".word 2");
-                }
-                if (UnknownSection03 is not null)
-                {
-                    sb.AppendLine($".word {UnknownSection03.Name}");
-                    sb.AppendLine($".word {UnknownSection03.Objects.Count}");
-                    sb.AppendLine($".word {UnknownSection03.Name}_POINTER");
-                    sb.AppendLine($".word 2");
-                }
-                if (StartingChibisSection is not null)
-                {
-                    sb.AppendLine($".word {StartingChibisSection.Name}");
-                    sb.AppendLine($".word {StartingChibisSection.Objects.Count}");
-                    sb.AppendLine($".word {StartingChibisSection.Name}_POINTER");
-                    sb.AppendLine($".word 2");
-                }
-                if (MapCharactersSection is not null)
-                {
-                    sb.AppendLine($".word {MapCharactersSection.Name}");
-                    sb.AppendLine($".word {MapCharactersSection.Objects.Count}");
-                    sb.AppendLine($".word {MapCharactersSection.Name}_POINTER");
-                    sb.AppendLine($".word 2");
-                }
-                if (UnknownSection06 is not null)
-                {
-                    sb.AppendLine($".word {UnknownSection06.Name}");
-                    sb.AppendLine($".word {UnknownSection06.Objects.Count}");
-                    sb.AppendLine($".word {UnknownSection06.Name}_POINTER");
-                    sb.AppendLine($".word 2");
-                }
-                if (UnknownSection07 is not null)
-                {
-                    sb.AppendLine($".word {UnknownSection07.Name}");
-                    sb.AppendLine($".word {UnknownSection07.Objects.Count}");
-                    sb.AppendLine($".word {UnknownSection07.Name}_POINTER");
-                    sb.AppendLine($".word 2");
-                }
-                if (ChoicesSection is not null)
-                {
-                    sb.AppendLine($".word {ChoicesSection.Name}");
-                    sb.AppendLine($".word {ChoicesSection.Objects.Count}");
-                }
-                if (UnknownSection08 is not null)
-                {
-                    sb.AppendLine($".word {UnknownSection08.Name}");
-                    sb.AppendLine($".word {UnknownSection08.Objects.Count}");
-                    sb.AppendLine($".word {UnknownSection08.Name}_POINTER");
-                    sb.AppendLine($".word 2");
-                }
-                if (UnknownSection09 is not null)
-                {
-                    sb.AppendLine($".word {UnknownSection09.Name}");
-                    sb.AppendLine($".word {UnknownSection09.Objects.Count}");
-                }
-                if (UnknownSection10 is not null)
-                {
-                    sb.AppendLine($".word {UnknownSection10.Name}");
-                    sb.AppendLine($".word {UnknownSection10.Objects.Count}");
-                }
-                if (LabelsSection is not null)
-                {
-                    sb.AppendLine($".word {LabelsSection.Name}");
-                    sb.AppendLine($".word {LabelsSection.Objects.Count}");
-                }
-                foreach (DramatisPersonaeSection dramatisPersonae in DramatisPersonaeSections)
-                {
-                    sb.AppendLine($".word {dramatisPersonae.Name}");
-                    sb.AppendLine($".word 0");
-                }
-                if (DialogueSection is not null)
-                {
-                    sb.AppendLine($".word {DialogueSection.Name}");
-                    sb.AppendLine($".word {DialogueSection.Objects.Count}");
-                }
-                if (ConditionalsSection is not null)
-                {
-                    sb.AppendLine($".word {ConditionalsSection.Name}");
-                    sb.AppendLine($".word {ConditionalsSection.Objects.Count}");
-                }
-                foreach (ScriptSection scriptSection in ScriptSections)
-                {
-                    sb.AppendLine($".word {scriptSection.Name}");
-                    sb.AppendLine($".word {scriptSection.Objects.Count + 1}");
-                }
-                sb.AppendLine($".word SCRIPTDEFINITIONS");
-                sb.AppendLine($".word {ScriptSections.Count + 1}");
-                if (EventNameSection is not null)
-                {
-                    sb.AppendLine($".word {EventNameSection.Name}");
-                    sb.AppendLine($".word {EventNameSection.Objects.Count}");
-                }
+                    sb.AppendLine($".word {SettingsSection.Name}");
+                    sb.AppendLine($".word {SettingsSection.Objects.Count}");
+                    if (UnknownSection01 is not null)
+                    {
+                        sb.AppendLine($".word {UnknownSection01.Name}");
+                        sb.AppendLine($".word {UnknownSection01.Objects.Count}");
+                        sb.AppendLine($".word {UnknownSection01.Name}_POINTER");
+                        sb.AppendLine($".word 2");
+                    }
+                    if (InteractableObjectsSection is not null)
+                    {
+                        sb.AppendLine($".word {InteractableObjectsSection.Name}");
+                        sb.AppendLine($".word {InteractableObjectsSection.Objects.Count}");
+                        sb.AppendLine($".word {InteractableObjectsSection.Name}_POINTER");
+                        sb.AppendLine($".word 2");
+                    }
+                    if (UnknownSection03 is not null)
+                    {
+                        sb.AppendLine($".word {UnknownSection03.Name}");
+                        sb.AppendLine($".word {UnknownSection03.Objects.Count}");
+                        sb.AppendLine($".word {UnknownSection03.Name}_POINTER");
+                        sb.AppendLine($".word 2");
+                    }
+                    if (StartingChibisSection is not null)
+                    {
+                        sb.AppendLine($".word {StartingChibisSection.Name}");
+                        sb.AppendLine($".word {StartingChibisSection.Objects.Count}");
+                        sb.AppendLine($".word {StartingChibisSection.Name}_POINTER");
+                        sb.AppendLine($".word 2");
+                    }
+                    if (MapCharactersSection is not null)
+                    {
+                        sb.AppendLine($".word {MapCharactersSection.Name}");
+                        sb.AppendLine($".word {MapCharactersSection.Objects.Count}");
+                        sb.AppendLine($".word {MapCharactersSection.Name}_POINTER");
+                        sb.AppendLine($".word 2");
+                    }
+                    if (UnknownSection06 is not null)
+                    {
+                        sb.AppendLine($".word {UnknownSection06.Name}");
+                        sb.AppendLine($".word {UnknownSection06.Objects.Count}");
+                        sb.AppendLine($".word {UnknownSection06.Name}_POINTER");
+                        sb.AppendLine($".word 2");
+                    }
+                    if (UnknownSection07 is not null)
+                    {
+                        sb.AppendLine($".word {UnknownSection07.Name}");
+                        sb.AppendLine($".word {UnknownSection07.Objects.Count}");
+                        sb.AppendLine($".word {UnknownSection07.Name}_POINTER");
+                        sb.AppendLine($".word 2");
+                    }
+                    if (ChoicesSection is not null)
+                    {
+                        sb.AppendLine($".word {ChoicesSection.Name}");
+                        sb.AppendLine($".word {ChoicesSection.Objects.Count}");
+                    }
+                    if (UnknownSection08 is not null)
+                    {
+                        sb.AppendLine($".word {UnknownSection08.Name}");
+                        sb.AppendLine($".word {UnknownSection08.Objects.Count}");
+                        sb.AppendLine($".word {UnknownSection08.Name}_POINTER");
+                        sb.AppendLine($".word 2");
+                    }
+                    if (UnknownSection09 is not null)
+                    {
+                        sb.AppendLine($".word {UnknownSection09.Name}");
+                        sb.AppendLine($".word {UnknownSection09.Objects.Count}");
+                    }
+                    if (UnknownSection10 is not null)
+                    {
+                        sb.AppendLine($".word {UnknownSection10.Name}");
+                        sb.AppendLine($".word {UnknownSection10.Objects.Count}");
+                    }
+                    if (LabelsSection is not null)
+                    {
+                        sb.AppendLine($".word {LabelsSection.Name}");
+                        sb.AppendLine($".word {LabelsSection.Objects.Count}");
+                    }
+                    foreach (DramatisPersonaeSection dramatisPersonae in DramatisPersonaeSections)
+                    {
+                        sb.AppendLine($".word {dramatisPersonae.Name}");
+                        sb.AppendLine($".word 0");
+                    }
+                    if (DialogueSection is not null)
+                    {
+                        sb.AppendLine($".word {DialogueSection.Name}");
+                        sb.AppendLine($".word {DialogueSection.Objects.Count}");
+                    }
+                    if (ConditionalsSection is not null)
+                    {
+                        sb.AppendLine($".word {ConditionalsSection.Name}");
+                        sb.AppendLine($".word {ConditionalsSection.Objects.Count}");
+                    }
+                    foreach (ScriptSection scriptSection in ScriptSections)
+                    {
+                        sb.AppendLine($".word {scriptSection.Name}");
+                        sb.AppendLine($".word {scriptSection.Objects.Count + 1}");
+                    }
+                    sb.AppendLine($".word SCRIPTDEFINITIONS");
+                    sb.AppendLine($".word {ScriptSections.Count + 1}");
+                    if (EventNameSection is not null)
+                    {
+                        sb.AppendLine($".word {EventNameSection.Name}");
+                        sb.AppendLine($".word {EventNameSection.Objects.Count}");
+                    }
 
-                sb.AppendLine();
-                sb.AppendLine("FILE_START:");
+                    sb.AppendLine();
+                    sb.AppendLine("FILE_START:");
 
-                int currentPointer = 0;
-                if (EventNameSection is not null)
-                {
-                    sb.AppendLine(EventNameSection.GetAsm(0, ref currentPointer));
-                }
-                if (UnknownSection01 is not null)
-                {
-                    sb.AppendLine(UnknownSection01.GetAsm(0, ref currentPointer));
-                    sb.AppendLine(PointerSection.GetForSection(UnknownSection01).GetAsm(0, ref currentPointer));
-                }
-                if (InteractableObjectsSection is not null)
-                {
-                    sb.AppendLine(InteractableObjectsSection.GetAsm(0, ref currentPointer));
-                    sb.AppendLine(PointerSection.GetForSection(InteractableObjectsSection).GetAsm(0, ref currentPointer));
-                }
-                if (UnknownSection03 is not null)
-                {
-                    sb.AppendLine(UnknownSection03.GetAsm(0, ref currentPointer));
-                    sb.AppendLine(PointerSection.GetForSection(UnknownSection03).GetAsm(0, ref currentPointer));
-                }
-                if (StartingChibisSection is not null)
-                {
-                    sb.AppendLine(StartingChibisSection.GetAsm(0, ref currentPointer));
-                    sb.AppendLine(PointerSection.GetForSection(StartingChibisSection).GetAsm(0, ref currentPointer));
-                }
-                if (MapCharactersSection is not null)
-                {
-                    sb.AppendLine(MapCharactersSection.GetAsm(0, ref currentPointer));
-                    sb.AppendLine(PointerSection.GetForSection(MapCharactersSection).GetAsm(0, ref currentPointer));
-                }
-                if (UnknownSection06 is not null)
-                {
-                    sb.AppendLine(UnknownSection06.GetAsm(0, ref currentPointer));
-                    sb.AppendLine(PointerSection.GetForSection(UnknownSection06).GetAsm(0, ref currentPointer));
-                }
-                if (UnknownSection07 is not null)
-                {
-                    sb.AppendLine(UnknownSection07.GetAsm(0, ref currentPointer));
-                    sb.AppendLine(PointerSection.GetForSection(UnknownSection07).GetAsm(0, ref currentPointer));
-                }
-                if (ChoicesSection is not null)
-                {
-                    sb.AppendLine(ChoicesSection.GetAsm(0, ref currentPointer));
-                }
-                if (UnknownSection08 is not null)
-                {
-                    sb.AppendLine(UnknownSection08.GetAsm(0, ref currentPointer));
-                    sb.AppendLine(PointerSection.GetForSection(UnknownSection08).GetAsm(0, ref currentPointer));
-                }
-                if (UnknownSection09 is not null)
-                {
-                    sb.AppendLine(UnknownSection09.GetAsm(0, ref currentPointer));
-                }
-                if (UnknownSection10 is not null)
-                {
-                    sb.AppendLine(UnknownSection10.GetAsm(0, ref currentPointer));
-                }
-                if (LabelsSection is not null)
-                {
-                    sb.AppendLine(LabelsSection.GetAsm(0, ref currentPointer));
-                }
-                foreach (DramatisPersonaeSection dramatisPersonae in DramatisPersonaeSections)
-                {
-                    sb.AppendLine(dramatisPersonae.GetAsm(0, ref currentPointer));
-                }
-                if (DialogueSection is not null)
-                {
-                    sb.AppendLine(DialogueSection.GetAsm(0, ref currentPointer));
-                }
-                if (ConditionalsSection is not null)
-                {
-                    sb.AppendLine(ConditionalsSection.GetAsm(0, ref currentPointer));
-                }
-                foreach (ScriptSection scriptSection in ScriptSections)
-                {
-                    sb.AppendLine(scriptSection.GetAsm(0, ref currentPointer));
-                }
-                sb.AppendLine(new ScriptSectionDefinitionsSection() { Name = "SCRIPTDEFINITIONS" }.GetAsm(0, ref currentPointer, this)); // we've basically made this into a static method. sorry.
-                sb.AppendLine(SettingsSection.GetAsm(0, ref currentPointer, this));
+                    int currentPointer = 0;
+                    if (EventNameSection is not null)
+                    {
+                        sb.AppendLine(EventNameSection.GetAsm(0, ref currentPointer));
+                    }
+                    if (UnknownSection01 is not null)
+                    {
+                        sb.AppendLine(UnknownSection01.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(PointerSection.GetForSection(UnknownSection01).GetAsm(0, ref currentPointer));
+                    }
+                    if (InteractableObjectsSection is not null)
+                    {
+                        sb.AppendLine(InteractableObjectsSection.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(PointerSection.GetForSection(InteractableObjectsSection).GetAsm(0, ref currentPointer));
+                    }
+                    if (UnknownSection03 is not null)
+                    {
+                        sb.AppendLine(UnknownSection03.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(PointerSection.GetForSection(UnknownSection03).GetAsm(0, ref currentPointer));
+                    }
+                    if (StartingChibisSection is not null)
+                    {
+                        sb.AppendLine(StartingChibisSection.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(PointerSection.GetForSection(StartingChibisSection).GetAsm(0, ref currentPointer));
+                    }
+                    if (MapCharactersSection is not null)
+                    {
+                        sb.AppendLine(MapCharactersSection.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(PointerSection.GetForSection(MapCharactersSection).GetAsm(0, ref currentPointer));
+                    }
+                    if (UnknownSection06 is not null)
+                    {
+                        sb.AppendLine(UnknownSection06.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(PointerSection.GetForSection(UnknownSection06).GetAsm(0, ref currentPointer));
+                    }
+                    if (UnknownSection07 is not null)
+                    {
+                        sb.AppendLine(UnknownSection07.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(PointerSection.GetForSection(UnknownSection07).GetAsm(0, ref currentPointer));
+                    }
+                    if (ChoicesSection is not null)
+                    {
+                        sb.AppendLine(ChoicesSection.GetAsm(0, ref currentPointer));
+                    }
+                    if (UnknownSection08 is not null)
+                    {
+                        sb.AppendLine(UnknownSection08.GetAsm(0, ref currentPointer));
+                        sb.AppendLine(PointerSection.GetForSection(UnknownSection08).GetAsm(0, ref currentPointer));
+                    }
+                    if (UnknownSection09 is not null)
+                    {
+                        sb.AppendLine(UnknownSection09.GetAsm(0, ref currentPointer));
+                    }
+                    if (UnknownSection10 is not null)
+                    {
+                        sb.AppendLine(UnknownSection10.GetAsm(0, ref currentPointer));
+                    }
+                    if (LabelsSection is not null)
+                    {
+                        sb.AppendLine(LabelsSection.GetAsm(0, ref currentPointer));
+                    }
+                    foreach (DramatisPersonaeSection dramatisPersonae in DramatisPersonaeSections)
+                    {
+                        sb.AppendLine(dramatisPersonae.GetAsm(0, ref currentPointer));
+                    }
+                    if (DialogueSection is not null)
+                    {
+                        sb.AppendLine(DialogueSection.GetAsm(0, ref currentPointer));
+                    }
+                    if (ConditionalsSection is not null)
+                    {
+                        sb.AppendLine(ConditionalsSection.GetAsm(0, ref currentPointer));
+                    }
+                    foreach (ScriptSection scriptSection in ScriptSections)
+                    {
+                        sb.AppendLine(scriptSection.GetAsm(0, ref currentPointer));
+                    }
+                    sb.AppendLine(new ScriptSectionDefinitionsSection() { Name = "SCRIPTDEFINITIONS" }.GetAsm(0, ref currentPointer, this)); // we've basically made this into a static method. sorry.
+                    sb.AppendLine(SettingsSection.GetAsm(0, ref currentPointer, this));
 
-                sb.AppendLine("END_POINTERS:");
-                sb.AppendLine($"   .word {currentPointer}");
-                for (int i = 0; i < currentPointer; i++)
-                {
-                    sb.AppendLine($"   .word POINTER{i}");
-                }
+                    sb.AppendLine("END_POINTERS:");
+                    sb.AppendLine($"   .word {currentPointer}");
+                    for (int i = 0; i < currentPointer; i++)
+                    {
+                        sb.AppendLine($"   .word POINTER{i}");
+                    }
 
-                return sb.ToString();
+                    return sb.ToString();
+                }
             }
         }
     }

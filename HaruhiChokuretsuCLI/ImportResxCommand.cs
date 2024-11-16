@@ -84,7 +84,7 @@ namespace HaruhiChokuretsuCLI
             }
             else
             {
-                evtArchive.Files.Where(f => f.Index is >= 580 and <= 581).ToList().ForEach(f => f.InitializeDialogueForSpecialFiles());
+                evtArchive.Files.Where(f => f.Index is >= 580 and <= 581 || f.Index == 106).ToList().ForEach(f => f.InitializeDialogueForSpecialFiles());
                 EventFile evtVmFile = evtArchive.GetFileByIndex(589);
                 if (evtVmFile is not null)
                 {
