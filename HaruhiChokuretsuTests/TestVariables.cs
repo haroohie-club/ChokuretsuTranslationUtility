@@ -13,6 +13,7 @@
         public const string EVT_TEST_PROG_COMP = ".\\inputs\\evt_test_prog_compressed.bin";
         public const string EVT_TEST_ORIG_COMP = ".\\inputs\\evt_test_orig_compressed.bin";
         public const string EVT_TEST_DECOMPRESSED = ".\\inputs\\evt_test_decompressed.bin";
+        public const string CHESS = ".\\inputs\\chess.bin";
 
         public const string GRP_C1A_COMPRESSED = ".\\inputs\\grp_c1a_compressed.bin";
         public const string GRP_C1A_DECOMPRESSED = ".\\inputs\\grp_c1a_decompressed.bin";

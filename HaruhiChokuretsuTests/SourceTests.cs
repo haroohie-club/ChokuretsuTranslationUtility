@@ -215,6 +215,27 @@ namespace HaruhiChokuretsuTests
         }
 
         [Test]
+        public async Task ChessSourceTest()
+        {
+            // This file can be ripped directly from the ROM
+            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
+            EventFile chessFile = evt.GetFileByName("CHESSS");
+            File.WriteAllBytes("chess_orig.bin", [.. chessFile.Data]);
+
+            string src = chessFile.GetSource([]);
+            File.WriteAllText("chess.s", src);
+            byte[] newBytes = await CompileFromSource(src);
+            File.WriteAllBytes("chess.bin", newBytes);
+            List<byte> newBytesList = new(newBytes);
+            if (newBytes.Length % 16 > 0)
+            {
+                newBytesList.AddRange(new byte[16 - (newBytes.Length % 16)]);
+            }
+
+            ClassicAssert.AreEqual(chessFile.Data, newBytesList);
+        }
+
+        [Test]
         public async Task QmapSourceTest()
         {
             // This file can be ripped directly from the ROM

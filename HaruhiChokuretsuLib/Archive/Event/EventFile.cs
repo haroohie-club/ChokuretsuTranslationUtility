@@ -868,6 +868,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
 
         /// <summary>
+        /// Initializes CHESS.S (should be its own class but alas, here we are)
+        /// </summary>
+        public void InitializeChessFile()
+        {
+            ChessFile = new(Data);
+        }
+
+        /// <summary>
         /// Returns the binary data representing this file
         /// </summary>
         /// <returns>Byte array of file data</returns>
@@ -1078,7 +1086,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             if (Name == "CHESSS")
             {
-                return "";
+                if (ChessFile is null)
+                {
+                    InitializeChessFile();
+                }
+
+                return ChessFile.GetSource();
             }
             else if (Name == "EVTTBLS")
             {

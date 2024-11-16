@@ -10,7 +10,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
     public partial class EventFile
     {
         /// <summary>
-        /// If this file is SCENARIO.S this defines the scenario
+        /// If this file is SCENARIO.S, this defines the scenario
         /// </summary>
         public ScenarioStruct Scenario { get; set; }
     }
