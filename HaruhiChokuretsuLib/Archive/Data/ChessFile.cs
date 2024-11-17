@@ -12,13 +12,13 @@ namespace HaruhiChokuretsuLib.Archive.Data
     public class ChessFile : DataFile
     {
         /// <summary>
-        /// Unknown
+        /// The number of moves the player is given to solve the puzzle
         /// </summary>
-        public int Unknown00 { get; set; }
+        public int NumMoves { get; set; }
         /// <summary>
-        /// Unknown
+        /// The time limit the player has to solve the puzzle (zero is unlimited)
         /// </summary>
-        public int Unknown04 { get; set; }
+        public int TimeLimit { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
@@ -43,8 +43,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 throw new DataException("Invalid chess file format.");
             }
             
-            Unknown00 = IO.ReadInt(decompressedData, 0x14);
-            Unknown04 = IO.ReadInt(decompressedData, 0x18);
+            NumMoves = IO.ReadInt(decompressedData, 0x14);
+            TimeLimit = IO.ReadInt(decompressedData, 0x18);
             Unknown08 = IO.ReadInt(decompressedData, 0x1C);
             Chessboard = [.. decompressedData.Skip(0x20).Take(0x40).Select(b => (ChessPiece)b)];
         }
@@ -63,8 +63,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
             sb.AppendLine("FILESTART:");
             sb.AppendLine("CHESS:");
-            sb.AppendLine($".word {Unknown00}");
-            sb.AppendLine($".word {Unknown04}");
+            sb.AppendLine($".word {NumMoves}");
+            sb.AppendLine($".word {TimeLimit}");
             sb.AppendLine($".word {Unknown08}");
 
             for (int i = 0; i < Chessboard.Length; i++)
