@@ -1453,7 +1453,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// Unknown
         /// </summary>
         public int NumUnknown06 { get; private set; }
-        internal int UnknownSection06Pointer { get; set; } // probably straigt up unused
+        internal int UnknownSection06Pointer { get; set; } // probably straight up unused
         /// <summary>
         /// Unknown
         /// </summary>
