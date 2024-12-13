@@ -1747,4 +1747,43 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         MAIL = 0x19,
     }
+
+    /// <summary>
+    /// The color for dialogue -- maps to the #P0_ dialogue parameter
+    /// </summary>
+    public enum DialogueColor
+    {
+        /// <summary>
+        /// White dialogue color (#P00)
+        /// </summary>
+        WHITE,
+        /// <summary>
+        /// Yellow (monologue) dialogue color (#P01)
+        /// </summary>
+        YELLOW,
+        /// <summary>
+        /// Off-white dialogue color (#P02)
+        /// </summary>
+        OFF_WHITE,
+        /// <summary>
+        /// Gray (whisper) dialogue color (#P03)
+        /// </summary>
+        GRAY,
+        /// <summary>
+        /// Lavender (Information) dialogue color (#P04)
+        /// </summary>
+        LAVENDER,
+        /// <summary>
+        /// Red (topic) dialogue color (#P05)
+        /// </summary>
+        RED,
+        /// <summary>
+        /// Faded gray dialogue color (#P06)
+        /// </summary>
+        FADED_GRAY,
+        /// <summary>
+        /// Black (#P07) dialogue color
+        /// </summary>
+        BLACK,
+    }
 }

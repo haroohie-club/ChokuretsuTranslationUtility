@@ -165,7 +165,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                 filenames.Add(fields[0]);
                 filenameSection.AddRange(Encoding.ASCII.GetBytes(fields[0]));
-                dialogueLinesSection.AddRange(Encoding.GetEncoding("Shift-JIS").GetBytes($"#P07{fields[1]}"));
+                dialogueLinesSection.AddRange(Encoding.GetEncoding("Shift-JIS").GetBytes(fields[1]));
 
                 filenameSection.Add(0);
                 dialogueLinesSection.Add(0);
@@ -182,7 +182,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             int numFrontPointers = csvData.Length + 2;
             Data.AddRange(BitConverter.GetBytes(numFrontPointers));
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for end pointers pointer
-            Data.AddRange(Encoding.ASCII.GetBytes("SUBS")); // Add magic identifier
+            Data.AddRange("SUBS"u8.ToArray()); // Add magic identifier
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for entry section
             Data.AddRange(BitConverter.GetBytes(1));
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for dialogue section
@@ -268,9 +268,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     SubtitlePointer = dialogueLinePointers[i] + DialogueLinesPointer,
                     X = CenterSubtitle(lineLength),
                     YPos = Enum.Parse<VoiceMapEntry.YPosition>(fields[2]),
-                    FontSize = 100,
+                    Color = Enum.Parse<DialogueColor>(fields[4]),
                     TargetScreen = Enum.Parse<VoiceMapEntry.Screen>(fields[3]),
-                    Timer = header is null ? int.Parse(fields[4]) : (int)((double)header.TotalSamples / header.SampleRate * 180 + 30), // 180 = 60fps * 3x/frame (the number of times the timer is decremented per frame); extra half-second for readability
+                    Timer = header is null ? 350 : (int)((double)header.TotalSamples / header.SampleRate * 180 + 30), // 180 = 60fps * 3x/frame (the number of times the timer is decremented per frame); extra half-second for readability
                 };
 
                 VoiceMapEntries.Add(vmEntry);
@@ -290,8 +290,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public override void EditDialogueLine(int index, string newText)
         {
-            newText = $"#P07{newText}";
-
             base.EditDialogueLine(index, newText);
 
             if (DialogueLines[index].Text.Contains('\n'))
@@ -443,9 +441,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 }
             }
             /// <summary>
-            /// The font size of the subtitle
+            /// The color of the subtitle
             /// </summary>
-            public short FontSize { get; set; }
+            public DialogueColor Color { get; set; }
             /// <summary>
             /// The target screen for the subtitle (top or bottom)
             /// </summary>
@@ -475,16 +473,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     return;
                 }
 
-                VoiceFileNamePointer = BitConverter.ToInt32(data.Take(4).ToArray());
-                SubtitlePointer = BitConverter.ToInt32(data.Skip(4).Take(4).ToArray());
-                X = BitConverter.ToInt16(data.Skip(8).Take(2).ToArray());
-                Y = BitConverter.ToInt16(data.Skip(10).Take(2).ToArray());
+                VoiceFileNamePointer = IO.ReadInt(data, 0x00);
+                SubtitlePointer = IO.ReadInt(data, 0x04);
+                X = IO.ReadShort(data, 0x08);
+                Y = IO.ReadShort(data, 0x0A);
                 YPos = (YPosition)Y;
-                FontSize = BitConverter.ToInt16(data.Skip(12).Take(2).ToArray());
-                TargetScreen = (Screen)BitConverter.ToInt16(data.Skip(14).Take(2).ToArray());
-                Timer = BitConverter.ToInt32(data.Skip(16).Take(4).ToArray());
+                Color = (DialogueColor)IO.ReadShort(data, 0x0C);
+                TargetScreen = (Screen)IO.ReadShort(data, 0x0E);
+                Timer = IO.ReadInt(data, 0x10);
 
-                Data = data.ToList();
+                Data = [.. data];
             }
 
             internal string GetRawSubtitle()
@@ -516,7 +514,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"   STRUCTSUBS{currentVoiceFile:D3}: .word SUBTITLE{currentVoiceFile:D3}");
                 sb.AppendLine($"   .short {X}");
                 sb.AppendLine($"   .short {Y}");
-                sb.AppendLine($"   .short {FontSize}");
+                sb.AppendLine($"   .short {Color}");
                 sb.AppendLine($"   .short {(short)TargetScreen}");
                 sb.AppendLine($"   .word {Timer}");
 
@@ -531,7 +529,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 Data.AddRange(BitConverter.GetBytes(SubtitlePointer));
                 Data.AddRange(BitConverter.GetBytes(X));
                 Data.AddRange(BitConverter.GetBytes(Y));
-                Data.AddRange(BitConverter.GetBytes(FontSize));
+                Data.AddRange(BitConverter.GetBytes((short)Color));
                 Data.AddRange(BitConverter.GetBytes((short)TargetScreen));
                 Data.AddRange(BitConverter.GetBytes(Timer));
 
