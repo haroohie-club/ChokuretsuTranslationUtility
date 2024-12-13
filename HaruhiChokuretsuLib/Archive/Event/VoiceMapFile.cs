@@ -498,7 +498,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             /// <param name="recenter">(Optional)If true, recenters the subtitle in the middle of the screen</param>
             public void SetSubtitle(string value, FontReplacementDictionary fontReplacementMap = null, bool recenter = true)
             {
-                _subtitle = $"#P07{value}";
+                _subtitle = value;
                 if (recenter)
                 {
                     X = CenterSubtitle(value.Sum(c => fontReplacementMap.ReverseLookup(c)?.Offset ?? 15));
