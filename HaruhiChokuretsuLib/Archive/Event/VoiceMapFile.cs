@@ -63,7 +63,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 VoiceMapEntries.Add(new(Data.Skip(VoiceMapEntriesSectionOffset + i * VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH).Take(VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH), Log));
                 VoiceMapEntries[^1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapEntries.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
-                VoiceMapEntries[^1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapEntries.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray())[4..], recenter: false);
+                VoiceMapEntries[^1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapEntries.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray()), recenter: false);
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset, @override: true);
