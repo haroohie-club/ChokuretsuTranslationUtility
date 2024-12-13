@@ -294,10 +294,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             if (DialogueLines[index].Text.Contains('\n'))
             {
-                Log.LogWarning($"File {Index} has subtitle too long ({index}) (starting with: {DialogueLines[index].Text[4..20]})");
+                Log.LogWarning($"File {Index} has subtitle too long ({index}) (starting with: {DialogueLines[index].Text[..20]})");
             }
 
-            string actualText = newText[4..];
+            string actualText = newText;
             int lineLength = actualText.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
             VoiceMapEntries[index].X = CenterSubtitle(lineLength);
             Data.RemoveRange(VoiceMapEntriesSectionOffset + VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH * index + 8, 2); // Replace X in Data
@@ -400,7 +400,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 BOTTOM = 176,
             }
 
-            private string _subtitle;
             private YPosition _yPosition;
 
             internal List<byte> Data { get; set; } = [];
@@ -419,7 +418,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             /// <summary>
             /// The subtitle
             /// </summary>
-            public string Subtitle { get => _subtitle[4..]; }
+            public string Subtitle { get; private set; }
+
             /// <summary>
             /// The X position of the subtitle
             /// </summary>
@@ -487,7 +487,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             internal string GetRawSubtitle()
             {
-                return _subtitle;
+                return Subtitle;
             }
 
             /// <summary>
@@ -498,7 +498,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             /// <param name="recenter">(Optional)If true, recenters the subtitle in the middle of the screen</param>
             public void SetSubtitle(string value, FontReplacementDictionary fontReplacementMap = null, bool recenter = true)
             {
-                _subtitle = value;
+                Subtitle = value;
                 if (recenter)
                 {
                     X = CenterSubtitle(value.Sum(c => fontReplacementMap.ReverseLookup(c)?.Offset ?? 15));
