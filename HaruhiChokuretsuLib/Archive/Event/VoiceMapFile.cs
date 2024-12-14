@@ -79,7 +79,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             sb.AppendLine($".word {VoiceMapEntries.Count + 2}");
             sb.AppendLine(".word END_POINTERS");
-            sb.AppendLine(".ascii \"SUBS\"");
+            sb.AppendLine(".ascii \"SUB2\"");
             sb.AppendLine(".word ENTRY_SECTION");
             sb.AppendLine(".word 1");
             sb.AppendLine(".word DIALOGUE_SECTION");
@@ -182,7 +182,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             int numFrontPointers = csvData.Length + 2;
             Data.AddRange(BitConverter.GetBytes(numFrontPointers));
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for end pointers pointer
-            Data.AddRange("SUBS"u8.ToArray()); // Add magic identifier
+            Data.AddRange("SUB2"u8.ToArray()); // Add magic identifier
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for entry section
             Data.AddRange(BitConverter.GetBytes(1));
             Data.AddRange(BitConverter.GetBytes(-1)); // Add placeholder for dialogue section
