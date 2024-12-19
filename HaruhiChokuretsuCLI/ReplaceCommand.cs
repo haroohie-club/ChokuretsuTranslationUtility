@@ -304,9 +304,15 @@ namespace HaruhiChokuretsuCLI
 
         private static void ReplaceSingleLayoutFile(ArchiveFile<FileInArchive> archive, string filePath, int index)
         {
-            GraphicsFile layoutFile = JsonSerializer.Deserialize<GraphicsFile>(File.ReadAllText(filePath));
+            FileInArchive file = archive.GetFileByIndex(index);
+            GraphicsFile layoutFile = file.CastTo<GraphicsFile>();
 
-            archive.Files[index - 1] = layoutFile;
+            var layoutEntries = JsonSerializer.Deserialize<List<LayoutEntry>>(File.ReadAllText(filePath));
+            layoutFile.LayoutEntries = layoutEntries;
+            layoutFile.Data = [.. file.GetBytes()];
+            layoutFile.Edited = true;
+
+            archive.Files[archive.Files.IndexOf(file)] = file;
         }
 
         private static async Task ReplaceSingleSourceFileAsync(ArchiveFile<FileInArchive> archive, string filePath, int index, string devkitArm)
