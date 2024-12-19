@@ -23,9 +23,17 @@ namespace HaruhiChokuretsuLib.Save
         /// </summary>
         public SaveOptions Options { get; set; }
         /// <summary>
-        /// Unknown
+        /// Power status data for Mikuru as stored in the common save data
         /// </summary>
-        public byte[] Footer { get; set; }
+        public CharacterPowerStatus MikuruPowerStatus { get; set; }
+        /// <summary>
+        /// Power status data for Nagato as stored in the common save data
+        /// </summary>
+        public CharacterPowerStatus NagatoPowerStatus { get; set; }
+        /// <summary>
+        /// Power status data for Koizumi as stored in the common save data
+        /// </summary>
+        public CharacterPowerStatus KoizumiPowerStatus { get; set; }
 
         /// <summary>
         /// Creates the object based on the binary data section
@@ -37,7 +45,9 @@ namespace HaruhiChokuretsuLib.Save
             NumSaves = IO.ReadInt(data, 0x0C);
             Flags = data.Skip(0x10).Take(0x280).ToArray();
             Options = new(data.Skip(0x290).Take(0x18));
-            Footer = data.Skip(0x2A8).Take(0x48).ToArray();
+            MikuruPowerStatus = new([.. data.Skip(0x2A8).Take(0x18)]);
+            NagatoPowerStatus = new([.. data.Skip(0x2C0).Take(0x18)]);
+            KoizumiPowerStatus = new([.. data.Skip(0x2D8).Take(0x18)]);
         }
 
         /// <summary>
@@ -52,7 +62,9 @@ namespace HaruhiChokuretsuLib.Save
             data.AddRange(BitConverter.GetBytes(NumSaves));
             data.AddRange(Flags);
             data.AddRange(Options.GetBytes());
-            data.AddRange(Footer);
+            data.AddRange(MikuruPowerStatus.GetBytes());
+            data.AddRange(NagatoPowerStatus.GetBytes());
+            data.AddRange(KoizumiPowerStatus.GetBytes());
 
             return [.. data];
         }
@@ -190,5 +202,68 @@ namespace HaruhiChokuretsuLib.Save
             /// </summary>
             MYSTERY_GIRL = 1 << 13,
         }
+    }
+}
+
+/// <summary>
+/// Defines a character's ability properties as seen in the puzzle phase
+/// </summary>
+public class CharacterPowerStatus(byte[] data)
+{
+    /// <summary>
+    /// The level of the character's power -- min 1, max 5
+    /// </summary>
+    public byte Level { get; set; } = data[0x00];
+    /// <summary>
+    /// Unknown
+    /// </summary>
+    public byte Unknown01 { get; set; } = data[0x01];
+    /// <summary>
+    /// Number of remaining uses of the character's power
+    /// </summary>
+    public byte RemainingUses { get; set; } = data[0x02];
+    /// <summary>
+    /// The number of times the power has been used since the character last leveled up
+    /// </summary>
+    public byte UsesSinceLevelUp { get; set; } = data[0x03];
+    /// <summary>
+    /// The total number of times the power has to be used to level up
+    /// When this equals <see cref="UsesSinceLevelUp"/>, the character levels up
+    /// </summary>
+    public byte UsesToLevelUp { get; set; } = data[0x04];
+    /// <summary>
+    /// Unknown
+    /// </summary>
+    public byte Unknown05 { get; set; } = data[0x05];
+    /// <summary>
+    /// Unknown
+    /// </summary>
+    public short Unknown06 { get; set; } = IO.ReadShort(data, 0x06);
+    /// <summary>
+    /// Unknown
+    /// </summary>
+    public int Unknown08 { get; set; } = IO.ReadInt(data, 0x08);
+    /// <summary>
+    /// Not used in save data, but in the puzzle phase this represents the cooldown timer for the power
+    /// </summary>
+    public int CooldownTimer { get; set; } = IO.ReadInt(data, 0x0C);
+    /// <summary>
+    /// Unknown
+    /// </summary>
+    public int Unknown10 { get; set; } = IO.ReadInt(data, 0x10);
+
+    /// <summary>
+    /// Gets the binary representation of this structure
+    /// </summary>
+    /// <returns>A byte array containing the binary representation of this structure</returns>
+    public byte[] GetBytes()
+    {
+        return
+        [
+            Level, Unknown01, RemainingUses, UsesSinceLevelUp, UsesToLevelUp, Unknown05,
+            .. BitConverter.GetBytes(Unknown06),
+            .. BitConverter.GetBytes(Unknown08), .. BitConverter.GetBytes(CooldownTimer),
+            ..BitConverter.GetBytes(Unknown10),
+        ];
     }
 }

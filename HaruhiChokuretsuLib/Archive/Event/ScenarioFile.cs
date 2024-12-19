@@ -693,5 +693,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// Itsuki Koizumi
         /// </summary>
         KOIZUMI = 0b0010_0000,
+        /// <summary>
+        /// Indicates that the objective was chosen in the first selection of the episode
+        /// </summary>
+        SELECTION1 = 0b0100_0000,
+        /// <summary>
+        /// Indicates that the objective was chosen in the second selection of the episode
+        /// </summary>
+        SELECTION2 = 0b1000_0000,
     }
 }

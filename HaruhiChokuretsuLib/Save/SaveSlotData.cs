@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HaruhiChokuretsuLib.Archive.Event;
 
 namespace HaruhiChokuretsuLib.Save
 {
@@ -27,21 +28,29 @@ namespace HaruhiChokuretsuLib.Save
         /// </summary>
         public short HaruhiMeter { get; set; }
         /// <summary>
-        /// Unknown
+        /// This value is set by the script command GLOBAL2D, but its function is unknown
         /// </summary>
-        public short Unknown296 { get; set; }
+        public short Global2D { get; set; }
         /// <summary>
-        /// Unknown
+        /// The index of the objective Kyon was most recently assigned to (0 = A, 1 = B, 2 = C, 3 = D)
         /// </summary>
-        public int Unknown298 { get; set; }
+        public int KyonObjectiveIndex { get; set; }
         /// <summary>
-        /// Unknown
+        /// The characters present on the most recent objective A
         /// </summary>
-        public short Unknown29C { get; set; }
+        public CharacterMask ObjectiveA { get; set; }
         /// <summary>
-        /// Unknown
+        /// The characters present on the most recent objective B
         /// </summary>
-        public short Unknown29E { get; set; }
+        public CharacterMask ObjectiveB { get; set; }
+        /// <summary>
+        /// The characters present on the most recent objective C
+        /// </summary>
+        public CharacterMask ObjectiveC { get; set; }
+        /// <summary>
+        /// The characters present on the most recent objective D
+        /// </summary>
+        public CharacterMask ObjectiveD { get; set; }
         /// <summary>
         /// Current friendship level with Haruhi (HFL)
         /// </summary>
@@ -90,10 +99,12 @@ namespace HaruhiChokuretsuLib.Save
             ScenarioPosition = IO.ReadShort(data, 0x290);
             EpisodeNumber = IO.ReadShort(data, 0x292);
             HaruhiMeter = IO.ReadShort(data, 0x294);
-            Unknown296 = IO.ReadShort(data, 0x296);
-            Unknown298 = IO.ReadInt(data, 0x298);
-            Unknown29C = IO.ReadShort(data, 0x29C);
-            Unknown29E = IO.ReadShort(data, 0x29E);
+            Global2D = IO.ReadShort(data, 0x296);
+            KyonObjectiveIndex = IO.ReadInt(data, 0x298);
+            ObjectiveA = (CharacterMask)data.ElementAt(0x29C);
+            ObjectiveB = (CharacterMask)data.ElementAt(0x29D);
+            ObjectiveC = (CharacterMask)data.ElementAt(0x29E);
+            ObjectiveD = (CharacterMask)data.ElementAt(0x29F);
             // Padding: 2 bytes
             HaruhiFriendshipLevel = data.ElementAt(0x2A2);
             MikuruFriendshipLevel = data.ElementAt(0x2A3);
@@ -112,10 +123,12 @@ namespace HaruhiChokuretsuLib.Save
             ScenarioPosition = 0;
             EpisodeNumber = 0;
             HaruhiMeter = 0;
-            Unknown296 = 0;
-            Unknown298 = 0;
-            Unknown29C = 0;
-            Unknown29E = 0;
+            Global2D = 0;
+            KyonObjectiveIndex = 0;
+            ObjectiveA = 0;
+            ObjectiveB = 0;
+            ObjectiveC = 0;
+            ObjectiveD = 0;
             HaruhiFriendshipLevel = 0;
             MikuruFriendshipLevel = 0;
             NagatoFriendshipLevel = 0;
@@ -155,10 +168,12 @@ namespace HaruhiChokuretsuLib.Save
             data.AddRange(BitConverter.GetBytes(ScenarioPosition));
             data.AddRange(BitConverter.GetBytes(EpisodeNumber));
             data.AddRange(BitConverter.GetBytes(HaruhiMeter));
-            data.AddRange(BitConverter.GetBytes(Unknown296));
-            data.AddRange(BitConverter.GetBytes(Unknown298));
-            data.AddRange(BitConverter.GetBytes(Unknown29C));
-            data.AddRange(BitConverter.GetBytes(Unknown29E));
+            data.AddRange(BitConverter.GetBytes(Global2D));
+            data.AddRange(BitConverter.GetBytes(KyonObjectiveIndex));
+            data.Add((byte)ObjectiveA);
+            data.Add((byte)ObjectiveB);
+            data.Add((byte)ObjectiveC);
+            data.Add((byte)ObjectiveD);
             data.AddRange(new byte[2]);
             data.Add(HaruhiFriendshipLevel);
             data.Add(MikuruFriendshipLevel);
