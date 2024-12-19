@@ -147,6 +147,13 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         public SKColor Tint { get; set; }
 
         /// <summary>
+        /// Empty constructor, used for serialization
+        /// </summary>
+        public LayoutEntry()
+        {
+        }
+        
+        /// <summary>
         /// Create a layout entry from data
         /// </summary>
         /// <param name="data">Binary data representing layout entry</param>

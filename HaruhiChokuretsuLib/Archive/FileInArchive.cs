@@ -1,5 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace HaruhiChokuretsuLib.Archive
 {
@@ -15,6 +16,7 @@ namespace HaruhiChokuretsuLib.Archive
         /// <summary>
         /// The file's magic integer in the archive
         /// </summary>
+        [JsonIgnore]
         public uint MagicInteger { get; set; }
         /// <summary>
         /// Index of the file in the archive
@@ -23,29 +25,39 @@ namespace HaruhiChokuretsuLib.Archive
         /// <summary>
         /// Offset of the file in the archive
         /// </summary>
+        [JsonIgnore]
         public int Offset { get; set; }
         /// <summary>
         /// Decompressed length of the file
         /// </summary>
+        [JsonIgnore]
         public int Length { get; set; }
         /// <summary>
         /// Decompressed binary file data
         /// </summary>
+        [JsonIgnore]
         public List<byte> Data { get; set; }
         /// <summary>
         /// Compressed binary file data
         /// </summary>
+        [JsonIgnore]
         public byte[] CompressedData { get; set; }
         /// <summary>
         /// If true, the file has been edited and will need to be replaced when saving the archive
         /// </summary>
+        [JsonIgnore]
         public bool Edited { get; set; } = false;
         /// <summary>
         /// ILogger instance for logging
         /// </summary>
         protected ILogger Log { get; set; }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Initializes a file in archive (when overridden in a base class, of a specific type)
+        /// </summary>
+        /// <param name="decompressedData">The decompressed data to initialize the file with</param>
+        /// <param name="offset">The offset of the file in the archive</param>
+        /// <param name="log">An ILogger instance for logging</param>
         public virtual void Initialize(byte[] decompressedData, int offset, ILogger log)
         {
             Data = [.. decompressedData];

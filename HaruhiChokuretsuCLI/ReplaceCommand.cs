@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -33,7 +34,7 @@ namespace HaruhiChokuretsuCLI
                 "",
                 { "i|input-archive=", "Archive to replace file(s) in", i => _inputArchive = i },
                 { "o|output-archive=", "Location to save modified archive (or directory)", o => _outputArchive = o },
-                { "r|replacement=", "File or directory to replace with/from; images must be .PNG files, source files must be .S, audio files must be .OGG, and other files must be .BIN files. " +
+                { "r|replacement=", "File or directory to replace with/from; images must be .PNG files, layout files must be .LAY, source files must be .S, audio files must be .OGG, and other files must be .BIN files. " +
                                     "File names must follow a specific format: " +
                                     "\n\t\"(hex)|new[_newpal|_sharedpal(num)[_tidx(num)]][_(comments)].(ext)\"\n\t(hex) is a hex number representing the index " +
                                     "of the file to replace. You can alternatively specify \"new\" to add a file to the archive instead. New graphics " +
@@ -189,6 +190,10 @@ namespace HaruhiChokuretsuCLI
                             }
                             await ReplaceSingleSourceFileAsync(archive, filePath, index.Value, _devkitArm);
                         }
+                        else if (Path.GetExtension(filePath).Equals(".lay", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ReplaceSingleLayoutFile(archive, filePath, index.Value);
+                        }
                         else if (Path.GetExtension(filePath).Equals(".bin", StringComparison.OrdinalIgnoreCase))
                         {
                             ReplaceSingleFile(archive, filePath, index.Value);
@@ -295,6 +300,13 @@ namespace HaruhiChokuretsuCLI
             grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex, newSize: newSize);
 
             archive.Files[archive.Files.IndexOf(file)] = grpFile;
+        }
+
+        private static void ReplaceSingleLayoutFile(ArchiveFile<FileInArchive> archive, string filePath, int index)
+        {
+            GraphicsFile layoutFile = JsonSerializer.Deserialize<GraphicsFile>(File.ReadAllText(filePath));
+
+            archive.Files[index - 1] = layoutFile;
         }
 
         private static async Task ReplaceSingleSourceFileAsync(ArchiveFile<FileInArchive> archive, string filePath, int index, string devkitArm)
