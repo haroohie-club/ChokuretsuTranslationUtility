@@ -312,10 +312,10 @@ namespace HaruhiChokuretsuCLI
 
             var layoutEntries = JsonSerializer.Deserialize<List<LayoutEntry>>(File.ReadAllText(filePath), SERIALIZER_OPTIONS);
             layoutFile.LayoutEntries = layoutEntries;
-            layoutFile.Data = [.. file.GetBytes()];
+            layoutFile.Data = [.. layoutFile.GetBytes()];
             layoutFile.Edited = true;
 
-            archive.Files[archive.Files.IndexOf(file)] = file;
+            archive.Files[archive.Files.IndexOf(file)] = layoutFile;
         }
 
         private static async Task ReplaceSingleSourceFileAsync(ArchiveFile<FileInArchive> archive, string filePath, int index, string devkitArm)
