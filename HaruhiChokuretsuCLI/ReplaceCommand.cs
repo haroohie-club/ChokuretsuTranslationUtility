@@ -14,6 +14,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -21,6 +22,8 @@ namespace HaruhiChokuretsuCLI
 {
     public class ReplaceCommand : Command
     {
+        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new() { Converters = { new SKColorJsonConverter() } };
+        
         string _inputArchive, _outputArchive, _replacement, _devkitArm, _vceDir;
         private bool _showHelp;
         private Dictionary<int, List<SKColor>> _palettes = new();
@@ -307,7 +310,7 @@ namespace HaruhiChokuretsuCLI
             FileInArchive file = archive.GetFileByIndex(index);
             GraphicsFile layoutFile = file.CastTo<GraphicsFile>();
 
-            var layoutEntries = JsonSerializer.Deserialize<List<LayoutEntry>>(File.ReadAllText(filePath));
+            var layoutEntries = JsonSerializer.Deserialize<List<LayoutEntry>>(File.ReadAllText(filePath), SERIALIZER_OPTIONS);
             layoutFile.LayoutEntries = layoutEntries;
             layoutFile.Data = [.. file.GetBytes()];
             layoutFile.Edited = true;
@@ -358,5 +361,22 @@ namespace HaruhiChokuretsuCLI
             file.Edited = true;
             archive.Files[archive.Files.IndexOf(file)] = file;
         }
+    }
+    
+    internal class SKColorJsonConverter : JsonConverter<SKColor>
+    {
+        public override SKColor Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            string html = reader.GetString();
+            return new(
+                byte.Parse(html[2..4], NumberStyles.HexNumber),
+                byte.Parse(html[4..6], NumberStyles.HexNumber),
+                byte.Parse(html[6..8], NumberStyles.HexNumber),
+                byte.Parse(html[..2], NumberStyles.HexNumber)
+            );
+        }
+
+        public override void Write(Utf8JsonWriter writer, SKColor value, JsonSerializerOptions options) =>
+            writer.WriteStringValue($"{value.Alpha:X2}{value.Red:X2}{value.Green:X2}{value.Blue:X2}");
     }
 }
