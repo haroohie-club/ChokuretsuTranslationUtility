@@ -34,6 +34,10 @@ namespace HaruhiChokuretsuLib.Save
         /// Power status data for Koizumi as stored in the common save data
         /// </summary>
         public CharacterPowerStatus KoizumiPowerStatus { get; set; }
+        /// <summary>
+        /// In puzzle phase usage, contains pointers to the active characters, but in the save file is empty
+        /// </summary>
+        public byte[] Footer { get; set; }
 
         /// <summary>
         /// Creates the object based on the binary data section
@@ -45,9 +49,10 @@ namespace HaruhiChokuretsuLib.Save
             NumSaves = IO.ReadInt(data, 0x0C);
             Flags = data.Skip(0x10).Take(0x280).ToArray();
             Options = new(data.Skip(0x290).Take(0x18));
-            MikuruPowerStatus = new([.. data.Skip(0x2A8).Take(0x18)]);
-            NagatoPowerStatus = new([.. data.Skip(0x2C0).Take(0x18)]);
-            KoizumiPowerStatus = new([.. data.Skip(0x2D8).Take(0x18)]);
+            MikuruPowerStatus = new([.. data.Skip(0x2A8).Take(0x14)]);
+            NagatoPowerStatus = new([.. data.Skip(0x2BC).Take(0x14)]);
+            KoizumiPowerStatus = new([.. data.Skip(0x2D0).Take(0x14)]);
+            Footer = [.. data.Skip(0x2E4).Take(0x0C)];
         }
 
         /// <summary>
@@ -65,6 +70,7 @@ namespace HaruhiChokuretsuLib.Save
             data.AddRange(MikuruPowerStatus.GetBytes());
             data.AddRange(NagatoPowerStatus.GetBytes());
             data.AddRange(KoizumiPowerStatus.GetBytes());
+            data.AddRange(Footer);
 
             return [.. data];
         }
