@@ -343,24 +343,23 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public short LayoutFileIndex { get; set; }
         /// <summary>
-        /// The index of the layout layer which defines the screen size of the layout
-        /// (specifically, the ScreenX and ScreenY properties of the specified entry define the map size)
+        /// The layout index where the background layer begins
         /// </summary>
         public int LayoutBgLayerStartIndex { get; set; }
         /// <summary>
-        /// Unknown
+        /// The number of special "definitions" (non-textures) at the beginning of the background layer
         /// </summary>
         public int NumBgLayerDefinitions { get; set; }
         /// <summary>
-        /// Unknown
+        /// The layout index where the background layer ends
         /// </summary>
         public int LayoutBgLayerEndIndex { get; set; }
         /// <summary>
-        /// Unknown
+        /// The layout index where the occlusion layer (where all entries fully occlude objects) begins
         /// </summary>
         public int LayoutOcclusionLayerStartIndex { get; set; }
         /// <summary>
-        /// Unknown
+        /// The layout index where the occlusion layer ends
         /// </summary>
         public int LayoutOcclusionLayerEndIndex { get; set; }
         /// <summary>
@@ -368,15 +367,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public int Unknown28 { get; set; }
         /// <summary>
-        /// The index of the layout layer at which the background image starts
+        /// The index of the layout layer at which the scrolling background image starts
         /// </summary>
         public int ScrollingBgLayoutStartIndex { get; set; }
         /// <summary>
-        /// The index of the layout layer at which the background image ends
+        /// The index of the layout layer at which the scrolling background image ends
         /// </summary>
         public int ScrollingBgLayoutEndIndex { get; set; }
         /// <summary>
-        /// Unknown
+        /// An integer defining the mode by which the scrolling background is flipped/rotated (not yet fully understood)
         /// </summary>
         public int TransformMode { get; set; }
         /// <summary>
@@ -388,7 +387,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         public SKColor BottomGradient { get; set; }
         /// <summary>
-        /// Unknown
+        /// The layout index where the scrolling background is defined
         /// </summary>
         public int ScrollingBgDefinitionLayoutIndex { get; set; }
         /// <summary>
