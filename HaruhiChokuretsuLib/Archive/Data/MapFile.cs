@@ -128,14 +128,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
             }
             GraphicsFile layout = grp.GetFileByIndex(Settings.LayoutFileIndex);
 
-            int mapEndIndex = maxLayoutIndex >= 0 ? maxLayoutIndex : (Settings.BackgroundLayoutStartIndex == 0 ? layout.Length : Settings.BackgroundLayoutStartIndex);
+            int mapEndIndex = maxLayoutIndex >= 0 ? maxLayoutIndex : (Settings.ScrollingBgLayoutStartIndex == 0 ? layout.Length : Settings.ScrollingBgLayoutStartIndex);
 
-            SKBitmap mapBitmap = layout.GetLayout(textures, Settings.LayoutSizeDefinitionIndex, mapEndIndex, false, true).bitmap;
+            SKBitmap mapBitmap = layout.GetLayout(textures, Settings.LayoutBgLayerStartIndex, mapEndIndex, false, true).bitmap;
             SKBitmap bgBitmap = null;
 
-            if (Settings.BackgroundLayoutStartIndex != 0 || Settings.BackgroundLayoutEndIndex != 0)
+            if (Settings.ScrollingBgLayoutStartIndex != 0 || Settings.ScrollingBgLayoutEndIndex != 0)
             {
-                bgBitmap = layout.GetLayout(textures, Settings.BackgroundLayoutStartIndex, Settings.BackgroundLayoutEndIndex - Settings.BackgroundLayoutStartIndex + 1, false, true).bitmap;
+                bgBitmap = layout.GetLayout(textures, Settings.ScrollingBgLayoutStartIndex, Settings.ScrollingBgLayoutEndIndex - Settings.ScrollingBgLayoutStartIndex + 1, false, true).bitmap;
             }
 
             return (mapBitmap, bgBitmap);
@@ -346,23 +346,23 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// The index of the layout layer which defines the screen size of the layout
         /// (specifically, the ScreenX and ScreenY properties of the specified entry define the map size)
         /// </summary>
-        public int LayoutSizeDefinitionIndex { get; set; }
+        public int LayoutBgLayerStartIndex { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown18 { get; set; }
+        public int NumBgLayerDefinitions { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
-        public int UnknownLayoutIndex1C { get; set; }
+        public int LayoutBgLayerEndIndex { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
-        public int UnknownLayoutIndex20 { get; set; }
+        public int LayoutOcclusionLayerStartIndex { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
-        public int UnknownLayoutIndex24 { get; set; }
+        public int LayoutOcclusionLayerEndIndex { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
@@ -370,15 +370,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <summary>
         /// The index of the layout layer at which the background image starts
         /// </summary>
-        public int BackgroundLayoutStartIndex { get; set; }
+        public int ScrollingBgLayoutStartIndex { get; set; }
         /// <summary>
         /// The index of the layout layer at which the background image ends
         /// </summary>
-        public int BackgroundLayoutEndIndex { get; set; }
+        public int ScrollingBgLayoutEndIndex { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown34 { get; set; }
+        public int TransformMode { get; set; }
         /// <summary>
         /// The color of the top of the background gradient
         /// </summary>
@@ -390,15 +390,15 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <summary>
         /// Unknown
         /// </summary>
-        public int UnknownLayoutIndex40 { get; set; }
+        public int ScrollingBgDefinitionLayoutIndex { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown44 { get; set; }
+        public int UnknownLayoutIndex44 { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown48 { get; set; }
+        public int UnknownLayoutIndex48 { get; set; }
         /// <summary>
         /// The starting position (in terms of tiles) of the player character
         /// </summary>
@@ -445,20 +445,20 @@ namespace HaruhiChokuretsuLib.Archive.Data
             TextureFileIndices.Add(BitConverter.ToInt16(data.Skip(0x10).Take(2).ToArray()));
             TextureFileIndices.Add(BitConverter.ToInt16(data.Skip(0x0E).Take(2).ToArray()));
             LayoutFileIndex = BitConverter.ToInt16(data.Skip(0x12).Take(2).ToArray());
-            LayoutSizeDefinitionIndex = BitConverter.ToInt32(data.Skip(0x14).Take(4).ToArray());
-            Unknown18 = BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray());
-            UnknownLayoutIndex1C = BitConverter.ToInt32(data.Skip(0x1C).Take(4).ToArray());
-            UnknownLayoutIndex20 = BitConverter.ToInt32(data.Skip(0x20).Take(4).ToArray());
-            UnknownLayoutIndex24 = BitConverter.ToInt32(data.Skip(0x24).Take(4).ToArray());
+            LayoutBgLayerStartIndex = BitConverter.ToInt32(data.Skip(0x14).Take(4).ToArray());
+            NumBgLayerDefinitions = BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray());
+            LayoutBgLayerEndIndex = BitConverter.ToInt32(data.Skip(0x1C).Take(4).ToArray());
+            LayoutOcclusionLayerStartIndex = BitConverter.ToInt32(data.Skip(0x20).Take(4).ToArray());
+            LayoutOcclusionLayerEndIndex = BitConverter.ToInt32(data.Skip(0x24).Take(4).ToArray());
             Unknown28 = BitConverter.ToInt32(data.Skip(0x28).Take(4).ToArray());
-            BackgroundLayoutStartIndex = BitConverter.ToInt32(data.Skip(0x2C).Take(4).ToArray());
-            BackgroundLayoutEndIndex = BitConverter.ToInt32(data.Skip(0x30).Take(4).ToArray());
-            Unknown34 = BitConverter.ToInt32(data.Skip(0x34).Take(4).ToArray());
+            ScrollingBgLayoutStartIndex = BitConverter.ToInt32(data.Skip(0x2C).Take(4).ToArray());
+            ScrollingBgLayoutEndIndex = BitConverter.ToInt32(data.Skip(0x30).Take(4).ToArray());
+            TransformMode = BitConverter.ToInt32(data.Skip(0x34).Take(4).ToArray());
             TopGradient = new(data.ElementAt(0x3A), data.ElementAt(0x39), data.ElementAt(0x38));
             BottomGradient = new(data.ElementAt(0x3E), data.ElementAt(0x3D), data.ElementAt(0x3C));
-            UnknownLayoutIndex40 = BitConverter.ToInt32(data.Skip(0x40).Take(4).ToArray());
-            Unknown44 = BitConverter.ToInt32(data.Skip(0x44).Take(4).ToArray());
-            Unknown48 = BitConverter.ToInt32(data.Skip(0x48).Take(4).ToArray());
+            ScrollingBgDefinitionLayoutIndex = BitConverter.ToInt32(data.Skip(0x40).Take(4).ToArray());
+            UnknownLayoutIndex44 = BitConverter.ToInt32(data.Skip(0x44).Take(4).ToArray());
+            UnknownLayoutIndex48 = BitConverter.ToInt32(data.Skip(0x48).Take(4).ToArray());
             StartingPosition = (BitConverter.ToInt32(data.Skip(0x4C).Take(4).ToArray()), BitConverter.ToInt32(data.Skip(0x50).Take(4).ToArray()));
             ColorAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x54).Take(4).ToArray());
             PaletteAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x58).Take(4).ToArray());
@@ -482,20 +482,20 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine($"{Helpers.Indent(indent)}.short {TextureFileIndices[2]}");
             sb.AppendLine($"{Helpers.Indent(indent)}.short {TextureFileIndices[1]}");
             sb.AppendLine($"{Helpers.Indent(indent)}.short {LayoutFileIndex}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutSizeDefinitionIndex}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown18}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex1C}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex20}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex24}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutBgLayerStartIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {NumBgLayerDefinitions}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutBgLayerEndIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutOcclusionLayerStartIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutOcclusionLayerEndIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown28}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {BackgroundLayoutStartIndex}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {BackgroundLayoutEndIndex}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown34}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {ScrollingBgLayoutStartIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {ScrollingBgLayoutEndIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {TransformMode}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word 0x{TopGradient.Red << 16 | TopGradient.Green << 8 | TopGradient.Blue:X6}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word 0x{BottomGradient.Red << 16 | BottomGradient.Green << 8 | BottomGradient.Blue:X6}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex40}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown44}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown48}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {ScrollingBgDefinitionLayoutIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex44}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex48}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {StartingPosition.x}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {StartingPosition.y}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {ColorAnimationFileIndex}");
