@@ -154,7 +154,7 @@ namespace HaruhiChokuretsuCLI
                     QMapFile qmapFile = qmapDataFile.CastTo<QMapFile>();
                     archive.Files[archive.Files.IndexOf(qmapDataFile)] = qmapFile;
 
-                    if (qmapFile.QMaps.Select(q => q.Name).Contains(file.Name))
+                    if (qmapFile.QMaps.Select(q => Path.GetFileNameWithoutExtension(q.Name)).Contains(file.Name[..^1]))
                     {
                         file = file.CastTo<MapFile>();
                     }
