@@ -883,7 +883,7 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutBgLayerEndIndex)}: {map.Settings.LayoutBgLayerEndIndex}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutOcclusionLayerStartIndex)}: {map.Settings.LayoutOcclusionLayerStartIndex}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutOcclusionLayerEndIndex)}: {map.Settings.LayoutOcclusionLayerEndIndex}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown28)}: {map.Settings.Unknown28}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.LayoutBoundsIndex)}: {map.Settings.LayoutBoundsIndex}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ScrollingBgLayoutStartIndex)}: {map.Settings.ScrollingBgLayoutStartIndex}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ScrollingBgLayoutEndIndex)}: {map.Settings.ScrollingBgLayoutEndIndex}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TransformMode)}: {map.Settings.TransformMode}" });

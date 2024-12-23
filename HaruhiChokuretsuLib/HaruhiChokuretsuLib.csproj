@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Company>Haroohie Translation Club</Company>
-    <Version>0.48.1</Version>
+    <Version>0.48.2</Version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   

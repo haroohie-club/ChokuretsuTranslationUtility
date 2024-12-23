@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using HaruhiChokuretsuLib.Archive.Event;
 
 namespace HaruhiChokuretsuLib.Archive.Data
 {
@@ -67,12 +68,6 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
             StringBuilder sb = new();
 
-            sb.AppendLine(".set KYON, 1");
-            sb.AppendLine(".set HARUHI, 2");
-            sb.AppendLine(".set MIKURU, 3");
-            sb.AppendLine(".set NAGATO, 4");
-            sb.AppendLine(".set KOIZUMI, 5");
-            sb.AppendLine(".set ANY, 22");
             sb.AppendLine(".include \"GRPBIN.INC\"");
             sb.AppendLine();
 
@@ -130,9 +125,9 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine($"   .word {Settings.Unknown04}");
             sb.AppendLine($"   .word {Settings.TargetNumber}");
             sb.AppendLine($"   .word {(Settings.ContinueOnFailure ? 1 : 0)}");
-            sb.AppendLine($"   .word {(Settings.AccompanyingCharacterName.StartsWith("UNKNOWN") ? Settings.AccompanyingCharacter : Settings.AccompanyingCharacterName)}");
-            sb.AppendLine($"   .word {(Settings.PowerCharacter1Name.StartsWith("UNKNOWN") ? Settings.PowerCharacter1 : Settings.PowerCharacter1Name)}");
-            sb.AppendLine($"   .word {(Settings.PowerCharacter2Name.StartsWith("UNKNOWN") ? Settings.PowerCharacter2 : Settings.PowerCharacter2Name)}");
+            sb.AppendLine($"   .word {(int)Settings.AccompanyingCharacter}");
+            sb.AppendLine($"   .word {(int)Settings.PowerCharacter1}");
+            sb.AppendLine($"   .word {(int)Settings.PowerCharacter2}");
             sb.AppendLine($"   .word {grpBinInclude.First(i => i.Value == Settings.SingularityTexture).Name}");
             sb.AppendLine($"   .word {grpBinInclude.First(i => i.Value == Settings.SingularityLayout).Name}");
             sb.AppendLine($"   .word {(Settings.SingularityAnim1 - 1 > 0 ? grpBinInclude.First(i => i.Value == Settings.SingularityAnim1).Name : 0)}");
@@ -268,29 +263,17 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <summary>
         /// The index of the character who will accompany Haruhi while the puzzle is solved (1 = KYON, 2 = HARUHI, 3 = MIKURU, 4 = NAGATO, 5 = KOIZUMI, 22 = ANY)
         /// </summary>
-        public int AccompanyingCharacter { get; set; } = IO.ReadInt(data, 0x18);
-        /// <summary>
-        /// The name the accompanying character
-        /// </summary>
-        public string AccompanyingCharacterName => CharacterSwitch(AccompanyingCharacter);
+        public Speaker AccompanyingCharacter { get; set; } = (Speaker)IO.ReadInt(data, 0x18);
         /// <summary>
         /// The index of the first character whose powers can be used (3 = MIKURU, 4 = NAGATO, 5 = KOIZUMI, 22 = ANY)
         /// </summary>
-        public int PowerCharacter1 { get; set; } = IO.ReadInt(data, 0x1C);
+        public Speaker PowerCharacter1 { get; set; } = (Speaker)IO.ReadInt(data, 0x1C);
         /// <summary>
         /// The name the first power character
         /// </summary>
-        public string PowerCharacter1Name => CharacterSwitch(PowerCharacter1);
-        /// <summary>
-        /// The index of the second character whose powers can be used (3 = MIKURU, 4 = NAGATO, 5 = KOIZUMI, 22 = ANY)
-        /// </summary>
-        public int PowerCharacter2 { get; set; } = IO.ReadInt(data, 0x20);
+        public Speaker PowerCharacter2 { get; set; } = (Speaker)IO.ReadInt(data, 0x20);
         /// <summary>
         /// The name the second power character
-        /// </summary>
-        public string PowerCharacter2Name => CharacterSwitch(PowerCharacter2);
-        /// <summary>
-        /// The grp.bin index of the texture to use for singularities
         /// </summary>
         public int SingularityTexture { get; set; } = IO.ReadInt(data, 0x24);
         /// <summary>
@@ -333,20 +316,6 @@ namespace HaruhiChokuretsuLib.Archive.Data
             return Encoding.ASCII.GetString(
                 qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + MapId * 8).Take(4).ToArray()))
                 .TakeWhile(b => b != 0).ToArray());
-        }
-
-        private static string CharacterSwitch(int characterCode)
-        {
-            return characterCode switch
-            {
-                1 => "KYON",
-                2 => "HARUHI",
-                3 => "MIKURU",
-                4 => "NAGATO",
-                5 => "KOIZUMI",
-                22 => "ANY",
-                _ => $"UNKNOWN ({characterCode})",
-            };
         }
     }
 }

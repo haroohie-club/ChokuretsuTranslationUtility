@@ -365,7 +365,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <summary>
         /// Unknown
         /// </summary>
-        public int Unknown28 { get; set; }
+        public int LayoutBoundsIndex { get; set; }
         /// <summary>
         /// The index of the layout layer at which the scrolling background image starts
         /// </summary>
@@ -449,7 +449,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             LayoutBgLayerEndIndex = BitConverter.ToInt32(data.Skip(0x1C).Take(4).ToArray());
             LayoutOcclusionLayerStartIndex = BitConverter.ToInt32(data.Skip(0x20).Take(4).ToArray());
             LayoutOcclusionLayerEndIndex = BitConverter.ToInt32(data.Skip(0x24).Take(4).ToArray());
-            Unknown28 = BitConverter.ToInt32(data.Skip(0x28).Take(4).ToArray());
+            LayoutBoundsIndex = BitConverter.ToInt32(data.Skip(0x28).Take(4).ToArray());
             ScrollingBgLayoutStartIndex = BitConverter.ToInt32(data.Skip(0x2C).Take(4).ToArray());
             ScrollingBgLayoutEndIndex = BitConverter.ToInt32(data.Skip(0x30).Take(4).ToArray());
             TransformMode = BitConverter.ToInt32(data.Skip(0x34).Take(4).ToArray());
@@ -486,7 +486,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutBgLayerEndIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutOcclusionLayerStartIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutOcclusionLayerEndIndex}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown28}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {LayoutBoundsIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {ScrollingBgLayoutStartIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {ScrollingBgLayoutEndIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {TransformMode}");
