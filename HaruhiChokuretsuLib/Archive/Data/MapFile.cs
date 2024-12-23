@@ -393,11 +393,11 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <summary>
         /// Unknown
         /// </summary>
-        public int UnknownLayoutIndex44 { get; set; }
+        public int IntroCameraTruckingDefsStartIndex { get; set; }
         /// <summary>
         /// Unknown
         /// </summary>
-        public int UnknownLayoutIndex48 { get; set; }
+        public int IntroCameraTruckingDefsEndIndex { get; set; }
         /// <summary>
         /// The starting position (in terms of tiles) of the player character
         /// </summary>
@@ -456,8 +456,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
             TopGradient = new(data.ElementAt(0x3A), data.ElementAt(0x39), data.ElementAt(0x38));
             BottomGradient = new(data.ElementAt(0x3E), data.ElementAt(0x3D), data.ElementAt(0x3C));
             ScrollingBgDefinitionLayoutIndex = BitConverter.ToInt32(data.Skip(0x40).Take(4).ToArray());
-            UnknownLayoutIndex44 = BitConverter.ToInt32(data.Skip(0x44).Take(4).ToArray());
-            UnknownLayoutIndex48 = BitConverter.ToInt32(data.Skip(0x48).Take(4).ToArray());
+            IntroCameraTruckingDefsStartIndex = BitConverter.ToInt32(data.Skip(0x44).Take(4).ToArray());
+            IntroCameraTruckingDefsEndIndex = BitConverter.ToInt32(data.Skip(0x48).Take(4).ToArray());
             StartingPosition = (BitConverter.ToInt32(data.Skip(0x4C).Take(4).ToArray()), BitConverter.ToInt32(data.Skip(0x50).Take(4).ToArray()));
             ColorAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x54).Take(4).ToArray());
             PaletteAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x58).Take(4).ToArray());
@@ -493,8 +493,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine($"{Helpers.Indent(indent)}.word 0x{TopGradient.Red << 16 | TopGradient.Green << 8 | TopGradient.Blue:X6}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word 0x{BottomGradient.Red << 16 | BottomGradient.Green << 8 | BottomGradient.Blue:X6}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {ScrollingBgDefinitionLayoutIndex}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex44}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {UnknownLayoutIndex48}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {IntroCameraTruckingDefsStartIndex}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {IntroCameraTruckingDefsEndIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {StartingPosition.x}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {StartingPosition.y}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {ColorAnimationFileIndex}");

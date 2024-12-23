@@ -890,8 +890,8 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.TopGradient)}: {map.Settings.TopGradient}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.BottomGradient)}: {map.Settings.BottomGradient}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ScrollingBgDefinitionLayoutIndex)}: {map.Settings.ScrollingBgDefinitionLayoutIndex}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.UnknownLayoutIndex44)}: {map.Settings.UnknownLayoutIndex44}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.UnknownLayoutIndex48)}: {map.Settings.UnknownLayoutIndex48}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.IntroCameraTruckingDefsStartIndex)}: {map.Settings.IntroCameraTruckingDefsStartIndex}" });
+                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.IntroCameraTruckingDefsEndIndex)}: {map.Settings.IntroCameraTruckingDefsEndIndex}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.StartingPosition)}: {map.Settings.StartingPosition}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ColorAnimationFileIndex)}: 0x{map.Settings.ColorAnimationFileIndex:X3}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PaletteAnimationFileIndex)}: 0x{map.Settings.PaletteAnimationFileIndex:X3}" });
