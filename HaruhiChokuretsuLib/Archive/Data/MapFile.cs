@@ -420,16 +420,16 @@ namespace HaruhiChokuretsuLib.Archive.Data
         public int Unknown2Count { get; internal set; }
         internal int Unknown2SectionPointer { get; set; }
         /// <summary>
-        /// The number of interactable objects on the map
+        /// The number of interactable object positions on the map
         /// </summary>
         public int InteractableObjectsCount { get; internal set; }
         internal int InteractableObjectsSectionPointer { get; set; }
         internal int WalkabilityMapPointer { get; set; }
         /// <summary>
-        /// Unknown
+        /// Number of "objects" (possibly occluding layout entries)
         /// </summary>
-        public int Unknown3Count { get; internal set; }
-        internal int Unknown3SectionPointer { get; set; }
+        public int ObjectsCount { get; internal set; }
+        internal int ObjectsSectionPointer { get; set; }
 
         /// <summary>
         /// Constructs map file settings
@@ -462,8 +462,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
             ColorAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x54).Take(4).ToArray());
             PaletteAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x58).Take(4).ToArray());
             Unknown5C = BitConverter.ToInt32(data.Skip(0x5C).Take(4).ToArray());
-            Unknown3Count = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
-            Unknown3SectionPointer = BitConverter.ToInt32(data.Skip(0x64).Take(4).ToArray());
+            ObjectsCount = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
+            ObjectsSectionPointer = BitConverter.ToInt32(data.Skip(0x64).Take(4).ToArray());
             InteractableObjectsCount = BitConverter.ToInt32(data.Skip(0x68).Take(4).ToArray());
             InteractableObjectsSectionPointer = BitConverter.ToInt32(data.Skip(0x6C).Take(4).ToArray());
             WalkabilityMapPointer = BitConverter.ToInt32(data.Skip(0x70).Take(4).ToArray());
@@ -500,7 +500,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine($"{Helpers.Indent(indent)}.word {ColorAnimationFileIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {PaletteAnimationFileIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown5C}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown3Count}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {ObjectsCount}");
             sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[2].Name}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {InteractableObjectsCount}");
             sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[3].Name}");
