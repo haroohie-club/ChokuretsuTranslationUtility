@@ -987,7 +987,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 int dialogueIndex = int.Parse(((string)d.Key)[0..4]);
                 bool datFile = ((string)d.Key).Contains("dat_");
-                string dialogueText = (string)d.Value;
+                string dialogueText = ((string)d.Value).GetUnShapedUnicode().DecodeEncodedNonAsciiCharacters();
 
                 // Replace all faux-ellipses with an ellipsis character
                 dialogueText = dialogueText.Replace("...", "…");
