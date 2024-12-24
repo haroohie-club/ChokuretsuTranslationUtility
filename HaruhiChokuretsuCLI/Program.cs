@@ -20,6 +20,7 @@ namespace HaruhiChokuretsuCLI
                 new LocalizeSourceFilesCommand(),
                 new HexSearchCommand(),
                 new VersionScreenCommand(),
+                new FontAppendCommand(),
                 new ConvertAudioCommand(),
                 new ExportCharacterSpriteCommand(),
                 new ExportChibiCommand(),
