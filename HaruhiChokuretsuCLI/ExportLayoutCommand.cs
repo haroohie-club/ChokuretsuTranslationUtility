@@ -6,6 +6,7 @@ using SkiaSharp;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 namespace HaruhiChokuretsuCLI
 {
@@ -15,6 +16,7 @@ namespace HaruhiChokuretsuCLI
         private int _layoutIndex, _layoutStart, _layoutEnd;
         private int[] _indices;
         private string[] _names;
+        private bool _json;
         public ExportLayoutCommand() : base("export-layout", "Exports a layout given a series of texture files")
         {
             Options = new()
@@ -34,6 +36,7 @@ namespace HaruhiChokuretsuCLI
                 { "s|layout-start=", "Layout starting index", s => _layoutStart = int.Parse(s) },
                 { "e|layout-end=", "Layout ending index", e => _layoutEnd = int.Parse(e) },
                 { "o|output=", "Output PNG file location", o => _outputFile = o },
+                { "j|json", "If specified, will output JSON of the layout entries as well", j => _json = true },
             };
         }
 
@@ -69,10 +72,15 @@ namespace HaruhiChokuretsuCLI
                 _layoutEnd = layout.LayoutEntries.Count;
             }
 
-            (SKBitmap layoutImage, _) = layout.GetLayout(layoutTextures, _layoutStart, _layoutEnd - _layoutStart, darkMode: false, preprocessedList: true);
+            (SKBitmap layoutImage, List<LayoutEntry> layoutEntries) = layout.GetLayout(layoutTextures, _layoutStart, _layoutEnd - _layoutStart, darkMode: false, preprocessedList: true);
 
             using FileStream layoutStream = new(_outputFile, FileMode.Create);
             layoutImage.Encode(layoutStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
+
+            if (_json)
+            {
+                File.WriteAllText(Path.Combine(Path.GetDirectoryName(_outputFile), $"{Path.GetFileNameWithoutExtension(_outputFile)}.json"), JsonSerializer.Serialize(layoutEntries, ReplaceCommand.SERIALIZER_OPTIONS));
+            }
 
             return 0;
         }
