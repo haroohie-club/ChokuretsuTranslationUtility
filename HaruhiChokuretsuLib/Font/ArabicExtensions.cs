@@ -43,49 +43,63 @@ public static class ArabicExtensions
         //remove escape characters
         original = Regex.Unescape(original.Trim());
 
-        var words = original.Split(' ');
-        StringBuilder builder = new StringBuilder();
-        foreach (var word in words)
+        string[] words = original.Split(' ');
+        StringBuilder builder = new();
+        foreach (string word in words)
         {
             string previous = null;
             int index = 0;
-            foreach (var character in word)
+            foreach (char character in word)
             {
-                string shapedUnicode = @"\u" + ((int)character).ToString("X4");
+                string shapedUnicode = $@"\u{(int)character:X4}";
 
+                if (ArabicUnicodeTable.ArabicDiacriticReplacements.TryGetValue(shapedUnicode, out char replacement))
+                {
+                    builder[^4] = replacement;
+                    index++;
+                    continue;
+                }
+                
                 //if Unicode doesn't exist in Unicode table then character isn't a letter hence shaped Unicode is fine
                 if (!ArabicUnicodeTable.ArabicGlyphs.ContainsKey(shapedUnicode))
                 {
                     builder.Append(shapedUnicode);
                     previous = null;
+                    index++;
                     continue;
+                }
+
+                //first character in word or previous character isn't a letter
+                if (index == 0 || previous == null)
+                {
+                    builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][1]);
                 }
                 else
                 {
-                    //first character in word or previous character isn't a letter
-                    if (index == 0 || previous == null)
+                    bool previousCharHasOnlyTwoCases = ArabicUnicodeTable.ArabicGlyphs[previous][4] == "2";
+                    //if last character in word
+                    if (index == word.Length - 1 || index == word.Length - 2 
+                        && (ArabicUnicodeTable.ArabicDiacriticReplacements.ContainsKey($@"\u{(int)word[^1]:X4}"))
+                            || char.IsPunctuation(word[^1]))
                     {
-                        builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][1]);
-                    }
-                    else
-                    {
-                        bool previousCharHasOnlyTwoCases = ArabicUnicodeTable.ArabicGlyphs[previous][4] == "2";
-                        //if last character in word
-                        if (index == word.Length - 1)
+                        if (!string.IsNullOrEmpty(previous) && previousCharHasOnlyTwoCases)
                         {
-                            if (!string.IsNullOrEmpty(previous) && previousCharHasOnlyTwoCases)
-                            {
-                                builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][0]);
-                            }
-                            else
-                                builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][3]);
+                            builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][0]);
                         }
                         else
                         {
-                            if (previousCharHasOnlyTwoCases)
-                                builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][1]);
-                            else
-                                builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][2]);
+                            builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][3]);
+                        }
+                    }
+                    else
+                    {
+                        if (previousCharHasOnlyTwoCases)
+                        {
+                            builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][1]);
+                        }
+                        else
+                        {
+                            builder.Append(ArabicUnicodeTable.ArabicGlyphs[shapedUnicode][2]);
                         }
                     }
                 }

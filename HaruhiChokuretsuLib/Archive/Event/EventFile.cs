@@ -985,7 +985,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             using ResXResourceReader resxReader = new(textReader);
             foreach (DictionaryEntry d in resxReader)
             {
-                int dialogueIndex = int.Parse(((string)d.Key)[0..4]);
+                int dialogueIndex = int.Parse(((string)d.Key)[..4]);
                 bool datFile = ((string)d.Key).Contains("dat_");
                 string dialogueText = ((string)d.Value).GetUnShapedUnicode().DecodeEncodedNonAsciiCharacters();
 
@@ -1055,10 +1055,19 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                     if (!datFile && dialogueText[i] != '　' && lineLength > DIALOGUE_LINE_LENGTH)
                     {
-                        int indexOfMostRecentSpace = dialogueText[0..i].LastIndexOf('　'); // full-width space bc it's been replaced already
-                        dialogueText = dialogueText.Remove(indexOfMostRecentSpace, 1);
-                        dialogueText = dialogueText.Insert(indexOfMostRecentSpace, "\n");
-                        lineLength = 0;
+                        int indexOfMostRecentSpace = dialogueText[..i].LastIndexOf(FontReplacementMap[' '].OriginalCharacter); // original space bc it's been replaced already
+                        if (indexOfMostRecentSpace < 0)
+                        {
+                            // If we don't have any spaces in the line, just give up and put a space right here
+                            dialogueText.Insert(i - 1, "\n");
+                            lineLength = 0;
+                        }
+                        else
+                        {
+                            dialogueText = dialogueText.Remove(indexOfMostRecentSpace, 1);
+                            dialogueText = dialogueText.Insert(indexOfMostRecentSpace, "\n");
+                            lineLength = 0;
+                        }
                     }
                 }
 
@@ -1069,7 +1078,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     {
                         type = "choice";
                     }
-                    Log.LogWarning($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[0..Math.Min(15, dialogueText.Length - 1)]})");
+                    Log.LogWarning($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[..Math.Min(15, dialogueText.Length - 1)]})");
                 }
 
                 EditDialogueLine(dialogueIndex, dialogueText);
