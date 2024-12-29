@@ -896,8 +896,6 @@ namespace HaruhiChokuretsuEditor
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.ColorAnimationFileIndex)}: 0x{map.Settings.ColorAnimationFileIndex:X3}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.PaletteAnimationFileIndex)}: 0x{map.Settings.PaletteAnimationFileIndex:X3}" });
                     dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown5C)}: {map.Settings.Unknown5C}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.Unknown2Count)}: {map.Settings.Unknown2Count}" });
-                    dataEditStackPanel.Children.Add(new TextBlock { Text = $"{nameof(map.Settings.InteractableObjectsCount)}: {map.Settings.InteractableObjectsCount}" });
 
                     SKBitmap bgGradient = map.GetBackgroundGradient();
                     dataEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(bgGradient), Width = bgGradient.Width });

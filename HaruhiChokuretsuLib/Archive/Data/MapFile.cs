@@ -414,21 +414,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// Unknown
         /// </summary>
         public int Unknown5C { get; set; }
-        /// <summary>
-        /// Unknown
-        /// </summary>
-        public int Unknown2Count { get; internal set; }
+        internal int Unknown2Count { get; set; }
         internal int Unknown2SectionPointer { get; set; }
-        /// <summary>
-        /// The number of interactable object positions on the map
-        /// </summary>
-        public int InteractableObjectsCount { get; internal set; }
+        internal int InteractableObjectsCount { get; set; }
         internal int InteractableObjectsSectionPointer { get; set; }
         internal int WalkabilityMapPointer { get; set; }
-        /// <summary>
-        /// Number of "objects" (possibly occluding layout entries)
-        /// </summary>
-        public int ObjectsCount { get; internal set; }
+        internal int ObjectsCount { get; set; }
         internal int ObjectsSectionPointer { get; set; }
 
         /// <summary>
@@ -500,12 +491,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine($"{Helpers.Indent(indent)}.word {ColorAnimationFileIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {PaletteAnimationFileIndex}");
             sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown5C}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {ObjectsCount}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {sections[2].ItemCount - 1}");
             sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[2].Name}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {InteractableObjectsCount}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {sections[3].ItemCount - 1}");
             sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[3].Name}");
             sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[4].Name}");
-            sb.AppendLine($"{Helpers.Indent(indent)}.word {Unknown2Count}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.word {sections[1].ItemCount - 1}");
             sb.AppendLine($"{Helpers.Indent(indent)}POINTER{currentPointer++:D2}: .word {sections[1].Name}");
             sb.AppendLine($"{Helpers.Indent(indent)}.skip 0x40");
             return sb.ToString();
