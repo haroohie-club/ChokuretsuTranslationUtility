@@ -973,6 +973,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// Loads a RESX file from disk and replaces all the dialogue lines in the files with ones from the RESX
         /// </summary>
         /// <param name="fileName">The RESX file on disk to load</param>
+        /// <param name="spellChecker">Optional spell checker instance for checking spelling at runtime</param>
         public void ImportResxFile(string fileName, SpellChecker spellChecker = null)
         {
             Edited = true;
@@ -999,12 +1000,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                 if (spellChecker is not null)
                 {
-                    string[] words = Regex.Split(dialogueText, @"\s");
+                    string cleanedText = Regex.Replace(dialogueText, @"#P\d{2}", "");
+                    cleanedText = Regex.Replace(cleanedText, @"[.,!?()’'—…""]", " ");
+                    string[] words = Regex.Split(cleanedText, @"\s");
                     foreach (string word in words)
                     {
                         if (!spellChecker.IsWordCorrect(word))
                         {
-                            Log.LogWarning($"Incorrect or unknown word '{word}' encountered in file {Index} line {dialogueIndex}. " +
+                            Log.LogWarning($"Misspelled or unknown word '{word}' encountered in file {Index} line {dialogueIndex}. " +
                                            $"Did you mean {string.Join(", ", spellChecker.SuggestWord(word))}?");
                         }
                     }
