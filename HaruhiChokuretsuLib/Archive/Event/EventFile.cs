@@ -1000,8 +1000,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                 if (spellChecker is not null)
                 {
-                    string cleanedText = Regex.Replace(dialogueText, @"#P\d{2}", "");
-                    cleanedText = Regex.Replace(dialogueText, @"(\w)-[ \n](\w)", "$1$2");
+                    string cleanedText = dialogueText.Replace("’", "'"); 
+                    cleanedText = Regex.Replace(cleanedText, @"#P\d{2}", "");
+                    cleanedText = Regex.Replace(cleanedText, @"(\w)-[ \n](\w)", "$1$2");
                     cleanedText = Regex.Replace(cleanedText, @"[.,!?()~—…""”*<>:;]", " ");
                     string[] words = Regex.Split(cleanedText, @"\s");
                     foreach (string word in words)
