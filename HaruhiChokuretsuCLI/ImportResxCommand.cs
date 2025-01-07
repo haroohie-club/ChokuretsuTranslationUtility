@@ -9,12 +9,15 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using SpellCheck;
+using SpellCheck.Dictionaries;
 
 namespace HaruhiChokuretsuCLI
 {
     public class ImportResxCommand : Command
     {
-        private string _inputArchive, _outputArchive, _resxDirectory, _langCode, _fontOffsetMap;
+        private string _inputArchive, _outputArchive, _resxDirectory, _langCode, _fontOffsetMap, _spellcheckFile;
         private bool _showHelp;
 
         public ImportResxCommand() : base("import-resx", "Import RESX files to replace strings in an archive")
@@ -22,18 +25,24 @@ namespace HaruhiChokuretsuCLI
             Options = new()
             {
                 "Imports a directory of RESX files (filtered by language code) to replace strings in an archive",
-                "Usage: HaruhiChokuretsuCLI import-resx -i [inputArchive] -o [outputArchive] -r [resxDirectory] -l [langCode] -f [fontOffsetMap]",
+                "Usage: HaruhiChokuretsuCLI import-resx -i [inputArchive] -o [outputArchive] -r [resxDirectory] -l [langCode] -f [fontOffsetMap] -s [dictionaries]",
                 "",
                 { "i|input-archive=", "Input archive to replace strings in", i => _inputArchive = i },
                 { "o|output-archive=", "Output file to save modified archive to", o => _outputArchive = o },
                 { "r|resx-directory=", "Directory where RESX files are located", r => _resxDirectory = r },
                 { "l|lang-code=", "Language code to of desired string target language (used to filter RESX files)", l => _langCode = l },
                 { "f|font-map=", "Font offset mapping file", f => _fontOffsetMap = f },
+                { "s|spell-check|dictionary=", "Comma-separated list of dictionaries to use for spell-checking during import (optional)", s => _spellcheckFile = s },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
         }
 
         public override int Invoke(IEnumerable<string> arguments)
+        {
+            return InvokeAsync(arguments).GetAwaiter().GetResult();
+        }
+
+        public async Task<int> InvokeAsync(IEnumerable<string> arguments)
         {
             Options.Parse(arguments);
             ConsoleLogger log = new();
@@ -70,6 +79,15 @@ namespace HaruhiChokuretsuCLI
                 return returnValue;
             }
 
+            SpellChecker spellChecker = null;
+            if (!string.IsNullOrEmpty(_spellcheckFile))
+            {
+                string[] spellcheckInfo = await File.ReadAllLinesAsync(_spellcheckFile);
+                SpellCheckFactory factory = new();
+                spellChecker = await factory.CreateSpellChecker(spellcheckInfo[0]);
+                spellChecker.SetIgnoredWords(spellcheckInfo.Skip(1).ToArray());
+            }
+
             string outputDirectory = Path.GetDirectoryName(_outputArchive);
             if (!Directory.Exists(outputDirectory))
             {
@@ -94,7 +112,7 @@ namespace HaruhiChokuretsuCLI
             }
 
             FontReplacementDictionary fontReplacementDictionary = new();
-            fontReplacementDictionary.AddRange(JsonSerializer.Deserialize<List<FontReplacement>>(File.ReadAllText(_fontOffsetMap)));
+            fontReplacementDictionary.AddRange(JsonSerializer.Deserialize<List<FontReplacement>>(await File.ReadAllTextAsync(_fontOffsetMap)));
             evtArchive.Files.ForEach(e => e.FontReplacementMap = fontReplacementDictionary);
 
             string[] files = Directory.GetFiles(_resxDirectory, $"*.{_langCode}.resx");
@@ -108,15 +126,15 @@ namespace HaruhiChokuretsuCLI
                     EventFile evtVmFile = evtArchive.GetFileByIndex(fileIndex);
                     VoiceMapFile vmFile = evtVmFile.CastTo<VoiceMapFile>();
                     vmFile.FontReplacementMap = evtVmFile.FontReplacementMap;
-                    vmFile.ImportResxFile(file);
+                    vmFile.ImportResxFile(file, spellChecker);
                     evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = vmFile;
                 }
                 else
                 {
-                    evtArchive.GetFileByIndex(fileIndex).ImportResxFile(file);
+                    evtArchive.GetFileByIndex(fileIndex).ImportResxFile(file, spellChecker);
                 }
             }
-            File.WriteAllBytes(_outputArchive, evtArchive.GetBytes());
+            await File.WriteAllBytesAsync(_outputArchive, evtArchive.GetBytes());
             CommandSet.Out.WriteLine("Done.");
 
             return 0;

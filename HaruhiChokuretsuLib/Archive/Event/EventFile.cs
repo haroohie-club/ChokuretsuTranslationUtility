@@ -8,6 +8,7 @@ using System.Linq;
 using System.Resources.NetStandard;
 using System.Text;
 using System.Text.RegularExpressions;
+using SpellCheck;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
@@ -972,7 +973,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// Loads a RESX file from disk and replaces all the dialogue lines in the files with ones from the RESX
         /// </summary>
         /// <param name="fileName">The RESX file on disk to load</param>
-        public void ImportResxFile(string fileName)
+        public void ImportResxFile(string fileName, SpellChecker spellChecker = null)
         {
             Edited = true;
             string resxContents = File.ReadAllText(fileName);
@@ -995,6 +996,19 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 dialogueText = dialogueText.Replace("--", "—");
                 // Consolidate Unix/Windows newlines to just \n
                 dialogueText = dialogueText.Replace("\r\n", "\n");
+
+                if (spellChecker is not null)
+                {
+                    string[] words = Regex.Split(dialogueText, @"\s");
+                    foreach (string word in words)
+                    {
+                        if (!spellChecker.IsWordCorrect(word))
+                        {
+                            Log.LogWarning($"Incorrect or unknown word '{word}' encountered in file {Index} line {dialogueIndex}. " +
+                                           $"Did you mean {string.Join(", ", spellChecker.SuggestWord(word))}?");
+                        }
+                    }
+                }
 
                 int lineLength = 0;
                 bool operatorActive = false;
