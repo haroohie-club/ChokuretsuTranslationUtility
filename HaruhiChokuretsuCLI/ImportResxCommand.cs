@@ -10,14 +10,15 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using SpellCheck;
-using SpellCheck.Dictionaries;
+using Lucene.Net.Search.Spell;
+using Lucene.Net.Store;
+using Directory = System.IO.Directory;
 
 namespace HaruhiChokuretsuCLI
 {
     public class ImportResxCommand : Command
     {
-        private string _inputArchive, _outputArchive, _resxDirectory, _langCode, _fontOffsetMap, _spellcheckFile;
+        private string _inputArchive, _outputArchive, _resxDirectory, _langCode, _fontOffsetMap, _spellcheckDir;
         private bool _showHelp;
 
         public ImportResxCommand() : base("import-resx", "Import RESX files to replace strings in an archive")
@@ -32,7 +33,7 @@ namespace HaruhiChokuretsuCLI
                 { "r|resx-directory=", "Directory where RESX files are located", r => _resxDirectory = r },
                 { "l|lang-code=", "Language code to of desired string target language (used to filter RESX files)", l => _langCode = l },
                 { "f|font-map=", "Font offset mapping file", f => _fontOffsetMap = f },
-                { "s|spell-check|dictionary=", "Comma-separated list of dictionaries to use for spell-checking during import (optional)", s => _spellcheckFile = s },
+                { "s|spell-check", "Directory of spellcheck dictionaries to use for spellchecking (optional)", s => _spellcheckDir = s },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
         }
@@ -79,15 +80,6 @@ namespace HaruhiChokuretsuCLI
                 return returnValue;
             }
 
-            SpellChecker spellChecker = null;
-            if (!string.IsNullOrEmpty(_spellcheckFile))
-            {
-                string[] spellcheckInfo = await File.ReadAllLinesAsync(_spellcheckFile);
-                SpellCheckFactory factory = new();
-                spellChecker = await factory.CreateSpellChecker(spellcheckInfo[0]);
-                spellChecker.SetIgnoredWords(spellcheckInfo.Skip(1).ToArray());
-            }
-
             string outputDirectory = Path.GetDirectoryName(_outputArchive);
             if (!Directory.Exists(outputDirectory))
             {
@@ -117,10 +109,11 @@ namespace HaruhiChokuretsuCLI
 
             string[] files = Directory.GetFiles(_resxDirectory, $"*.{_langCode}.resx");
             CommandSet.Out.WriteLine($"Replacing strings for {files.Length} files...");
-
+            
             foreach (string file in files)
             {
                 int fileIndex = int.Parse(Regex.Match(file, @"(?<index>\d{3})\.[\w-]+\.resx").Groups["index"].Value);
+                SpellChecker spellChecker = !string.IsNullOrEmpty(_spellcheckDir) ? new(new SimpleFSDirectory(new DirectoryInfo(_spellcheckDir))) : null;
                 if (fileIndex == 589)
                 {
                     EventFile evtVmFile = evtArchive.GetFileByIndex(fileIndex);

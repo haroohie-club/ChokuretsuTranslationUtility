@@ -8,7 +8,7 @@ using System.Linq;
 using System.Resources.NetStandard;
 using System.Text;
 using System.Text.RegularExpressions;
-using SpellCheck;
+using Lucene.Net.Search.Spell;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
@@ -973,7 +973,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// Loads a RESX file from disk and replaces all the dialogue lines in the files with ones from the RESX
         /// </summary>
         /// <param name="fileName">The RESX file on disk to load</param>
-        /// <param name="spellChecker">Optional spell checker instance for checking spelling at runtime</param>
+        /// <param name="spellChecker">Optionally, an initialized spellcheck instance for checking spellings</param>
         public void ImportResxFile(string fileName, SpellChecker spellChecker = null)
         {
             Edited = true;
@@ -1000,17 +1000,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                 if (spellChecker is not null)
                 {
-                    string cleanedText = dialogueText.Replace("’", "'"); 
-                    cleanedText = Regex.Replace(cleanedText, @"#P\d{2}", "");
-                    cleanedText = Regex.Replace(cleanedText, @"(\w)-[ \n](\w)", "$1$2");
-                    cleanedText = Regex.Replace(cleanedText, @"[.,!?()~—…""”*<>:;]", " ");
-                    string[] words = Regex.Split(cleanedText, @"\s");
-                    foreach (string word in words)
+                    string clearText = Regex.Replace(dialogueText, @"[.,;""'!?()*<>—…]", "");
+                    clearText = Regex.Replace(clearText, @"(\w)- (\w)", "$1$2");
+                    foreach (string word in Regex.Split(clearText, @"\s+"))
                     {
-                        if (!spellChecker.IsWordCorrect(word))
+                        if (!string.IsNullOrWhiteSpace(word) && !spellChecker.Exist(word))
                         {
-                            Log.LogWarning($"Misspelled or unknown word '{word}' encountered in file {Index} line {dialogueIndex}. " +
-                                           $"Did you mean {string.Join(", ", spellChecker.SuggestWord(word))}?");
+                            Log.LogWarning($"Word '{word}' does not exist in dictionary. Did you mean {string.Join(", ", spellChecker.SuggestSimilar(word, 5))}");
                         }
                     }
                 }
