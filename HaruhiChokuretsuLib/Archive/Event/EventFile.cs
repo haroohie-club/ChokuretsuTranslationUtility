@@ -963,7 +963,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 if (!string.IsNullOrWhiteSpace(DialogueLines[i].Text) && DialogueLines[i].Length > 1)
                 {
-                    resxWriter.AddResource(new ResXDataNode($"{i:D4} ({Path.GetFileNameWithoutExtension(fileName)}) {DialogueLines[i].Speaker} ({DialogueLines[i].SpeakerName})",
+                    resxWriter.AddResource(new($"{i:D4} ({Path.GetFileNameWithoutExtension(fileName)}) {DialogueLines[i].Speaker} ({DialogueLines[i].SpeakerName})",
                         DialogueLines[i].Text));
                 }
             }
@@ -1001,7 +1001,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
                 if (spellCheck is not null)
                 {
-                    string clearText = Regex.Replace(dialogueText, @"[.,;:“”""!?()*<>—…~%&=/]", " ");
+                    // For arabic, we want to use the shaped text, so we do it this way unfortunately
+                    string clearText = ((string)d.Value).Replace("...", "…");
+                    clearText = clearText.Replace("--", "—");
+                    clearText = clearText.Replace("\r\n", "\n");
+                    clearText = Regex.Replace(clearText, @"[.,;:“”""!?()*<>—…~%&=/]", " ");
                     clearText = clearText.Replace('’', '\'');
                     clearText = Regex.Replace(clearText, @"(\w)-\s(\w)", "$1$2");
                     clearText = Regex.Replace(clearText, @"#(?:[PSWQ][KE]?\d{1,3}|DP|sk)", "");
