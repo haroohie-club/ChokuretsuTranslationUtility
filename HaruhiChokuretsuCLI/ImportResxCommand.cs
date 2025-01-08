@@ -2,6 +2,7 @@
 using HaruhiChokuretsuLib.Archive.Event;
 using HaruhiChokuretsuLib.Font;
 using HaruhiChokuretsuLib.Util;
+using HunspellSharp;
 using Mono.Options;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Lucene.Net.Search.Spell;
-using Lucene.Net.Store;
-using Directory = System.IO.Directory;
 
 namespace HaruhiChokuretsuCLI
 {
@@ -33,7 +31,7 @@ namespace HaruhiChokuretsuCLI
                 { "r|resx-directory=", "Directory where RESX files are located", r => _resxDirectory = r },
                 { "l|lang-code=", "Language code to of desired string target language (used to filter RESX files)", l => _langCode = l },
                 { "f|font-map=", "Font offset mapping file", f => _fontOffsetMap = f },
-                { "s|spell-check", "Directory of spellcheck dictionaries to use for spellchecking (optional)", s => _spellcheckDir = s },
+                { "s|spell-check=", "Directory of spellcheck dictionaries to use for spellchecking (optional)", s => _spellcheckDir = s },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
         }
@@ -107,24 +105,32 @@ namespace HaruhiChokuretsuCLI
             fontReplacementDictionary.AddRange(JsonSerializer.Deserialize<List<FontReplacement>>(await File.ReadAllTextAsync(_fontOffsetMap)));
             evtArchive.Files.ForEach(e => e.FontReplacementMap = fontReplacementDictionary);
 
+            Hunspell spellcheck = null;
+            if (!string.IsNullOrEmpty(_spellcheckDir))
+            {
+                // Do it this way to force UTF-8
+                using StreamReader affixFs = File.OpenText(Path.Combine(_spellcheckDir, "index.aff"));
+                using StreamReader dictFs = File.OpenText(Path.Combine(_spellcheckDir, "index.dic"));
+                spellcheck = new(affixFs.BaseStream, dictFs.BaseStream);
+            }
+
             string[] files = Directory.GetFiles(_resxDirectory, $"*.{_langCode}.resx");
             CommandSet.Out.WriteLine($"Replacing strings for {files.Length} files...");
             
             foreach (string file in files)
             {
                 int fileIndex = int.Parse(Regex.Match(file, @"(?<index>\d{3})\.[\w-]+\.resx").Groups["index"].Value);
-                SpellChecker spellChecker = !string.IsNullOrEmpty(_spellcheckDir) ? new(new SimpleFSDirectory(new DirectoryInfo(_spellcheckDir))) : null;
                 if (fileIndex == 589)
                 {
                     EventFile evtVmFile = evtArchive.GetFileByIndex(fileIndex);
                     VoiceMapFile vmFile = evtVmFile.CastTo<VoiceMapFile>();
                     vmFile.FontReplacementMap = evtVmFile.FontReplacementMap;
-                    vmFile.ImportResxFile(file, spellChecker);
+                    vmFile.ImportResxFile(file, spellcheck);
                     evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = vmFile;
                 }
                 else
                 {
-                    evtArchive.GetFileByIndex(fileIndex).ImportResxFile(file, spellChecker);
+                    evtArchive.GetFileByIndex(fileIndex).ImportResxFile(file, spellcheck);
                 }
             }
             await File.WriteAllBytesAsync(_outputArchive, evtArchive.GetBytes());
