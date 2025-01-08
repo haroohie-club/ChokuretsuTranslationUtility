@@ -973,7 +973,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// Loads a RESX file from disk and replaces all the dialogue lines in the files with ones from the RESX
         /// </summary>
         /// <param name="fileName">The RESX file on disk to load</param>
-        /// <param name="spellChecker">Optionally, an initialized spellcheck instance for checking spellings</param>
+        /// <param name="spellCheck">Optionally, an initialized Hunspell instance for checking spellings</param>
+        /// <param name="warningOut">A TextWriter to write warnings to</param>
         public void ImportResxFile(string fileName, Hunspell spellCheck = null, TextWriter warningOut = null)
         {
             Edited = true;
