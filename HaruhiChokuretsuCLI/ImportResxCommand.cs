@@ -128,12 +128,12 @@ namespace HaruhiChokuretsuCLI
                     EventFile evtVmFile = evtArchive.GetFileByIndex(fileIndex);
                     VoiceMapFile vmFile = evtVmFile.CastTo<VoiceMapFile>();
                     vmFile.FontReplacementMap = evtVmFile.FontReplacementMap;
-                    vmFile.ImportResxFile(file, spellcheck);
+                    vmFile.ImportResxFile(file, spellcheck, warningLog);
                     evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = vmFile;
                 }
                 else
                 {
-                    evtArchive.GetFileByIndex(fileIndex).ImportResxFile(file, spellcheck);
+                    evtArchive.GetFileByIndex(fileIndex).ImportResxFile(file, spellcheck, warningLog);
                 }
             }
             await File.WriteAllBytesAsync(_outputArchive, evtArchive.GetBytes());
