@@ -999,7 +999,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 // Consolidate Unix/Windows newlines to just \n
                 dialogueText = dialogueText.Replace("\r\n", "\n");
 
-                if (spellCheck is not null)
+                if (spellCheck is not null && !Regex.IsMatch(dialogueText, @"[\u3040-\u30ff]"))
                 {
                     // For arabic, we want to use the shaped text, so we do it this way unfortunately
                     string clearText = ((string)d.Value).Replace("...", "…");
