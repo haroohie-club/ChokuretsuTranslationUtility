@@ -974,7 +974,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         /// <param name="fileName">The RESX file on disk to load</param>
         /// <param name="spellChecker">Optionally, an initialized spellcheck instance for checking spellings</param>
-        public void ImportResxFile(string fileName, Hunspell spellCheck = null)
+        public void ImportResxFile(string fileName, Hunspell spellCheck = null, TextWriter warningOut = null)
         {
             Edited = true;
             string resxContents = File.ReadAllText(fileName);
@@ -1008,7 +1008,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     {
                         if (!string.IsNullOrWhiteSpace(word) && !spellCheck.Spell(word))
                         {
-                            Log.LogWarning($"Spellcheck in file {Index} line {dialogueIndex}: word '{word}' does not exist in dictionary. " +
+                            warningOut?.WriteLine($"Spellcheck in file {Index} line {dialogueIndex}: word '{word}' does not exist in dictionary. " +
                                            $"Did you mean {string.Join(", ", spellCheck.Suggest(word))}");
                         }
                     }
@@ -1096,7 +1096,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     {
                         type = "choice";
                     }
-                    Log.LogWarning($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[..Math.Min(15, dialogueText.Length - 1)]})");
+                    warningOut?.WriteLine($"File {Index} has {type} too long ({dialogueIndex}) (starting with: {dialogueText[..Math.Min(15, dialogueText.Length - 1)]})");
                 }
 
                 EditDialogueLine(dialogueIndex, dialogueText);

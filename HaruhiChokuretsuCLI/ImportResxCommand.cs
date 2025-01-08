@@ -16,7 +16,7 @@ namespace HaruhiChokuretsuCLI
 {
     public class ImportResxCommand : Command
     {
-        private string _inputArchive, _outputArchive, _resxDirectory, _langCode, _fontOffsetMap, _spellcheckDir;
+        private string _inputArchive, _outputArchive, _resxDirectory, _langCode, _fontOffsetMap, _spellcheckDir, _warningLogFile;
         private bool _showHelp;
 
         public ImportResxCommand() : base("import-resx", "Import RESX files to replace strings in an archive")
@@ -32,6 +32,7 @@ namespace HaruhiChokuretsuCLI
                 { "l|lang-code=", "Language code to of desired string target language (used to filter RESX files)", l => _langCode = l },
                 { "f|font-map=", "Font offset mapping file", f => _fontOffsetMap = f },
                 { "s|spell-check=", "Directory of spellcheck dictionaries to use for spellchecking (optional)", s => _spellcheckDir = s },
+                { "w|warning-log=", "Log file to write warnings to (optional, if not specified will write to the console", w => _warningLogFile = w },
                 { "h|help", "Shows this help screen", h => _showHelp = true },
             };
         }
@@ -117,6 +118,8 @@ namespace HaruhiChokuretsuCLI
             string[] files = Directory.GetFiles(_resxDirectory, $"*.{_langCode}.resx");
             CommandSet.Out.WriteLine($"Replacing strings for {files.Length} files...");
             
+            TextWriter warningLog = !string.IsNullOrEmpty(_warningLogFile) ? new StreamWriter(File.OpenWrite(_warningLogFile)) : CommandSet.Out;
+            
             foreach (string file in files)
             {
                 int fileIndex = int.Parse(Regex.Match(file, @"(?<index>\d{3})\.[\w-]+\.resx").Groups["index"].Value);
@@ -135,6 +138,12 @@ namespace HaruhiChokuretsuCLI
             }
             await File.WriteAllBytesAsync(_outputArchive, evtArchive.GetBytes());
             CommandSet.Out.WriteLine("Done.");
+
+            if (warningLog is StreamWriter writer)
+            {
+                await writer.FlushAsync();
+                writer.Close();
+            }
 
             return 0;
         }
