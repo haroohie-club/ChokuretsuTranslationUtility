@@ -1005,7 +1005,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     string clearText = ((string)d.Value).Replace("...", "…");
                     clearText = clearText.Replace("--", "—");
                     clearText = clearText.Replace("\r\n", "\n");
-                    clearText = Regex.Replace(clearText, @"[.,;:“”""!?()*<>—…~%&=/]", " ");
+                    clearText = Regex.Replace(clearText, @"[.,;:“”""!?()*<>—…~%&=/\u060c\u061b\u061f]", " ");
                     clearText = clearText.Replace('’', '\'');
                     clearText = Regex.Replace(clearText, @"(\w)-\s(\w)", "$1$2");
                     clearText = Regex.Replace(clearText, @"#(?:[PSWQ][KE]?\d{1,3}|DP|sk)", "");
