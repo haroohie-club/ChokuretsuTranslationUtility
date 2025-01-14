@@ -368,13 +368,17 @@ namespace HaruhiChokuretsuLib.Archive.Event
             public enum Screen
             {
                 /// <summary>
-                /// The bottom screen (optimal)
+                /// The bottom screen
                 /// </summary>
                 BOTTOM = 0,
                 /// <summary>
-                /// The top screen (risky)
+                /// The top screen
                 /// </summary>
                 TOP = 1,
+                /// <summary>
+                /// The top screen but force a drop shadow to appear
+                /// </summary>
+                TOP_FORCE_SHADOW = 2,
             }
 
             /// <summary>
