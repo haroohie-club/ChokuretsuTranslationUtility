@@ -518,7 +518,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"   STRUCTSUBS{currentVoiceFile:D3}: .word SUBTITLE{currentVoiceFile:D3}");
                 sb.AppendLine($"   .short {X}");
                 sb.AppendLine($"   .short {Y}");
-                sb.AppendLine($"   .short {Color}");
+                sb.AppendLine($"   .short {(short)Color}");
                 sb.AppendLine($"   .short {(short)TargetScreen}");
                 sb.AppendLine($"   .word {Timer}");
 
