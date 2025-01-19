@@ -142,7 +142,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return sb.ToString();
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates a new voice map file from a CSV
+        /// </summary>
+        /// <param name="filename">A CSV containing voice map file data</param>
+        /// <param name="log">ILogger instance</param>
         public override void NewFile(string filename, ILogger log)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -513,9 +517,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             {
                 StringBuilder sb = new();
 
-                sb.AppendLine($"STRUCT{currentVoiceFile:D3}:");
-                sb.AppendLine($"   STRUCTFILE{currentVoiceFile:D3}: .word FILENAME{currentVoiceFile:D3}");
-                sb.AppendLine($"   STRUCTSUBS{currentVoiceFile:D3}: .word SUBTITLE{currentVoiceFile:D3}");
+                sb.AppendLine($"ENTRY{currentVoiceFile:D3}:");
+                sb.AppendLine($"   ENTRYFILE{currentVoiceFile:D3}: .word FILENAME{currentVoiceFile:D3}");
+                sb.AppendLine($"   ENTRYSUBS{currentVoiceFile:D3}: .word SUBTITLE{currentVoiceFile:D3}");
                 sb.AppendLine($"   .short {X}");
                 sb.AppendLine($"   .short {Y}");
                 sb.AppendLine($"   .short {(short)Color}");
