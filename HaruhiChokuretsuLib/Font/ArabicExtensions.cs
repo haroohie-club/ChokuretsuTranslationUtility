@@ -12,28 +12,6 @@ namespace HaruhiChokuretsuLib.Font;
 public static class ArabicExtensions
 {
     /// <summary>
-    /// Get shaped Arabic text as UTF-16 string
-    /// </summary>
-    /// <param name="shapedText">Shaped Arabic text</param>
-    /// <returns>Returns UTF-16 encoded string of Arabic text</returns>
-    public static string GetAsUnicode(this string shapedText)
-    {
-        shapedText = Regex.Unescape(shapedText.Trim());
-        var words = shapedText.Split(' ');
-        StringBuilder builder = new StringBuilder();
-        foreach (var word in words)
-        {
-            for (int i = 0; i < word.Length; i++)
-            {
-                string shapedUnicode = @"\u" + ((int)word[i]).ToString("X4");
-                builder.Append(shapedUnicode);
-            }
-        }
-
-        return builder.ToString();
-    }
-
-    /// <summary>
     /// Get UTF-16 string with "unshaped" (contextual) Arabic characters
     /// </summary>
     /// <param name="original">The string of shaped Arabic characters to convert</param>
