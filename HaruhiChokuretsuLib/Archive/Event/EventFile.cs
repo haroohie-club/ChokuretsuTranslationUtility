@@ -1082,15 +1082,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
                         if (indexOfMostRecentSpace < 0)
                         {
                             // If we don't have any spaces in the line, just give up and put a space right here
-                            dialogueText.Insert(i - 1, "\n");
-                            lineLength = 0;
+                            dialogueText = dialogueText.Insert(i - 1, "\n");
                         }
                         else
                         {
                             dialogueText = dialogueText.Remove(indexOfMostRecentSpace, 1);
                             dialogueText = dialogueText.Insert(indexOfMostRecentSpace, "\n");
-                            lineLength = 0;
                         }
+                        lineLength = 0;
                     }
                 }
 

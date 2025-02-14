@@ -41,7 +41,7 @@ public static class ArabicExtensions
     public static string GetUnShapedUnicode(this string original)
     {
         //remove escape characters
-        original = Regex.Unescape(original.Trim());
+        original = Regex.Unescape(original);
 
         string[] words = original.Split(' ');
         StringBuilder builder = new();
