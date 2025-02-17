@@ -1062,7 +1062,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     {
                         char newCharacter = FontReplacementMap[dialogueText[i]].OriginalCharacter;
                         if (dialogueText[i] == '"' && (i == dialogueText.Length - 1
-                            || dialogueText[i + 1] == ' ' || dialogueText[i + 1] == '!' || dialogueText[i + 1] == '?' || dialogueText[i + 1] == '.' || dialogueText[i + 1] == '…' || dialogueText[i + 1] == '\n' || dialogueText[i + 1] == '#'))
+                            || dialogueText[i + 1] == ' ' || dialogueText[i + 1] == '!' || dialogueText[i + 1] == '?' || dialogueText[i + 1] == '.'
+                            || dialogueText[i + 1] == '…' || dialogueText[i + 1] == '\n' || dialogueText[i + 1] == '#') || dialogueText[i + 1] == '—')
                         {
                             newCharacter = '”';
                         }
