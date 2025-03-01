@@ -530,20 +530,20 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// <summary>
     /// Marks the location of objects in the object layer
     /// </summary>
-    public class ObjectMarker(IEnumerable<byte> data)
+    public class ObjectMarker
     {
         /// <summary>
         /// The x-coordinate of the object on the grid
         /// </summary>
-        public short ObjectX { get; set; } = BitConverter.ToInt16(data.Take(2).ToArray());
+        public short ObjectX { get; set; }
         /// <summary>
         /// The y-coordinate of the object on the grid
         /// </summary>
-        public short ObjectY { get; set; } = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
+        public short ObjectY { get; set; }
         /// <summary>
         /// The index of the layout entry associated with this object
         /// </summary>
-        public short LayoutIndex { get; set; } = BitConverter.ToInt16(data.Skip(4).Take(2).ToArray());
+        public short LayoutIndex { get; set; }
 
         internal string GetAsm(int indent)
         {
@@ -553,6 +553,25 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine($"{Helpers.Indent(indent + 3)}.short {LayoutIndex}");
             sb.AppendLine($"{Helpers.Indent(indent + 3)}.skip 6");
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Empty constructor
+        /// </summary>
+        public ObjectMarker()
+        {
+        }
+
+        /// <summary>
+        /// Constructs the object marker from data
+        /// </summary>
+        /// <param name="data">Object marker binary data</param>
+        public ObjectMarker(IEnumerable<byte> data)
+        {
+            byte[] arr = data.ToArray();
+            ObjectX = IO.ReadShort(arr, 0);
+            ObjectY = IO.ReadShort(arr, 2);
+            LayoutIndex = IO.ReadShort(arr, 4);
         }
     }
 
