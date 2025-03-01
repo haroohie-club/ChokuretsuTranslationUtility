@@ -32,7 +32,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// <summary>
         /// Unknown
         /// </summary>
-        public List<UnknownMapObject3> UnknownMapObject3s { get; set; } = [];
+        public List<ObjectMarker> ObjectMarkers { get; set; } = [];
         /// <summary>
         /// List of interactable objects found on the map
         /// </summary>
@@ -68,10 +68,10 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 UnknownMapObject2s.Add(new(Data.Skip(SectionOffsetsAndCounts[1].Offset + i * 0x48)));
             }
 
-            SectionOffsetsAndCounts[2].Name = "UNKNOWNSECTION3";
+            SectionOffsetsAndCounts[2].Name = "OBJECTMARKERS";
             for (int i = 0; i < SectionOffsetsAndCounts[2].ItemCount; i++)
             {
-                UnknownMapObject3s.Add(new(Data.Skip(SectionOffsetsAndCounts[2].Offset + i * 0x0C)));
+                ObjectMarkers.Add(new(Data.Skip(SectionOffsetsAndCounts[2].Offset + i * 0x0C)));
             }
 
             SectionOffsetsAndCounts[3].Name = "INTERACTABLEOBJECTS";
@@ -281,7 +281,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
             sb.AppendLine();
 
             sb.AppendLine($"{SectionOffsetsAndCounts[2].Name}:");
-            foreach (UnknownMapObject3 mapObject3 in UnknownMapObject3s)
+            foreach (ObjectMarker mapObject3 in ObjectMarkers)
             {
                 sb.AppendLine(mapObject3.GetAsm(3));
             }
@@ -528,29 +528,29 @@ namespace HaruhiChokuretsuLib.Archive.Data
     }
 
     /// <summary>
-    /// Unknown
+    /// Marks the location of objects in the object layer
     /// </summary>
-    public class UnknownMapObject3(IEnumerable<byte> data)
+    public class ObjectMarker(IEnumerable<byte> data)
     {
         /// <summary>
-        /// Unknown
+        /// The x-coordinate of the object on the grid
         /// </summary>
-        public short UnknownShort1 { get; set; } = BitConverter.ToInt16(data.Take(2).ToArray());
+        public short ObjectX { get; set; } = BitConverter.ToInt16(data.Take(2).ToArray());
         /// <summary>
-        /// Unknown
+        /// The y-coordinate of the object on the grid
         /// </summary>
-        public short UnknownShort2 { get; set; } = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
+        public short ObjectY { get; set; } = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
         /// <summary>
-        /// Unknown
+        /// The index of the layout entry associated with this object
         /// </summary>
-        public short UnknownShort3 { get; set; } = BitConverter.ToInt16(data.Skip(4).Take(2).ToArray());
+        public short LayoutIndex { get; set; } = BitConverter.ToInt16(data.Skip(4).Take(2).ToArray());
 
         internal string GetAsm(int indent)
         {
             StringBuilder sb = new();
-            sb.AppendLine($"{Helpers.Indent(indent)}.short {UnknownShort1}");
-            sb.AppendLine($"{Helpers.Indent(indent + 3)}.short {UnknownShort2}");
-            sb.AppendLine($"{Helpers.Indent(indent + 3)}.short {UnknownShort3}");
+            sb.AppendLine($"{Helpers.Indent(indent)}.short {ObjectX}");
+            sb.AppendLine($"{Helpers.Indent(indent + 3)}.short {ObjectY}");
+            sb.AppendLine($"{Helpers.Indent(indent + 3)}.short {LayoutIndex}");
             sb.AppendLine($"{Helpers.Indent(indent + 3)}.skip 6");
             return sb.ToString();
         }
