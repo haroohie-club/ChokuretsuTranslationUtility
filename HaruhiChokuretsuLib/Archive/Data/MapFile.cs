@@ -65,7 +65,7 @@ public class MapFile : DataFile
         SectionOffsetsAndCounts[1].Name = "UNKNOWNSECTION2";
         for (int i = 0; i < SectionOffsetsAndCounts[1].ItemCount; i++)
         {
-            UnknownMapObject2s.Add(new(Data.Skip(SectionOffsetsAndCounts[1].Offset + i * 0x48)));
+            UnknownMapObject2s.Add(new(decompressedData[(SectionOffsetsAndCounts[1].Offset + i * 0x48)..]));
         }
 
         SectionOffsetsAndCounts[2].Name = "OBJECTMARKERS";
@@ -513,17 +513,34 @@ public class MapFileSettings
 /// <summary>
 /// Unknown
 /// </summary>
-public class UnknownMapObject2(IEnumerable<byte> data)
+public class UnknownMapObject2
 {
     /// <summary>
     /// Unknown
     /// </summary>
-    public short UnknownShort1 { get; set; } = BitConverter.ToInt16(data.Take(2).ToArray());
+    public short UnknownShort1 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short UnknownShort2 { get; set; } = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
+    public short UnknownShort2 { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public UnknownMapObject2()
+    {
+    }
+    
+    /// <summary>
+    /// Constructs UnknownMapObject2 from data
+    /// </summary>
+    /// <param name="data">Binary data representing the object</param>
+    public UnknownMapObject2(byte[] data)
+    {
+        UnknownShort1 = IO.ReadShort(data, 0x00);
+        UnknownShort2 = IO.ReadShort(data, 0x02);
+    }
+    
     internal string GetAsm(int indent)
     {
         StringBuilder sb = new();
