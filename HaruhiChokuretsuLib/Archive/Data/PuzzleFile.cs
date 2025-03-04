@@ -241,78 +241,111 @@ public class PuzzleHaruhiRoute
 /// <summary>
 /// Representation of a puzzle's settings section
 /// </summary>
-public class PuzzleSettings(byte[] data)
+public class PuzzleSettings
 {
     /// <summary>
     /// The ID of the map to use for the puzzle
     /// </summary>
-    public int MapId { get; set; } = IO.ReadInt(data, 0);
+    public int MapId { get; set; }
     /// <summary>
     /// The base amount of time to solve the puzzle; will be modified by the Haruhi Meter
     /// </summary>
-    public int BaseTime { get; set; } = IO.ReadInt(data, 0x04);
+    public int BaseTime { get; set; }
     /// <summary>
     /// The number of singularities to place in the puzzle
     /// </summary>
-    public int NumSingularities { get; set; } = IO.ReadInt(data, 0x08);
+    public int NumSingularities { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public int Unknown04 { get; set; } = IO.ReadInt(data, 0x0C);
+    public int Unknown04 { get; set; }
     /// <summary>
     /// The number of singularities which need to be cleared in order for the player to clear the puzzle
     /// </summary>
-    public int TargetNumber { get; set; } = IO.ReadInt(data, 0x10);
+    public int TargetNumber { get; set; }
     /// <summary>
     /// If true, failing the puzzle will not result in game over (the story will continue; used in the tutorial puzzle)
     /// </summary>
-    public bool ContinueOnFailure { get; set; } = IO.ReadInt(data, 0x14) > 0;
+    public bool ContinueOnFailure { get; set; }
     /// <summary>
     /// The index of the character who will accompany Haruhi while the puzzle is solved (1 = KYON, 2 = HARUHI, 3 = MIKURU, 4 = NAGATO, 5 = KOIZUMI, 22 = ANY)
     /// </summary>
-    public Speaker AccompanyingCharacter { get; set; } = (Speaker)IO.ReadInt(data, 0x18);
+    public Speaker AccompanyingCharacter { get; set; }
     /// <summary>
     /// The index of the first character whose powers can be used (3 = MIKURU, 4 = NAGATO, 5 = KOIZUMI, 22 = ANY)
     /// </summary>
-    public Speaker PowerCharacter1 { get; set; } = (Speaker)IO.ReadInt(data, 0x1C);
+    public Speaker PowerCharacter1 { get; set; }
     /// <summary>
     /// The name the first power character
     /// </summary>
-    public Speaker PowerCharacter2 { get; set; } = (Speaker)IO.ReadInt(data, 0x20);
+    public Speaker PowerCharacter2 { get; set; }
     /// <summary>
     /// The name the second power character
     /// </summary>
-    public int SingularityTexture { get; set; } = IO.ReadInt(data, 0x24);
+    public int SingularityTexture { get; set; }
     /// <summary>
     /// The grp.bin index of the layout to use for singularities
     /// </summary>
-    public int SingularityLayout { get; set; } = IO.ReadInt(data, 0x28);
+    public int SingularityLayout { get; set; }
     /// <summary>
     /// The grp.bin index of the first animation to use for singularities
     /// </summary>
-    public int SingularityAnim1 { get; set; } = IO.ReadInt(data, 0x2C);
+    public int SingularityAnim1 { get; set; }
     /// <summary>
     /// The grp.bin index of the second animation to use for singularities
     /// </summary>
-    public int SingularityAnim2 { get; set; } = IO.ReadInt(data, 0x30);
+    public int SingularityAnim2 { get; set; }
     /// <summary>
     /// The topic set to for this puzzle
     /// </summary>
-    public int TopicSet { get; set; } = IO.ReadInt(data, 0x34);
+    public int TopicSet { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public int Unknown15 { get; set; } = IO.ReadInt(data, 0x38);
+    public int Unknown15 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public int Unknown16 { get; set; } = IO.ReadInt(data, 0x3C);
+    public int Unknown16 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public int Unknown17 { get; set; } = IO.ReadInt(data, 0x40);
-    internal int PointersSectionOffset { get; set; } = IO.ReadInt(data, 0x44);
+    public int Unknown17 { get; set; }
+    internal int PointersSectionOffset { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public PuzzleSettings()
+    {
+    }
+
+    /// <summary>
+    /// Constructs puzzle settings from binary data
+    /// </summary>
+    /// <param name="data"></param>
+    public PuzzleSettings(byte[] data)
+    {
+        MapId = IO.ReadInt(data, 0);
+        BaseTime = IO.ReadInt(data, 0x04);
+        NumSingularities = IO.ReadInt(data, 0x08);
+        Unknown04 = IO.ReadInt(data, 0x0C);
+        TargetNumber = IO.ReadInt(data, 0x10);
+        ContinueOnFailure = IO.ReadInt(data, 0x14) > 0;
+        AccompanyingCharacter = (Speaker)IO.ReadInt(data, 0x18);
+        PowerCharacter1 = (Speaker)IO.ReadInt(data, 0x1C);
+        PowerCharacter2 = (Speaker)IO.ReadInt(data, 0x20);
+        SingularityTexture = IO.ReadInt(data, 0x24);
+        SingularityLayout = IO.ReadInt(data, 0x28);
+        SingularityAnim1 = IO.ReadInt(data, 0x2C);
+        SingularityAnim2 = IO.ReadInt(data, 0x30);
+        TopicSet = IO.ReadInt(data, 0x34);
+        Unknown15 = IO.ReadInt(data, 0x38);
+        Unknown16 = IO.ReadInt(data, 0x3C);
+        Unknown17 = IO.ReadInt(data, 0x40);
+        PointersSectionOffset = IO.ReadInt(data, 0x44);
+    }
+    
     /// <summary>
     /// Gets the name of the map by pulling from QMAP.S
     /// </summary>
