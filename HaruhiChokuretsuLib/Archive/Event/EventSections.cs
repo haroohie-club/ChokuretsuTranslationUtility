@@ -811,9 +811,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].TalkScriptBlock}");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].Padding}");
             }
-            if (Objects.Count * ObjectLength % 4 > 0)
+            if (Objects.Count % 2 == 1)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip {4 - Objects.Count * ObjectLength % 4}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip 2");
             }
             sb.AppendLine();
 
