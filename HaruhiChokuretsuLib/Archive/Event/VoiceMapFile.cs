@@ -458,7 +458,7 @@ public class VoiceMapFile : EventFile
         public int Timer { get; set; }
 
         /// <summary>
-        /// Empty constructor
+        /// Empty constructor for serialization
         /// </summary>
         public VoiceMapEntry()
         {

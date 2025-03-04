@@ -90,57 +90,83 @@ public class CharacterDataFile : DataFile
 /// A representation of a character sprite as displayed on screen during Chokuretsu's VN sections;
 /// defined in CHRDATA.S
 /// </summary>
-public class CharacterSprite(byte[] data)
+public class CharacterSprite
 {
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown00 { get; set; } = IO.ReadShort(data, 0);
+    public short Unknown00 { get; set; }
     /// <summary>
     /// Is true if the sprite is large
     /// </summary>
-    public bool IsLarge { get; set; } = IO.ReadShort(data, 0x02) == 1;
+    public bool IsLarge { get; set; }
     /// <summary>
     /// The character depicted in the sprite (defined with the same Speaker value used in scripts)
     /// </summary>
-    public Speaker Character { get; set; } = (Speaker)IO.ReadShort(data, 0x04);
+    public Speaker Character { get; set; }
     /// <summary>
     /// The grp.bin index of the first texture used in the sprite layout
     /// </summary>
-    public short TextureIndex1 { get; set; } = IO.ReadShort(data, 0x06);
+    public short TextureIndex1 { get; set; }
     /// <summary>
     /// The grp.bin index of the second texture used in the sprite layout
     /// </summary>
-    public short TextureIndex2 { get; set; } = IO.ReadShort(data, 0x08);
+    public short TextureIndex2 { get; set; }
     /// <summary>
     /// The grp.bin index of the sprite layout
     /// </summary>
-    public short LayoutIndex { get; set; } = IO.ReadShort(data, 0x0A);
+    public short LayoutIndex { get; set; }
     /// <summary>
     /// The grp.bin index of the third texture used in the sprite layout
     /// </summary>
-    public short TextureIndex3 { get; set; } = IO.ReadShort(data, 0x0C);
+    public short TextureIndex3 { get; set; }
     /// <summary>
     /// Unused
     /// </summary>
-    public short Padding { get; set; } = IO.ReadShort(data, 0x0E);
+    public short Padding { get; set; }
     /// <summary>
     /// The grp.bin index of the eye texture
     /// </summary>
-    public short EyeTextureIndex { get; set; } = IO.ReadShort(data, 0x10);
+    public short EyeTextureIndex { get; set; }
     /// <summary>
     /// The grp.bin index of the mouth texture
     /// </summary>
-    public short MouthTextureIndex { get; set; } = IO.ReadShort(data, 0x12);
+    public short MouthTextureIndex { get; set; }
     /// <summary>
     /// The grp.bin index of the eye animation file
     /// </summary>
-    public short EyeAnimationIndex { get; set; } = IO.ReadShort(data, 0x14);
+    public short EyeAnimationIndex { get; set; }
     /// <summary>
     /// The grp.bin index of the mouth animation file
     /// </summary>
-    public short MouthAnimationIndex { get; set; } = IO.ReadShort(data, 0x16);
+    public short MouthAnimationIndex { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public CharacterSprite()
+    {
+    }
+
+    /// <summary>
+    /// Constructs a character sprite from data
+    /// </summary>
+    /// <param name="data">Binary data representing the cahracter sprite</param>
+    public CharacterSprite(byte[] data)
+    {
+        Unknown00 = IO.ReadShort(data, 0);
+        IsLarge = IO.ReadShort(data, 0x02) == 1;
+        Character = (Speaker)IO.ReadShort(data, 0x04);
+        TextureIndex1 = IO.ReadShort(data, 0x06);
+        TextureIndex2 = IO.ReadShort(data, 0x08);
+        LayoutIndex = IO.ReadShort(data, 0x0A);
+        TextureIndex3 = IO.ReadShort(data, 0x0C);
+        Padding = IO.ReadShort(data, 0x0E);
+        EyeTextureIndex = IO.ReadShort(data, 0x10);
+        MouthTextureIndex = IO.ReadShort(data, 0x12);
+        EyeAnimationIndex = IO.ReadShort(data, 0x14);
+        MouthAnimationIndex = IO.ReadShort(data, 0x16);
+    }
 
     /// <summary>
     /// Gets the animation of the sprite blinking without lip flap animation

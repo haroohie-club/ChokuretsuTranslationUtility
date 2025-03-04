@@ -24,6 +24,13 @@ public class ScriptCommand
     /// </summary>
     public string[] Parameters { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public ScriptCommand()
+    {
+    }
+
     internal ScriptCommand(int commandId, string mnemonic, string[] parameters)
     {
         CommandId = commandId;

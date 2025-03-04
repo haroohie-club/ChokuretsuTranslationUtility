@@ -105,6 +105,13 @@ public class Topic
     public TopicType Type { get; set; }
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public Topic()
+    {
+    }
+    
+    /// <summary>
     /// Creates a topic from data
     /// </summary>
     /// <param name="dialogueIndex">Index of the dialogue line for this topic</param>

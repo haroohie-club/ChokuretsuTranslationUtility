@@ -337,6 +337,13 @@ public class FrameAnimationEntry : AnimationEntry
     public short Time { get; set; }
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public FrameAnimationEntry()
+    {
+    }
+
+    /// <summary>
     /// Creates an animation frame from scratch
     /// </summary>
     /// <param name="frameOffset">The frame offset</param>
@@ -416,6 +423,13 @@ public class PaletteColorAnimationEntry : AnimationEntry
     /// </summary>
     public int NumColors { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public PaletteColorAnimationEntry()
+    {
+    }
+    
     /// <summary>
     /// Creates a palette color animation entry from data
     /// </summary>

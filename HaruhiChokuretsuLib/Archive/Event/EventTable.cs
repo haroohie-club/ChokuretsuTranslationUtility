@@ -24,6 +24,13 @@ public class EventTable
     public List<EventTableEntry> Entries { get; set; } = [];
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public EventTable()
+    {
+    }
+    
+    /// <summary>
     /// Default constructor
     /// </summary>
     /// <param name="data">Binary data representation of EVTTBL.S</param>

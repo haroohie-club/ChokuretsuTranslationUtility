@@ -45,6 +45,13 @@ public class ChessFileDescriptor
     public ChessCharacterDefinition HaruhiChess { get; set; }
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public ChessFileDescriptor()
+    {
+    }
+    
+    /// <summary>
     /// Constructs a chess file given CHESS.S data
     /// </summary>
     /// <param name="data">Binary representation of CHESS.S data</param>
@@ -180,6 +187,13 @@ public class ChessCharacterDefinition
     public List<ChessPuzzleDefinition> Puzzles { get; set; } = [];
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public ChessCharacterDefinition()
+    {
+    }
+    
+    /// <summary>
     /// Creates a new chess character definition given the CHESS.S data and a starting offset
     /// </summary>
     /// <param name="data">Binary representation of CHESS.S data</param>
@@ -257,6 +271,13 @@ public class ChessPuzzleDefinition
     /// The title of the puzzle as seen in the menu
     /// </summary>
     public string PuzzleTitle { get; set; }
+
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public ChessPuzzleDefinition()
+    {
+    }
 
     /// <summary>
     /// Constructs a chess puzzle definition given CHESS.S data and an offset into the file

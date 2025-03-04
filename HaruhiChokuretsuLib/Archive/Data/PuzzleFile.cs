@@ -195,6 +195,13 @@ public class PuzzleHaruhiRoute
     public List<RouteEvent> HaruhiRoute { get; set; } = [];
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public PuzzleHaruhiRoute()
+    {
+    }
+    
+    /// <summary>
     /// Constructs a Haruhi Route
     /// </summary>
     /// <param name="data">The data from the puzzle file</param>

@@ -273,6 +273,13 @@ public class ScenarioCommand
     }
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public ScenarioCommand()
+    {
+    }
+    
+    /// <summary>
     /// Creates a scenario command from data
     /// </summary>
     /// <param name="data">The scenario command data from SCENARIO.S</param>
@@ -359,6 +366,13 @@ public class ScenarioSelection
     /// The list of activities (e.g. what you send Kyon and the others to do) available to this group selection
     /// </summary>
     public List<ScenarioActivity> Activities { get; set; } = [];
+
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public ScenarioSelection()
+    {
+    }
 
     /// <summary>
     /// Creates a scenario selection object from SCENARIO.S data
@@ -454,6 +468,13 @@ public class ScenarioActivity
     /// If true, Haruhi is present for this activity
     /// </summary>
     public bool HaruhiPresent { get; set; }
+
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public ScenarioActivity()
+    {
+    }
 
     /// <summary>
     /// Creates a scenario activity from SCENARIO.S data

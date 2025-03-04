@@ -36,14 +36,31 @@ public partial class EventFile
 /// <summary>
 /// Represents a tutorial entry in TUTORIAL.S
 /// </summary>
-public class Tutorial(byte[] data)
+public class Tutorial
 {
     /// <summary>
     /// The ID/flag of the tutorial
     /// </summary>
-    public short Id { get; set; } = IO.ReadShort(data, 0x00);
+    public short Id { get; set; }
     /// <summary>
     /// The script to be loaded for that tutorial
     /// </summary>
-    public short AssociatedScript { get; set; } = IO.ReadShort(data, 0x02);
+    public short AssociatedScript { get; set; }
+    
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public Tutorial()
+    {
+    }
+
+    /// <summary>
+    /// Constructs a tutorial from data
+    /// </summary>
+    /// <param name="data">The binary data representing the tutorial</param>
+    public Tutorial(byte[] data)
+    {
+        Id = IO.ReadShort(data, 0x00);
+        AssociatedScript = IO.ReadShort(data, 0x02);
+    }
 }

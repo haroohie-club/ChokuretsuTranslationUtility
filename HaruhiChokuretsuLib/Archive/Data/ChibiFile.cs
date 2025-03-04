@@ -135,6 +135,13 @@ public class Chibi
     }
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public Chibi()
+    {
+    }
+
+    /// <summary>
     /// Create a chibi given data from CHIBI.S
     /// </summary>
     /// <param name="data">Binary data from the CHIBI.S entry</param>
