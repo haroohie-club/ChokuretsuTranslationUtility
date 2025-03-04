@@ -18,16 +18,28 @@ namespace HaruhiChokuretsuLib.Archive.Event
     /// </summary>
     public partial class EventFile : FileInArchive, ISourceFile
     {
+        private static readonly string[] sourceArray = new[] { "EVTTBLS", "SCENARIOS", "TOPICS", "TUTORIALS", "VOICEMAPS" };
+
         /// <summary>
         /// The number of sections in the event file
         /// </summary>
         public int NumSections { get; set; }
 
         /// <summary>
-        /// A list of all the event file sections
+        /// Definition of an event file section as seen in data file headers
         /// </summary>
-        public List<EventFileSection> EventFileSections { get; set; } = [];
-        internal int PointerToEndPointerSection { get; set; }
+        /// <param name="Pointer">The pointer to the section</param>
+        /// <param name="ItemCount">The number of items in the section</param>
+        public record SectionDef(int Pointer, int ItemCount)
+        {
+            /// <summary>
+            /// The pointer to the section
+            /// </summary>
+            public int Pointer { get; set; } = Pointer;
+        }
+        internal readonly List<SectionDef> SectionDefs = [];
+
+        private int _pointerToEndPointerSection;
         internal List<int> EndPointers { get; set; } = [];
         internal List<int> EndPointerPointers { get; set; } = [];
         /// <summary>
@@ -124,16 +136,25 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <summary>
         /// A list defining the commands that can be used in scripts
         /// </summary>
-        public static List<ScriptCommand> CommandsAvailable { get; set; } = new()
-        {
+        public static List<ScriptCommand> CommandsAvailable { get; set; } =
+        [
             new(0x00, nameof(CommandVerb.INIT_READ_FLAG), []),
-            new(0x01, nameof(CommandVerb.DIALOGUE), ["dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition", "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed", "textEntranceEffect", "spriteLayer", "dontClearText", "noLipFlap"]),
+            new(0x01, nameof(CommandVerb.DIALOGUE),
+            [
+                "dialogueIndex", "spriteIndex", "spriteEntranceTransition", "spriteExitOrInternalTransition",
+                "spriteShake", "voiceIndex", "textVoiceFont", "textSpeed", "textEntranceEffect", "spriteLayer",
+                "dontClearText", "noLipFlap"
+            ]),
             new(0x02, nameof(CommandVerb.KBG_DISP), ["kbgIndex"]),
             new(0x03, nameof(CommandVerb.PIN_MNL), ["dialogueIndex"]),
             new(0x04, nameof(CommandVerb.BG_DISP), ["bgIndex"]),
             new(0x05, nameof(CommandVerb.SCREEN_FADEIN), ["timeToFade", "unused", "fadeLocation", "fadeColor"]),
-            new(0x06, nameof(CommandVerb.SCREEN_FADEOUT), ["timeToFade", "unknown1", "fadeColorRed", "fadeColorGreen", "fadeColorBlue", "fadeLocation", "unknown6"]),
-            new(0x07, nameof(CommandVerb.SCREEN_FLASH), ["fadeInTime", "holdTime", "fadeOutTime", "flashColorRed", "flashColorGreen", "flashColorBlue"]),
+            new(0x06, nameof(CommandVerb.SCREEN_FADEOUT),
+            [
+                "timeToFade", "unknown1", "fadeColorRed", "fadeColorGreen", "fadeColorBlue", "fadeLocation", "unknown6"
+            ]),
+            new(0x07, nameof(CommandVerb.SCREEN_FLASH),
+                ["fadeInTime", "holdTime", "fadeOutTime", "flashColorRed", "flashColorGreen", "flashColorBlue"]),
             new(0x08, nameof(CommandVerb.SND_PLAY), ["soundIndex", "mode", "volume", "crossfadeDupe", "crossfadeTime"]),
             new(0x09, nameof(CommandVerb.REMOVED), []),
             new(0x0A, nameof(CommandVerb.SND_STOP), []),
@@ -142,7 +163,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x0D, nameof(CommandVerb.FLAG), ["flag", "set"]),
             new(0x0E, nameof(CommandVerb.TOPIC_GET), ["topicId"]),
             new(0x0F, nameof(CommandVerb.TOGGLE_DIALOGUE), ["show"]),
-            new(0x10, nameof(CommandVerb.SELECT), ["option1", "option2", "option3", "option4", "flag1", "flag2", "flag3", "flag4"]),
+            new(0x10, nameof(CommandVerb.SELECT),
+                ["option1", "option2", "option3", "option4", "flag1", "flag2", "flag3", "flag4"]),
             new(0x11, nameof(CommandVerb.SCREEN_SHAKE), ["duration", "horizontalIntensity", "verticalIntensity"]),
             new(0x12, nameof(CommandVerb.SCREEN_SHAKE_STOP), []),
             new(0x13, nameof(CommandVerb.GOTO), ["blockId"]),
@@ -163,7 +185,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x22, nameof(CommandVerb.STOP), []),
             new(0x23, nameof(CommandVerb.NOOP2), []),
             new(0x24, nameof(CommandVerb.LOAD_ISOMAP), ["mapFileIndex"]),
-            new(0x25, nameof(CommandVerb.INVEST_START), ["unknown00", "unknown01", "unknown02", "unknown03", "endScriptBlock"]),
+            new(0x25, nameof(CommandVerb.INVEST_START),
+                ["unknown00", "unknown01", "unknown02", "unknown03", "endScriptBlock"]),
             new(0x26, nameof(CommandVerb.INVEST_END), []),
             new(0x27, nameof(CommandVerb.CHIBI_EMOTE), ["chibiIndex", "emoteIndex"]),
             new(0x28, nameof(CommandVerb.NEXT_SCENE), []),
@@ -173,11 +196,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x2C, nameof(CommandVerb.AVOID_DISP), []),
             new(0x2D, nameof(CommandVerb.GLOBAL2D), ["value"]),
             new(0x2E, nameof(CommandVerb.CHESS_LOAD), ["chessFileIndex"]),
-            new(0x2F, nameof(CommandVerb.CHESS_VGOTO), ["clearBlock", "missBlock" , "miss2Block"]),
-            new(0x30, nameof(CommandVerb.CHESS_MOVE), ["whiteSpaceBegin", "whiteSpaceEnd", "blackSpaceBegin", "blackSpaceEnd"]),
+            new(0x2F, nameof(CommandVerb.CHESS_VGOTO), ["clearBlock", "missBlock", "miss2Block"]),
+            new(0x30, nameof(CommandVerb.CHESS_MOVE),
+                ["whiteSpaceBegin", "whiteSpaceEnd", "blackSpaceBegin", "blackSpaceEnd"]),
             new(0x31, nameof(CommandVerb.CHESS_TOGGLE_GUIDE), ["piece1", "piece2", "piece3", "piece4"]),
-            new(0x32, nameof(CommandVerb.CHESS_TOGGLE_HIGHLIGHT), ["space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16"]),
-            new(0x33, nameof(CommandVerb.CHESS_TOGGLE_CROSS), ["space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10", "space11", "space12", "space13", "space14", "space15", "space16"]),
+            new(0x32, nameof(CommandVerb.CHESS_TOGGLE_HIGHLIGHT),
+            [
+                "space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10",
+                "space11", "space12", "space13", "space14", "space15", "space16"
+            ]),
+            new(0x33, nameof(CommandVerb.CHESS_TOGGLE_CROSS),
+            [
+                "space1", "space2", "space3", "space4", "space5", "space6", "space7", "space8", "space9", "space10",
+                "space11", "space12", "space13", "space14", "space15", "space16"
+            ]),
             new(0x34, nameof(CommandVerb.CHESS_CLEAR_ANNOTATIONS), []),
             new(0x35, nameof(CommandVerb.CHESS_RESET), []),
             new(0x36, nameof(CommandVerb.SCENE_GOTO_CHESS), ["conditionalIndex"]),
@@ -190,14 +222,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
             new(0x3D, nameof(CommandVerb.WAIT_CANCEL), ["frames"]),
             new(0x3E, nameof(CommandVerb.BG_REVERT), []),
             new(0x3F, nameof(CommandVerb.BG_DISP2), ["bgIndex"]),
-        };
+        ];
 
+        // ReSharper disable InconsistentNaming
         /// <summary>
         /// An enum defining the names of the commands
         /// </summary>
         public enum CommandVerb
         {
-
             /// <summary>
             /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#init_read_flag-0x00
             /// </summary>
@@ -453,8 +485,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             /// <summary>
             /// https://github.com/haroohie-club/ChokuretsuTranslationUtility/wiki/Event-File-Commands#bg_disp2-0x3f
             /// </summary>
-            BG_DISP2
+            BG_DISP2,
         }
+        // ReSharper restore InconsistentNaming
 
         /// <summary>
         /// Creates an empty event file
@@ -481,160 +514,127 @@ namespace HaruhiChokuretsuLib.Archive.Event
             NumSections = BitConverter.ToInt32(decompressedData.Take(4).ToArray());
             for (int i = 0; i < NumSections; i++)
             {
-                EventFileSections.Add(new()
-                {
-                    Pointer = BitConverter.ToInt32(decompressedData.Skip(0x0C + 0x08 * i).Take(4).ToArray()),
-                    ItemCount = BitConverter.ToInt32(decompressedData.Skip(0x10 + 0x08 * i).Take(4).ToArray()),
-                });
+                SectionDefs.Add(new(IO.ReadInt(decompressedData, 0x0C + 0x08 * i), IO.ReadInt(decompressedData, 0x10 + 0x08 * i)));
             }
 
             SettingsSection = new();
-            SettingsSection.Initialize(decompressedData.Skip(EventFileSections[0].Pointer).Take(EventFileSettings.SETTINGS_LENGTH), 1, "SETTINGS", log, EventFileSections[0].Pointer);
+            SettingsSection.Initialize(decompressedData[SectionDefs[0].Pointer..(SectionDefs[0].Pointer + EventFileSettings.SETTINGS_LENGTH)], 1, "SETTINGS", log, SectionDefs[0].Pointer);
             Settings = SettingsSection.Objects[0];
-            EventFileSections[0].Section = SettingsSection.GetGeneric();
-            int dialogueSectionPointerIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
+            int dialogueSectionPointerIndex = SectionDefs.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
 
-            if (Name == "BGTESTS" || Regex.IsMatch(Name, @"[MCT][AHKNTR]\d{2}S") || Regex.IsMatch(Name, @"CHS_\w{3}_\d{2}S") || Regex.IsMatch(Name, @"E[VD]\d?_[HKMNT]?\d{2,3}S"))
+            if (!sourceArray.Contains(Name))
             {
                 if (Settings.UnknownSection01Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION01";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.UnknownSection01Pointer, name, Data, log);
-                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int _, PointerSection pointerSection) = PointerSection.ParseSection(SectionDefs, Settings.UnknownSection01Pointer, name, decompressedData, log);
 
-                    int unknownSection01Index = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int unknownSection01Index = SectionDefs.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     UnknownSection01 = new();
-                    UnknownSection01.Initialize(Data.Skip(EventFileSections[unknownSection01Index].Pointer)
-                        .Take(EventFileSections[unknownSection01Index + 1].Pointer - EventFileSections[unknownSection01Index].Pointer),
-                        EventFileSections[unknownSection01Index].ItemCount,
-                        name, log, EventFileSections[unknownSection01Index].Pointer);
-                    EventFileSections[unknownSection01Index].Section = UnknownSection01.GetGeneric();
+                    UnknownSection01.Initialize(decompressedData[SectionDefs[unknownSection01Index].Pointer..SectionDefs[unknownSection01Index + 1].Pointer],
+                        SectionDefs[unknownSection01Index].ItemCount,
+                        name, log, SectionDefs[unknownSection01Index].Pointer);
                 }
 
                 if (Settings.InteractableObjectsPointer > 0)
                 {
                     string name = "INTERACTABLEOBJECTS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.InteractableObjectsPointer, name, Data, log);
-                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
-
-                    int interactableObjectsPointer = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    (int _, PointerSection pointerSection) = PointerSection.ParseSection(SectionDefs, Settings.InteractableObjectsPointer, name, decompressedData, log);
+                    
+                    int interactableObjectsPointer = SectionDefs.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     InteractableObjectsSection = new();
-                    InteractableObjectsSection.Initialize(Data.Skip(EventFileSections[interactableObjectsPointer].Pointer)
-                        .Take(EventFileSections[interactableObjectsPointer + 1].Pointer - EventFileSections[interactableObjectsPointer].Pointer),
-                        EventFileSections[interactableObjectsPointer].ItemCount,
-                        name, log, EventFileSections[interactableObjectsPointer].Pointer);
-                    EventFileSections[interactableObjectsPointer].Section = InteractableObjectsSection.GetGeneric();
+                    InteractableObjectsSection.Initialize(decompressedData[SectionDefs[interactableObjectsPointer].Pointer..SectionDefs[interactableObjectsPointer + 1].Pointer],
+                        SectionDefs[interactableObjectsPointer].ItemCount,
+                        name, log, SectionDefs[interactableObjectsPointer].Pointer);
                 }
 
                 if (Settings.UnknownSection03Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION03";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.UnknownSection03Pointer, name, Data, log);
-                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int _, PointerSection pointerSection) = PointerSection.ParseSection(SectionDefs, Settings.UnknownSection03Pointer, name, decompressedData, log);
 
-                    int unknownSection03Index = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int unknownSection03Index = SectionDefs.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     UnknownSection03 = new();
-                    UnknownSection03.Initialize(Data.Skip(EventFileSections[unknownSection03Index].Pointer)
-                        .Take(EventFileSections[unknownSection03Index + 1].Pointer - EventFileSections[unknownSection03Index].Pointer),
-                        EventFileSections[unknownSection03Index].ItemCount,
-                        name, log, EventFileSections[unknownSection03Index].Pointer);
-                    EventFileSections[unknownSection03Index].Section = UnknownSection03.GetGeneric();
+                    UnknownSection03.Initialize(decompressedData[SectionDefs[unknownSection03Index].Pointer..SectionDefs[unknownSection03Index + 1].Pointer],
+                        SectionDefs[unknownSection03Index].ItemCount,
+                        name, log, SectionDefs[unknownSection03Index].Pointer);
                 }
 
                 if (Settings.StartingChibisSectionPointer > 0)
                 {
                     string name = "STARTINGCHIBIS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.StartingChibisSectionPointer, name, Data, log);
-                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int _, PointerSection pointerSection) = PointerSection.ParseSection(SectionDefs, Settings.StartingChibisSectionPointer, name, decompressedData, log);
 
-                    int startingChibisSectionIndex = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int startingChibisSectionIndex = SectionDefs.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     StartingChibisSection = new();
-                    StartingChibisSection.Initialize(Data.Skip(EventFileSections[startingChibisSectionIndex].Pointer)
-                        .Take(EventFileSections[startingChibisSectionIndex + 1].Pointer - EventFileSections[startingChibisSectionIndex].Pointer),
-                        EventFileSections[startingChibisSectionIndex].ItemCount,
-                        name, log, EventFileSections[startingChibisSectionIndex].Pointer);
-                    EventFileSections[startingChibisSectionIndex].Section = StartingChibisSection.GetGeneric();
+                    StartingChibisSection.Initialize(decompressedData[SectionDefs[startingChibisSectionIndex].Pointer..SectionDefs[startingChibisSectionIndex + 1].Pointer],
+                        SectionDefs[startingChibisSectionIndex].ItemCount,
+                        name, log, SectionDefs[startingChibisSectionIndex].Pointer);
                 }
 
                 if (Settings.MapCharactersSectionPointer > 0)
                 {
                     string name = "MAPCHARACTERS";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.MapCharactersSectionPointer, name, Data, log);
-                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int _, PointerSection pointerSection) = PointerSection.ParseSection(SectionDefs, Settings.MapCharactersSectionPointer, name, decompressedData, log);
 
-                    int mapCharactersSectionIndex = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int mapCharactersSectionIndex = SectionDefs.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     MapCharactersSection = new();
-                    MapCharactersSection.Initialize(Data.Skip(EventFileSections[mapCharactersSectionIndex].Pointer)
-                        .Take(EventFileSections[mapCharactersSectionIndex + 1].Pointer - EventFileSections[mapCharactersSectionIndex].Pointer),
-                        EventFileSections[mapCharactersSectionIndex].ItemCount,
-                        name, log, EventFileSections[mapCharactersSectionIndex].Pointer);
-                    EventFileSections[mapCharactersSectionIndex].Section = MapCharactersSection.GetGeneric();
+                    MapCharactersSection.Initialize(decompressedData[SectionDefs[mapCharactersSectionIndex].Pointer..SectionDefs[mapCharactersSectionIndex + 1].Pointer],
+                        SectionDefs[mapCharactersSectionIndex].ItemCount,
+                        name, log, SectionDefs[mapCharactersSectionIndex].Pointer);
                 }
 
                 if (Settings.UnknownSection06Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION06";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.UnknownSection06Pointer, name, Data, log);
-                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int _, PointerSection pointerSection) = PointerSection.ParseSection(SectionDefs, Settings.UnknownSection06Pointer, name, decompressedData, log);
 
-                    int unknownSection06Index = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int unknownSection06Index = SectionDefs.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     UnknownSection06 = new();
-                    UnknownSection06.Initialize(Data.Skip(EventFileSections[unknownSection06Index].Pointer)
-                        .Take(EventFileSections[unknownSection06Index + 1].Pointer - EventFileSections[unknownSection06Index].Pointer),
-                        EventFileSections[unknownSection06Index].ItemCount,
-                        name, log, EventFileSections[unknownSection06Index].Pointer);
-                    EventFileSections[unknownSection06Index].Section = UnknownSection06.GetGeneric();
+                    UnknownSection06.Initialize(decompressedData[SectionDefs[unknownSection06Index].Pointer..SectionDefs[unknownSection06Index + 1].Pointer],
+                        SectionDefs[unknownSection06Index].ItemCount,
+                        name, log, SectionDefs[unknownSection06Index].Pointer);
                 }
 
                 if (Settings.UnknownSection07Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION07";
 
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, Settings.UnknownSection07Pointer, name, Data, log);
-                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
+                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionDefs, Settings.UnknownSection07Pointer, name, decompressedData, log);
 
-                    int unknownSection07Index = EventFileSections.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
+                    int unknownSection07Index = SectionDefs.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                     UnknownSection07 = new();
-                    UnknownSection07.Initialize(Data.Skip(EventFileSections[unknownSection07Index].Pointer)
-                        .Take(EventFileSections[unknownSection07Index + 1].Pointer - EventFileSections[unknownSection07Index].Pointer),
-                        EventFileSections[unknownSection07Index].ItemCount,
-                        name, log, EventFileSections[unknownSection07Index].Pointer);
-                    EventFileSections[unknownSection07Index].Section = UnknownSection07.GetGeneric();
+                    UnknownSection07.Initialize(decompressedData[SectionDefs[unknownSection07Index].Pointer..SectionDefs[unknownSection07Index + 1].Pointer],
+                        SectionDefs[unknownSection07Index].ItemCount,
+                        name, log, SectionDefs[unknownSection07Index].Pointer);
                 }
 
-                int choicesSectionIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.ChoicesSectionPointer);
+                int choicesSectionIndex = SectionDefs.FindIndex(s => s.Pointer == Settings.ChoicesSectionPointer);
                 if (Settings.ChoicesSectionPointer > 0)
                 {
                     string name = "CHOICES";
 
                     ChoicesSection = new();
-                    ChoicesSection.Initialize(Data.Skip(EventFileSections[choicesSectionIndex].Pointer)
-                        .Take(EventFileSections[choicesSectionIndex + 1].Pointer - EventFileSections[choicesSectionIndex].Pointer),
-                        EventFileSections[choicesSectionIndex].ItemCount,
-                        name, log, EventFileSections[choicesSectionIndex].Pointer);
-                    EventFileSections[choicesSectionIndex].Section = ChoicesSection.GetGeneric();
+                    ChoicesSection.Initialize(decompressedData[SectionDefs[choicesSectionIndex].Pointer..SectionDefs[choicesSectionIndex + 1].Pointer],
+                        SectionDefs[choicesSectionIndex].ItemCount,
+                        name, log, SectionDefs[choicesSectionIndex].Pointer);
                 }
 
-                int unknownSection09Index = EventFileSections.FindIndex(s => s.Pointer == Settings.UnknownSection09Pointer);
+                int unknownSection09Index = SectionDefs.FindIndex(s => s.Pointer == Settings.UnknownSection09Pointer);
                 if (unknownSection09Index > choicesSectionIndex + 1)
                 {
                     string name = "UNKNOWNSECTION08";
-
-                    (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(EventFileSections, EventFileSections[choicesSectionIndex + 2].Pointer, name, Data, log);
-                    EventFileSections[pointerSectionIndex].Section = pointerSection.GetGeneric();
-
+                    
                     UnknownSection08 = new();
-                    UnknownSection08.Initialize(Data.Skip(EventFileSections[choicesSectionIndex + 1].Pointer)
-                        .Take(EventFileSections[choicesSectionIndex + 2].Pointer - EventFileSections[choicesSectionIndex + 1].Pointer),
-                        EventFileSections[choicesSectionIndex + 1].ItemCount,
-                        name, log, EventFileSections[choicesSectionIndex + 1].Pointer);
-                    EventFileSections[choicesSectionIndex + 1].Section = UnknownSection08.GetGeneric();
+                    UnknownSection08.Initialize(decompressedData[SectionDefs[choicesSectionIndex + 1].Pointer..SectionDefs[choicesSectionIndex + 2].Pointer],
+                        SectionDefs[choicesSectionIndex + 1].ItemCount,
+                        name, log, SectionDefs[choicesSectionIndex + 1].Pointer);
                 }
 
                 if (Settings.UnknownSection09Pointer > 0)
@@ -642,37 +642,31 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     string name = "UNKNOWNSECTION09";
 
                     UnknownSection09 = new();
-                    UnknownSection09.Initialize(Data.Skip(EventFileSections[unknownSection09Index].Pointer)
-                        .Take(EventFileSections[unknownSection09Index + 1].Pointer - EventFileSections[unknownSection09Index].Pointer),
-                        EventFileSections[unknownSection09Index].ItemCount,
-                        name, log, EventFileSections[unknownSection09Index].Pointer);
-                    EventFileSections[unknownSection09Index].Section = UnknownSection09.GetGeneric();
+                    UnknownSection09.Initialize(decompressedData[SectionDefs[unknownSection09Index].Pointer..SectionDefs[unknownSection09Index + 1].Pointer],
+                        SectionDefs[unknownSection09Index].ItemCount,
+                        name, log, SectionDefs[unknownSection09Index].Pointer);
                 }
 
                 if (Settings.UnknownSection10Pointer > 0)
                 {
                     string name = "UNKNOWNSECTION10";
 
-                    int unknownSection10Index = EventFileSections.FindIndex(s => s.Pointer == Settings.UnknownSection10Pointer);
+                    int unknownSection10Index = SectionDefs.FindIndex(s => s.Pointer == Settings.UnknownSection10Pointer);
                     UnknownSection10 = new();
-                    UnknownSection10.Initialize(Data.Skip(EventFileSections[unknownSection10Index].Pointer)
-                        .Take(EventFileSections[unknownSection10Index + 1].Pointer - EventFileSections[unknownSection10Index].Pointer),
-                        EventFileSections[unknownSection10Index].ItemCount,
-                        name, log, EventFileSections[unknownSection10Index].Pointer);
-                    EventFileSections[unknownSection10Index].Section = UnknownSection10.GetGeneric();
+                    UnknownSection10.Initialize(decompressedData[SectionDefs[unknownSection10Index].Pointer..SectionDefs[unknownSection10Index + 1].Pointer],
+                        SectionDefs[unknownSection10Index].ItemCount,
+                        name, log, SectionDefs[unknownSection10Index].Pointer);
                 }
 
-                int labelsSectionPointerIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.LabelsSectionPointer);
+                int labelsSectionPointerIndex = SectionDefs.FindIndex(s => s.Pointer == Settings.LabelsSectionPointer);
                 LabelsSection = new();
                 if (Settings.LabelsSectionPointer > 0)
                 {
                     string name = "LABELS";
 
-                    LabelsSection.Initialize(Data.Skip(EventFileSections[labelsSectionPointerIndex].Pointer)
-                        .Take(EventFileSections[labelsSectionPointerIndex + 1].Pointer - EventFileSections[labelsSectionPointerIndex].Pointer),
-                        EventFileSections[labelsSectionPointerIndex].ItemCount,
-                        name, log, EventFileSections[labelsSectionPointerIndex].Pointer);
-                    EventFileSections[labelsSectionPointerIndex].Section = LabelsSection.GetGeneric();
+                    LabelsSection.Initialize(decompressedData[SectionDefs[labelsSectionPointerIndex].Pointer..SectionDefs[labelsSectionPointerIndex + 1].Pointer],
+                        SectionDefs[labelsSectionPointerIndex].ItemCount,
+                        name, log, SectionDefs[labelsSectionPointerIndex].Pointer);
                 }
 
                 if (dialogueSectionPointerIndex > labelsSectionPointerIndex + 1)
@@ -682,11 +676,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
                         string name = $"DRAMATISPERSONAE{i - labelsSectionPointerIndex}";
 
                         DramatisPersonaeSection dramatisPersonaeSection = new() { Index = i - labelsSectionPointerIndex };
-                        dramatisPersonaeSection.Initialize(Data.Skip(EventFileSections[i].Pointer)
-                            .Take(EventFileSections[i + 1].Pointer - EventFileSections[i].Pointer),
-                            EventFileSections[i].ItemCount,
-                            name, log, EventFileSections[i].Pointer);
-                        EventFileSections[i].Section = dramatisPersonaeSection.GetGeneric();
+                        dramatisPersonaeSection.Initialize(decompressedData[SectionDefs[i].Pointer..SectionDefs[i + 1].Pointer],
+                            SectionDefs[i].ItemCount,
+                            name, log, SectionDefs[i].Pointer);
                         DramatisPersonaeSections.Add(dramatisPersonaeSection);
                     }
                 }
@@ -696,37 +688,33 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     string name = "DIALOGUESECTION";
 
                     DialogueSection = new();
-                    DialogueSection.Initialize(Data,
-                        EventFileSections[dialogueSectionPointerIndex].ItemCount,
-                        name, log, EventFileSections[dialogueSectionPointerIndex].Pointer);
+                    DialogueSection.Initialize(decompressedData,
+                        SectionDefs[dialogueSectionPointerIndex].ItemCount,
+                        name, log, SectionDefs[dialogueSectionPointerIndex].Pointer);
                     DialogueSection.InitializeDramatisPersonaeIndices(DramatisPersonaeSections);
-                    EventFileSections[dialogueSectionPointerIndex].Section = DialogueSection.GetGeneric();
                 }
 
-                int conditionalSectionIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.ConditionalsSectionPointer);
+                int conditionalSectionIndex = SectionDefs.FindIndex(s => s.Pointer == Settings.ConditionalsSectionPointer);
                 if (Settings.ConditionalsSectionPointer > 0)
                 {
                     string name = "CONDITIONALS";
 
                     ConditionalsSection = new();
-                    ConditionalsSection.Initialize(Data,
-                        EventFileSections[conditionalSectionIndex].ItemCount,
-                        name, log, EventFileSections[conditionalSectionIndex].Pointer);
-                    EventFileSections[conditionalSectionIndex].Section = ConditionalsSection.GetGeneric();
+                    ConditionalsSection.Initialize(decompressedData,
+                        SectionDefs[conditionalSectionIndex].ItemCount,
+                        name, log, SectionDefs[conditionalSectionIndex].Pointer);
                 }
 
-                int scriptSectionDefinitionsSectionIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.ScriptSectionDefinitionsSectionPointer);
+                int scriptSectionDefinitionsSectionIndex = SectionDefs.FindIndex(s => s.Pointer == Settings.ScriptSectionDefinitionsSectionPointer);
                 ScriptSectionDefinitionsSection scriptSectionDefinitionsSection = new() { Labels = LabelsSection.Objects.Select(l => l.Name.Replace("/", "")).ToList() };
                 if (Settings.ScriptSectionDefinitionsSectionPointer > 0)
                 {
                     string name = "SCRIPTDEFINITIONS";
 
-                    scriptSectionDefinitionsSection.Initialize(Data
-                        .Skip(EventFileSections[scriptSectionDefinitionsSectionIndex].Pointer),
+                    scriptSectionDefinitionsSection.Initialize(decompressedData[SectionDefs[scriptSectionDefinitionsSectionIndex].Pointer..],
                         Settings.NumScriptSections,
                         name, log,
-                        EventFileSections[scriptSectionDefinitionsSectionIndex].Pointer);
-                    EventFileSections[scriptSectionDefinitionsSectionIndex].Section = scriptSectionDefinitionsSection.GetGeneric();
+                        SectionDefs[scriptSectionDefinitionsSectionIndex].Pointer);
                 }
 
                 for (int i = 0; i < scriptSectionDefinitionsSection.Objects.Count; i++)
@@ -734,11 +722,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     if (scriptSectionDefinitionsSection.Objects[i].Pointer > 0)
                     {
                         ScriptSection scriptSection = new() { CommandsAvailable = CommandsAvailable };
-                        scriptSection.Initialize(Data.Skip(scriptSectionDefinitionsSection.Objects[i].Pointer).Take(scriptSectionDefinitionsSection.Objects[i].NumCommands * 0x24),
+                        scriptSection.Initialize(decompressedData[scriptSectionDefinitionsSection.Objects[i].Pointer..(scriptSectionDefinitionsSection.Objects[i].Pointer + scriptSectionDefinitionsSection.Objects[i].NumCommands * 0x24)],
                             scriptSectionDefinitionsSection.Objects[i].NumCommands,
                             string.IsNullOrEmpty(LabelsSection.Objects[i].Name) ? $"SCRIPT{i:D2}" : LabelsSection.Objects[i].Name.Replace("/", ""),
                             log, scriptSectionDefinitionsSection.Objects[i].Pointer);
-                        EventFileSections[EventFileSections.IndexOf(EventFileSections.First(s => s.Pointer == scriptSectionDefinitionsSection.Objects[i].Pointer))].Section = scriptSection.GetGeneric();
                         ScriptSections.Add(scriptSection);
                     }
                 }
@@ -746,29 +733,26 @@ namespace HaruhiChokuretsuLib.Archive.Event
                 {
                     for (int i = 4; i > 1; i--)
                     {
-                        EventFileSections[EventFileSections.IndexOf(EventFileSections.First(s => s.Section.Name == ScriptSections[i].Name))].Section.Name = ScriptSections[i - 1].Name;
                         ScriptSections[i].Name = ScriptSections[i - 1].Name;
                     }
-                    EventFileSections[EventFileSections.IndexOf(EventFileSections.First(s => s.Section.Name == ScriptSections[1].Name))].Section.Name = "SCRIPT01";
                     ScriptSections[1].Name = "SCRIPT01";
                 }
 
-                int eventNameSectionIndex = EventFileSections.FindIndex(s => s.Pointer == Settings.EventNamePointer);
+                int eventNameSectionIndex = SectionDefs.FindIndex(s => s.Pointer == Settings.EventNamePointer);
                 if (Settings.EventNamePointer > 0)
                 {
                     string name = "EVENTNAME";
 
                     EventNameSection = new();
-                    EventNameSection.Initialize(Data.Skip(EventFileSections[eventNameSectionIndex].Pointer).TakeWhile(b => b != 0),
-                        EventFileSections[eventNameSectionIndex].ItemCount, name, log, EventFileSections[eventNameSectionIndex].Pointer);
-                    EventFileSections[eventNameSectionIndex].Section = EventNameSection.GetGeneric();
+                    EventNameSection.Initialize(Encoding.ASCII.GetBytes(IO.ReadAsciiString(decompressedData, SectionDefs[eventNameSectionIndex].Pointer)),
+                        SectionDefs[eventNameSectionIndex].ItemCount, name, log, SectionDefs[eventNameSectionIndex].Pointer);
                 }
             }
 
-            for (int i = EventFileSections.FindIndex(f => f.Pointer == Settings.LabelsSectionPointer) + 1; i < dialogueSectionPointerIndex; i++)
+            for (int i = SectionDefs.FindIndex(f => f.Pointer == Settings.LabelsSectionPointer) + 1; i < dialogueSectionPointerIndex; i++)
             {
-                DramatisPersonae.Add(EventFileSections[i].Pointer,
-                    Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(EventFileSections[i].Pointer).TakeWhile(b => b != 0x00).ToArray()));
+                DramatisPersonae.Add(SectionDefs[i].Pointer,
+                    Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(SectionDefs[i].Pointer).TakeWhile(b => b != 0x00).ToArray()));
             }
 
             InitializeDialogueAndEndPointers(decompressedData, offset);
@@ -792,18 +776,18 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     }
 
                     DramatisPersonae.TryGetValue(speakerPointer, out string speakerName);
-                    DialogueLines.Add(new DialogueLine((Speaker)character, speakerName, speakerPointer, dialoguePointer, [.. Data]));
+                    DialogueLines.Add(new((Speaker)character, speakerName, speakerPointer, dialoguePointer, [.. Data]));
                 }
             }
 
-            PointerToEndPointerSection = BitConverter.ToInt32(decompressedData.Skip(4).Take(4).ToArray());
-            int numEndPointers = BitConverter.ToInt32(decompressedData.Skip(PointerToEndPointerSection).Take(4).ToArray());
+            _pointerToEndPointerSection = BitConverter.ToInt32(decompressedData.Skip(4).Take(4).ToArray());
+            int numEndPointers = BitConverter.ToInt32(decompressedData.Skip(_pointerToEndPointerSection).Take(4).ToArray());
             for (int i = 0; i < numEndPointers; i++)
             {
-                EndPointers.Add(BitConverter.ToInt32(decompressedData.Skip(PointerToEndPointerSection + 0x04 * (i + 1)).Take(4).ToArray()));
+                EndPointers.Add(BitConverter.ToInt32(decompressedData.Skip(_pointerToEndPointerSection + 0x04 * (i + 1)).Take(4).ToArray()));
             }
 
-            EndPointerPointers = EndPointers.Select(p => { int x = offset; return BitConverter.ToInt32(decompressedData.Skip(p).Take(4).ToArray()); }).ToList();
+            EndPointerPointers = EndPointers.Select(p => { return BitConverter.ToInt32(decompressedData.Skip(p).Take(4).ToArray()); }).ToList();
 
             int titlePointer = BitConverter.ToInt32(decompressedData.Skip(0x08).Take(4).ToArray());
             Title = Encoding.ASCII.GetString(decompressedData.Skip(titlePointer).TakeWhile(b => b != 0x00).ToArray());
@@ -823,17 +807,17 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <param name="availableTopics">A list of all topics from the TOPIC.S file in evt.bin</param>
         public void IdentifyEventFileTopics(IList<Topic> availableTopics)
         {
-            int topicsSectionPointer = EventFileSections.Where(s => s.Pointer > DialogueLines.Last(d => d.SpeakerName != "CHOICE").Pointer).Select(s => s.Pointer).ToArray()[3]; // third pointer after dialogue section
-            for (int i = topicsSectionPointer; i < PointerToEndPointerSection; i += 0x24)
+            foreach (ScriptSection scriptSection in ScriptSections)
             {
-                int controlSwitch = BitConverter.ToInt32(Data.Skip(i).Take(4).ToArray());
-                if (controlSwitch == 0x0E)
+                foreach (ScriptCommandInvocation command in scriptSection.Objects)
                 {
-                    int topicId = BitConverter.ToInt32(Data.Skip(i + 4).Take(4).ToArray());
-                    Topic topic = availableTopics.FirstOrDefault(t => t.Id == topicId);
-                    if (topic is not null)
+                    if (command.Command.Mnemonic == CommandVerb.TOPIC_GET.ToString())
                     {
-                        Topics.Add(topic);
+                        Topic topic = availableTopics.FirstOrDefault(t => t.Id == command.Parameters[0]);
+                        if (topic is not null)
+                        {
+                            Topics.Add(topic);
+                        }
                     }
                 }
             }
@@ -845,9 +829,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public void InitializeDialogueForSpecialFiles()
         {
             DialogueLines.Clear();
-            for (int i = 0; i < EndPointerPointers.Count; i++)
+            foreach (int endPointerPointer in EndPointerPointers)
             {
-                DialogueLines.Add(new(Speaker.INFO, "INFO", 0, EndPointerPointers[i], [.. Data]));
+                DialogueLines.Add(new(Speaker.INFO, "INFO", 0, endPointerPointer, [.. Data]));
             }
         }
 
@@ -857,7 +841,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public void InitializeScenarioFile()
         {
             InitializeDialogueForSpecialFiles();
-            Scenario = new(Data, DialogueLines, EventFileSections);
+            Scenario = new([.. Data], DialogueLines, SectionDefs);
         }
 
         /// <summary>
@@ -865,7 +849,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         public void InitializeEventTableFile()
         {
-            EvtTbl = new(Data);
+            EvtTbl = new([.. Data]);
         }
 
         /// <summary>
@@ -874,7 +858,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public void InitializeChessFile()
         {
             InitializeDialogueForSpecialFiles();
-            ChessFile = new(Data);
+            ChessFile = new([.. Data]);
         }
 
         /// <summary>
@@ -910,28 +894,28 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
         internal virtual void ShiftPointers(int shiftLocation, int shiftAmount)
         {
-            for (int i = 0; i < EventFileSections.Count; i++)
+            for (int i = 0; i < SectionDefs.Count; i++)
             {
-                if (EventFileSections[i].Pointer > shiftLocation)
+                if (SectionDefs[i].Pointer > shiftLocation)
                 {
-                    EventFileSections[i].Pointer += shiftAmount;
+                    SectionDefs[i].Pointer += shiftAmount;
                     Data.RemoveRange(0x0C + 0x08 * i, 4);
-                    Data.InsertRange(0x0C + 0x08 * i, BitConverter.GetBytes(EventFileSections[i].Pointer));
+                    Data.InsertRange(0x0C + 0x08 * i, BitConverter.GetBytes(SectionDefs[i].Pointer));
                 }
             }
-            if (PointerToEndPointerSection > shiftLocation)
+            if (_pointerToEndPointerSection > shiftLocation)
             {
-                PointerToEndPointerSection += shiftAmount;
+                _pointerToEndPointerSection += shiftAmount;
                 Data.RemoveRange(0x04, 4);
-                Data.InsertRange(0x04, BitConverter.GetBytes(PointerToEndPointerSection));
+                Data.InsertRange(0x04, BitConverter.GetBytes(_pointerToEndPointerSection));
             }
             for (int i = 0; i < EndPointers.Count; i++)
             {
                 if (EndPointers[i] > shiftLocation)
                 {
                     EndPointers[i] += shiftAmount;
-                    Data.RemoveRange(PointerToEndPointerSection + 0x04 * (i + 1), 4);
-                    Data.InsertRange(PointerToEndPointerSection + 0x04 * (i + 1), BitConverter.GetBytes(EndPointers[i]));
+                    Data.RemoveRange(_pointerToEndPointerSection + 0x04 * (i + 1), 4);
+                    Data.InsertRange(_pointerToEndPointerSection + 0x04 * (i + 1), BitConverter.GetBytes(EndPointers[i]));
                 }
             }
             for (int i = 0; i < EndPointerPointers.Count; i++)
@@ -1426,25 +1410,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
                     return sb.ToString();
                 }
             }
-        }
-    }
-
-    /// <summary>
-    /// An abstract container of an event file section
-    /// </summary>
-    public class EventFileSection
-    {
-        internal int Pointer { get; set; }
-        internal int ItemCount { get; set; }
-        /// <summary>
-        /// A representation of the section itself
-        /// </summary>
-        public IEventSection<object> Section { get; set; }
-
-        /// <inheritdoc/>
-        public override string ToString()
-        {
-            return $"0x{Pointer:X8}, {ItemCount}";
         }
     }
 

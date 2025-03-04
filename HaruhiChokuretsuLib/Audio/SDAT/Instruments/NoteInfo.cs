@@ -102,7 +102,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.Instruments
         /// Convert this to note playback info.
         /// </summary>
         /// <returns>This as note playback info.</returns>
-        public NotePlayBackInfo ToNotePlayBackInfo() => new NotePlayBackInfo()
+        public NotePlayBackInfo ToNotePlayBackInfo() => new()
         {
             Attack = Attack,
             Decay = Decay,
@@ -161,7 +161,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.Instruments
         /// <returns>New note info clone.</returns>
         public NoteInfo Duplicate()
         {
-            return new NoteInfo() { Attack = Attack, BaseNote = BaseNote, Decay = Decay, InstrumentType = InstrumentType, Key = Key, Pan = Pan, Release = Release, Sustain = Sustain, WarId = WarId, WaveId = WaveId };
+            return new() { Attack = Attack, BaseNote = BaseNote, Decay = Decay, InstrumentType = InstrumentType, Key = Key, Pan = Pan, Release = Release, Sustain = Sustain, WarId = WarId, WaveId = WaveId };
         }
     }
 }

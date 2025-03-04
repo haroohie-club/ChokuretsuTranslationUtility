@@ -35,7 +35,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
             for (int i = 0; i < sectionCount; i++)
             {
-                Sprites.Add(new(decompressedData.Skip(sectionStart + 0x18 * i).Take(0x18)));
+                Sprites.Add(new(decompressedData[(sectionStart + 0x18 * i)..(sectionStart + 0x18 * (i + 1))]));
             }
         }
 
@@ -90,7 +90,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// A representation of a character sprite as displayed on screen during Chokuretsu's VN sections;
     /// defined in CHRDATA.S
     /// </summary>
-    public class CharacterSprite(IEnumerable<byte> data)
+    public class CharacterSprite(byte[] data)
     {
         /// <summary>
         /// Unknown

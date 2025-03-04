@@ -30,7 +30,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         /// <summary>
         /// Instruments.
         /// </summary>
-        public List<Instrument> Instruments = new();
+        public List<Instrument> Instruments = [];
 
         /// <summary>
         /// Max order.
@@ -48,21 +48,21 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             switch (i.Type())
             {
                 case SDAT.Instruments.InstrumentType.DrumSet:
-                    n = new DrumSetInstrument() { Index = i.Index, NoteInfo = new List<NoteInfo>(), Min = ((DrumSetInstrument)i).Min };
+                    n = new DrumSetInstrument() { Index = i.Index, NoteInfo = [], Min = ((DrumSetInstrument)i).Min };
                     foreach (var r in i.NoteInfo)
                     {
                         n.NoteInfo.Add(r.Duplicate());
                     }
                     break;
                 case SDAT.Instruments.InstrumentType.KeySplit:
-                    n = new KeySplitInstrument() { Index = i.Index, NoteInfo = new List<NoteInfo>() };
+                    n = new KeySplitInstrument() { Index = i.Index, NoteInfo = [] };
                     foreach (var r in i.NoteInfo)
                     {
                         n.NoteInfo.Add(r.Duplicate());
                     }
                     break;
                 default:
-                    n = new DirectInstrument() { Index = i.Index, NoteInfo = new List<NoteInfo>() { i.NoteInfo[0].Duplicate() } };
+                    n = new DirectInstrument() { Index = i.Index, NoteInfo = [i.NoteInfo[0].Duplicate()] };
                     break;
             }
             return n;
@@ -82,11 +82,11 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             //Read info.
             r.ReadUInt32s(8);
             uint numInsts = r.ReadUInt32();
-            List<Instruments.InstrumentType> records = new();
-            List<uint> offs = new();
+            List<Instruments.InstrumentType> records = [];
+            List<uint> offs = [];
             for (uint i = 0; i < numInsts; i++)
             {
-                records.Add((SDAT.Instruments.InstrumentType)r.ReadByte());
+                records.Add((Instruments.InstrumentType)r.ReadByte());
                 offs.Add(r.ReadUInt16());
                 r.ReadByte();
             }
@@ -236,7 +236,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         {
 
             //Laziness.
-            return new SoundFont(ToDLS(a, b));
+            return new(ToDLS(a, b));
 
         }
 
@@ -256,7 +256,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             Dictionary<uint, RiffWave> waveMap = new Dictionary<uint, RiffWave>();
             Dictionary<ushort, RiffWave> psgMap = new Dictionary<ushort, RiffWave>();
             Dictionary<ushort, RiffWave> noiseMap = new Dictionary<ushort, RiffWave>();
-            d.Waves.Add(new RiffWave("Hardware/Null.wav"));
+            d.Waves.Add(new("Hardware/Null.wav"));
 
             //Add each instrument.
             foreach (var inst in Instruments)
@@ -286,7 +286,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     r.DoublePlayback = true;
                     r.Layer = 1;
                     r.NoTruncation = true;
-                    r.RootNote = (byte)n.BaseNote;
+                    r.RootNote = n.BaseNote;
 
                     //Wave data.
                     int wavInd = 0;
@@ -296,10 +296,13 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                             uint key = 0xFFFFFFFF;
                             try
                             {
-                                var p = b.WaveArchives[n.WarId].File.Waves[n.WaveId];
                                 key = (uint)(b.WaveArchives[n.WarId].Index << 16) | n.WaveId;
                             }
-                            catch { }
+                            catch
+                            {
+                                // ignored
+                            }
+
                             if (key != 0xFFFFFFFF)
                             {
                                 if (!waveMap.ContainsKey(key))
@@ -343,16 +346,15 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     {
                         r.LoopStart = d.Waves[wavInd].LoopStart;
                         r.LoopLength = d.Waves[wavInd].LoopEnd - d.Waves[wavInd].LoopStart;
-                        if (r.LoopLength < 0) { r.LoopLength = 0; }
                     }
 
                     //Articulator.
-                    Articulator ar = new Articulator();
-                    ar.Connections.Add(new Connection() { DestinationConnection = DestinationConnection.EG1AttackTime, Scale = n.Attack >= 127 ? int.MinValue : MillisecondsToTimecents(AttackTable[n.Attack]) * 65536 });
-                    ar.Connections.Add(new Connection() { DestinationConnection = DestinationConnection.EG1DecayTime, Scale = n.Decay >= 127 ? int.MinValue : MillisecondsToTimecents(MaxReleaseTimes[n.Decay]) * 65536 });
-                    ar.Connections.Add(new Connection() { DestinationConnection = DestinationConnection.EG1SustainLevel, Scale = (int)Math.Round(Sustain2Fraction(n.Sustain) * 1000, MidpointRounding.AwayFromZero) * 65536 });
-                    ar.Connections.Add(new Connection() { DestinationConnection = DestinationConnection.EG1ReleaseTime, Scale = n.Release >= 127 ? int.MinValue : MillisecondsToTimecents(MaxReleaseTimes[n.Release]) * 65536 });
-                    ar.Connections.Add(new Connection() { DestinationConnection = DestinationConnection.Pan, Scale = GetPan(n.Pan) * 65536 });
+                    Articulator ar = new();
+                    ar.Connections.Add(new() { DestinationConnection = DestinationConnection.EG1AttackTime, Scale = n.Attack >= 127 ? int.MinValue : MillisecondsToTimecents(AttackTable[n.Attack]) * 65536 });
+                    ar.Connections.Add(new() { DestinationConnection = DestinationConnection.EG1DecayTime, Scale = n.Decay >= 127 ? int.MinValue : MillisecondsToTimecents(MaxReleaseTimes[n.Decay]) * 65536 });
+                    ar.Connections.Add(new() { DestinationConnection = DestinationConnection.EG1SustainLevel, Scale = (int)Math.Round(Sustain2Fraction(n.Sustain) * 1000, MidpointRounding.AwayFromZero) * 65536 });
+                    ar.Connections.Add(new() { DestinationConnection = DestinationConnection.EG1ReleaseTime, Scale = n.Release >= 127 ? int.MinValue : MillisecondsToTimecents(MaxReleaseTimes[n.Release]) * 65536 });
+                    ar.Connections.Add(new() { DestinationConnection = DestinationConnection.Pan, Scale = GetPan(n.Pan) * 65536 });
                     r.Articulators.Add(ar);
 
                     //Add region.
@@ -463,8 +465,8 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         /// <summary>
         /// Attack table to milliseconds.
         /// </summary>
-        public static double[] AttackTable = new double[]
-        {
+        public static readonly double[] AttackTable =
+        [
             8606.1, 4756.3, 3339.3, 2594.4, 2130.7, 1807.7, 1573.3, 1401.4,
             1255.5, 1140.9, 1047.1, 963.8, 896.0, 838.7, 786.6, 745.0,
             703.3, 666.8, 630.4, 599.1, 578.3, 547.0, 526.2, 505.3,
@@ -480,14 +482,14 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             114.6, 114.6, 114.6, 109.4, 109.4, 109.4, 109.4, 109.4,
             104.2, 104.2, 104.2, 104.2, 99.0, 93.8, 88.6, 83.4,
             78.2, 72.9, 67.7, 62.5, 57.3, 52.1, 46.9, 41.7,
-            36.5, 31.3, 26.1, 20.8, 15.6, 10.4, 10.4, 0.0
-        };
+            36.5, 31.3, 26.1, 20.8, 15.6, 10.4, 10.4, 0.0,
+        ];
 
         /// <summary>
         /// Decay release table to milliseconds.
         /// </summary>
-        public static double[] DecayReleaseTable = new double[]
-        {
+        public static readonly double[] DecayReleaseTable =
+        [
             -0.0002, -0.0005, -0.0008, -0.0011, -0.0014, -0.0017, -0.0020, -0.0023,
             -0.0026, -0.0029, -0.0032, -0.0035, -0.0038, -0.0041, -0.0044, -0.0047,
             -0.0050, -0.0053, -0.0056, -0.0059, -0.0062, -0.0065, -0.0068, -0.0071,
@@ -503,14 +505,14 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             -0.0385, -0.0398, -0.0412, -0.0427, -0.0444, -0.0462, -0.0481, -0.0502,
             -0.0524, -0.0549, -0.0577, -0.0607, -0.0641, -0.0679, -0.0721, -0.0769,
             -0.0824, -0.0888, -0.0962, -0.1049, -0.1154, -0.1282, -0.1442, -0.1648,
-            -0.1923, -0.2308, -0.2885, -0.3846, -0.5769, -1.1538, -2.2897, -9.8460
-        };
+            -0.1923, -0.2308, -0.2885, -0.3846, -0.5769, -1.1538, -2.2897, -9.8460,
+        ];
 
         /// <summary>
         /// Maximum release times in milliseconds.
         /// </summary>
-        public static double[] MaxReleaseTimes = new double[]
-        {
+        public static readonly double[] MaxReleaseTimes =
+        [
             481228.8, 160409.6, 96241.6, 68744.0, 53466.4, 43747.6, 37013.6, 32078.8,
             28303.6, 25324.0, 22911.2, 20919.6, 19245.2, 17820.4, 16593.2, 15522.0,
             14580.8, 13748.8, 13005.2, 12334.4, 11736.4, 11190.4, 10691.2, 10238.8,
@@ -526,7 +528,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             1877.2, 1814.8, 1752.4, 1690.0, 1627.6, 1565.2, 1502.8, 1440.4,
             1378.0, 1315.6, 1253.2, 1185.6, 1123.2, 1060.8, 998.4, 936.0,
             873.6, 811.2, 748.8, 686.4, 624.0, 561.6, 499.2, 436.8,
-            374.4, 312.0, 249.6, 187.2, 124.8, 62.4, 31.2, 5.2
-        };
+            374.4, 312.0, 249.6, 187.2, 124.8, 62.4, 31.2, 5.2,
+        ];
     }
 }

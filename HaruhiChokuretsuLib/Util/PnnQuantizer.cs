@@ -173,7 +173,7 @@ namespace HaruhiChokuretsuLib.Util
 
                 int index = GetARGBIndex((uint)c);
                 if (bins[index] == null)
-                    bins[index] = new Pnnbin();
+                    bins[index] = new();
                 bins[index].ac += c.Alpha;
                 bins[index].rc += c.Red;
                 bins[index].gc += c.Green;
@@ -299,7 +299,7 @@ namespace HaruhiChokuretsuLib.Util
             for (int i = 0; k < palette.Length; ++k)
             {
                 byte alpha = (_hasSemiTransparency || _transparentPixelIndex >= 0) ? Math.Clamp((byte)Math.Round(bins[i].ac), byte.MinValue, byte.MaxValue) : byte.MaxValue;
-                palette[k] = new SKColor(Math.Clamp((byte)bins[i].rc, byte.MinValue, byte.MaxValue), Math.Clamp((byte)bins[i].gc, byte.MinValue, byte.MaxValue), Math.Clamp((byte)bins[i].bc, byte.MinValue, byte.MaxValue), alpha);
+                palette[k] = new(Math.Clamp((byte)bins[i].rc, byte.MinValue, byte.MaxValue), Math.Clamp((byte)bins[i].gc, byte.MinValue, byte.MaxValue), Math.Clamp((byte)bins[i].bc, byte.MinValue, byte.MaxValue), alpha);
 
                 if ((i = bins[i].fw) == 0)
                     break;
@@ -861,7 +861,8 @@ namespace HaruhiChokuretsuLib.Util
 
     internal class BlueNoise
     {
-        internal static readonly sbyte[] RAW_BLUE_NOISE = {
+        internal static readonly sbyte[] RAW_BLUE_NOISE =
+        [
             -63, 119, 75, 49, -74, 21, -32, 7, -6, -66, -19, 78, -101, 89, 24, -25, 122, -50, -6, 100, -125, -45, 105, 32, -83,
             114, -20, -88, -3, -35, 73, -93, 103, 59, 126, 79, 19, -115, -41, 6, 118, 69, 49, 96, -69, -36, 4, 41, -79, 55,
             12, -125, -70, 37, -101, 76, -116, -45, 68, -124, 31, 55, -36, 69, 42, 12, -104, -1, -19, 127, -93, 82, -49, 65, 50,
@@ -1025,8 +1026,8 @@ namespace HaruhiChokuretsuLib.Util
             25, 93, -4, -90, -15, 97, -28, 47, -65, 80, -45, -99, 127, 66, 24, 76, -5, -47, 123, -33, -107, -52, -81, 90, 16,
             35, 112, 83, -87, -18, 23, -49, -89, -30, -120, -53, 95, 59, -123, 111, -86, 33, 119, -54, -33, -87, 105, -76, 42, 76,
             -65, -32, 85, 7, -16, 80, -32, 10, 95, 50, 88, 123, -121, -12, -79, -42, -102, -53, 42, -75, 85, -107, 21, -82, -25,
-            14, -9, -91, -55, 99, -111, -20, 31, 88, -3, 105, 53, -29, -90, -10, -70, 9, -57, 123, -99, 5
-        };
+            14, -9, -91, -55, 99, -111, -20, 31, 88, -3, 105, 53, -29, -90, -10, -70, 9, -57, 123, -99, 5,
+        ];
 
         public static SKColor Diffuse(SKColor pixel, SKColor qPixel, float weight, float strength, int x, int y)
         {
@@ -1076,12 +1077,13 @@ namespace HaruhiChokuretsuLib.Util
 
             internal ErrorBox(SKColor c)
             {
-                p = new float[] {
+                p =
+                [
                     c.Red,
                     c.Green,
                     c.Blue,
-                    c.Alpha
-                };
+                    c.Alpha,
+                ];
             }
 
             internal float this[int i]
@@ -1268,7 +1270,7 @@ namespace HaruhiChokuretsuLib.Util
             float weight = 1f, sumweight = 0f;
             for (int c = 0; c < DITHER_MAX; ++c)
             {
-                _errorq.Enqueue(new ErrorBox());
+                _errorq.Enqueue(new());
                 sumweight += (_weights[DITHER_MAX - c - 1] = 1.0f / weight);
                 weight *= weightRatio;
             }

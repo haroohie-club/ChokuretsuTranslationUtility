@@ -1,7 +1,6 @@
 ﻿using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
@@ -66,7 +65,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
 
             if (spec.LoopInfo is not null)
             {
-                List<Sample> samples = new();
+                List<Sample> samples = [];
                 for (int i = 0; i < AlignmentSamples; i++)
                 {
                     samples.Add(new(new short[spec.Channels]));

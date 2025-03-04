@@ -8,7 +8,6 @@
 using GotaSequenceLib;
 using GotaSoundIO.IO;
 using HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,7 +21,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         /// <summary>
         /// Sequences. The index of each one of these is the same as the public label.
         /// </summary>
-        public List<SequenceArchiveSequence> Sequences = new List<SequenceArchiveSequence>();
+        public List<SequenceArchiveSequence> Sequences = [];
 
         /// <summary>
         /// Read the sequence archive.
@@ -38,8 +37,8 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             uint numSeqs = r.ReadUInt32();
 
             //Read entries.
-            Labels = new Dictionary<string, uint>();
-            Sequences = new List<SequenceArchiveSequence>();
+            Labels = new();
+            Sequences = [];
             for (uint i = 0; i < numSeqs; i++)
             {
                 uint off = r.ReadUInt32();
@@ -135,9 +134,8 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         public new string[] ToText()
         {
             //Command list.
-            List<string> l = new List<string>
-            {
-                //Add header.
+            List<string> l =
+            [
                 ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
                 ";",
                 $";     {Name}.mus",
@@ -147,8 +145,8 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 "",
 
                 //Add sequence table.
-                "@SEQ_TABLE"
-            };
+                "@SEQ_TABLE",
+            ];
             for (int i = 0; i < Sequences.Count; i++)
             {
                 string s = "";
@@ -226,10 +224,10 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             var p = Platform();
 
             //Reset labels.
-            PublicLabels = new Dictionary<string, int>();
-            OtherLabels = new List<int>();
+            PublicLabels = new();
+            OtherLabels = [];
             Dictionary<string, int> privateLabels = new Dictionary<string, int>();
-            List<int> labelLines = new List<int>();
+            List<int> labelLines = [];
 
             //Format text.
             List<string> t = [.. text];
@@ -257,7 +255,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             Dictionary<int, string> seqId2Label = new Dictionary<int, string>();
 
             //Get sequences.
-            Sequences = new List<SequenceArchiveSequence>();
+            Sequences = [];
             int currSeqId = 0;
             for (int i = t.IndexOf("@SEQ_TABLE") + 1; i < t.IndexOf("@SEQ_DATA"); i++)
             {
@@ -299,14 +297,14 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     var bnkReal = a.Banks.Where(x => x.Name.Equals(bnk)).FirstOrDefault();
                     if (bnkReal == null)
                     {
-                        throw new Exception("Bank " + bnk + " does not exist!");
+                        throw new("Bank " + bnk + " does not exist!");
                     }
                     s.ReadingBankId = (ushort)bnkReal.Index;
                     s.Bank = bnkReal;
                 }
                 else
                 {
-                    throw new Exception("Can't use a name when there is no sound archive open!");
+                    throw new("Can't use a name when there is no sound archive open!");
                 }
 
                 //Data.
@@ -329,14 +327,14 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     var plyReal = a.Players.Where(x => x.Name.Equals(ply)).FirstOrDefault();
                     if (plyReal == null)
                     {
-                        throw new Exception("Player " + ply + " does not exist!");
+                        throw new("Player " + ply + " does not exist!");
                     }
                     s.ReadingPlayerId = (byte)plyReal.Index;
                     s.Player = plyReal;
                 }
                 else
                 {
-                    throw new Exception("Can't use a name when there is no sound archive open!");
+                    throw new("Can't use a name when there is no sound archive open!");
                 }
 
                 //Add sequence.
@@ -372,7 +370,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //Get commands.
-            Commands = new List<SequenceCommand>();
+            Commands = [];
             for (int i = t.IndexOf("@SEQ_DATA") + 1; i < t.Count; i++)
             {
                 if (labelLines.Contains(i))
@@ -380,16 +378,16 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     continue;
                 }
                 SequenceCommand seq = new SequenceCommand();
-                try { seq.FromString(t[i], PublicLabels, privateLabels); } catch { WritingCommandSuccess = false; throw new Exception("Command " + i + ": \"" + t[i] + "\" is invalid."); }
+                try { seq.FromString(t[i], PublicLabels, privateLabels); } catch { WritingCommandSuccess = false; throw new("Command " + i + ": \"" + t[i] + "\" is invalid."); }
                 Commands.Add(seq);
             }
 
             //Fin.
-            Commands.Add(new SequenceCommand() { CommandType = SequenceCommands.Fin });
+            Commands.Add(new() { CommandType = SequenceCommands.Fin });
 
             //Backup labels.
             var bakLabels = PublicLabels;
-            PublicLabels = new Dictionary<string, int>();
+            PublicLabels = new();
             foreach (var seq in Sequences)
             {
                 PublicLabels.Add(seq.Name, bakLabels[seq.LabelName]);

@@ -207,8 +207,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
             using SKPaint paint = new();
             paint.Shader = SKShader.CreateLinearGradient(
-                new SKPoint((rect.Left + rect.Right) / 2, rect.Top),
-                new SKPoint((rect.Left + rect.Right) / 2, rect.Bottom),
+                new((rect.Left + rect.Right) / 2, rect.Top),
+                new((rect.Left + rect.Right) / 2, rect.Bottom),
                 [Settings.TopGradient, Settings.BottomGradient],
                 [0.0f, 1.0f],
                 SKShaderTileMode.Repeat);

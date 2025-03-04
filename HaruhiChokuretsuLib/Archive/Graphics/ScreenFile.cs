@@ -27,12 +27,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             using SKCanvas canvas = new(bitmap);
 
-            List<List<SKBitmap>> tiles = new();
+            List<List<SKBitmap>> tiles = [];
             for (int y = 0; y < tilesGrp.Height; y += 8)
             {
                 for (int x = 0; x < tilesGrp.Width; x += 8)
                 {
-                    List<SKBitmap> tileVariants = new();
+                    List<SKBitmap> tileVariants = [];
                     SKRect boundingBox = new()
                     {
                         Left = x,
@@ -198,8 +198,8 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <returns>A GraphicsFile of the screen image's tiles</returns>
         public GraphicsFile GetAssociatedScreenTiles(ArchiveFile<GraphicsFile> grp)
         {
-            GraphicsFile associatedTiles = grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[0..^3]));
-            associatedTiles ??= grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[0..^8]));
+            GraphicsFile associatedTiles = grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[..^3]));
+            associatedTiles ??= grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[..^8]));
             associatedTiles ??= grp.GetFileByName("BG_SLG_T00DNX");
 
             return associatedTiles;

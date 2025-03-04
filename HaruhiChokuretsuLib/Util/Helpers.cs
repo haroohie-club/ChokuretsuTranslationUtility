@@ -202,7 +202,7 @@ namespace HaruhiChokuretsuLib.Util
         /// <returns>An equivalent SKColor</returns>
         public static SKColor Rgb555ToSKColor(short rgb555)
         {
-            return new SKColor((byte)((rgb555 & 0x1F) << 3), (byte)((rgb555 >> 5 & 0x1F) << 3), (byte)((rgb555 >> 10 & 0x1F) << 3));
+            return new((byte)((rgb555 & 0x1F) << 3), (byte)((rgb555 >> 5 & 0x1F) << 3), (byte)((rgb555 >> 10 & 0x1F) << 3));
         }
 
         /// <summary>
@@ -283,11 +283,14 @@ namespace HaruhiChokuretsuLib.Util
         public static byte[] CompressData(byte[] decompressedData)
         {
             // nonsense hack to deal with a rare edge case where the last byte of a file could get dropped
-            List<byte> temp = [.. decompressedData];
-            temp.Add(0x00);
+            List<byte> temp =
+            [
+                .. decompressedData,
+                0x00,
+            ];
             decompressedData = [.. temp];
 
-            List<byte> compressedData = new();
+            List<byte> compressedData = [];
 
             int directBytesToWrite = 0;
             Dictionary<LookbackEntry, List<int>> lookbackDictionary = new();
@@ -315,7 +318,7 @@ namespace HaruhiChokuretsuLib.Util
                     {
                         if (i - index <= 0x1FFF)
                         {
-                            List<byte> lookbackSequence = new();
+                            List<byte> lookbackSequence = [];
                             for (int j = 0; i + j < decompressedData.Length && decompressedData[index + j] == decompressedData[i + j]; j++)
                             {
                                 lookbackSequence.Add(decompressedData[lookbackIndex + j]);
@@ -339,7 +342,7 @@ namespace HaruhiChokuretsuLib.Util
                     }
                     byte firstByte = (byte)(encodedLookbackIndex / 0x100 | encodedLength << 5 | 0x80);
                     byte secondByte = (byte)(encodedLookbackIndex & 0xFF);
-                    compressedData.AddRange(new byte[] { firstByte, secondByte });
+                    compressedData.AddRange([firstByte, secondByte]);
                     if (remainingEncodedLength > 0)
                     {
                         while (remainingEncodedLength > 0)
@@ -373,7 +376,7 @@ namespace HaruhiChokuretsuLib.Util
                         int msb = numToEncode & 0xF00;
                         byte firstByte = (byte)(0x50 | msb / 0x100);
                         byte secondByte = (byte)(numToEncode - msb); // 0x50 -- repeated byte, 12-bit length
-                        compressedData.AddRange(new byte[] { firstByte, secondByte });
+                        compressedData.AddRange([firstByte, secondByte]);
                     }
                     compressedData.Add(repeatedBytes[0]);
                     i += numRepeatedBytes;
@@ -387,7 +390,7 @@ namespace HaruhiChokuretsuLib.Util
                     }
                     if (!lookbackDictionary.ContainsKey(nextEntry))
                     {
-                        lookbackDictionary.Add(nextEntry, new List<int> { i });
+                        lookbackDictionary.Add(nextEntry, [i]);
                     }
                     else
                     {
@@ -452,7 +455,7 @@ namespace HaruhiChokuretsuLib.Util
                 int msb = 0x1F00 & numBytesToWrite;
                 byte firstByte = (byte)(0x20 | msb / 0x100);
                 byte secondByte = (byte)(numBytesToWrite - msb);
-                writeTo.AddRange(new byte[] { firstByte, secondByte });
+                writeTo.AddRange([firstByte, secondByte]);
             }
             writeTo.AddRange(writeFrom.Skip(position - numBytesToWrite).Take(numBytesToWrite));
         }
@@ -464,7 +467,7 @@ namespace HaruhiChokuretsuLib.Util
         /// <returns>A byte array of decompressed data</returns>
         public static byte[] DecompressData(byte[] compressedData)
         {
-            List<byte> decompressedData = new();
+            List<byte> decompressedData = [];
 
             // documentation note: bits 1234 5678 in a byte
             for (int z = 0; z < compressedData.Length;)
@@ -555,7 +558,7 @@ namespace HaruhiChokuretsuLib.Util
     internal class AsmDecompressionSimulator
     {
         private int z, c, l, n;
-        private List<byte> _output = new();
+        private List<byte> _output = [];
         private byte[] _data;
 
         public byte[] Output { get { return [.. _output]; } }

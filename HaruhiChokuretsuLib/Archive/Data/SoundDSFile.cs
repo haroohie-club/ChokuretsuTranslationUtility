@@ -1,6 +1,5 @@
 ﻿using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace HaruhiChokuretsuLib.Archive.Data
@@ -63,79 +62,79 @@ namespace HaruhiChokuretsuLib.Archive.Data
             Data = [.. decompressedData];
             Offset = offset;
 
-            int unknownSection1Pointer = IO.ReadInt(Data, 0x0C);
-            int unknownSection1Count = IO.ReadInt(Data, 0x10);
+            int unknownSection1Pointer = IO.ReadInt(decompressedData, 0x0C);
+            int unknownSection1Count = IO.ReadInt(decompressedData, 0x10);
             for (int i = 0; i < unknownSection1Count; i++)
             {
-                UnknownSection1.Add(IO.ReadInt(Data, unknownSection1Pointer + 0x04 * i));
+                UnknownSection1.Add(IO.ReadInt(decompressedData, unknownSection1Pointer + 0x04 * i));
             }
 
-            int unknownSection2Pointer = IO.ReadInt(Data, 0x14);
-            int unknownSection2Count = IO.ReadInt(Data, 0x18);
+            int unknownSection2Pointer = IO.ReadInt(decompressedData, 0x14);
+            int unknownSection2Count = IO.ReadInt(decompressedData, 0x18);
             for (int i = 0; i < unknownSection2Count; i++)
             {
-                UnknownSection2.Add(new(Data.Skip(unknownSection2Pointer + 0x0C * i).Take(0x0C)));
+                UnknownSection2.Add(new(decompressedData[(unknownSection2Pointer + 0x0C * i)..(unknownSection2Pointer + 0x0C * (i + 1))]));
             }
 
-            int sfxSectionPointer = IO.ReadInt(Data, 0x1C);
-            int sfxSectionCount = IO.ReadInt(Data, 0x20);
+            int sfxSectionPointer = IO.ReadInt(decompressedData, 0x1C);
+            int sfxSectionCount = IO.ReadInt(decompressedData, 0x20);
             for (int i = 0; i < sfxSectionCount; i++)
             {
-                SfxSection.Add(new(Data.Skip(sfxSectionPointer + 0x14 * i).Take(0x14)));
+                SfxSection.Add(new(decompressedData[(sfxSectionPointer + 0x14 * i)..(sfxSectionPointer + 0x14 * (i + 1))]));
             }
 
-            int unknownSection4Pointer = IO.ReadInt(Data, 0x24);
-            int unknownSection4Count = IO.ReadInt(Data, 0x28);
+            int unknownSection4Pointer = IO.ReadInt(decompressedData, 0x24);
+            int unknownSection4Count = IO.ReadInt(decompressedData, 0x28);
             for (int i = 0; i < unknownSection4Count; i++)
             {
-                UnknownSection4.Add(IO.ReadShort(Data, unknownSection4Pointer + 0x02 * i));
+                UnknownSection4.Add(IO.ReadShort(decompressedData, unknownSection4Pointer + 0x02 * i));
             }
 
-            int bgmSectionPointer = IO.ReadInt(Data, 0x2C);
-            int bgmSectionCount = IO.ReadInt(Data, 0x30);
+            int bgmSectionPointer = IO.ReadInt(decompressedData, 0x2C);
+            int bgmSectionCount = IO.ReadInt(decompressedData, 0x30);
             for (int i = 0; i < bgmSectionCount; i++)
             {
-                int bgmPointer = IO.ReadInt(Data, bgmSectionPointer + 0x04 * i);
+                int bgmPointer = IO.ReadInt(decompressedData, bgmSectionPointer + 0x04 * i);
                 if (bgmPointer == 0)
                 {
                     BgmSection.Add(null);
                     continue;
                 }
-                BgmSection.Add(IO.ReadAsciiString(Data, bgmPointer));
+                BgmSection.Add(IO.ReadAsciiString(decompressedData, bgmPointer));
             }
 
-            int vceSectionPointer = IO.ReadInt(Data, 0x34);
-            int vceSectionCount = IO.ReadInt(Data, 0x38);
+            int vceSectionPointer = IO.ReadInt(decompressedData, 0x34);
+            int vceSectionCount = IO.ReadInt(decompressedData, 0x38);
             for (int i = 0; i < vceSectionCount; i++)
             {
-                int vcePointer = IO.ReadInt(Data, vceSectionPointer + 0x04 * i);
+                int vcePointer = IO.ReadInt(decompressedData, vceSectionPointer + 0x04 * i);
                 if (vcePointer == 0)
                 {
                     VoiceSection.Add(null);
                     continue;
                 }
-                VoiceSection.Add(IO.ReadAsciiString(Data, vcePointer));
+                VoiceSection.Add(IO.ReadAsciiString(decompressedData, vcePointer));
             }
 
-            int unknownSection7Pointer = IO.ReadInt(Data, 0x3C);
-            int unknownSection7Count = IO.ReadInt(Data, 0x40);
+            int unknownSection7Pointer = IO.ReadInt(decompressedData, 0x3C);
+            int unknownSection7Count = IO.ReadInt(decompressedData, 0x40);
             for (int i = 0; i < unknownSection7Count; i++)
             {
-                UnknownSection7.Add(IO.ReadInt(Data, unknownSection7Pointer + 0x04 * i));
+                UnknownSection7.Add(IO.ReadInt(decompressedData, unknownSection7Pointer + 0x04 * i));
             }
 
-            int unknownSection8Pointer = IO.ReadInt(Data, 0x44);
-            int unknownSection8Count = IO.ReadInt(Data, 0x48);
+            int unknownSection8Pointer = IO.ReadInt(decompressedData, 0x44);
+            int unknownSection8Count = IO.ReadInt(decompressedData, 0x48);
             for (int i = 0; i < unknownSection8Count; i++)
             {
-                UnknownSection8.Add(IO.ReadInt(Data, unknownSection8Pointer + 0x04 * i));
+                UnknownSection8.Add(IO.ReadInt(decompressedData, unknownSection8Pointer + 0x04 * i));
             }
 
-            int unknownSection9Pointer = IO.ReadInt(Data, 0x4C);
-            int unknownSection9Count = IO.ReadInt(Data, 0x50);
+            int unknownSection9Pointer = IO.ReadInt(decompressedData, 0x4C);
+            int unknownSection9Count = IO.ReadInt(decompressedData, 0x50);
             for (int i = 0; i < unknownSection9Count; i++)
             {
-                UnknownSection9.Add(new(Data.Skip(unknownSection9Pointer + 0x08 * i).Take(0x08)));
+                UnknownSection9.Add(new(decompressedData[(unknownSection9Pointer + 0x08 * i)..(unknownSection9Pointer + 0x08 * (i + 1))]));
             }
         }
 
@@ -289,7 +288,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// <summary>
     /// An unknown entry in SND_DS.S
     /// </summary>
-    public class UnknownAudio02Entry(IEnumerable<byte> data)
+    public class UnknownAudio02Entry(byte[] data)
     {
         /// <summary>
         /// Unknown
@@ -331,7 +330,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// <summary>
     /// A representation of a sound effect as defined in SND_DS.S
     /// </summary>
-    public class SfxEntry(IEnumerable<byte> data)
+    public class SfxEntry(byte[] data)
     {
         /// <summary>
         /// The SDAT sequence archive index that contains the SFX
@@ -381,7 +380,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// <summary>
     /// An unknown entry in SND_DS.S
     /// </summary>
-    public class UnknownAudio09Entry(IEnumerable<byte> data)
+    public class UnknownAudio09Entry(byte[] data)
     {
         /// <summary>
         /// Unknown

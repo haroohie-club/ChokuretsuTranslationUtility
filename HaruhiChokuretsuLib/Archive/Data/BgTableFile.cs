@@ -96,7 +96,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 {
                     string fileName1 = includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex1).Name;
                     string fileName2 = BgTableEntries[i].Type != BgType.TEX_CG_SINGLE ? includes["GRPBIN"].First(inc => inc.Value == BgTableEntries[i].BgIndex2).Name : "0";
-                    string bgName = fileName1[0..fileName1.LastIndexOf('_')];
+                    string bgName = fileName1[..fileName1.LastIndexOf('_')];
                     string bgNameBackup = bgName;
                     for (int j = 1; names.Contains(bgName); j++)
                     {

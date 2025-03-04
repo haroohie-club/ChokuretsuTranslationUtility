@@ -7,7 +7,6 @@ using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -95,8 +94,8 @@ namespace HaruhiChokuretsuTests
 
         private static async Task<byte[]> CompileFromSource(string source)
         {
-            string filePath = @$".\file-{Guid.NewGuid()}.s"; // Guid for uniqueness so we can run these tests in parallel
-            string devkitArm = @"C:\devkitPro\devkitARM";
+            string filePath = @$"./file-{Guid.NewGuid()}.s"; // Guid for uniqueness so we can run these tests in parallel
+            string devkitArm = OperatingSystem.IsWindows() ? @"C:\devkitPro\devkitARM" : "/opt/devkitpro/devkitARM";
             File.WriteAllText(filePath, source);
 
             string objFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.o";
@@ -132,17 +131,17 @@ namespace HaruhiChokuretsuTests
             }
             if (!File.Exists("DATBIN.INC"))
             {
-                var grp = ArchiveFile<GraphicsFile>.FromFile(@".\inputs\dat.bin", log);
+                var grp = ArchiveFile<GraphicsFile>.FromFile(@"./inputs/dat.bin", log);
                 File.WriteAllText("DATBIN.INC", grp.GetSourceInclude());
             }
             if (!File.Exists("EVTBIN.INC"))
             {
-                var grp = ArchiveFile<GraphicsFile>.FromFile(@".\inputs\evt.bin", log);
+                var grp = ArchiveFile<GraphicsFile>.FromFile(@"./inputs/evt.bin", log);
                 File.WriteAllText("EVTBIN.INC", grp.GetSourceInclude());
             }
             if (!File.Exists("GRPBIN.INC"))
             {
-                var grp = ArchiveFile<GraphicsFile>.FromFile(@".\inputs\grp.bin", log);
+                var grp = ArchiveFile<GraphicsFile>.FromFile(@"./inputs/grp.bin", log);
                 File.WriteAllText("GRPBIN.INC", grp.GetSourceInclude());
             }
         }
@@ -174,7 +173,7 @@ namespace HaruhiChokuretsuTests
         public async Task MapSourceTest(string mapFileName)
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             MapFile mapFile = dat.GetFileByName(mapFileName).CastTo<MapFile>();
 
             byte[] newBytes = await CompileFromSource(mapFile.GetSource(new()));
@@ -193,7 +192,7 @@ namespace HaruhiChokuretsuTests
         public async Task PuzzleSourceTest(string puzzleFileName)
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             PuzzleFile puzzleFile = dat.GetFileByName(puzzleFileName).CastTo<PuzzleFile>();
 
             byte[] newBytes = await CompileFromSource(puzzleFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
@@ -212,7 +211,7 @@ namespace HaruhiChokuretsuTests
         public async Task EvtSourceTest(int evtFileIndex)
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
+            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@"./inputs/evt.bin", _log);
             EventFile eventFile = evt.GetFileByIndex(evtFileIndex);
 
             byte[] newBytes = await CompileFromSource(eventFile.GetSource([]));
@@ -229,7 +228,7 @@ namespace HaruhiChokuretsuTests
         public async Task ChessSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
+            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@"./inputs/evt.bin", _log);
             EventFile chessFile = evt.GetFileByName("CHESSS");
             
             byte[] newBytes = await CompileFromSource(chessFile.GetSource([]));
@@ -246,7 +245,7 @@ namespace HaruhiChokuretsuTests
         public async Task QmapSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             QMapFile qmapFile = dat.GetFileByName("QMAPS").CastTo<QMapFile>();
 
             byte[] newBytes = await CompileFromSource(qmapFile.GetSource(new()));
@@ -263,7 +262,7 @@ namespace HaruhiChokuretsuTests
         public async Task MessInfoSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             MessageInfoFile messageInfoFile = dat.GetFileByName("MESSINFOS").CastTo<MessageInfoFile>();
 
             byte[] newBytes = await CompileFromSource(messageInfoFile.GetSource(new()));
@@ -280,7 +279,7 @@ namespace HaruhiChokuretsuTests
         public async Task PlaceSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             PlaceFile placeFile = dat.GetFileByName("PLACES").CastTo<PlaceFile>();
             
             byte[] newBytes = await CompileFromSource(placeFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
@@ -297,7 +296,7 @@ namespace HaruhiChokuretsuTests
         public async Task ChibiSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             ChibiFile chibiFile = dat.GetFileByName("CHIBIS").CastTo<ChibiFile>();
 
             byte[] newBytes = await CompileFromSource(chibiFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
@@ -314,7 +313,7 @@ namespace HaruhiChokuretsuTests
         public async Task ChrDataSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             CharacterDataFile characterDataFile = dat.GetFileByName("CHRDATAS").CastTo<CharacterDataFile>();
 
             byte[] newBytes = await CompileFromSource(characterDataFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
@@ -331,7 +330,7 @@ namespace HaruhiChokuretsuTests
         public async Task EventTableSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
+            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@"./inputs/evt.bin", _log);
             EventFile evtTblFile = evt.GetFileByName("EVTTBLS");
             evtTblFile.InitializeEventTableFile();
 
@@ -349,7 +348,7 @@ namespace HaruhiChokuretsuTests
         public async Task ExtraSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             ExtraFile extraFile = dat.GetFileByName("EXTRAS").CastTo<ExtraFile>();
 
             byte[] newBytes = await CompileFromSource(extraFile.GetSource(new()));
@@ -366,7 +365,7 @@ namespace HaruhiChokuretsuTests
         public async Task ItemSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             ItemFile itemFile = dat.GetFileByName("ITEMS").CastTo<ItemFile>();
 
             byte[] newBytes = await CompileFromSource(itemFile.GetSource(new() { { "GRPBIN", File.ReadAllLines("GRPBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
@@ -383,7 +382,7 @@ namespace HaruhiChokuretsuTests
         public async Task ScenarioSourceTest()
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@".\inputs\evt.bin", _log);
+            ArchiveFile<EventFile> evt = ArchiveFile<EventFile>.FromFile(@"./inputs/evt.bin", _log);
             EventFile scenarioFile = evt.GetFileByName("SCENARIOS").CastTo<EventFile>();
 
             byte[] newBytes = await CompileFromSource(scenarioFile.GetSource(new() { { "DATBIN", File.ReadAllLines("DATBIN.INC").Select(i => new IncludeEntry(i)).ToArray() }, { "EVTBIN", File.ReadAllLines("EVTBIN.INC").Select(i => new IncludeEntry(i)).ToArray() } }));
@@ -402,7 +401,7 @@ namespace HaruhiChokuretsuTests
         public async Task ChessSourceTest(string chessFileName)
         {
             // This file can be ripped directly from the ROM
-            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@".\inputs\dat.bin", _log);
+            ArchiveFile<DataFile> dat = ArchiveFile<DataFile>.FromFile(@"./inputs/dat.bin", _log);
             ChessFile chessFile = dat.GetFileByName(chessFileName).CastTo<ChessFile>();
             
             byte[] newBytes = await CompileFromSource(chessFile.GetSource([]));

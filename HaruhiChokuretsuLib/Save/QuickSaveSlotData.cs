@@ -12,7 +12,7 @@ namespace HaruhiChokuretsuLib.Save
     /// Creates a static save slot representation given binary data
     /// </remarks>
     /// <param name="data">The binary data of the save slot</param>
-    public class QuickSaveSlotData(IEnumerable<byte> data) : SaveSlotData(data)
+    public class QuickSaveSlotData(byte[] data) : SaveSlotData(data)
     {
         /// <summary>
         /// The first character sprite to display

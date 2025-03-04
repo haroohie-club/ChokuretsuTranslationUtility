@@ -38,13 +38,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         /// <param name="data">Binary SCENARIO.S data</param>
         /// <param name="lines">List of dialogue lines for string reference</param>
-        /// <param name="sections">List of event file sections</param>
-        public ScenarioStruct(IEnumerable<byte> data, List<DialogueLine> lines, List<EventFileSection> sections)
+        /// <param name="sectionDefs">List of event file sections</param>
+        public ScenarioStruct(byte[] data, List<DialogueLine> lines, List<EventFile.SectionDef> sectionDefs)
         {
-            int commandsOffset = IO.ReadInt(data, sections[0].Pointer);
-            int commandsCount = IO.ReadInt(data, sections[0].Pointer + 0x08);
-            int selectionsOffset = IO.ReadInt(data, sections[0].Pointer + 0x04);
-            int selectionsCount = IO.ReadInt(data, sections[0].Pointer + 0x0C);
+            int commandsOffset = IO.ReadInt(data, sectionDefs[0].Pointer);
+            int commandsCount = IO.ReadInt(data, sectionDefs[0].Pointer + 0x08);
+            int selectionsOffset = IO.ReadInt(data, sectionDefs[0].Pointer + 0x04);
+            int selectionsCount = IO.ReadInt(data, sectionDefs[0].Pointer + 0x0C);
 
             for (int i = 0; i <= commandsCount; i++)
             {
@@ -63,7 +63,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
             for (int i = 0; i < 6; i++)
             {
-                KyonlessTopicIds.Add(IO.ReadShort(data, sections[0].Pointer + 0x10 + i * 2));
+                KyonlessTopicIds.Add(IO.ReadShort(data, sectionDefs[0].Pointer + 0x10 + i * 2));
             }
         }
 
@@ -324,8 +324,8 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             string parameterString = _verbIndex switch
             {
-                2 => $"\"{evt.GetFileByIndex(Parameter).Name[0..^1]}\" ({Parameter})", // LOAD_SCENE
-                3 => $"\"{dat.GetFileByIndex(Parameter).Name[0..^1]}\"", // PUZZLE_PHASE
+                2 => $"\"{evt.GetFileByIndex(Parameter).Name[..^1]}\" ({Parameter})", // LOAD_SCENE
+                3 => $"\"{dat.GetFileByIndex(Parameter).Name[..^1]}\"", // PUZZLE_PHASE
                 9 => $"\"MOVIE{Parameter:D2}\"", // PLAY_VIDEO
                 _ => Parameter.ToString(),
             };
@@ -366,7 +366,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <param name="activityOffsets">The oofsets of each route selection in SCENARIO.S</param>
         /// <param name="lines">Dialogue lines for string reference</param>
         /// <param name="data">SCENARIO.S binary data</param>
-        public ScenarioSelection(int[] activityOffsets, List<DialogueLine> lines, IEnumerable<byte> data)
+        public ScenarioSelection(int[] activityOffsets, List<DialogueLine> lines, byte[] data)
         {
             for (int i = 0; i < activityOffsets.Length; i++)
             {
@@ -461,7 +461,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <param name="dataStartIndex">Start index of data</param>
         /// <param name="lines">Dialogue lines for string references</param>
         /// <param name="data">SCENARIO.S binary data</param>
-        public ScenarioActivity(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
+        public ScenarioActivity(int dataStartIndex, List<DialogueLine> lines, byte[] data)
         {
             TitleIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex)));
             _futureDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x04)));
@@ -595,7 +595,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <param name="dataStartIndex">The start index of the route within the data</param>
         /// <param name="lines">Dialogue lines for string reference</param>
         /// <param name="data">SCENARIO.S binary data</param>
-        public ScenarioRoute(int dataStartIndex, List<DialogueLine> lines, IEnumerable<byte> data)
+        public ScenarioRoute(int dataStartIndex, List<DialogueLine> lines, byte[] data)
         {
             CharacterMask charactersInvolved = (CharacterMask)IO.ReadInt(data, dataStartIndex);
 

@@ -84,12 +84,12 @@ namespace HaruhiChokuretsuLib.Save
         /// Abstract constructor of a save slot section
         /// </summary>
         /// <param name="data">Binary data of the save slot section</param>
-        public SaveSlotData(IEnumerable<byte> data)
+        public SaveSlotData(byte[] data)
         {
             Flags = data.Skip(0x08).Take(0x280).ToArray();
             if (data.ElementAt(0x288) != 0)
             {
-                SaveTime = new(data.ElementAt(0x288) + 2000, data.ElementAt(0x289), data.ElementAt(0x28A), data.ElementAt(0x28B), data.ElementAt(0x28C), data.ElementAt(0x28D), TimeSpan.Zero);
+                SaveTime = new(data[0x288] + 2000, data[0x289], data[0x28A], data[0x28B], data[0x28C], data[0x28D], TimeSpan.Zero);
             }
             else
             {

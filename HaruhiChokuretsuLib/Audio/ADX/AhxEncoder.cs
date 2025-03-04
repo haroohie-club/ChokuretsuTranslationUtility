@@ -363,9 +363,9 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             }
         }
 
-        private static readonly long[] ENWINDOW = new long[]
-        {
-             0x000000,-0x000080,-0x000080,-0x000080,-0x000080,-0x000080,-0x000080,-0x000100,-0x000100,-0x000100,-0x000100,-0x000180,-0x000180,-0x000200,-0x000200,-0x000280,
+        private static readonly long[] ENWINDOW =
+        [
+            0x000000,-0x000080,-0x000080,-0x000080,-0x000080,-0x000080,-0x000080,-0x000100,-0x000100,-0x000100,-0x000100,-0x000180,-0x000180,-0x000200,-0x000200,-0x000280,
             -0x000280,-0x000300,-0x000380,-0x000380,-0x000400,-0x000480,-0x000500,-0x000580,-0x000680,-0x000700,-0x000800,-0x000880,-0x000980,-0x000A80,-0x000C00,-0x000D00,
             -0x000E80,-0x000F80,-0x001180,-0x001300,-0x001480,-0x001680,-0x001880,-0x001A80,-0x001D00,-0x001F80,-0x002200,-0x002480,-0x002780,-0x002A80,-0x002D80,-0x003080,
             -0x003400,-0x003780,-0x003A80,-0x003E80,-0x004200,-0x004580,-0x004980,-0x004D00,-0x005080,-0x005480,-0x005800,-0x005B80,-0x005F00,-0x006200,-0x006500,-0x006800,
@@ -397,10 +397,10 @@ namespace HaruhiChokuretsuLib.Audio.ADX
              0x003400, 0x003080, 0x002D80, 0x002A80, 0x002780, 0x002480, 0x002200, 0x001F80, 0x001D00, 0x001A80, 0x001880, 0x001680, 0x001480, 0x001300, 0x001180, 0x000F80,
              0x000E80, 0x000D00, 0x000C00, 0x000A80, 0x000980, 0x000880, 0x000800, 0x000700, 0x000680, 0x000580, 0x000500, 0x000480, 0x000400, 0x000380, 0x000380, 0x000300,
              0x000280, 0x000280, 0x000200, 0x000200, 0x000180, 0x000180, 0x000100, 0x000100, 0x000100, 0x000100, 0x000080, 0x000080, 0x000080, 0x000080, 0x000080, 0x000080,
-        };
+        ];
 
-        private static readonly long[] SF_TABLE = new long[]
-        {
+        private static readonly long[] SF_TABLE =
+        [
             0x20000000,
             0x1965fea5,
             0x1428a2fa,
@@ -464,10 +464,10 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             0x00000200,
             0x00000196,
             0x00000143,
-        };
+        ];
 
-        private static readonly long[] ISF_TABLE = new long[]
-        {
+        private static readonly long[] ISF_TABLE =
+        [
             0x00000008000000,
             0x0000000A14517C,
             0x0000000CB2FF52,
@@ -531,7 +531,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             0x00800000000000,
             0x00A16B312EA8FC,
             0x00CAE5D85F1BBD,
-        };
+        ];
 
         private struct GroupSpec
         {
@@ -547,8 +547,8 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             public GroupSpec? GroupSpec { get; set; }
         }
 
-        private static readonly QuantSpec[] QUANT_TABLE = new QuantSpec[]
-        {
+        private static readonly QuantSpec[] QUANT_TABLE =
+        [
             new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpec = null, },
             new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpec = null, },
             new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpec = null, },
@@ -579,6 +579,6 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
             new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
             new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        };
+        ];
     }
 }

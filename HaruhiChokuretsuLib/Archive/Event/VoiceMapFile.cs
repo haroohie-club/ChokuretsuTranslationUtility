@@ -42,26 +42,22 @@ namespace HaruhiChokuretsuLib.Archive.Event
             int numFrontPointers = BitConverter.ToInt32(decompressedData.Take(4).ToArray());
             for (int i = 0; i < numFrontPointers; i++)
             {
-                EventFileSections.Add(new()
-                {
-                    Pointer = BitConverter.ToInt32(decompressedData.Skip(0x0C + 0x08 * i).Take(4).ToArray()),
-                    ItemCount = BitConverter.ToInt32(decompressedData.Skip(0x10 + 0x08 * i).Take(4).ToArray()),
-                });
+                SectionDefs.Add(new(IO.ReadInt(decompressedData, 0x0C + 0x08 * i), IO.ReadInt(decompressedData, 0x10 + 0x08 * i)));
             }
             Settings = new(new byte[0x128]);
-            VoiceMapEntriesSectionOffset = EventFileSections[0].Pointer;
-            Settings.DialogueSectionPointer = EventFileSections[1].Pointer;
-            DialogueLinesPointer = Settings.DialogueSectionPointer + (EventFileSections.Count - 1) * 12;
+            VoiceMapEntriesSectionOffset = SectionDefs[0].Pointer;
+            Settings.DialogueSectionPointer = SectionDefs[1].Pointer;
+            DialogueLinesPointer = Settings.DialogueSectionPointer + (SectionDefs.Count - 1) * 12;
             Settings.NumDialogueEntries = numFrontPointers - 2;
 
-            for (int i = 2; i < EventFileSections.Count; i++)
+            for (int i = 2; i < SectionDefs.Count; i++)
             {
-                DramatisPersonae.Add(EventFileSections[i].Pointer, Encoding.ASCII.GetString(Data.Skip(EventFileSections[i].Pointer).TakeWhile(b => b != 0).ToArray()));
+                DramatisPersonae.Add(SectionDefs[i].Pointer, Encoding.ASCII.GetString(Data.Skip(SectionDefs[i].Pointer).TakeWhile(b => b != 0).ToArray()));
             }
 
-            for (int i = 0; i < EventFileSections.Count - 2; i++)
+            for (int i = 0; i < SectionDefs.Count - 2; i++)
             {
-                VoiceMapEntries.Add(new(Data.Skip(VoiceMapEntriesSectionOffset + i * VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH).Take(VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH), Log));
+                VoiceMapEntries.Add(new(decompressedData[(VoiceMapEntriesSectionOffset + i * VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH)..(VoiceMapEntriesSectionOffset + (i + 1) * VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH)], Log));
                 VoiceMapEntries[^1].VoiceFileName = Encoding.ASCII.GetString(Data.Skip(VoiceMapEntries.Last().VoiceFileNamePointer).TakeWhile(b => b != 0).ToArray());
                 VoiceMapEntries[^1].SetSubtitle(Encoding.GetEncoding("Shift-JIS").GetString(Data.Skip(VoiceMapEntries.Last().SubtitlePointer).TakeWhile(b => b != 0).ToArray()), recenter: false);
             }
@@ -150,16 +146,16 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public override void NewFile(string filename, ILogger log)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            Data = new();
+            Data = [];
             string[] csvData = File.ReadAllLines(filename);
             Name = "VOICEMAPS";
             Log = log;
 
-            List<int> filenamePointers = new();
-            List<byte> filenameSection = new();
-            List<string> filenames = new();
-            List<int> dialogueLinePointers = new();
-            List<byte> dialogueLinesSection = new();
+            List<int> filenamePointers = [];
+            List<byte> filenameSection = [];
+            List<string> filenames = [];
+            List<int> dialogueLinePointers = [];
+            List<byte> dialogueLinesSection = [];
             foreach (string line in csvData)
             {
                 string[] fields = line.Split(',');
@@ -198,7 +194,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             Data.AddRange(filenamePointers.SelectMany(p =>
             {
                 List<byte> s = new(BitConverter.GetBytes(p + filenameSectionStart));
-                s.AddRange(new byte[] { 1, 0, 0, 0 });
+                s.AddRange([1, 0, 0, 0]);
                 return s;
             }));
             // And then add them to dramatis personae
@@ -473,7 +469,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
             /// </summary>
             /// <param name="data">VOICEMAP.S binary data</param>
             /// <param name="log">ILogger instance for error logging</param>
-            public VoiceMapEntry(IEnumerable<byte> data, ILogger log)
+            public VoiceMapEntry(byte[] data, ILogger log)
             {
                 if (data.Count() != VOICE_MAP_ENTRY_LENGTH)
                 {

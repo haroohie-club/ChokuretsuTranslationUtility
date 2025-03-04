@@ -42,7 +42,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
         /// <summary>
         /// Wave archives.
         /// </summary>
-        public WaveArchiveInfo[] WaveArchives = { null, null, null, null };
+        public WaveArchiveInfo[] WaveArchives = [null, null, null, null];
 
         /// <summary>
         /// Reading file Id.
@@ -123,13 +123,16 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
         public void WriteTextFormat(string path, string name)
         {
             //Return.
-            List<string> ret = new List<string>();
+            List<string> ret =
+            [
+                "@PATH \"../WaveArchives\"\n",
+                //Instrument list.
+                "@INSTLIST",
+            ];
 
             //Path.
-            ret.Add("@PATH \"../WaveArchives\"\n");
 
             //Instrument list.
-            ret.Add("@INSTLIST");
             int lastGroup = -1;
             int keyNum = 0;
             int drumNum = 0;
@@ -155,7 +158,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
 
             //Drum sets.
             drumNum = 0;
-            if (File.Instruments.Where(x => x.Type() == InstrumentType.DrumSet).Any())
+            if (File.Instruments.Any(x => x.Type() == InstrumentType.DrumSet))
             {
                 ret.Add("\n@DRUM_SET");
             }
@@ -166,10 +169,10 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
                 Notes lastNote = 0;
                 foreach (var n in e.NoteInfo)
                 {
-                    Notes note = (Notes)(e as DrumSetInstrument).Min;
+                    Notes note = (Notes)((DrumSetInstrument)e).Min;
                     if (regNum != 0)
                     {
-                        note = (Notes)(e.NoteInfo[regNum - 1].Key + 1);
+                        note = e.NoteInfo[regNum - 1].Key + 1;
                     }
                     lastNote = note;
                     ret.Add(WriteNoteInfo(n, note.ToString()));
@@ -184,7 +187,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
 
             //Key splits.
             keyNum = 0;
-            if (File.Instruments.Where(x => x.Type() == InstrumentType.KeySplit).Any())
+            if (File.Instruments.Any(x => x.Type() == InstrumentType.KeySplit))
             {
                 ret.Add("\n@KEY_SPLIT");
             }

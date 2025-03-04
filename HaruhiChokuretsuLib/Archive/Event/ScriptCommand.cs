@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using HaruhiChokuretsuLib.Util;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
     /// <summary>
-    /// Represents a command in an script event file
+    /// Represents a command in a script event file
     /// This represents the actual abstract command; for an invocation use ScriptCommandInvocation
     /// </summary>
     public class ScriptCommand
@@ -93,25 +93,25 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         /// <param name="data">The binary data for the script command invocation</param>
         /// <param name="commandsAvailable">The list of available commands</param>
-        public ScriptCommandInvocation(IEnumerable<byte> data, List<ScriptCommand> commandsAvailable)
+        public ScriptCommandInvocation(byte[] data, List<ScriptCommand> commandsAvailable)
         {
-            Command = commandsAvailable.FirstOrDefault(c => c.CommandId == BitConverter.ToInt32(data.Take(4).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x04).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x06).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x08).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x0A).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x0C).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x0E).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x10).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x12).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x14).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x16).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x18).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x1A).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x1C).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x1E).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x20).Take(2).ToArray()));
-            Parameters.Add(BitConverter.ToInt16(data.Skip(0x22).Take(2).ToArray()));
+            Command = commandsAvailable.FirstOrDefault(c => c.CommandId == IO.ReadInt(data, 0));
+            Parameters.Add(IO.ReadShort(data, 0x04));
+            Parameters.Add(IO.ReadShort(data, 0x06));
+            Parameters.Add(IO.ReadShort(data, 0x08));
+            Parameters.Add(IO.ReadShort(data, 0x0A));
+            Parameters.Add(IO.ReadShort(data, 0x0C));
+            Parameters.Add(IO.ReadShort(data, 0x0E));
+            Parameters.Add(IO.ReadShort(data, 0x10));
+            Parameters.Add(IO.ReadShort(data, 0x12));
+            Parameters.Add(IO.ReadShort(data, 0x14));
+            Parameters.Add(IO.ReadShort(data, 0x16));
+            Parameters.Add(IO.ReadShort(data, 0x18));
+            Parameters.Add(IO.ReadShort(data, 0x1A));
+            Parameters.Add(IO.ReadShort(data, 0x1C));
+            Parameters.Add(IO.ReadShort(data, 0x1E));
+            Parameters.Add(IO.ReadShort(data, 0x20));
+            Parameters.Add(IO.ReadShort(data, 0x22));
         }
     }
 }

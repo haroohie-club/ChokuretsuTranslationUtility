@@ -11,7 +11,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// <summary>
         /// In layout files, the list of layout layers
         /// </summary>
-        public List<LayoutEntry> LayoutEntries { get; set; } = new();
+        public List<LayoutEntry> LayoutEntries { get; set; } = [];
 
         /// <summary>
         /// Renders a preview of a layout
@@ -158,7 +158,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// </summary>
         /// <param name="data">Binary data representing layout entry</param>
         /// <exception cref="ArgumentException"></exception>
-        public LayoutEntry(IEnumerable<byte> data)
+        public LayoutEntry(byte[] data)
         {
             if (data.Count() != 0x1C)
             {

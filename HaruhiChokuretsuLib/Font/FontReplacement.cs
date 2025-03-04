@@ -76,13 +76,19 @@ namespace HaruhiChokuretsuLib.Font
         /// <returns></returns>
         public FontReplacement GetReplacementCharacter(char originalCharacter) => _fontReplacements.FirstOrDefault(f => f.OriginalCharacter == originalCharacter);
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Adds a font replacement to the dictionary
+        /// </summary>
+        /// <param name="value"></param>
         public void Add(FontReplacement value)
         {
             _fontReplacements.Add(value);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Adds a range of font replacements to the dictionary
+        /// </summary>
+        /// <param name="values"></param>
         public void AddRange(IEnumerable<FontReplacement> values)
         {
             _fontReplacements.AddRange(values);

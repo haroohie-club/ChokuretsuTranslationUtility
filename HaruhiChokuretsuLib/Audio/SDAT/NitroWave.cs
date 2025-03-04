@@ -20,7 +20,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         /// Supported encodings.
         /// </summary>
         /// <returns>The supported encodings.</returns>
-        public override Type[] SupportedEncodings() => new Type[] { typeof(ImaAdpcm), typeof(PCM16), typeof(PCM8Signed) };
+        public override Type[] SupportedEncodings() => [typeof(ImaAdpcm), typeof(PCM16), typeof(PCM8Signed)];
 
         /// <summary>
         /// Name.
@@ -32,7 +32,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         /// Extensions.
         /// </summary>
         /// <returns>The extensions.</returns>
-        public override string[] Extensions() => new string[] { "SWAV" };
+        public override string[] Extensions() => ["SWAV"];
 
         /// <summary>
         /// Description.
@@ -151,7 +151,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
             else
             {
-                throw new Exception("Invalid channel format!");
+                throw new("Invalid channel format!");
             }
 
             //Data.

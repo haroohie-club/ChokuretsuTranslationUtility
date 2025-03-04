@@ -71,7 +71,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         /// </summary>
         /// <param name="data">File data</param>
         /// <param name="log">ILogger instance for logging</param>
-        public AdxHeader(IEnumerable<byte> data, ILogger log)
+        public AdxHeader(byte[] data, ILogger log)
         {
             if (BigEndianIO.ReadUShort(data, 0) != ADX_MAGIC)
             {
@@ -90,14 +90,12 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             Version = data.ElementAt(0x12);
             Flags = data.ElementAt(0x13);
 
-            if (Version == 3 && dataOffset >= 40)
+            LoopInfo = Version switch
             {
-                LoopInfo = new(data.Skip(0x14).Take(0x18));
-            }
-            else if (Version == 4 && dataOffset >= 52)
-            {
-                LoopInfo = new(data.Skip(0x20).Take(0x18));
-            }
+                3 when dataOffset >= 40 => new(data[0x14..0x2C]),
+                4 when dataOffset >= 52 => new(data[0x20..0x38]),
+                _ => LoopInfo
+            };
 
             if (Encoding.ASCII.GetString(data.Skip(dataOffset - 2).Take(6).ToArray()) != "(c)CRI")
             {
@@ -140,7 +138,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
                 bytes.AddRange(LoopInfo.GetBytes());
             }
             bytes.AddRange(new byte[headerSize - bytes.Count - 0x06]);
-            bytes.AddRange(Encoding.ASCII.GetBytes("(c)CRI"));
+            bytes.AddRange("(c)CRI"u8.ToArray());
 
             return bytes;
         }
@@ -149,7 +147,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
     /// <summary>
     /// Loop info struct for ADX
     /// </summary>
-    public struct AdxVersion3LoopInfo(IEnumerable<byte> bytes)
+    public struct AdxVersion3LoopInfo(byte[] bytes)
     {
         /// <summary>
         /// Alignment samples

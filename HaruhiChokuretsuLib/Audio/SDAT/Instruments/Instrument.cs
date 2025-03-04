@@ -21,7 +21,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.Instruments
         /// <summary>
         /// Note info.
         /// </summary>
-        public List<NoteInfo> NoteInfo = new List<NoteInfo>();
+        public List<NoteInfo> NoteInfo = [];
 
         /// <summary>
         /// Program number.

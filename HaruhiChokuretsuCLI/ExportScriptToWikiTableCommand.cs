@@ -145,7 +145,7 @@ namespace HaruhiChokuretsuCLI
             StringBuilder sb = new();
             sb.AppendLine("{| class=\"mw-collapsible mw-collapsed wikitable\" style=\"text-align: center; margin-left: auto; margin-right: auto\"");
             sb.AppendLine("|-");
-            sb.AppendLine($"! colspan=4 | {jaScript.Name[0..^1]}");
+            sb.AppendLine($"! colspan=4 | {jaScript.Name[..^1]}");
             sb.AppendLine("|-");
             sb.AppendLine("! Speaker !! Original Japanese !! English !! style=\"width: 200pt;\" | Notes");
             sb.AppendLine("|-");

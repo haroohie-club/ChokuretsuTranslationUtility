@@ -25,7 +25,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         /// ADX header data
         /// </summary>
         public AdxHeader Header { get; set; }
-        internal List<byte> Data { get; set; }
+        internal byte[] Data { get; set; }
         internal uint VOffset { get; set; }
         internal long[] U { get; set; } = new long[512];
         internal long[] V { get; set; } = new long[1024];
@@ -49,11 +49,11 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         /// </summary>
         /// <param name="data">The binary data of the AHX file</param>
         /// <param name="log">ILogger instance for logging</param>
-        public AhxDecoder(IEnumerable<byte> data, ILogger log)
+        public AhxDecoder(byte[] data, ILogger log)
         {
             _log = log;
             Header = new(data, log);
-            Data = data.ToList();
+            Data = data;
             _currentOffset = Header.HeaderSize;
 
             _n = new long[64][];
@@ -128,7 +128,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             if (Data.Skip(_currentOffset).Take(10).All(b => b == 0))
             {
                 _currentOffset += 10;
-                return new short[1152].Select(s => new Sample(new short[] { s })).ToArray();
+                return new short[1152].Select(s => new Sample([s])).ToArray();
             }
 
             uint[] allocations = new uint[30];
@@ -270,7 +270,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
                                     sum = short.MinValue;
                                 }
 
-                                pcm[part * 384 + gr * 96 + index * 32 + sb] = new Sample(new short[] { (short)sum });
+                                pcm[part * 384 + gr * 96 + index * 32 + sb] = new([(short)sum]);
                             }
                         }
                     }
@@ -311,14 +311,14 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         }
 
         private const int FRAC_BITS = 28;
-        private static readonly int[] _bitAllocTable = new int[]
-        {
+        private static readonly int[] _bitAllocTable =
+        [
             4, 4, 4, 4,
             3, 3, 3, 3, 3, 3, 3,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
-        };
-        private static readonly QuantizeSpec[] _quantTableLow = new QuantizeSpec[16]
-        {
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        ];
+        private static readonly QuantizeSpec[] _quantTableLow =
+        [
             new() { NLevels = 3, Group = 2, Bits = 5, C = 0x15555555, D = 0x08000000 },
             new() { NLevels = 5, Group = 4, Bits = 7, C = 0x1999999A, D = 0x08000000 },
             new() { NLevels = 7, Group = 0, Bits = 3, C = 0x12492492, D = 0x04000000 },
@@ -335,9 +335,9 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             new() { NLevels = 8191, Group = 0, Bits = 13, C = 0x10008004, D = 0x00010000 },
             new() { NLevels = 16383, Group = 0, Bits = 14, C = 0x10004001, D = 0x00008000 },
             new() { NLevels = 32767, Group = 0, Bits = 15, C = 0x10002000, D = 0x00004000 },
-        };
-        private static readonly QuantizeSpec[] _quantTableHigh = new QuantizeSpec[16]
-        {
+        ];
+        private static readonly QuantizeSpec[] _quantTableHigh =
+        [
             new() { NLevels = 3, Group = 2, Bits = 5, C = 0x15555555, D = 0x08000000 },
             new() { NLevels = 5, Group = 4, Bits = 7, C = 0x1999999A, D = 0x08000000 },
             new() { NLevels = 9, Group = 4, Bits = 10, C = 0x1C71C71C, D = 0x08000000 },
@@ -354,9 +354,9 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             new() { NLevels = 16383, Group = 0, Bits = 14, C = 0x10004001, D = 0x00008000 },
             new() { NLevels = 32767, Group = 0, Bits = 15, C = 0x10002000, D = 0x00004000 },
             new() { NLevels = 65535, Group = 0, Bits = 16, C = 0x10001000, D = 0x00002000 },
-        };
-        private static readonly long[] _sfTable = new long[64]
-        {
+        ];
+        private static readonly long[] _sfTable =
+        [
             0x20000000,
             0x1965fea5,
             0x1428a2fa,
@@ -421,11 +421,11 @@ namespace HaruhiChokuretsuLib.Audio.ADX
             0x00000196,
             0x00000143,
             0,
-        };
+        ];
         private readonly long[][] _n;
-        private static readonly long[] _d = new long[512]
-        {
-             0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,-0x00001000,
+        private static readonly long[] _d =
+        [
+            0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,-0x00001000,
             -0x00001000,-0x00001000,-0x00001000,-0x00002000,-0x00002000,-0x00003000,-0x00003000,-0x00004000,
             -0x00004000,-0x00005000,-0x00006000,-0x00006000,-0x00007000,-0x00008000,-0x00009000,-0x0000A000,
             -0x0000C000,-0x0000D000,-0x0000F000,-0x00010000,-0x00012000,-0x00014000,-0x00017000,-0x00019000,
@@ -489,6 +489,6 @@ namespace HaruhiChokuretsuLib.Audio.ADX
              0x0000D000, 0x0000B000, 0x0000A000, 0x00009000, 0x00008000, 0x00007000, 0x00007000, 0x00006000,
              0x00005000, 0x00005000, 0x00004000, 0x00004000, 0x00003000, 0x00003000, 0x00002000, 0x00002000,
              0x00002000, 0x00002000, 0x00001000, 0x00001000, 0x00001000, 0x00001000, 0x00001000, 0x00001000,
-        };
+        ];
     }
 }

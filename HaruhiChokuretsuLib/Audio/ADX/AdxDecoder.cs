@@ -14,7 +14,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         /// ADX header data
         /// </summary>
         public AdxHeader Header { get; set; }
-        internal List<byte> Data { get; set; }
+        internal byte[] Data { get; set; }
         internal List<Sample> Samples { get; set; } = [];
         internal Sample PreviousSample { get; set; }
         internal Sample PrevPrevSample { get; set; }
@@ -52,13 +52,13 @@ namespace HaruhiChokuretsuLib.Audio.ADX
         /// </summary>
         /// <param name="data">The ADX audio file to decode</param>
         /// <param name="log">ILogger instance for logging</param>
-        public AdxDecoder(IEnumerable<byte> data, ILogger log)
+        public AdxDecoder(byte[] data, ILogger log)
         {
             Header = new(data, log);
             DoLoop = Header.LoopInfo.EnabledInt == 1;
-            Data = data.ToList();
+            Data = data;
             (Coeff1, Coeff2) = AdxUtil.GenerateCoefficients(Header.HighpassFrequency, Header.SampleRate);
-            Samples = new();
+            Samples = [];
             PreviousSample = new(new short[Header.ChannelCount]);
             PrevPrevSample = new(new short[Header.ChannelCount]);
 
@@ -94,7 +94,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
                 {
                     if (samples[sampleIndex] is null)
                     {
-                        samples[sampleIndex] = new();
+                        samples[sampleIndex] = [];
                     }
 
                     int predictionFixedPoint = Coeff1 * PreviousSample[channel] + Coeff2 * PrevPrevSample[channel];

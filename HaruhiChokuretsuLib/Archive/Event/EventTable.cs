@@ -27,7 +27,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// Default constructor
         /// </summary>
         /// <param name="data">Binary data representation of EVTTBL.S</param>
-        public EventTable(List<byte> data)
+        public EventTable(byte[] data)
         {
             int numEntries = IO.ReadInt(data, 0x10);
             for (int idx = 0x14; idx < 0x14 + 0x0C * numEntries; idx += 0x0C)
@@ -127,7 +127,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         /// <param name="data">The data for the entire event table file</param>
         /// <param name="idx">The offset into the event table file where this struct begins</param>
-        public EventTableEntry(IEnumerable<byte> data, int idx)
+        public EventTableEntry(byte[] data, int idx)
         {
             EventFileName = IO.ReadInt(data, idx) == 0 ? string.Empty : IO.ReadAsciiString(data, IO.ReadInt(data, idx));
             EventFileIndex = IO.ReadShort(data, idx + 0x04);

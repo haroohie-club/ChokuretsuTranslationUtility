@@ -61,7 +61,7 @@ namespace HaruhiChokuretsuCLI
                     animationFrame.Height += animationFrame.Height % 2 == 0 ? 0 : 1;
                 }
 
-                List<SKBitmap> frames = new();
+                List<SKBitmap> frames = [];
                 for (int i = 0; i < animationFrames.Count; i++)
                 {
                     SKBitmap frame = animationFrames[i].GetImage();
@@ -84,7 +84,7 @@ namespace HaruhiChokuretsuCLI
                 }
                 gif.Frames.RemoveFrame(0);
 
-                gif.SaveAsGif(Path.Combine(_outputFolder, $"{texture.Name[0..^3]}.gif"));
+                gif.SaveAsGif(Path.Combine(_outputFolder, $"{texture.Name[..^3]}.gif"));
             }
 
             return 0;

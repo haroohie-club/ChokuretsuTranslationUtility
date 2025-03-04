@@ -55,7 +55,7 @@ namespace HaruhiChokuretsuCLI
             if (_listMaps)
             {
                 CommandSet.Out.WriteLine("Available maps:");
-                CommandSet.Out.WriteLine(string.Join('\n', mapFileNames.Select(f => f[0..^2])));
+                CommandSet.Out.WriteLine(string.Join('\n', mapFileNames.Select(f => f[..^2])));
                 return 0;
             }
 
@@ -70,7 +70,7 @@ namespace HaruhiChokuretsuCLI
                 CommandSet.Out.WriteLine("ERROR: Maps must be provided, either by name, index, or by indicating all should be exported through -a or --all-maps");
             }
 
-            if (_mapNames is not null && _mapNames.Any(m => !mapFileNames.Select(f => f[0..^2]).Contains(m)))
+            if (_mapNames is not null && _mapNames.Any(m => !mapFileNames.Select(f => f[..^2]).Contains(m)))
             {
                 foreach (string name in _mapNames)
                 {
@@ -95,7 +95,7 @@ namespace HaruhiChokuretsuCLI
                 }
             }
 
-            List<string> mapsToExport = new();
+            List<string> mapsToExport = [];
             if (_allMaps)
             {
                 mapsToExport.AddRange(mapFileNames);
@@ -126,7 +126,7 @@ namespace HaruhiChokuretsuCLI
                 {
                     maxLayoutIndex = _maxLayoutIndices[m];
                 }
-                CommandSet.Out.WriteLine($"Exporting map for {mapName[0..^1]}...");
+                CommandSet.Out.WriteLine($"Exporting map for {mapName[..^1]}...");
                 MapFile map = dat.GetFileByName(mapName).CastTo<MapFile>();
 
                 if (_animated && (map.Settings.PaletteAnimationFileIndex > 0 || map.Settings.ColorAnimationFileIndex > 0))
@@ -157,7 +157,7 @@ namespace HaruhiChokuretsuCLI
                     List<GraphicsFile> graphicFrames = animation.GetAnimationFrames(animatedTexture);
                     Console.WriteLine($"Animated map will have {graphicFrames.Count} frames.");
 
-                    List<SKBitmap> frames = new();
+                    List<SKBitmap> frames = [];
                     Dictionary<uint, SKBitmap> frameMapping = new();
                     for (int i = 0; i < graphicFrames.Count; i++)
                     {
@@ -184,23 +184,23 @@ namespace HaruhiChokuretsuCLI
                     }
                     gif.Frames.RemoveFrame(0);
 
-                    gif.SaveAsGif(Path.Combine(_outputFolder, $"{mapName[0..^1]}.gif"));
+                    gif.SaveAsGif(Path.Combine(_outputFolder, $"{mapName[..^1]}.gif"));
                 }
                 else
                 {
                     (SKBitmap mapBitmap, SKBitmap bgBitmap) = map.GetMapImages(grp, maxLayoutIndex: maxLayoutIndex);
 
-                    using FileStream mapStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}.png"), FileMode.Create);
+                    using FileStream mapStream = new(Path.Combine(_outputFolder, $"{mapName[..^1]}.png"), FileMode.Create);
                     mapBitmap.Encode(mapStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
 
                     if (bgBitmap is not null)
                     {
-                        using FileStream bgStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}-BG.png"), FileMode.Create);
+                        using FileStream bgStream = new(Path.Combine(_outputFolder, $"{mapName[..^1]}-BG.png"), FileMode.Create);
                         bgBitmap.Encode(bgStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
                     }
                     else
                     {
-                        using FileStream bgStream = new(Path.Combine(_outputFolder, $"{mapName[0..^1]}-BG.png"), FileMode.Create);
+                        using FileStream bgStream = new(Path.Combine(_outputFolder, $"{mapName[..^1]}-BG.png"), FileMode.Create);
                         map.GetBackgroundGradient().Encode(bgStream, SKEncodedImageFormat.Png, GraphicsFile.PNG_QUALITY);
                     }
                 }

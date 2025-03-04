@@ -43,12 +43,12 @@ namespace HaruhiChokuretsuLib.Save
         /// Creates the object based on the binary data section
         /// </summary>
         /// <param name="data"></param>
-        public CommonSaveData(IEnumerable<byte> data)
+        public CommonSaveData(byte[] data)
         {
             Unknown08 = IO.ReadInt(data, 0x08);
             NumSaves = IO.ReadInt(data, 0x0C);
             Flags = data.Skip(0x10).Take(0x280).ToArray();
-            Options = new(data.Skip(0x290).Take(0x18));
+            Options = new(data[0x290..0x2A8]);
             MikuruPowerStatus = new([.. data.Skip(0x2A8).Take(0x14)]);
             NagatoPowerStatus = new([.. data.Skip(0x2BC).Take(0x14)]);
             KoizumiPowerStatus = new([.. data.Skip(0x2D0).Take(0x14)]);
@@ -83,7 +83,7 @@ namespace HaruhiChokuretsuLib.Save
     /// Creates the object based on the binary data section
     /// </remarks>
     /// <param name="data">The section of data representing the save options</param>
-    public class SaveOptions(IEnumerable<byte> data)
+    public class SaveOptions(byte[] data)
     {
         /// <summary>
         /// Set of flags for the investigation and puzzle phase options

@@ -29,7 +29,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
         /// <summary>
         /// Entries.
         /// </summary>
-        public List<GroupEntry> Entries = new List<GroupEntry>();
+        public List<GroupEntry> Entries = [];
 
         /// <summary>
         /// Read the info.
@@ -37,7 +37,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
         /// <param name="r">The reader.</param>
         public void Read(FileReader r)
         {
-            Entries = new List<GroupEntry>();
+            Entries = [];
             uint numEntries = r.ReadUInt32();
             for (uint i = 0; i < numEntries; i++)
             {

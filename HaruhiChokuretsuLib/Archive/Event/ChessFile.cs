@@ -49,7 +49,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         /// <param name="data">Binary representation of CHESS.S data</param>
         /// <exception cref="DataException">Throws if not provided valid CHESS.S data</exception>
-        public ChessFileDescriptor(IEnumerable<byte> data)
+        public ChessFileDescriptor(byte[] data)
         {
             if (IO.ReadInt(data, 0x00) != 7)
             {
@@ -184,7 +184,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         /// <param name="data">Binary representation of CHESS.S data</param>
         /// <param name="offset">The offset at which this chess character definition starts</param>
-        public ChessCharacterDefinition(IEnumerable<byte> data, int offset)
+        public ChessCharacterDefinition(byte[] data, int offset)
         {
             Character = (Speaker)IO.ReadShort(data, offset + 0x00);
             InitiallyLocked = data.ElementAt(offset + 0x02) == 0x01;
@@ -263,7 +263,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// </summary>
         /// <param name="data">Binary representation of CHESS.S data</param>
         /// <param name="offset">The offset at which this puzzle is defined in the file</param>
-        public ChessPuzzleDefinition(IEnumerable<byte> data, int offset)
+        public ChessPuzzleDefinition(byte[] data, int offset)
         {
             CompletionFlag = IO.ReadShort(data, offset + 0x00);
             EventFileIndex = IO.ReadShort(data, offset + 0x02);

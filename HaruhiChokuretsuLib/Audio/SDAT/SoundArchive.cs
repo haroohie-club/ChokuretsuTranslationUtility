@@ -64,42 +64,42 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         /// <summary>
         /// Sequences.
         /// </summary>
-        public List<SequenceInfo> Sequences = new List<SequenceInfo>();
+        public List<SequenceInfo> Sequences = [];
 
         /// <summary>
         /// Sequence archives.
         /// </summary>
-        public List<SequenceArchiveInfo> SequenceArchives = new List<SequenceArchiveInfo>();
+        public List<SequenceArchiveInfo> SequenceArchives = [];
 
         /// <summary>
         /// Banks.
         /// </summary>
-        public List<BankInfo> Banks = new List<BankInfo>();
+        public List<BankInfo> Banks = [];
 
         /// <summary>
         /// Wave archives.
         /// </summary>
-        public List<WaveArchiveInfo> WaveArchives = new List<WaveArchiveInfo>();
+        public List<WaveArchiveInfo> WaveArchives = [];
 
         /// <summary>
         /// Players.
         /// </summary>
-        public List<PlayerInfo> Players = new List<PlayerInfo>();
+        public List<PlayerInfo> Players = [];
 
         /// <summary>
         /// Groups.
         /// </summary>
-        public List<GroupInfo> Groups = new List<GroupInfo>();
+        public List<GroupInfo> Groups = [];
 
         /// <summary>
         /// Stream players.
         /// </summary>
-        public List<StreamPlayerInfo> StreamPlayers = new List<StreamPlayerInfo>();
+        public List<StreamPlayerInfo> StreamPlayers = [];
 
         /// <summary>
         /// Streams.
         /// </summary>
-        public List<StreamInfo> Streams = new List<StreamInfo>();
+        public List<StreamInfo> Streams = [];
 
         /// <summary>
         /// Save symbol block.
@@ -127,15 +127,15 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             r.OpenFile<SDATHeader>(out FileHeader header);
 
             //Names.
-            List<string> seqNames = new();
-            List<string> seqArcNames = new();
-            List<List<string>> seqArcSequenceNames = new();
-            List<string> bankNames = new();
-            List<string> warNames = new();
-            List<string> playerNames = new();
-            List<string> groupNames = new();
-            List<string> streamPlayerNames = new();
-            List<string> streamNames = new();
+            List<string> seqNames = [];
+            List<string> seqArcNames = [];
+            List<List<string>> seqArcSequenceNames = [];
+            List<string> bankNames = [];
+            List<string> warNames = [];
+            List<string> playerNames = [];
+            List<string> groupNames = [];
+            List<string> streamPlayerNames = [];
+            List<string> streamNames = [];
 
             //Symbol block.
             if (header.BlockOffsets.Length > 3)
@@ -161,7 +161,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 //Read name data.
                 List<string> ReadNameData(string name)
                 {
-                    List<string> s = new();
+                    List<string> s = [];
                     r.JumpToOffset(name);
                     var nameOffs = r.Read<Table<uint>>();
                     foreach (var u in nameOffs)
@@ -230,10 +230,10 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
 
             //Read entries.
             uint numFiles = r.ReadUInt32();
-            List<Tuple<uint, uint>> fileOffs = new();
+            List<Tuple<uint, uint>> fileOffs = [];
             for (uint i = 0; i < numFiles; i++)
             {
-                fileOffs.Add(new Tuple<uint, uint>(r.ReadUInt32(), r.ReadUInt32()));
+                fileOffs.Add(new(r.ReadUInt32(), r.ReadUInt32()));
                 r.ReadUInt64();
             }
 
@@ -242,14 +242,14 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             r.ReadUInt64();
 
             //Open offsets.
-            Sequences = new List<SequenceInfo>();
-            SequenceArchives = new List<SequenceArchiveInfo>();
-            Banks = new List<BankInfo>();
-            WaveArchives = new List<WaveArchiveInfo>();
-            Players = new List<PlayerInfo>();
-            Groups = new List<GroupInfo>();
-            StreamPlayers = new List<StreamPlayerInfo>();
-            Streams = new List<StreamInfo>();
+            Sequences = [];
+            SequenceArchives = [];
+            Banks = [];
+            WaveArchives = [];
+            Players = [];
+            Groups = [];
+            StreamPlayers = [];
+            Streams = [];
             r.OpenOffset("seqInfo");
             r.OpenOffset("seqArcInfo");
             r.OpenOffset("bankInfo");
@@ -311,7 +311,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     string md5 = WaveArchives.Last().File.Md5Sum;
                     if (!md5Ids.ContainsKey(md5))
                     {
-                        md5Ids.Add(md5, new List<uint>() { WaveArchives.Last().ReadingFileId });
+                        md5Ids.Add(md5, [WaveArchives.Last().ReadingFileId]);
                     }
                     else
                     {
@@ -345,7 +345,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     string md5 = Banks.Last().File.Md5Sum;
                     if (!md5Ids.ContainsKey(md5))
                     {
-                        md5Ids.Add(md5, new List<uint>() { Banks.Last().ReadingFileId });
+                        md5Ids.Add(md5, [Banks.Last().ReadingFileId]);
                     }
                     else
                     {
@@ -377,7 +377,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     string md5 = Sequences.Last().File.Md5Sum;
                     if (!md5Ids.ContainsKey(md5))
                     {
-                        md5Ids.Add(md5, new List<uint>() { Sequences.Last().ReadingFileId });
+                        md5Ids.Add(md5, [Sequences.Last().ReadingFileId]);
                     }
                     else
                     {
@@ -408,7 +408,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     string md5 = Streams.Last().File.Md5Sum;
                     if (!md5Ids.ContainsKey(md5))
                     {
-                        md5Ids.Add(md5, new List<uint>() { Streams.Last().ReadingFileId });
+                        md5Ids.Add(md5, [Streams.Last().ReadingFileId]);
                     }
                     else
                     {
@@ -436,7 +436,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     r.Jump(fileOffs[(int)SequenceArchives.Last().ReadingFileId].Item1, true);
                     SequenceArchives.Last().File = r.ReadFile<SequenceArchive>() as SequenceArchive;
                     var labels = SequenceArchives.Last().File.Labels;
-                    SequenceArchives.Last().File.Labels = new Dictionary<string, uint>();
+                    SequenceArchives.Last().File.Labels = new();
                     if (SequenceArchives.Last().File.Sequences.Count > 0)
                     {
                         int seqNum = 0;
@@ -461,7 +461,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                     string md5 = SequenceArchives.Last().File.Md5Sum;
                     if (!md5Ids.ContainsKey(md5))
                     {
-                        md5Ids.Add(md5, new List<uint>() { SequenceArchives.Last().ReadingFileId });
+                        md5Ids.Add(md5, [SequenceArchives.Last().ReadingFileId]);
                     }
                     else
                     {
@@ -576,7 +576,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 else { w.Write((uint)0); }
 
                 //Sub entries.
-                List<long> seqArcSeqSBak = new List<long>();
+                List<long> seqArcSeqSBak = [];
                 if (SequenceArchives.Count > 1)
                 {
                     for (int i = 0; i <= SequenceArchives.Last().Index; i++)
@@ -620,7 +620,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 //Write a string.
                 void writeStringData(object entryList, long tablePos)
                 {
-                    List<string> strgs = new();
+                    List<string> strgs = [];
                     if (entryList is List<SequenceInfo> seqList)
                     {
                         for (int i = 0; i <= seqList.Last().Index; i++)
@@ -801,12 +801,12 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 if (e.ForceIndividualFile)
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5 + fileId, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5 + fileId, new(e.File, fileId++));
                 }
                 else if (!files.ContainsKey(md5))
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5, new(e.File, fileId++));
                 }
                 else
                 {
@@ -819,12 +819,12 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 if (e.ForceIndividualFile)
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5 + fileId, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5 + fileId, new(e.File, fileId++));
                 }
                 else if (!files.ContainsKey(md5))
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5, new(e.File, fileId++));
                 }
                 else
                 {
@@ -837,12 +837,12 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 if (e.ForceIndividualFile)
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5 + fileId, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5 + fileId, new(e.File, fileId++));
                 }
                 else if (!files.ContainsKey(md5))
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5, new(e.File, fileId++));
                 }
                 else
                 {
@@ -855,12 +855,12 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 if (e.ForceIndividualFile)
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5 + fileId, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5 + fileId, new(e.File, fileId++));
                 }
                 else if (!files.ContainsKey(md5))
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5, new(e.File, fileId++));
                 }
                 else
                 {
@@ -873,12 +873,12 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 if (e.ForceIndividualFile)
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5 + fileId, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5 + fileId, new(e.File, fileId++));
                 }
                 else if (!files.ContainsKey(md5))
                 {
                     e.ReadingFileId = fileId;
-                    files.Add(md5, new Tuple<IOFile, uint>(e.File, fileId++));
+                    files.Add(md5, new(e.File, fileId++));
                 }
                 else
                 {
@@ -1066,7 +1066,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             w.InitBlock("FAT ");
 
             //Get binaries.
-            List<byte[]> filesRaw = new();
+            List<byte[]> filesRaw = [];
             foreach (var f in files)
             {
                 filesRaw.Add(f.Value.Item1.Write());
@@ -1117,7 +1117,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         public void ExportSDKProject(string directory, string projectName)
         {
             //SBDL first.
-            List<string> sbdl = new List<string>();
+            List<string> sbdl = [];
             foreach (var e in Players)
             {
                 sbdl.Add("#define " + e.Name + "\t" + e.Index);
@@ -1153,8 +1153,8 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             File.WriteAllLines(directory + "/" + projectName + ".sbdl", sbdl);
 
             //SPRJ.
-            List<string> sprj = new List<string>
-            {
+            List<string> sprj =
+            [
                 "<?xml version=\"1.0\"?>",
                 "<NitroSoundMakerProject version=\"1.0.0\">",
                 "  <head>",
@@ -1167,8 +1167,8 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
                 "      <File name=\"" + projectName + "\" path=\"" + projectName + ".sarc\" />",
                 "    </SoundArchiveFiles>",
                 "  </body>",
-                "</NitroSoundMakerProject>"
-            };
+                "</NitroSoundMakerProject>",
+            ];
             File.WriteAllLines(directory + "/" + projectName + ".sprj", sprj);
 
             //Wave files.
@@ -1347,7 +1347,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //SARC.
-            List<string> sarc = new List<string>();
+            List<string> sarc = [];
 
             //Dump players.
             int id = 0;
@@ -1626,7 +1626,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             File.WriteAllLines(directory + "/" + projectName + ".sarc", sarc);
 
             //Write wave archives.
-            List<string> wWavs = new List<string>();
+            List<string> wWavs = [];
             foreach (var e in WaveArchives)
             {
                 Directory.CreateDirectory(directory + "/" + "WaveArchives");
@@ -1638,7 +1638,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //Write streams.
-            List<string> wStrms = new List<string>();
+            List<string> wStrms = [];
             foreach (var e in Streams)
             {
                 Directory.CreateDirectory(directory + "/" + "Streams");
@@ -1653,7 +1653,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //Write sequences.
-            List<string> wSeqs = new List<string>();
+            List<string> wSeqs = [];
             foreach (var e in Sequences)
             {
                 Directory.CreateDirectory(directory + "/" + "Sequences");
@@ -1667,7 +1667,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //Write sequence archives.
-            List<string> wSeqArcs = new List<string>();
+            List<string> wSeqArcs = [];
             foreach (var e in SequenceArchives)
             {
                 Directory.CreateDirectory(directory + "/" + "SequenceArchives");
@@ -1683,7 +1683,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             }
 
             //Write banks.
-            List<string> wBnks = new List<string>();
+            List<string> wBnks = [];
             foreach (var e in Banks)
             {
                 Directory.CreateDirectory(directory + "/" + "Banks");

@@ -67,7 +67,7 @@ namespace HaruhiChokuretsuLib.Archive
         public static ArchiveFile<T> FromFile(string fileName, ILogger log, bool dontThrow = true)
         {
             byte[] archiveBytes = File.ReadAllBytes(fileName);
-            return new ArchiveFile<T>(archiveBytes, log, dontThrow) { FileName = Path.GetFileName(fileName) };
+            return new(archiveBytes, log, dontThrow) { FileName = Path.GetFileName(fileName) };
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace HaruhiChokuretsuLib.Archive
             FileNamesSection = archiveBytes.Skip(0x20 + (NumFiles * 8)).Take(FileNamesLength).ToList();
 
             // Calculate file names based on the substitution cipher
-            List<string> filenames = new();
+            List<string> filenames = [];
             for (int i = 0; i < FileNamesSection.Count;)
             {
                 byte[] nameBytes = FileNamesSection.Skip(i).TakeWhile(b => b != 0x00).ToArray();

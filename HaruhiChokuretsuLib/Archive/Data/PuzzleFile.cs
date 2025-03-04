@@ -46,14 +46,14 @@ namespace HaruhiChokuretsuLib.Archive.Data
                 SectionOffsetsAndCounts.Add((IO.ReadInt(decompressedData, i), IO.ReadInt(decompressedData, i + 4)));
             }
 
-            Settings = new(Data.Skip(SectionOffsetsAndCounts[0].Offset).Take(0x48));
+            Settings = new(decompressedData[SectionOffsetsAndCounts[0].Offset..(SectionOffsetsAndCounts[0].Offset + 0x48)]);
             for (int i = 1; i < 11; i++)
             {
                 HaruhiRoutes.Add(new(Data.Skip(SectionOffsetsAndCounts[i].Offset).Take(SectionOffsetsAndCounts[i].ItemCount * 2).ToArray()));
             }
             for (int i = 0; i < SectionOffsetsAndCounts[12].ItemCount; i++)
             {
-                AssociatedTopics.Add((IO.ReadInt(Data, SectionOffsetsAndCounts[12].Offset + i * 8), IO.ReadInt(Data, SectionOffsetsAndCounts[12].Offset + i * 8 + 4)));
+                AssociatedTopics.Add((IO.ReadInt(decompressedData, SectionOffsetsAndCounts[12].Offset + i * 8), IO.ReadInt(decompressedData, SectionOffsetsAndCounts[12].Offset + i * 8 + 4)));
             }
         }
 
@@ -234,7 +234,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// <summary>
     /// Representation of a puzzle's settings section
     /// </summary>
-    public class PuzzleSettings(IEnumerable<byte> data)
+    public class PuzzleSettings(byte[] data)
     {
         /// <summary>
         /// The ID of the map to use for the puzzle

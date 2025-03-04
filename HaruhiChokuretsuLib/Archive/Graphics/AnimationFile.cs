@@ -100,7 +100,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
             }
             else if (AnimationEntries[0].GetType() == typeof(PaletteColorAnimationEntry))
             {
-                SKColor[] originalPalette = Array.Empty<SKColor>();
+                SKColor[] originalPalette = [];
                 foreach (PaletteColorAnimationEntry animationEntry in AnimationEntries.Cast<PaletteColorAnimationEntry>())
                 {
                     animationEntry.Prepare(texture);
@@ -354,7 +354,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// Creates an animation frame from data
         /// </summary>
         /// <param name="data">Animation frame data</param>
-        public FrameAnimationEntry(IEnumerable<byte> data)
+        public FrameAnimationEntry(byte[] data)
         {
             FrameOffset = IO.ReadInt(data, 0);
             FrameWidth = IO.ReadShort(data, 4);
@@ -420,7 +420,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
         /// Creates a palette color animation entry from data
         /// </summary>
         /// <param name="data">Data from animation file</param>
-        public PaletteColorAnimationEntry(IEnumerable<byte> data)
+        public PaletteColorAnimationEntry(byte[] data)
         {
             PaletteOffset = IO.ReadShort(data, 0);
             Determinant = data.ElementAt(0x02);
@@ -467,7 +467,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
     /// <summary>
     /// Animation enetry for palette rotation animations
     /// </summary>
-    public class PaletteRotateAnimationEntry(IEnumerable<byte> data) : AnimationEntry
+    public class PaletteRotateAnimationEntry(byte[] data) : AnimationEntry
     {
         /// <summary>
         /// Offset into the palette to rotate

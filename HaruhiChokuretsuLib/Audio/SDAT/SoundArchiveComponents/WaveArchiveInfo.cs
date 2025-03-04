@@ -76,7 +76,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
         {
 
             //SWLS.
-            List<string> swls = new List<string>();
+            List<string> swls = [];
             int ind = 0;
             Directory.CreateDirectory(path + "/" + name);
             foreach (var w in File.Waves)

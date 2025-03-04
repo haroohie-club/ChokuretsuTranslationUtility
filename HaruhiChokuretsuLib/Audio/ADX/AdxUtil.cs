@@ -3,7 +3,6 @@ using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
@@ -175,7 +174,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
 
             byte[] bytes = new byte[wav.Length];
             wav.Read(bytes);
-            List<Sample> samples = new();
+            List<Sample> samples = [];
             for (int i = 0; i < bytes.Length; i += 2)
             {
                 if (cancellationToken?.IsCancellationRequested ?? false)
@@ -184,11 +183,11 @@ namespace HaruhiChokuretsuLib.Audio.ADX
                 }
                 if (wav.WaveFormat.Channels == 1)
                 {
-                    samples.Add(new Sample(new short[] { IO.ReadShort(bytes, i) }));
+                    samples.Add(new([IO.ReadShort(bytes, i)]));
                 }
                 else
                 {
-                    samples.Add(new Sample(new short[] { IO.ReadShort(bytes, i), IO.ReadShort(bytes, i + 2) }));
+                    samples.Add(new([IO.ReadShort(bytes, i), IO.ReadShort(bytes, i + 2)]));
                     i += 2;
                 }
             }
@@ -317,7 +316,7 @@ namespace HaruhiChokuretsuLib.Audio.ADX
 
         public static Frame FromPrev(Frame other)
         {
-            List<Block> blocks = new();
+            List<Block> blocks = [];
             foreach (Block block in other.Blocks)
             {
                 blocks.Add(Block.FromPrev(block));

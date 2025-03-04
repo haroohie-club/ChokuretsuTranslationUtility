@@ -48,7 +48,8 @@ namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
         {
             SequenceMax = r.ReadUInt16();
             ChannelFlags = r.ReadBitFlags(2);
-            if (ChannelFlags.Where(x => x == false).Count() == 16) { ChannelFlags = new bool[] { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true }; }
+            if (ChannelFlags.Where(x => x == false).Count() == 16) { ChannelFlags = [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            ]; }
             HeapSize = r.ReadUInt32();
         }
 

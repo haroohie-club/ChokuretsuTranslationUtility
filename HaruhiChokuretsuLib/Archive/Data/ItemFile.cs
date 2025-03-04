@@ -21,12 +21,12 @@ namespace HaruhiChokuretsuLib.Archive.Data
             Offset = offset;
             Data = [.. decompressedData];
 
-            int startIndex = IO.ReadInt(Data, 0x0C);
-            int numItems = IO.ReadInt(Data, 0x10);
+            int startIndex = IO.ReadInt(decompressedData, 0x0C);
+            int numItems = IO.ReadInt(decompressedData, 0x10);
 
             for (int i = 0; i < numItems; i++)
             {
-                Items.Add(IO.ReadShort(Data, startIndex + i * 2));
+                Items.Add(IO.ReadShort(decompressedData, startIndex + i * 2));
             }
         }
 

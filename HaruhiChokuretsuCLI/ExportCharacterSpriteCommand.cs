@@ -56,7 +56,7 @@ namespace HaruhiChokuretsuCLI
             {
                 animationFrames = sprite.GetClosedMouthAnimation(grp, dat.GetFileByName("MESSINFOS").CastTo<MessageInfoFile>());
             }
-            List<SKBitmap> frames = new();
+            List<SKBitmap> frames = [];
             foreach (var frame in animationFrames)
             {
                 for (int i = 0; i < frame.timing; i++)
@@ -78,7 +78,7 @@ namespace HaruhiChokuretsuCLI
             }
             gif.Frames.RemoveFrame(0);
 
-            gif.SaveAsGif(Path.Combine(_outputFolder, $"{grp.GetFileByIndex(sprite.EyeAnimationIndex).Name[0..^5]}.gif"));
+            gif.SaveAsGif(Path.Combine(_outputFolder, $"{grp.GetFileByIndex(sprite.EyeAnimationIndex).Name[..^5]}.gif"));
 
             return 0;
         }

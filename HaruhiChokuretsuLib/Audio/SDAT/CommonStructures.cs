@@ -20,7 +20,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         /// <param name="r">The reader.</param>
         public override void Read(FileReader r)
         {
-            Magic = new string(r.ReadChars(4));
+            Magic = new(r.ReadChars(4));
             r.ByteOrder = ByteOrder.BigEndian;
             r.ByteOrder = ByteOrder = r.ReadUInt16() == 0xFEFF ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
             r.ReadUInt16(); //Version is always constant.
@@ -72,14 +72,14 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         /// <param name="r">The reader.</param>
         public override void Read(FileReader r)
         {
-            Magic = new string(r.ReadChars(4));
+            Magic = new(r.ReadChars(4));
             r.ByteOrder = ByteOrder.BigEndian;
             r.ByteOrder = ByteOrder = r.ReadUInt16() == 0xFEFF ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
             r.ReadUInt16(); //Version is always constant.
             FileSize = r.ReadUInt32();
             HeaderSize = r.ReadUInt16();
             r.ReadUInt16();
-            BlockOffsets = new long[] { 0x10 };
+            BlockOffsets = [0x10];
         }
 
         /// <summary>

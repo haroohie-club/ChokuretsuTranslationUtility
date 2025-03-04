@@ -1,168 +1,11 @@
 ﻿using HaruhiChokuretsuLib.Util;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace HaruhiChokuretsuLib.Archive.Event
 {
-    /// <summary>
-    /// A (fake) generic section used for generic operations
-    /// </summary>
-    public class GenericSection : IEventSection<object>, IConvertible
-    {
-        /// <inheritdoc/>
-        public string Name { get; set; }
-        /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
-        public List<object> Objects { get; set; }
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
-
-        /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
-        {
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
-        {
-            return string.Empty;
-        }
-
-        /// <inheritdoc/>
-        public TypeCode GetTypeCode()
-        {
-            return TypeCode.Object;
-        }
-
-        private static T ThrowNotSupported<T>()
-        {
-            return (T)ThrowNotSupported(typeof(T));
-        }
-        private static object ThrowNotSupported(Type type)
-        {
-            throw new InvalidCastException($"Converting type \"{typeof(GenericSection)}\" to type \"{type}\" is not supported.");
-        }
-
-        bool IConvertible.ToBoolean(IFormatProvider provider) => ThrowNotSupported<bool>();
-        char IConvertible.ToChar(IFormatProvider provider) => ThrowNotSupported<char>();
-        sbyte IConvertible.ToSByte(IFormatProvider provider) => ThrowNotSupported<sbyte>();
-        byte IConvertible.ToByte(IFormatProvider provider) => ThrowNotSupported<byte>();
-        short IConvertible.ToInt16(IFormatProvider provider) => ThrowNotSupported<short>();
-        ushort IConvertible.ToUInt16(IFormatProvider provider) => ThrowNotSupported<ushort>();
-        int IConvertible.ToInt32(IFormatProvider provider) => ThrowNotSupported<int>();
-        uint IConvertible.ToUInt32(IFormatProvider provider) => ThrowNotSupported<uint>();
-        long IConvertible.ToInt64(IFormatProvider provider) => ThrowNotSupported<long>();
-        ulong IConvertible.ToUInt64(IFormatProvider provider) => ThrowNotSupported<ulong>();
-        float IConvertible.ToSingle(IFormatProvider provider) => ThrowNotSupported<float>();
-        double IConvertible.ToDouble(IFormatProvider provider) => ThrowNotSupported<double>();
-        decimal IConvertible.ToDecimal(IFormatProvider provider) => ThrowNotSupported<decimal>();
-        DateTime IConvertible.ToDateTime(IFormatProvider provider) => ThrowNotSupported<DateTime>();
-        string IConvertible.ToString(IFormatProvider provider) => ThrowNotSupported<string>();
-
-        /// <summary>
-        /// Converts a generic section to a specific section type
-        /// </summary>
-        /// <param name="conversionType">The type to convert to</param>
-        /// <param name="provider">Unused</param>
-        /// <returns>The converted type</returns>
-        public object ToType(Type conversionType, IFormatProvider provider)
-        {
-            if (conversionType == typeof(SettingsSection))
-            {
-                return new SettingsSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (EventFileSettings)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(PointerSection))
-            {
-                return new PointerSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (PointerStruct)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(IntegerSection))
-            {
-                return new IntegerSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (int)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(InteractableObjectsSection))
-            {
-                return new InteractableObjectsSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (InteractableObjectEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(Unknown03Section))
-            {
-                return new Unknown03Section() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (Unknown03SectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(StartingChibisSection))
-            {
-                return new StartingChibisSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (StartingChibiEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(MapCharactersSection))
-            {
-                return new MapCharactersSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (MapCharactersSectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(Unknown07Section))
-            {
-                return new Unknown07Section() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (Unknown07SectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(ChoicesSection))
-            {
-                return new ChoicesSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (ChoicesSectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(Unknown08Section))
-            {
-                return new Unknown08Section() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (Unknown08SectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(Unknown09Section))
-            {
-                return new Unknown09Section() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (Unknown09SectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(Unknown10Section))
-            {
-                return new Unknown10Section() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (Unknown10SectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(LabelsSection))
-            {
-                return new LabelsSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (LabelsSectionEntry)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(DramatisPersonaeSection))
-            {
-                return new DramatisPersonaeSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (string)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(DialogueSection))
-            {
-                return new DialogueSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (DialogueLine)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(ConditionalSection))
-            {
-                return new ConditionalSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (string)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(ScriptSectionDefinitionsSection))
-            {
-                return new ScriptSectionDefinitionsSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (ScriptSectionDefinition)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(ScriptSection))
-            {
-                return new ScriptSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (ScriptCommandInvocation)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-            else if (conversionType == typeof(EventNameSection))
-            {
-                return new EventNameSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Select(o => (string)Convert.ChangeType(o, ObjectType)).ToList(), SectionType = SectionType, ObjectType = ObjectType };
-            }
-
-            return ThrowNotSupported(conversionType);
-        }
-    }
-
     /// <summary>
     /// The settings section of the event file
     /// </summary>
@@ -170,36 +13,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
     {
         /// <inheritdoc/>
         public string Name { get; set; }
-        /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public List<EventFileSettings> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 0x128;
-            SectionType = typeof(SettingsSection);
-            ObjectType = typeof(EventFileSettings);
-
             Objects = [new(data)];
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -207,7 +28,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].EventNamePointer > 0 ? $"POINTER{currentPointer++}: " : "")}.word EVENTNAME");
                 sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {((evt.UnknownSection01?.Objects.Count ?? 0) > 0 ? 1 : 0)}");
@@ -259,50 +80,34 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<PointerStruct> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 12;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 12)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(PointerSection);
-            ObjectType = typeof(PointerStruct);
-
-            for (int i = 0; i < NumObjects; i++)
+            
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    Padding1 = BitConverter.ToInt32(data.Skip(i * ObjectLength).Take(4).ToArray()),
-                    Pointer = BitConverter.ToInt32(data.Skip(i * ObjectLength + 4).Take(4).ToArray()),
-                    ItemCount = BitConverter.ToInt32(data.Skip(i * ObjectLength + 8).Take(4).ToArray()),
+                    Padding1 = IO.ReadInt(data, i * 12),
+                    Pointer = IO.ReadInt(data, i * 12 + 4),
+                    ItemCount = IO.ReadInt(data, i * 12 + 8),
                 });
             }
         }
 
-        internal static (int sectionIndex, PointerSection section) ParseSection(List<EventFileSection> eventFileSections, int pointer, string name, IEnumerable<byte> data, ILogger log)
+        internal static (int sectionIndex, PointerSection section) ParseSection(List<EventFile.SectionDef> eventFileSections, int pointer, string name, byte[] data, ILogger log)
         {
             int sectionIndex = eventFileSections.FindIndex(s => s.Pointer == pointer);
             PointerSection section = new();
-            section.Initialize(data.Skip(eventFileSections[sectionIndex].Pointer)
-                .Take(eventFileSections[sectionIndex + 1].Pointer - eventFileSections[sectionIndex].Pointer),
+            section.Initialize(data[eventFileSections[sectionIndex].Pointer..eventFileSections[sectionIndex + 1].Pointer],
                 eventFileSections[sectionIndex].ItemCount,
                 $"{name}_POINTER", log, eventFileSections[sectionIndex].Pointer);
             return (sectionIndex, section);
@@ -313,10 +118,6 @@ namespace HaruhiChokuretsuLib.Archive.Event
             return new() 
             { 
                 Name = $"{section.Name}_POINTER",
-                NumObjects = 1,
-                ObjectLength = 12,
-                SectionType = typeof(PointerSection),
-                ObjectType = typeof(PointerStruct),
                 Objects =
                 [
                     new() { Pointer = 1, ItemCount = section.Objects.Count - 1 }, // doesn't matter since we're only creating this for the ASM output,
@@ -325,21 +126,15 @@ namespace HaruhiChokuretsuLib.Archive.Event
         }
 
         /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
-        }
-
-        /// <inheritdoc/>
         public string GetAsm(int indentation, ref int currentPointer, EventFile evt = null)
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            foreach (PointerStruct pointerStruct in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].Padding1}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(Objects[i].Pointer == 0 ? ".word 0" : $"POINTER{currentPointer++}: .word {Name[0..Name.IndexOf('_')]}")}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].ItemCount}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {pointerStruct.Padding1}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{(pointerStruct.Pointer == 0 ? ".word 0" : $"POINTER{currentPointer++}: .word {Name[..Name.IndexOf('_')]}")}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {pointerStruct.ItemCount}");
             }
             for (int i = 0; i < 3; i++)
             {
@@ -370,7 +165,7 @@ namespace HaruhiChokuretsuLib.Archive.Event
         public int ItemCount { get; set; }
 
         /// <inheritdoc/>
-        public override readonly string ToString()
+        public readonly override string ToString()
         {
             return $"0x{Pointer:X4}";
         }
@@ -384,43 +179,22 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<int> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 4;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 4)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(IntegerSection);
-            ObjectType = typeof(int);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
-                Objects.Add(BitConverter.ToInt32(data.Skip(i * 4).Take(4).ToArray()));
+                Objects.Add(IO.ReadInt(data, i * 4));
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -446,48 +220,27 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<InteractableObjectEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 6;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 6)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(InteractableObjectsSection);
-            ObjectType = typeof(InteractableObjectEntry);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    ObjectId = BitConverter.ToInt16(data.Skip(i * 6).Take(2).ToArray()),
-                    ScriptBlock = BitConverter.ToInt16(data.Skip(i * 6 + 2).Take(2).ToArray()),
-                    Padding = BitConverter.ToInt16(data.Skip(i * 6 + 4).Take(2).ToArray()),
+                    ObjectId = IO.ReadShort(data, i * 6),
+                    ScriptBlock = IO.ReadShort(data, i * 6 + 2),
+                    Padding = IO.ReadShort(data, i * 6 + 4),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -495,15 +248,15 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < Objects.Count; i++)
+            foreach (InteractableObjectEntry io in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].ObjectId}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].ScriptBlock}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].Padding}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {io.ObjectId}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {io.ScriptBlock}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {io.Padding}");
             }
-            if (Objects.Count * ObjectLength % 4 > 0)
+            if (Objects.Count % 2 == 1)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip {4 - NumObjects * ObjectLength % 4}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip 2");
             }
             sb.AppendLine();
 
@@ -544,48 +297,27 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<Unknown03SectionEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 12;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 12)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(Unknown03Section);
-            ObjectType = typeof(Unknown03SectionEntry);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    UnknownInt1 = BitConverter.ToInt16(data.Skip(i * 12).Take(4).ToArray()),
-                    UnknownInt2 = BitConverter.ToInt16(data.Skip(i * 12 + 4).Take(4).ToArray()),
-                    UnknownInt3 = BitConverter.ToInt16(data.Skip(i * 12 + 8).Take(4).ToArray()),
+                    UnknownInt1 = IO.ReadInt(data, i * 12),
+                    UnknownInt2 = IO.ReadInt(data, i * 12 + 4),
+                    UnknownInt3 = IO.ReadInt(data, i * 12 + 8),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -593,11 +325,11 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            foreach (Unknown03SectionEntry u3 in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt1}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt2}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt3}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u3.UnknownInt1}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u3.UnknownInt2}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u3.UnknownInt3}");
             }
             sb.AppendLine();
 
@@ -638,51 +370,30 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<StartingChibiEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 12;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 12)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(StartingChibisSection);
-            ObjectType = typeof(StartingChibiEntry);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    ChibiIndex = BitConverter.ToInt16(data.Skip(i * 12).Take(2).ToArray()),
-                    UnknownShort2 = BitConverter.ToInt16(data.Skip(i * 12 + 2).Take(2).ToArray()),
-                    UnknownShort3 = BitConverter.ToInt16(data.Skip(i * 12 + 4).Take(2).ToArray()),
-                    UnknownShort4 = BitConverter.ToInt16(data.Skip(i * 12 + 6).Take(2).ToArray()),
-                    UnknownShort5 = BitConverter.ToInt16(data.Skip(i * 12 + 8).Take(2).ToArray()),
-                    UnknownShort6 = BitConverter.ToInt16(data.Skip(i * 12 + 10).Take(2).ToArray()),
+                    ChibiIndex = IO.ReadShort(data, i * 12),
+                    UnknownShort2 = IO.ReadShort(data, i * 12 + 2),
+                    UnknownShort3 = IO.ReadShort(data, i * 12 + 4),
+                    UnknownShort4 = IO.ReadShort(data, i * 12 + 6),
+                    UnknownShort5 = IO.ReadShort(data, i * 12 + 8),
+                    UnknownShort6 = IO.ReadShort(data, i * 12 + 10),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -690,14 +401,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < Objects.Count; i++)
+            foreach (StartingChibiEntry chibi in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].ChibiIndex}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort2}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort3}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort4}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort5}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].UnknownShort6}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {chibi.ChibiIndex}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {chibi.UnknownShort2}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {chibi.UnknownShort3}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {chibi.UnknownShort4}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {chibi.UnknownShort5}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {chibi.UnknownShort6}");
             }
             sb.AppendLine();
 
@@ -750,51 +461,30 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<MapCharactersSectionEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 14;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 14)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(MapCharactersSection);
-            ObjectType = typeof(MapCharactersSectionEntry);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    CharacterIndex = BitConverter.ToInt32(data.Skip(i * 14).Take(4).ToArray()),
-                    FacingDirection = BitConverter.ToInt16(data.Skip(i * 14 + 4).Take(2).ToArray()),
-                    X = BitConverter.ToInt16(data.Skip(i * 14 + 6).Take(2).ToArray()),
-                    Y = BitConverter.ToInt16(data.Skip(i * 14 + 8).Take(2).ToArray()),
-                    TalkScriptBlock = BitConverter.ToInt16(data.Skip(i * 14 + 10).Take(2).ToArray()),
-                    Padding = BitConverter.ToInt16(data.Skip(i * 14 + 12).Take(2).ToArray()),
+                    CharacterIndex = IO.ReadInt(data, i * 14),
+                    FacingDirection = IO.ReadShort(data, i * 14 + 4),
+                    X = IO.ReadShort(data, i * 14 + 6),
+                    Y = IO.ReadShort(data, i * 14 + 8),
+                    TalkScriptBlock = IO.ReadShort(data, i * 14 + 10),
+                    Padding = IO.ReadShort(data, i * 14 + 12),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -802,14 +492,14 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < Objects.Count; i++)
+            foreach (MapCharactersSectionEntry mapChar in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].CharacterIndex}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].FacingDirection}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].X}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].Y}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].TalkScriptBlock}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {Objects[i].Padding}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {mapChar.CharacterIndex}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {mapChar.FacingDirection}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {mapChar.X}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {mapChar.Y}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {mapChar.TalkScriptBlock}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 7])}.short {mapChar.Padding}");
             }
             if (Objects.Count % 2 == 1)
             {
@@ -866,47 +556,26 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<Unknown07SectionEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 4;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 4)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(Unknown07Section);
-            ObjectType = typeof(Unknown07SectionEntry);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    UnknownShort1 = BitConverter.ToInt16(data.Skip(i * 4).Take(2).ToArray()),
-                    UnknownShort2 = BitConverter.ToInt16(data.Skip(i * 4 + 2).Take(2).ToArray()),
+                    UnknownShort1 = IO.ReadShort(data, i * 4),
+                    UnknownShort2 = IO.ReadShort(data, i * 4 + 2),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -914,10 +583,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            foreach (Unknown07SectionEntry u7 in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort1}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {Objects[i].UnknownShort2}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {u7.UnknownShort1}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.short {u7.UnknownShort2}");
             }
             sb.AppendLine();
 
@@ -954,46 +623,25 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<ChoicesSectionEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset = -1)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset = -1)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            SectionType = typeof(ChoicesSection);
-            ObjectType = typeof(ChoicesSectionEntry);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
-                int textOffset = BitConverter.ToInt32(data.Skip(i * 20 + 12).Take(4).ToArray()) - offset;
+                int textOffset = IO.ReadInt(data, i * 20 + 12) - offset;
                 Objects.Add(new()
                 {
-                    Id = BitConverter.ToInt32(data.Skip(i * 20).Take(4).ToArray()),
-                    Padding1 = BitConverter.ToInt32(data.Skip(i * 20 + 4).Take(4).ToArray()),
-                    Padding2 = BitConverter.ToInt32(data.Skip(i * 20 + 8).Take(4).ToArray()),
-                    Text = textOffset == 0 ? string.Empty : Encoding.GetEncoding("Shift-JIS").GetString(
-                        data.Skip(textOffset).TakeWhile(b => b != 0x00).ToArray()),
-                    Padding3 = BitConverter.ToInt32(data.Skip(i * 20 + 16).Take(4).ToArray()),
+                    Id = IO.ReadInt(data, i * 20),
+                    Padding1 = IO.ReadInt(data, i * 20 + 4),
+                    Padding2 = IO.ReadInt(data, i * 20 + 8),
+                    Text = textOffset == 0 ? string.Empty : IO.ReadShiftJisString(data, textOffset),
+                    Padding3 = IO.ReadInt(data, i * 20 + 16),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -1071,49 +719,28 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<Unknown08SectionEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 16;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 16)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(Unknown08Section);
-            ObjectType = typeof(Unknown08SectionEntry);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    UnknownInt1 = BitConverter.ToInt32(data.Skip(i * 4).Take(4).ToArray()),
-                    UnknownInt2 = BitConverter.ToInt32(data.Skip(i * 4 + 4).Take(4).ToArray()),
-                    UnknownInt3 = BitConverter.ToInt32(data.Skip(i * 4 + 8).Take(4).ToArray()),
-                    UnknownInt4 = BitConverter.ToInt32(data.Skip(i * 4 + 12).Take(4).ToArray()),
+                    UnknownInt1 = IO.ReadInt(data, i * 4),
+                    UnknownInt2 = IO.ReadInt(data, i * 4 + 4),
+                    UnknownInt3 = IO.ReadInt(data, i * 4 + 8),
+                    UnknownInt4 = IO.ReadInt(data, i * 4 + 12),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -1121,12 +748,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            foreach (Unknown08SectionEntry u8 in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt1}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt2}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt3}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt4}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u8.UnknownInt1}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u8.UnknownInt2}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u8.UnknownInt3}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u8.UnknownInt4}");
             }
             sb.AppendLine();
 
@@ -1171,47 +798,26 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<Unknown09SectionEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectLength = 8;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 8)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(Unknown09Section);
-            ObjectType = typeof(Unknown09SectionEntry);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    UnknownInt1 = BitConverter.ToInt32(data.Skip(i * 4).Take(4).ToArray()),
-                    UnknownInt2 = BitConverter.ToInt32(data.Skip(i * 4 + 4).Take(4).ToArray()),
+                    UnknownInt1 = IO.ReadInt(data, i * 4),
+                    UnknownInt2 = IO.ReadInt(data, i * 4 + 4),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -1219,10 +825,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            foreach (Unknown09SectionEntry u9 in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt1}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt2}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u9.UnknownInt1}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u9.UnknownInt2}");
             }
             sb.AppendLine();
 
@@ -1259,47 +865,26 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<Unknown10SectionEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            ObjectType = typeof(Unknown10SectionEntry);
-            ObjectLength = 8;
-            if (NumObjects != Data.Count / ObjectLength)
+            if (numObjects != data.Length / 8)
             {
                 log.LogError($"{Name} section in event file has mismatch in number of arguments.");
                 return;
             }
-            SectionType = typeof(Unknown10Section);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
-                    UnknownInt1 = BitConverter.ToInt32(data.Skip(i * 4).Take(4).ToArray()),
-                    UnknownInt2 = BitConverter.ToInt32(data.Skip(i * 4 + 4).Take(4).ToArray()),
+                    UnknownInt1 = IO.ReadInt(data, i * 4),
+                    UnknownInt2 = IO.ReadInt(data, i * 4 + 4),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -1307,10 +892,10 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
-            for (int i = 0; i < NumObjects; i++)
+            foreach (Unknown10SectionEntry u10 in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt1}");
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {Objects[i].UnknownInt2}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u10.UnknownInt1}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.word {u10.UnknownInt2}");
             }
             sb.AppendLine();
 
@@ -1347,42 +932,22 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<LabelsSectionEntry> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            SectionType = typeof(LabelsSection);
-            ObjectType = typeof(LabelsSectionEntry);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
-                int nameIndex = BitConverter.ToInt32(data.Skip(i * 8 + 4).Take(4).ToArray()) - offset;
+                int nameOffset = IO.ReadInt(data, i * 8 + 4) - offset;
                 Objects.Add(new()
                 {
-                    Id = BitConverter.ToInt16(data.Skip(i * 8 + 2).Take(2).ToArray()),
-                    Name = nameIndex > 0 ? Encoding.GetEncoding("Shift-JIS").GetString(data.Skip(nameIndex).TakeWhile(b => b != 0x00).ToArray()) : string.Empty,
+                    Id = IO.ReadShort(data, i * 8 + 2),
+                    Name = nameOffset > 0 ? IO.ReadShiftJisString(data, nameOffset) : string.Empty,
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -1440,45 +1005,31 @@ namespace HaruhiChokuretsuLib.Archive.Event
 
     /// <summary>
     /// A dramatis personae (character name) section
+    /// While referenced by dialogue lines, they aren't actually used in-game and thus are probably
+    /// remnants of dev tooling
     /// </summary>
     public class DramatisPersonaeSection : IEventSection<string>
     {
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<string> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
-        /// <inheritdoc/>
+        /// <summary>
+        /// The offset at which the dramatis personae section appears in the file
+        /// </summary>
         public int Offset { get; set; }
-        /// <inheritdoc/>
+        /// <summary>
+        /// The index (order of appearance) of this dramatis persona
+        /// </summary>
         public int Index { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            SectionType = typeof(DramatisPersonaeSection);
-            ObjectType = typeof(string);
             Offset = offset;
 
-            Objects.Add(Encoding.GetEncoding("Shift-JIS").GetString(data.TakeWhile(b => b != 0x00).ToArray()));
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
+            Objects.Add(IO.ReadShiftJisString(data, 0x00));
         }
 
         /// <inheritdoc/>
@@ -1502,33 +1053,19 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<DialogueLine> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            SectionType = typeof(DialogueSection);
-            ObjectType = typeof(DialogueLine);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
-                int dramatisPersonaeOffset = BitConverter.ToInt32(data.Skip(offset + i * 12 + 4).Take(4).ToArray());
-                int dialoguePointer = BitConverter.ToInt32(data.Skip(offset + i * 12 + 8).Take(4).ToArray());
-                Objects.Add(new((Speaker)BitConverter.ToInt32(data.Skip(offset + i * 12).Take(4).ToArray()),
-                    Encoding.GetEncoding("Shift-JIS").GetString(data.Skip(dramatisPersonaeOffset).TakeWhile(b => b != 0x00).ToArray()),
+                int dramatisPersonaeOffset = IO.ReadInt(data, offset + i * 12 + 4);
+                int dialoguePointer = IO.ReadInt(data, offset + i * 12 + 8);
+                Objects.Add(new((Speaker)IO.ReadInt(data, offset + i * 12),
+                    IO.ReadShiftJisString(data, dramatisPersonaeOffset),
                     dramatisPersonaeOffset,
                     dialoguePointer,
                     data.ToArray()));
@@ -1541,19 +1078,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <param name="dramatisPersonae">List of dramatis personae sections</param>
         internal void InitializeDramatisPersonaeIndices(List<DramatisPersonaeSection> dramatisPersonae)
         {
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
                 if ((int)Objects[i].Speaker > 0)
                 {
                     Objects[i].SpeakerIndex = dramatisPersonae.First(d => d.Offset == Objects[i].SpeakerPointer).Index;
                 }
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -1590,45 +1121,20 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<string> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            SectionType = typeof(ConditionalSection);
-            ObjectType = typeof(string);
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
-                int pointer = BitConverter.ToInt32(Data.Skip(offset + i * 4).Take(4).ToArray());
-                if (pointer > 0)
-                {
-                    Objects.Add(Encoding.ASCII.GetString(Data.Skip(pointer).TakeWhile(b => b != 0).ToArray()));
-                }
-                else
-                {
-                    Objects.Add(null);
-                }
+                int pointer = IO.ReadInt(data, offset + i * 4);
+                Objects.Add(pointer > 0
+                    ? IO.ReadAsciiString(data, pointer)
+                    : null);
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -1668,46 +1174,26 @@ namespace HaruhiChokuretsuLib.Archive.Event
     {
         /// <inheritdoc/>
         public string Name { get; set; }
-        /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
+        /// <summary>
+        /// The labels associated with the script sections
+        /// </summary>
         public List<string> Labels { get; set; }
         /// <inheritdoc/>
         public List<ScriptSectionDefinition> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            SectionType = typeof(ScriptSectionDefinitionsSection);
-            ObjectType = typeof(ScriptSectionDefinition);
-            ObjectLength = 8;
-
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
                 Objects.Add(new()
                 {
                     Name = string.IsNullOrEmpty(Labels[i]) ? $"SCRIPT{i:D2}" : Labels[i],
-                    NumCommands = BitConverter.ToInt32(Data.Skip(i * ObjectLength).Take(4).ToArray()),
-                    Pointer = BitConverter.ToInt32(Data.Skip(i * ObjectLength + 4).Take(4).ToArray())
+                    NumCommands = IO.ReadInt(data, i * 8),
+                    Pointer = IO.ReadInt(data, i * 8 + 4),
                 });
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -1715,12 +1201,12 @@ namespace HaruhiChokuretsuLib.Archive.Event
         {
             StringBuilder sb = new();
             sb.AppendLine($"{Helpers.Indent(indentation)}{Name}:");
-            for (int i = 0; i < evt.ScriptSections.Count; i++)
+            foreach (ScriptSection section in evt.ScriptSections)
             {
-                sb.AppendLine($"{Helpers.Indent(indentation + 3)}.word {evt.ScriptSections[i].Objects.Count}");
-                if (evt.ScriptSections[i].Objects.Count > 0)
+                sb.AppendLine($"{Helpers.Indent(indentation + 3)}.word {section.Objects.Count}");
+                if (section.Objects.Count > 0)
                 {
-                    sb.AppendLine($"{Helpers.Indent(indentation + 3)}POINTER{currentPointer++}: .word {evt.ScriptSections[i].Name}");
+                    sb.AppendLine($"{Helpers.Indent(indentation + 3)}POINTER{currentPointer++}: .word {section.Name}");
                 }
                 else
                 {
@@ -1758,40 +1244,22 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<ScriptCommandInvocation> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
-        /// <inheritdoc/>
+        /// <summary>
+        /// List of all commands available to the script section (just all the commands, here for ease of access)
+        /// </summary>
+        [JsonIgnore]
         public List<ScriptCommand> CommandsAvailable { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            SectionType = typeof(ScriptSection);
-            ObjectType = typeof(ScriptCommandInvocation);
-            ObjectLength = 0x24;
 
-            for (int i = 0; i < NumObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
-                Objects.Add(new(Data.Skip(i * 0x24).Take(0x24), CommandsAvailable));
+                Objects.Add(new(data[(i * 0x24)..((i + 1) * 0x24)], CommandsAvailable));
             }
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
         }
 
         /// <inheritdoc/>
@@ -1800,9 +1268,9 @@ namespace HaruhiChokuretsuLib.Archive.Event
             StringBuilder sb = new();
             sb.AppendLine($"{string.Join(' ', new string[indentation])}{Name}:");
 
-            for (int i = 0; i < Objects.Count; i++)
+            foreach (ScriptCommandInvocation command in Objects)
             {
-                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{Objects[i].Command.Mnemonic} {string.Join(", ", Objects[i].Parameters.Take(Objects[i].Command.Parameters.Length))}");
+                sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}{command.Command.Mnemonic} {string.Join(", ", command.Parameters.Take(command.Command.Parameters.Length))}");
             }
             sb.AppendLine($"{string.Join(' ', new string[indentation + 4])}.skip 0x24");
             sb.AppendLine();
@@ -1819,34 +1287,13 @@ namespace HaruhiChokuretsuLib.Archive.Event
         /// <inheritdoc/>
         public string Name { get; set; }
         /// <inheritdoc/>
-        public List<byte> Data { get; set; }
-        /// <inheritdoc/>
-        public int NumObjects { get; set; }
-        /// <inheritdoc/>
-        public int ObjectLength { get; set; }
-        /// <inheritdoc/>
         public List<string> Objects { get; set; } = [];
-        /// <inheritdoc/>
-        public Type SectionType { get; set; }
-        /// <inheritdoc/>
-        public Type ObjectType { get; set; }
 
         /// <inheritdoc/>
-        public void Initialize(IEnumerable<byte> data, int numObjects, string name, ILogger log, int offset)
+        public void Initialize(byte[] data, int numObjects, string name, ILogger log, int offset)
         {
             Name = name;
-            Data = data.ToList();
-            NumObjects = numObjects;
-            SectionType = typeof(EventNameSection);
-            ObjectType = typeof(string);
-
-            Objects.Add(Encoding.ASCII.GetString(data.ToArray()));
-        }
-
-        /// <inheritdoc/>
-        public IEventSection<object> GetGeneric()
-        {
-            return new GenericSection() { Name = Name, Data = Data, NumObjects = NumObjects, ObjectLength = ObjectLength, Objects = Objects.Cast<object>().ToList(), SectionType = SectionType, ObjectType = ObjectType };
+            Objects.Add(IO.ReadAsciiString(data, 0));
         }
 
         /// <inheritdoc/>

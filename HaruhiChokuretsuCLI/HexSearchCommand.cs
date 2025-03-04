@@ -10,7 +10,7 @@ namespace HaruhiChokuretsuCLI
     public class HexSearchCommand : Command
     {
         private string _archive;
-        private List<byte> _hexString = new();
+        private List<byte> _hexString = [];
         private bool _showHelp;
 
         public HexSearchCommand() : base("hex-search", "Searches an archive for a hex string")
@@ -70,7 +70,7 @@ namespace HaruhiChokuretsuCLI
                     {
                         if (!matches.ContainsKey(file.Index))
                         {
-                            matches.Add(file.Index, new());
+                            matches.Add(file.Index, []);
                         }
                         matches[file.Index].Add(i);
                     }

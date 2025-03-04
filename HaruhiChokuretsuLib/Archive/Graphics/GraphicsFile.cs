@@ -162,12 +162,12 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 for (int i = 0; i < PaletteData.Count; i += 2)
                 {
                     short color = BitConverter.ToInt16(PaletteData.Skip(i).Take(2).ToArray());
-                    Palette.Add(new SKColor((byte)((color & 0x1F) << 3), (byte)((color >> 5 & 0x1F) << 3), (byte)((color >> 10 & 0x1F) << 3)));
+                    Palette.Add(new((byte)((color & 0x1F) << 3), (byte)((color >> 5 & 0x1F) << 3), (byte)((color >> 10 & 0x1F) << 3)));
                 }
 
                 while (Palette.Count < 256)
                 {
-                    Palette.Add(new SKColor(0, 0, 0));
+                    Palette.Add(new(0, 0, 0));
                 }
 
                 PixelData = Data.Skip(paletteLength + 0x14).ToList();
@@ -188,7 +188,7 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 FileFunction = Function.LAYOUT;
                 for (int i = 0x08; i <= Data.Count - 0x1C; i += 0x1C)
                 {
-                    LayoutEntries.Add(new(Data.Skip(i).Take(0x1C)));
+                    LayoutEntries.Add(new(decompressedData[i..(i + 0x1C)]));
                 }
             }
             else if (Name.EndsWith("BNA", StringComparison.OrdinalIgnoreCase))
@@ -198,26 +198,26 @@ namespace HaruhiChokuretsuLib.Archive.Graphics
                 {
                     for (int i = 0x00; i <= Data.Count - 0x08; i += 0x08)
                     {
-                        AnimationEntries.Add(new PaletteRotateAnimationEntry(Data.Skip(i).Take(0x08)));
+                        AnimationEntries.Add(new PaletteRotateAnimationEntry(decompressedData[i..(i + 0x08)]));
                     }
                 }
                 else if (Name.Contains("CAN"))
                 {
                     for (int i = 0x00; i <= Data.Count - 0xCC; i += 0xCC)
                     {
-                        AnimationEntries.Add(new PaletteColorAnimationEntry(Data.Skip(i).Take(0xCC)));
+                        AnimationEntries.Add(new PaletteColorAnimationEntry(decompressedData[i..(i + 0xCC)]));
                     }
                 }
-                else if (IO.ReadShort(Data, 0xE) == -1)
+                else if (IO.ReadShort(decompressedData, 0xE) == -1)
                 {
-                    AnimationX = IO.ReadShort(Data, 0x02);
-                    AnimationY = IO.ReadShort(Data, 0x04);
-                    ChibiAnimationType = IO.ReadShort(Data, 0x08);
+                    AnimationX = IO.ReadShort(decompressedData, 0x02);
+                    AnimationY = IO.ReadShort(decompressedData, 0x04);
+                    ChibiAnimationType = IO.ReadShort(decompressedData, 0x08);
                     for (int i = 0x10; i <= Data.Count - 0x0A; i += 0x0A)
                     {
-                        if (IO.ReadShort(Data, i + 8) != 0)
+                        if (IO.ReadShort(decompressedData, i + 8) != 0)
                         {
-                            AnimationEntries.Add(new FrameAnimationEntry(Data.Skip(i).Take(10)));
+                            AnimationEntries.Add(new FrameAnimationEntry(decompressedData[i..(i + 10)]));
                         }
                     }
                 }

@@ -46,7 +46,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
 
             for (int i = 0; i < SectionOffsetsAndCounts[0].ItemCount; i++)
             {
-                SystemTextures.Add(new(decompressedData.Skip(SectionOffsetsAndCounts[0].Offset + 0x2C * i).Take(0x2C)));
+                SystemTextures.Add(new(decompressedData[(SectionOffsetsAndCounts[0].Offset + 0x2C * i)..(SectionOffsetsAndCounts[0].Offset + 0x2C * (i + 1))]));
             }
 
             for (int i = 0; i < SectionOffsetsAndCounts[1].ItemCount; i++)
@@ -119,7 +119,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
     /// <summary>
     /// A representation of a system texture defined in SYSTEX.S
     /// </summary>
-    public class SystemTexture(IEnumerable<byte> data)
+    public class SystemTexture(byte[] data)
     {
         /// <summary>
         /// The name of the system texture (defined for readability based on the textures)

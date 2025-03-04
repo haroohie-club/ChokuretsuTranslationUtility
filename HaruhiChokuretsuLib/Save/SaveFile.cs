@@ -41,24 +41,24 @@ namespace HaruhiChokuretsuLib.Save
         /// Creates a save file given binary data
         /// </summary>
         /// <param name="data">The binary data representing the save file</param>
-        public SaveFile(IEnumerable<byte> data)
+        public SaveFile(byte[] data)
         {
             if (Encoding.ASCII.GetString(data.Take(0x1B).ToArray()) != MAGIC || data.Count() != 0x2000)
             {
                 throw new ArgumentException("Invalid save file");
             }
 
-            CommonData = new(data.Skip(0x20).Take(0x2F0));
-            CommonDataBackup = new(data.Skip(0x310).Take(0x2F0));
+            CommonData = new(data[0x20..0x310]);
+            CommonDataBackup = new(data[0x310..0x600]);
             CheckpointSaveSlots = new SaveSlotData[2];
             CheckpointSaveSlotBackups = new SaveSlotData[2];
             for (int i = 0; i < CheckpointSaveSlots.Length; i++)
             {
-                CheckpointSaveSlots[i] = new(data.Skip(0x600 + 0x7E0 * i).Take(0x3F0));
-                CheckpointSaveSlotBackups[i] = new(data.Skip(0x9F0 + 0x7E0 * i).Take(0x3F0));
+                CheckpointSaveSlots[i] = new(data[(0x600 + 0x7E0 * i)..(0x9F0 + 0x7E0 * i)]);
+                CheckpointSaveSlotBackups[i] = new(data[(0x9F0 + 0x7E0 * i)..(0xDE0 + 0x7E0 * i)]);
             }
-            QuickSaveSlot = new(data.Skip(0x15C0).Take(0x430));
-            QuickSaveSlotBackup = new(data.Skip(0x19F0).Take(0x430));
+            QuickSaveSlot = new(data[0x15C0..0x19F0]);
+            QuickSaveSlotBackup = new(data[0x19F0..0x1E20]);
         }
 
         /// <summary>
@@ -73,10 +73,10 @@ namespace HaruhiChokuretsuLib.Save
             bytes.AddRange(new byte[5]);
             bytes.AddRange(CommonData.GetBytes());
             bytes.AddRange(CommonData.GetBytes());
-            for (int i = 0; i < CheckpointSaveSlots.Length; i++)
+            foreach (SaveSlotData saveSlot in CheckpointSaveSlots)
             {
-                bytes.AddRange(CheckpointSaveSlots[i].GetBytes());
-                bytes.AddRange(CheckpointSaveSlots[i].GetBytes());
+                bytes.AddRange(saveSlot.GetBytes());
+                bytes.AddRange(saveSlot.GetBytes());
             }
             bytes.AddRange(QuickSaveSlot.GetBytes());
             bytes.AddRange(QuickSaveSlot.GetBytes());

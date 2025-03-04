@@ -20,7 +20,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
         /// <summary>
         /// Waves.
         /// </summary>
-        public List<Wave> Waves = new();
+        public List<Wave> Waves = [];
 
         /// <summary>
         /// Read the wave archive.
@@ -35,7 +35,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             uint size = r.ReadUInt32();
             r.ReadUInt32s(8);
             var offs = r.Read<Table<uint>>();
-            Waves = new List<Wave>();
+            Waves = [];
             for (int i = 0; i < offs.Count; i++)
             {
                 uint len;
@@ -87,7 +87,7 @@ namespace HaruhiChokuretsuLib.Audio.SDAT
             RiffWave[] w = new RiffWave[Waves.Count];
             for (int i = 0; i < Waves.Count; i++)
             {
-                w[i] = new RiffWave();
+                w[i] = new();
                 w[i].FromOtherStreamFile(Waves[i]);
             }
             return w;

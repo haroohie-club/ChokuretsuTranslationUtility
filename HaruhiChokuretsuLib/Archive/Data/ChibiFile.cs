@@ -33,7 +33,8 @@ namespace HaruhiChokuretsuLib.Archive.Data
             int chibiListOffset = IO.ReadInt(decompressedData, 0x0C);
             for (int i = 1; i < numChibis + 1; i++)
             {
-                Chibis.Add(new(decompressedData.Skip(IO.ReadInt(decompressedData, chibiListOffset + i * 4)).Take(NUM_CHIBI_ENTRIES * 8), NUM_CHIBI_ENTRIES));
+                int entryOffset = IO.ReadInt(decompressedData, chibiListOffset + i * 4);
+                Chibis.Add(new(decompressedData[entryOffset..(entryOffset + NUM_CHIBI_ENTRIES * 8)], NUM_CHIBI_ENTRIES));
             }
         }
 
@@ -138,7 +139,7 @@ namespace HaruhiChokuretsuLib.Archive.Data
         /// </summary>
         /// <param name="data">Binary data from the CHIBI.S entry</param>
         /// <param name="numChibiEntries">The number of chibi entries present (defined as 57 without hacking to change that value)</param>
-        public Chibi(IEnumerable<byte> data, int numChibiEntries)
+        public Chibi(byte[] data, int numChibiEntries)
         {
             for (int i = 0; i < numChibiEntries; i++)
             {
