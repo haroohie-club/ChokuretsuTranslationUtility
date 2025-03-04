@@ -288,29 +288,48 @@ public class SoundDSFile : DataFile
 /// <summary>
 /// An unknown entry in SND_DS.S
 /// </summary>
-public class UnknownAudio02Entry(byte[] data)
+public class UnknownAudio02Entry
 {
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown01 { get; set; } = IO.ReadShort(data, 0x00);
+    public short Unknown01 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown02 { get; set; } = IO.ReadShort(data, 0x02);
+    public short Unknown02 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown03 { get; set; } = IO.ReadShort(data, 0x04);
+    public short Unknown03 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown04 { get; set; } = IO.ReadShort(data, 0x06);
+    public short Unknown04 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown05 { get; set; } = IO.ReadShort(data, 0x08);
+    public short Unknown05 { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public UnknownAudio02Entry()
+    {
+    }
+
+    /// <summary>
+    /// Constructs an unknown audio 02 entry from binary data
+    /// </summary>
+    /// <param name="data"></param>
+    public UnknownAudio02Entry(byte[] data)
+    {
+        Unknown01 = IO.ReadShort(data, 0x00);
+        Unknown02 = IO.ReadShort(data, 0x02);
+        Unknown03 = IO.ReadShort(data, 0x04);
+        Unknown04 = IO.ReadShort(data, 0x06);
+        Unknown05 = IO.ReadShort(data, 0x08);
+    }
 
     internal string GetSource()
     {
@@ -330,37 +349,59 @@ public class UnknownAudio02Entry(byte[] data)
 /// <summary>
 /// A representation of a sound effect as defined in SND_DS.S
 /// </summary>
-public class SfxEntry(byte[] data)
+public class SfxEntry
 {
     /// <summary>
     /// The SDAT sequence archive index that contains the SFX
     /// </summary>
-    public short SequenceArchive { get; set; } = IO.ReadShort(data, 0x00);
+    public short SequenceArchive { get; set; }
     /// <summary>
     /// The index of the SFX's sequence in the sequence archive
     /// </summary>
-    public short Index { get; set; } = IO.ReadShort(data, 0x02);
+    public short Index { get; set; }
     /// <summary>
     /// The volume at which to play the SFX
     /// </summary>
-    public short Volume { get; set; } = IO.ReadShort(data, 0x04);
+    public short Volume { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown4 { get; set; } = IO.ReadShort(data, 0x06);
+    public short Unknown4 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public int Unknown5 { get; set; } = IO.ReadInt(data, 0x08);
+    public int Unknown5 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public int Unknown6 { get; set; } = IO.ReadInt(data, 0x0C);
+    public int Unknown6 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public int Unknown7 { get; set; } = IO.ReadInt(data, 0x10);
+    public int Unknown7 { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public SfxEntry()
+    {
+    }
+
+    /// <summary>
+    /// Constructs an SFX entry from data
+    /// </summary>
+    /// <param name="data">The binary data representing the SFX entry</param>
+    public SfxEntry(byte[] data)
+    {
+        SequenceArchive = IO.ReadShort(data, 0x00);
+        Index = IO.ReadShort(data, 0x02);
+        Volume = IO.ReadShort(data, 0x04);
+        Unknown4 = IO.ReadShort(data, 0x06);
+        Unknown5 = IO.ReadInt(data, 0x08);
+        Unknown6 = IO.ReadInt(data, 0x0C);
+        Unknown7 = IO.ReadInt(data, 0x10);
+    }
+    
     internal string GetSource()
     {
         StringBuilder sb = new();
@@ -380,25 +421,37 @@ public class SfxEntry(byte[] data)
 /// <summary>
 /// An unknown entry in SND_DS.S
 /// </summary>
-public class UnknownAudio09Entry(byte[] data)
+public class UnknownAudio09Entry
 {
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown01 { get; set; } = IO.ReadShort(data, 0x00);
+    public short Unknown01 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown02 { get; set; } = IO.ReadShort(data, 0x02);
+    public short Unknown02 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown03 { get; set; } = IO.ReadShort(data, 0x04);
+    public short Unknown03 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown04 { get; set; } = IO.ReadShort(data, 0x06);
+    public short Unknown04 { get; set; }
 
+    /// <summary>
+    /// Constructs an
+    /// </summary>
+    /// <param name="data"></param>
+    public UnknownAudio09Entry(byte[] data)
+    {
+        Unknown01 = IO.ReadShort(data, 0x00);
+        Unknown02 = IO.ReadShort(data, 0x02);
+        Unknown03 = IO.ReadShort(data, 0x04);
+        Unknown04 = IO.ReadShort(data, 0x06);
+    }
+    
     internal string GetSource()
     {
         StringBuilder sb = new();
