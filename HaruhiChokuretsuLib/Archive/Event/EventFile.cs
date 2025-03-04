@@ -1505,6 +1505,13 @@ public class EventFileSettings
     internal int ScriptSectionDefinitionsSectionPointer { get; set; }
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public EventFileSettings()
+    {
+    }
+    
+    /// <summary>
     /// Creates an event file settings instance
     /// </summary>
     /// <param name="data">Data from the event file</param>
@@ -1579,6 +1586,13 @@ public class DialogueLine
     /// </summary>
     public string SpeakerName { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public DialogueLine()
+    {
+    }
+    
     /// <summary>
     /// Extracts a dialogue line from an event file
     /// </summary>
