@@ -9,54 +9,53 @@ using GotaSoundIO.IO;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
+namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents;
+
+/// <summary>
+/// Group info.
+/// </summary>
+public class GroupInfo : IReadable, IWriteable
 {
     /// <summary>
-    /// Group info.
+    /// Name.
     /// </summary>
-    public class GroupInfo : IReadable, IWriteable
+    public string Name;
+
+    /// <summary>
+    /// Entry index.
+    /// </summary>
+    public int Index;
+
+    /// <summary>
+    /// Entries.
+    /// </summary>
+    public List<GroupEntry> Entries = [];
+
+    /// <summary>
+    /// Read the info.
+    /// </summary>
+    /// <param name="r">The reader.</param>
+    public void Read(FileReader r)
     {
-        /// <summary>
-        /// Name.
-        /// </summary>
-        public string Name;
-
-        /// <summary>
-        /// Entry index.
-        /// </summary>
-        public int Index;
-
-        /// <summary>
-        /// Entries.
-        /// </summary>
-        public List<GroupEntry> Entries = [];
-
-        /// <summary>
-        /// Read the info.
-        /// </summary>
-        /// <param name="r">The reader.</param>
-        public void Read(FileReader r)
+        Entries = [];
+        uint numEntries = r.ReadUInt32();
+        for (uint i = 0; i < numEntries; i++)
         {
-            Entries = [];
-            uint numEntries = r.ReadUInt32();
-            for (uint i = 0; i < numEntries; i++)
-            {
-                Entries.Add(r.Read<GroupEntry>());
-            }
+            Entries.Add(r.Read<GroupEntry>());
         }
+    }
 
-        /// <summary>
-        /// Write the info.
-        /// </summary>
-        /// <param name="w">The writer.</param>
-        public void Write(FileWriter w)
+    /// <summary>
+    /// Write the info.
+    /// </summary>
+    /// <param name="w">The writer.</param>
+    public void Write(FileWriter w)
+    {
+        Entries = Entries.Where(x => x.Entry != null).ToList();
+        w.Write((uint)Entries.Count);
+        foreach (var e in Entries)
         {
-            Entries = Entries.Where(x => x.Entry != null).ToList();
-            w.Write((uint)Entries.Count);
-            foreach (var e in Entries)
-            {
-                w.Write(e);
-            }
+            w.Write(e);
         }
     }
 }

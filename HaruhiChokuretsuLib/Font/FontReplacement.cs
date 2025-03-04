@@ -4,181 +4,180 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace HaruhiChokuretsuLib.Font
+namespace HaruhiChokuretsuLib.Font;
+
+/// <summary>
+/// A representation of a font replacement (used for translation)
+/// </summary>
+public class FontReplacement
 {
     /// <summary>
-    /// A representation of a font replacement (used for translation)
+    /// The original Shift-JIS character to replace
     /// </summary>
-    public class FontReplacement
+    public char OriginalCharacter { get; set; }
+    /// <summary>
+    /// The character to replace it with
+    /// </summary>
+    public char ReplacedCharacter { get; set; }
+    /// <summary>
+    /// The codepoint of the original character
+    /// </summary>
+    public int CodePoint { get; set; }
+    /// <summary>
+    /// The width of the replacement character for use by the variable width font hack
+    /// </summary>
+    public int Offset { get; set; }
+}
+
+/// <summary>
+/// A special dictionary for font replacement
+/// </summary>
+public class FontReplacementDictionary : IDictionary<char, FontReplacement>
+{
+    private readonly List<FontReplacement> _fontReplacements = [];
+
+    /// <summary>
+    /// Indexes into a font replacement dictionary
+    /// </summary>
+    /// <param name="key">The replacement character</param>
+    /// <returns>A font replacement object given that replacement character</returns>
+    public FontReplacement this[char key]
     {
-        /// <summary>
-        /// The original Shift-JIS character to replace
-        /// </summary>
-        public char OriginalCharacter { get; set; }
-        /// <summary>
-        /// The character to replace it with
-        /// </summary>
-        public char ReplacedCharacter { get; set; }
-        /// <summary>
-        /// The codepoint of the original character
-        /// </summary>
-        public int CodePoint { get; set; }
-        /// <summary>
-        /// The width of the replacement character for use by the variable width font hack
-        /// </summary>
-        public int Offset { get; set; }
+        get => _fontReplacements.First(f => f.ReplacedCharacter == key);
+        set => _fontReplacements[_fontReplacements.FindIndex(f => f.ReplacedCharacter == key)] = value;
     }
 
     /// <summary>
-    /// A special dictionary for font replacement
+    /// Looks up a font replacement by original character
     /// </summary>
-    public class FontReplacementDictionary : IDictionary<char, FontReplacement>
+    /// <param name="key">The original character</param>
+    /// <returns>A font replacement object</returns>
+    public FontReplacement ReverseLookup(char key)
     {
-        private readonly List<FontReplacement> _fontReplacements = [];
+        return _fontReplacements.FirstOrDefault(f => f.OriginalCharacter == key);
+    }
 
-        /// <summary>
-        /// Indexes into a font replacement dictionary
-        /// </summary>
-        /// <param name="key">The replacement character</param>
-        /// <returns>A font replacement object given that replacement character</returns>
-        public FontReplacement this[char key]
+    /// <inheritdoc/>
+    public ICollection<char> Keys => (ICollection<char>)_fontReplacements.Select(f => f.ReplacedCharacter);
+
+    /// <inheritdoc/>
+    public ICollection<FontReplacement> Values => _fontReplacements;
+
+    /// <inheritdoc/>
+    public int Count => _fontReplacements.Count;
+
+    /// <inheritdoc/>
+    public bool IsReadOnly => false;
+
+    /// <summary>
+    /// Gets a replacement character given an original character
+    /// </summary>
+    /// <param name="originalCharacter">The original character to get</param>
+    /// <returns></returns>
+    public FontReplacement GetReplacementCharacter(char originalCharacter) => _fontReplacements.FirstOrDefault(f => f.OriginalCharacter == originalCharacter);
+
+    /// <summary>
+    /// Adds a font replacement to the dictionary
+    /// </summary>
+    /// <param name="value"></param>
+    public void Add(FontReplacement value)
+    {
+        _fontReplacements.Add(value);
+    }
+
+    /// <summary>
+    /// Adds a range of font replacements to the dictionary
+    /// </summary>
+    /// <param name="values"></param>
+    public void AddRange(IEnumerable<FontReplacement> values)
+    {
+        _fontReplacements.AddRange(values);
+    }
+
+    /// <inheritdoc/>
+    public void Add(char key, FontReplacement value)
+    {
+        if (key != value.ReplacedCharacter)
         {
-            get => _fontReplacements.First(f => f.ReplacedCharacter == key);
-            set => _fontReplacements[_fontReplacements.FindIndex(f => f.ReplacedCharacter == key)] = value;
+            throw new ArgumentException($"Replacement character '{value.ReplacedCharacter}' did not match key '{key}'");
         }
+        _fontReplacements.Add(value);
+    }
 
-        /// <summary>
-        /// Looks up a font replacement by original character
-        /// </summary>
-        /// <param name="key">The original character</param>
-        /// <returns>A font replacement object</returns>
-        public FontReplacement ReverseLookup(char key)
+    /// <inheritdoc/>
+    public void Add(KeyValuePair<char, FontReplacement> item)
+    {
+        Add(item.Key, item.Value);
+    }
+
+    /// <inheritdoc/>
+    public void Clear()
+    {
+        _fontReplacements.Clear();
+    }
+
+    /// <inheritdoc/>
+    public bool Contains(KeyValuePair<char, FontReplacement> item)
+    {
+        return _fontReplacements.Contains(item.Value);
+    }
+
+    /// <inheritdoc/>
+    public bool ContainsKey(char key)
+    {
+        return _fontReplacements.Any(f => f.ReplacedCharacter == key);
+    }
+
+    /// <inheritdoc/>
+    public void CopyTo(KeyValuePair<char, FontReplacement>[] array, int arrayIndex)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<KeyValuePair<char, FontReplacement>> GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public bool Remove(char key)
+    {
+        int index = _fontReplacements.FindIndex(f => f.ReplacedCharacter == key);
+        if (index == -1)
         {
-            return _fontReplacements.FirstOrDefault(f => f.OriginalCharacter == key);
+            return false;
         }
-
-        /// <inheritdoc/>
-        public ICollection<char> Keys => (ICollection<char>)_fontReplacements.Select(f => f.ReplacedCharacter);
-
-        /// <inheritdoc/>
-        public ICollection<FontReplacement> Values => _fontReplacements;
-
-        /// <inheritdoc/>
-        public int Count => _fontReplacements.Count;
-
-        /// <inheritdoc/>
-        public bool IsReadOnly => false;
-
-        /// <summary>
-        /// Gets a replacement character given an original character
-        /// </summary>
-        /// <param name="originalCharacter">The original character to get</param>
-        /// <returns></returns>
-        public FontReplacement GetReplacementCharacter(char originalCharacter) => _fontReplacements.FirstOrDefault(f => f.OriginalCharacter == originalCharacter);
-
-        /// <summary>
-        /// Adds a font replacement to the dictionary
-        /// </summary>
-        /// <param name="value"></param>
-        public void Add(FontReplacement value)
+        else
         {
-            _fontReplacements.Add(value);
+            _fontReplacements.RemoveAt(index);
+            return true;
         }
+    }
 
-        /// <summary>
-        /// Adds a range of font replacements to the dictionary
-        /// </summary>
-        /// <param name="values"></param>
-        public void AddRange(IEnumerable<FontReplacement> values)
-        {
-            _fontReplacements.AddRange(values);
-        }
+    /// <inheritdoc/>
+    public bool Remove(KeyValuePair<char, FontReplacement> item)
+    {
+        return _fontReplacements.Remove(item.Value);
+    }
 
-        /// <inheritdoc/>
-        public void Add(char key, FontReplacement value)
+    /// <inheritdoc/>
+    public bool TryGetValue(char key, [MaybeNullWhen(false)] out FontReplacement value)
+    {
+        if (ContainsKey(key))
         {
-            if (key != value.ReplacedCharacter)
-            {
-                throw new ArgumentException($"Replacement character '{value.ReplacedCharacter}' did not match key '{key}'");
-            }
-            _fontReplacements.Add(value);
+            value = this[key];
+            return true;
         }
+        else
+        {
+            value = null;
+            return false;
+        }
+    }
 
-        /// <inheritdoc/>
-        public void Add(KeyValuePair<char, FontReplacement> item)
-        {
-            Add(item.Key, item.Value);
-        }
-
-        /// <inheritdoc/>
-        public void Clear()
-        {
-            _fontReplacements.Clear();
-        }
-
-        /// <inheritdoc/>
-        public bool Contains(KeyValuePair<char, FontReplacement> item)
-        {
-            return _fontReplacements.Contains(item.Value);
-        }
-
-        /// <inheritdoc/>
-        public bool ContainsKey(char key)
-        {
-            return _fontReplacements.Any(f => f.ReplacedCharacter == key);
-        }
-
-        /// <inheritdoc/>
-        public void CopyTo(KeyValuePair<char, FontReplacement>[] array, int arrayIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public IEnumerator<KeyValuePair<char, FontReplacement>> GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public bool Remove(char key)
-        {
-            int index = _fontReplacements.FindIndex(f => f.ReplacedCharacter == key);
-            if (index == -1)
-            {
-                return false;
-            }
-            else
-            {
-                _fontReplacements.RemoveAt(index);
-                return true;
-            }
-        }
-
-        /// <inheritdoc/>
-        public bool Remove(KeyValuePair<char, FontReplacement> item)
-        {
-            return _fontReplacements.Remove(item.Value);
-        }
-
-        /// <inheritdoc/>
-        public bool TryGetValue(char key, [MaybeNullWhen(false)] out FontReplacement value)
-        {
-            if (ContainsKey(key))
-            {
-                value = this[key];
-                return true;
-            }
-            else
-            {
-                value = null;
-                return false;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
     }
 }

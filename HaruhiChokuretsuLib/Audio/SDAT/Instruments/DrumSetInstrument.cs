@@ -9,99 +9,98 @@ using GotaSequenceLib;
 using GotaSoundIO.IO;
 using System.Linq;
 
-namespace HaruhiChokuretsuLib.Audio.SDAT.Instruments
+namespace HaruhiChokuretsuLib.Audio.SDAT.Instruments;
+
+/// <summary>
+/// A drum set instrument.
+/// </summary>
+public class DrumSetInstrument : Instrument
 {
     /// <summary>
-    /// A drum set instrument.
+    /// Minimum instrument.
     /// </summary>
-    public class DrumSetInstrument : Instrument
+    public byte Min;
+
+    /// <summary>
+    /// Read the instrument.
+    /// </summary>
+    /// <param name="r">The reader.</param>
+    public override void Read(FileReader r)
     {
-        /// <summary>
-        /// Minimum instrument.
-        /// </summary>
-        public byte Min;
+        //Get indices.
+        byte min = r.ReadByte();
+        byte max = r.ReadByte();
+        int numInsts = max - min + 1;
+        Min = min;
 
-        /// <summary>
-        /// Read the instrument.
-        /// </summary>
-        /// <param name="r">The reader.</param>
-        public override void Read(FileReader r)
+        //Read note parameters.
+        NoteInfo lastInst = null;
+        byte ind = min;
+        for (int i = 0; i < numInsts; i++)
         {
-            //Get indices.
-            byte min = r.ReadByte();
-            byte max = r.ReadByte();
-            int numInsts = max - min + 1;
-            Min = min;
-
-            //Read note parameters.
-            NoteInfo lastInst = null;
-            byte ind = min;
-            for (int i = 0; i < numInsts; i++)
+            //Get the instrument type.
+            InstrumentType t = (InstrumentType)r.ReadUInt16();
+            NoteInfo n = r.Read<NoteInfo>();
+            if (lastInst == null)
             {
-                //Get the instrument type.
-                InstrumentType t = (InstrumentType)r.ReadUInt16();
-                NoteInfo n = r.Read<NoteInfo>();
-                if (lastInst == null)
+                lastInst = n;
+            }
+            else
+            {
+                if (!n.Equals(lastInst))
                 {
+                    NoteInfo.Add(lastInst);
+                    NoteInfo.Last().Key = (Notes)(ind - 1);
                     lastInst = n;
                 }
-                else
-                {
-                    if (!n.Equals(lastInst))
-                    {
-                        NoteInfo.Add(lastInst);
-                        NoteInfo.Last().Key = (Notes)(ind - 1);
-                        lastInst = n;
-                    }
-                }
-
-                //If last instrument.
-                if (ind == max)
-                {
-                    NoteInfo.Add(n);
-                    NoteInfo.Last().Key = (Notes)ind;
-                }
-
-                //Increment index.
-                ind++;
             }
-        }
 
-        /// <summary>
-        /// Write the intrument.
-        /// </summary>
-        /// <param name="w">The writer.</param>
-        public override void Write(FileWriter w)
-        {
-            //Write data.
-            var indices = NoteInfo.Select(x => x.Key).ToArray();
-            w.Write(Min);
-            w.Write((byte)indices.Last());
-            for (int i = Min; i <= (byte)indices.Last(); i++)
+            //If last instrument.
+            if (ind == max)
             {
-                int ind = 0;
-                for (int j = indices.Count() - 1; j >= 0; j--)
-                {
-                    if (i <= (byte)indices[j])
-                    {
-                        ind = j;
-                    }
-                }
-                w.Write((ushort)NoteInfo.Where(x => x.Key == indices[ind]).FirstOrDefault().InstrumentType);
-                w.Write(NoteInfo.Where(x => x.Key == indices[ind]).FirstOrDefault());
+                NoteInfo.Add(n);
+                NoteInfo.Last().Key = (Notes)ind;
             }
+
+            //Increment index.
+            ind++;
         }
-
-        /// <summary>
-        /// The instrument type.
-        /// </summary>
-        /// <returns>The instrument type.</returns>
-        public override InstrumentType Type() => InstrumentType.DrumSet;
-
-        /// <summary>
-        /// Max instruments.
-        /// </summary>
-        /// <returns>The max instruments.</returns>
-        public override uint MaxInstruments() => 0x80;
     }
+
+    /// <summary>
+    /// Write the intrument.
+    /// </summary>
+    /// <param name="w">The writer.</param>
+    public override void Write(FileWriter w)
+    {
+        //Write data.
+        var indices = NoteInfo.Select(x => x.Key).ToArray();
+        w.Write(Min);
+        w.Write((byte)indices.Last());
+        for (int i = Min; i <= (byte)indices.Last(); i++)
+        {
+            int ind = 0;
+            for (int j = indices.Count() - 1; j >= 0; j--)
+            {
+                if (i <= (byte)indices[j])
+                {
+                    ind = j;
+                }
+            }
+            w.Write((ushort)NoteInfo.Where(x => x.Key == indices[ind]).FirstOrDefault().InstrumentType);
+            w.Write(NoteInfo.Where(x => x.Key == indices[ind]).FirstOrDefault());
+        }
+    }
+
+    /// <summary>
+    /// The instrument type.
+    /// </summary>
+    /// <returns>The instrument type.</returns>
+    public override InstrumentType Type() => InstrumentType.DrumSet;
+
+    /// <summary>
+    /// Max instruments.
+    /// </summary>
+    /// <returns>The max instruments.</returns>
+    public override uint MaxInstruments() => 0x80;
 }

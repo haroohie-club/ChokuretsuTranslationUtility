@@ -8,82 +8,81 @@
 using GotaSoundIO.IO;
 using System.Linq;
 
-namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents
+namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents;
+
+/// <summary>
+/// Player info.
+/// </summary>
+public class PlayerInfo : IReadable, IWriteable
 {
     /// <summary>
-    /// Player info.
+    /// Name.
     /// </summary>
-    public class PlayerInfo : IReadable, IWriteable
+    public string Name;
+
+    /// <summary>
+    /// Entry index.
+    /// </summary>
+    public int Index;
+
+    /// <summary>
+    /// Sequence max.
+    /// </summary>
+    public ushort SequenceMax;
+
+    /// <summary>
+    /// Channel flags.
+    /// </summary>
+    public bool[] ChannelFlags = new bool[16];
+
+    /// <summary>
+    /// Heap size.
+    /// </summary>
+    public uint HeapSize;
+
+    /// <summary>
+    /// Read the info.
+    /// </summary>
+    /// <param name="r">The reader.</param>
+    public void Read(FileReader r)
     {
-        /// <summary>
-        /// Name.
-        /// </summary>
-        public string Name;
+        SequenceMax = r.ReadUInt16();
+        ChannelFlags = r.ReadBitFlags(2);
+        if (ChannelFlags.Where(x => x == false).Count() == 16) { ChannelFlags = [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+        ]; }
+        HeapSize = r.ReadUInt32();
+    }
 
-        /// <summary>
-        /// Entry index.
-        /// </summary>
-        public int Index;
-
-        /// <summary>
-        /// Sequence max.
-        /// </summary>
-        public ushort SequenceMax;
-
-        /// <summary>
-        /// Channel flags.
-        /// </summary>
-        public bool[] ChannelFlags = new bool[16];
-
-        /// <summary>
-        /// Heap size.
-        /// </summary>
-        public uint HeapSize;
-
-        /// <summary>
-        /// Read the info.
-        /// </summary>
-        /// <param name="r">The reader.</param>
-        public void Read(FileReader r)
+    /// <summary>
+    /// Write the info.
+    /// </summary>
+    /// <param name="w">The writer.</param>
+    public void Write(FileWriter w)
+    {
+        w.Write(SequenceMax);
+        if (ChannelFlags.Where(x => x == true).Count() == 16)
         {
-            SequenceMax = r.ReadUInt16();
-            ChannelFlags = r.ReadBitFlags(2);
-            if (ChannelFlags.Where(x => x == false).Count() == 16) { ChannelFlags = [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-            ]; }
-            HeapSize = r.ReadUInt32();
+            w.Write((ushort)0);
         }
-
-        /// <summary>
-        /// Write the info.
-        /// </summary>
-        /// <param name="w">The writer.</param>
-        public void Write(FileWriter w)
+        else
         {
-            w.Write(SequenceMax);
-            if (ChannelFlags.Where(x => x == true).Count() == 16)
-            {
-                w.Write((ushort)0);
-            }
-            else
-            {
-                w.WriteBitFlags(ChannelFlags, 2);
-            }
-            w.Write(HeapSize);
+            w.WriteBitFlags(ChannelFlags, 2);
         }
+        w.Write(HeapSize);
+    }
 
-        /// <summary>
-        /// Get bit flags.
-        /// </summary>
-        public ushort BitFlags()
+    /// <summary>
+    /// Get bit flags.
+    /// </summary>
+    public ushort BitFlags()
+    {
+
+        //Flags.
+        ushort u = 0;
+        for (int i = 0; i < ChannelFlags.Length; i++)
         {
-
-            //Flags.
-            ushort u = 0;
-            for (int i = 0; i < ChannelFlags.Length; i++)
-            {
-                if (ChannelFlags[i]) { u |= (ushort)(0b1 << i); }
-            }
-            return u;
+            if (ChannelFlags[i]) { u |= (ushort)(0b1 << i); }
         }
+        return u;
     }
 }

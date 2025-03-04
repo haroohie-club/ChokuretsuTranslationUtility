@@ -7,310 +7,309 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace HaruhiChokuretsuLib.Archive.Data
+namespace HaruhiChokuretsuLib.Archive.Data;
+
+/// <summary>
+/// A representation of CHRDATA.S in dat.bin
+/// </summary>
+public class CharacterDataFile : DataFile
 {
     /// <summary>
-    /// A representation of CHRDATA.S in dat.bin
+    /// The list of character sprites contained in the character data file
     /// </summary>
-    public class CharacterDataFile : DataFile
+    public List<CharacterSprite> Sprites { get; set; } = [];
+
+    /// <inheritdoc/>
+    public override void Initialize(byte[] decompressedData, int offset, ILogger log)
     {
-        /// <summary>
-        /// The list of character sprites contained in the character data file
-        /// </summary>
-        public List<CharacterSprite> Sprites { get; set; } = [];
+        Log = log;
 
-        /// <inheritdoc/>
-        public override void Initialize(byte[] decompressedData, int offset, ILogger log)
+        int numSections = IO.ReadInt(decompressedData, 0);
+        if (numSections != 1)
         {
-            Log = log;
-
-            int numSections = IO.ReadInt(decompressedData, 0);
-            if (numSections != 1)
-            {
-                Log.LogError($"Character data file should only have 1 section; {numSections} specified");
-                return;
-            }
-            int sectionStart = IO.ReadInt(decompressedData, 0x0C);
-            int sectionCount = IO.ReadInt(decompressedData, 0x10);
-
-            for (int i = 0; i < sectionCount; i++)
-            {
-                Sprites.Add(new(decompressedData[(sectionStart + 0x18 * i)..(sectionStart + 0x18 * (i + 1))]));
-            }
+            Log.LogError($"Character data file should only have 1 section; {numSections} specified");
+            return;
         }
+        int sectionStart = IO.ReadInt(decompressedData, 0x0C);
+        int sectionCount = IO.ReadInt(decompressedData, 0x10);
 
-        /// <inheritdoc/>
-        public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
+        for (int i = 0; i < sectionCount; i++)
         {
-            if (!includes.ContainsKey("GRPBIN"))
-            {
-                Log.LogError("Includes needs GRPBIN to be present.");
-                return null;
-            }
-
-            StringBuilder sb = new();
-
-            sb.AppendLine(".include \"GRPBIN.INC\"");
-            sb.AppendLine();
-            sb.AppendLine($".word 1");
-            sb.AppendLine(".word END_POINTERS");
-            sb.AppendLine(".word FILE_START");
-            sb.AppendLine(".word SPRITE_LIST");
-            sb.AppendLine($".word {Sprites.Count}");
-
-            sb.AppendLine();
-            sb.AppendLine("FILE_START:");
-            sb.AppendLine("SPRITE_LIST:");
-
-            foreach (CharacterSprite sprite in Sprites)
-            {
-                sb.AppendLine($".short {sprite.Unknown00}");
-                sb.AppendLine($".short {(sprite.IsLarge ? 1 : 0)}");
-                sb.AppendLine($".short {(short)sprite.Character}");
-                sb.AppendLine($".short {(sprite.TextureIndex1 > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.TextureIndex1).Name : 0)}");
-                sb.AppendLine($".short {(sprite.TextureIndex2 > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.TextureIndex2).Name : 0)}");
-                sb.AppendLine($".short {(sprite.LayoutIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.LayoutIndex).Name : 0)}");
-                sb.AppendLine($".short {(sprite.TextureIndex3 > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.TextureIndex3).Name : 0)}");
-                sb.AppendLine($".short {sprite.Padding}");
-                sb.AppendLine($".short {(sprite.EyeTextureIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.EyeTextureIndex).Name : 0)}");
-                sb.AppendLine($".short {(sprite.MouthTextureIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.MouthTextureIndex).Name : 0)}");
-                sb.AppendLine($".short {(sprite.EyeAnimationIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.EyeAnimationIndex).Name : 0)}");
-                sb.AppendLine($".short {(sprite.MouthAnimationIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.MouthAnimationIndex).Name : 0)}");
-                sb.AppendLine();
-            }
-
-            sb.AppendLine("END_POINTERS:");
-            sb.AppendLine(".word 0");
-
-            return sb.ToString();
+            Sprites.Add(new(decompressedData[(sectionStart + 0x18 * i)..(sectionStart + 0x18 * (i + 1))]));
         }
     }
 
-    /// <summary>
-    /// A representation of a character sprite as displayed on screen during Chokuretsu's VN sections;
-    /// defined in CHRDATA.S
-    /// </summary>
-    public class CharacterSprite(byte[] data)
+    /// <inheritdoc/>
+    public override string GetSource(Dictionary<string, IncludeEntry[]> includes)
     {
-        /// <summary>
-        /// Unknown
-        /// </summary>
-        public short Unknown00 { get; set; } = IO.ReadShort(data, 0);
-        /// <summary>
-        /// Is true if the sprite is large
-        /// </summary>
-        public bool IsLarge { get; set; } = IO.ReadShort(data, 0x02) == 1;
-        /// <summary>
-        /// The character depicted in the sprite (defined with the same Speaker value used in scripts)
-        /// </summary>
-        public Speaker Character { get; set; } = (Speaker)IO.ReadShort(data, 0x04);
-        /// <summary>
-        /// The grp.bin index of the first texture used in the sprite layout
-        /// </summary>
-        public short TextureIndex1 { get; set; } = IO.ReadShort(data, 0x06);
-        /// <summary>
-        /// The grp.bin index of the second texture used in the sprite layout
-        /// </summary>
-        public short TextureIndex2 { get; set; } = IO.ReadShort(data, 0x08);
-        /// <summary>
-        /// The grp.bin index of the sprite layout
-        /// </summary>
-        public short LayoutIndex { get; set; } = IO.ReadShort(data, 0x0A);
-        /// <summary>
-        /// The grp.bin index of the third texture used in the sprite layout
-        /// </summary>
-        public short TextureIndex3 { get; set; } = IO.ReadShort(data, 0x0C);
-        /// <summary>
-        /// Unused
-        /// </summary>
-        public short Padding { get; set; } = IO.ReadShort(data, 0x0E);
-        /// <summary>
-        /// The grp.bin index of the eye texture
-        /// </summary>
-        public short EyeTextureIndex { get; set; } = IO.ReadShort(data, 0x10);
-        /// <summary>
-        /// The grp.bin index of the mouth texture
-        /// </summary>
-        public short MouthTextureIndex { get; set; } = IO.ReadShort(data, 0x12);
-        /// <summary>
-        /// The grp.bin index of the eye animation file
-        /// </summary>
-        public short EyeAnimationIndex { get; set; } = IO.ReadShort(data, 0x14);
-        /// <summary>
-        /// The grp.bin index of the mouth animation file
-        /// </summary>
-        public short MouthAnimationIndex { get; set; } = IO.ReadShort(data, 0x16);
-
-
-        /// <summary>
-        /// Gets the animation of the sprite blinking without lip flap animation
-        /// </summary>
-        /// <param name="grp">The grp.bin ArchiveFile object</param>
-        /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
-        /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
-        public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
+        if (!includes.ContainsKey("GRPBIN"))
         {
-            return GetAnimation(grp, messageInfoFile, false, null, null, null, null, null, null);
+            Log.LogError("Includes needs GRPBIN to be present.");
+            return null;
         }
 
-        /// <summary>
-        /// Gets the animation of the sprite blinking and moving its lips
-        /// </summary>
-        /// <param name="grp">The grp.bin ArchiveFile object</param>
-        /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
-        /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
-        public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
+        StringBuilder sb = new();
+
+        sb.AppendLine(".include \"GRPBIN.INC\"");
+        sb.AppendLine();
+        sb.AppendLine($".word 1");
+        sb.AppendLine(".word END_POINTERS");
+        sb.AppendLine(".word FILE_START");
+        sb.AppendLine(".word SPRITE_LIST");
+        sb.AppendLine($".word {Sprites.Count}");
+
+        sb.AppendLine();
+        sb.AppendLine("FILE_START:");
+        sb.AppendLine("SPRITE_LIST:");
+
+        foreach (CharacterSprite sprite in Sprites)
         {
-            return GetAnimation(grp, messageInfoFile, true, null, null, null, null, null, null);
+            sb.AppendLine($".short {sprite.Unknown00}");
+            sb.AppendLine($".short {(sprite.IsLarge ? 1 : 0)}");
+            sb.AppendLine($".short {(short)sprite.Character}");
+            sb.AppendLine($".short {(sprite.TextureIndex1 > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.TextureIndex1).Name : 0)}");
+            sb.AppendLine($".short {(sprite.TextureIndex2 > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.TextureIndex2).Name : 0)}");
+            sb.AppendLine($".short {(sprite.LayoutIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.LayoutIndex).Name : 0)}");
+            sb.AppendLine($".short {(sprite.TextureIndex3 > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.TextureIndex3).Name : 0)}");
+            sb.AppendLine($".short {sprite.Padding}");
+            sb.AppendLine($".short {(sprite.EyeTextureIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.EyeTextureIndex).Name : 0)}");
+            sb.AppendLine($".short {(sprite.MouthTextureIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.MouthTextureIndex).Name : 0)}");
+            sb.AppendLine($".short {(sprite.EyeAnimationIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.EyeAnimationIndex).Name : 0)}");
+            sb.AppendLine($".short {(sprite.MouthAnimationIndex > 0 ? includes["GRPBIN"].First(inc => inc.Value == sprite.MouthAnimationIndex).Name : 0)}");
+            sb.AppendLine();
         }
 
-        /// <summary>
-        /// Gets the animation of the sprite blinking without lip flap animation
-        /// </summary>
-        /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
-        /// <param name="bodyLayout">The associated layout graphic</param>
-        /// <param name="bodyTextures">The associated main body texture graphic</param>
-        /// <param name="eyeAnimation">The associated eye animation graphic</param>
-        /// <param name="eyeTexture">The associated eye texture graphic</param>
-        /// <param name="mouthAnimation">The associated mouth animation graphic</param>
-        /// <param name="mouthTexture">The associated mouth texture graphic</param>
-        /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
-        public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(MessageInfoFile messageInfoFile, GraphicsFile bodyLayout, IEnumerable<GraphicsFile> bodyTextures, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
+        sb.AppendLine("END_POINTERS:");
+        sb.AppendLine(".word 0");
+
+        return sb.ToString();
+    }
+}
+
+/// <summary>
+/// A representation of a character sprite as displayed on screen during Chokuretsu's VN sections;
+/// defined in CHRDATA.S
+/// </summary>
+public class CharacterSprite(byte[] data)
+{
+    /// <summary>
+    /// Unknown
+    /// </summary>
+    public short Unknown00 { get; set; } = IO.ReadShort(data, 0);
+    /// <summary>
+    /// Is true if the sprite is large
+    /// </summary>
+    public bool IsLarge { get; set; } = IO.ReadShort(data, 0x02) == 1;
+    /// <summary>
+    /// The character depicted in the sprite (defined with the same Speaker value used in scripts)
+    /// </summary>
+    public Speaker Character { get; set; } = (Speaker)IO.ReadShort(data, 0x04);
+    /// <summary>
+    /// The grp.bin index of the first texture used in the sprite layout
+    /// </summary>
+    public short TextureIndex1 { get; set; } = IO.ReadShort(data, 0x06);
+    /// <summary>
+    /// The grp.bin index of the second texture used in the sprite layout
+    /// </summary>
+    public short TextureIndex2 { get; set; } = IO.ReadShort(data, 0x08);
+    /// <summary>
+    /// The grp.bin index of the sprite layout
+    /// </summary>
+    public short LayoutIndex { get; set; } = IO.ReadShort(data, 0x0A);
+    /// <summary>
+    /// The grp.bin index of the third texture used in the sprite layout
+    /// </summary>
+    public short TextureIndex3 { get; set; } = IO.ReadShort(data, 0x0C);
+    /// <summary>
+    /// Unused
+    /// </summary>
+    public short Padding { get; set; } = IO.ReadShort(data, 0x0E);
+    /// <summary>
+    /// The grp.bin index of the eye texture
+    /// </summary>
+    public short EyeTextureIndex { get; set; } = IO.ReadShort(data, 0x10);
+    /// <summary>
+    /// The grp.bin index of the mouth texture
+    /// </summary>
+    public short MouthTextureIndex { get; set; } = IO.ReadShort(data, 0x12);
+    /// <summary>
+    /// The grp.bin index of the eye animation file
+    /// </summary>
+    public short EyeAnimationIndex { get; set; } = IO.ReadShort(data, 0x14);
+    /// <summary>
+    /// The grp.bin index of the mouth animation file
+    /// </summary>
+    public short MouthAnimationIndex { get; set; } = IO.ReadShort(data, 0x16);
+
+
+    /// <summary>
+    /// Gets the animation of the sprite blinking without lip flap animation
+    /// </summary>
+    /// <param name="grp">The grp.bin ArchiveFile object</param>
+    /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
+    /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
+    public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
+    {
+        return GetAnimation(grp, messageInfoFile, false, null, null, null, null, null, null);
+    }
+
+    /// <summary>
+    /// Gets the animation of the sprite blinking and moving its lips
+    /// </summary>
+    /// <param name="grp">The grp.bin ArchiveFile object</param>
+    /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
+    /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
+    public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(ArchiveFile<GraphicsFile> grp, MessageInfoFile messageInfoFile)
+    {
+        return GetAnimation(grp, messageInfoFile, true, null, null, null, null, null, null);
+    }
+
+    /// <summary>
+    /// Gets the animation of the sprite blinking without lip flap animation
+    /// </summary>
+    /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
+    /// <param name="bodyLayout">The associated layout graphic</param>
+    /// <param name="bodyTextures">The associated main body texture graphic</param>
+    /// <param name="eyeAnimation">The associated eye animation graphic</param>
+    /// <param name="eyeTexture">The associated eye texture graphic</param>
+    /// <param name="mouthAnimation">The associated mouth animation graphic</param>
+    /// <param name="mouthTexture">The associated mouth texture graphic</param>
+    /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
+    public List<(SKBitmap frame, int timing)> GetClosedMouthAnimation(MessageInfoFile messageInfoFile, GraphicsFile bodyLayout, IEnumerable<GraphicsFile> bodyTextures, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
+    {
+        return GetAnimation(null, messageInfoFile, false, bodyLayout, bodyTextures, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
+    }
+
+    /// <summary>
+    /// Gets the animation of the sprite blinking and moving its lips
+    /// </summary>
+    /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
+    /// <param name="bodyLayout">The associated layout graphic</param>
+    /// <param name="bodyTextures">The associated main body texture graphics</param>
+    /// <param name="eyeAnimation">The associated eye animation graphic</param>
+    /// <param name="eyeTexture">The associated eye texture graphic</param>
+    /// <param name="mouthAnimation">The associated mouth animation graphic</param>
+    /// <param name="mouthTexture">The associated mouth texture graphic</param>
+    /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
+    public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(MessageInfoFile messageInfoFile, GraphicsFile bodyLayout, IEnumerable<GraphicsFile> bodyTextures, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
+    {
+        return GetAnimation(null, messageInfoFile, true, bodyLayout, bodyTextures, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
+    }
+
+    private List<(SKBitmap frame, int timing)> GetAnimation(
+        ArchiveFile<GraphicsFile> grp,
+        MessageInfoFile messageInfoFile,
+        bool lipFlap,
+        GraphicsFile bodyLayout,
+        IEnumerable<GraphicsFile> bodyTextures,
+        GraphicsFile eyeAnimation,
+        GraphicsFile eyeTexture,
+        GraphicsFile mouthAnimation,
+        GraphicsFile mouthTexture)
+    {
+        List<(SKBitmap, int)> frames = [];
+
+        if (Unknown00 == 0)
         {
-            return GetAnimation(null, messageInfoFile, false, bodyLayout, bodyTextures, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
+            return frames;
         }
 
-        /// <summary>
-        /// Gets the animation of the sprite blinking and moving its lips
-        /// </summary>
-        /// <param name="messageInfoFile">The MessageInfo file from dat.bin</param>
-        /// <param name="bodyLayout">The associated layout graphic</param>
-        /// <param name="bodyTextures">The associated main body texture graphics</param>
-        /// <param name="eyeAnimation">The associated eye animation graphic</param>
-        /// <param name="eyeTexture">The associated eye texture graphic</param>
-        /// <param name="mouthAnimation">The associated mouth animation graphic</param>
-        /// <param name="mouthTexture">The associated mouth texture graphic</param>
-        /// <returns>A list of tuples containing SKBitmap frames and timings for how long those frames are to be displayed</returns>
-        public List<(SKBitmap frame, int timing)> GetLipFlapAnimation(MessageInfoFile messageInfoFile, GraphicsFile bodyLayout, IEnumerable<GraphicsFile> bodyTextures, GraphicsFile eyeAnimation, GraphicsFile eyeTexture, GraphicsFile mouthAnimation, GraphicsFile mouthTexture)
+        List<GraphicsFile> textures = [];
+        if (grp is not null)
         {
-            return GetAnimation(null, messageInfoFile, true, bodyLayout, bodyTextures, eyeAnimation, eyeTexture, mouthAnimation, mouthTexture);
+            textures.AddRange([grp.GetFileByIndex(TextureIndex1), grp.GetFileByIndex(TextureIndex2), grp.GetFileByIndex(TextureIndex3)]);
         }
-
-        private List<(SKBitmap frame, int timing)> GetAnimation(
-            ArchiveFile<GraphicsFile> grp,
-            MessageInfoFile messageInfoFile,
-            bool lipFlap,
-            GraphicsFile bodyLayout,
-            IEnumerable<GraphicsFile> bodyTextures,
-            GraphicsFile eyeAnimation,
-            GraphicsFile eyeTexture,
-            GraphicsFile mouthAnimation,
-            GraphicsFile mouthTexture)
+        else
         {
-            List<(SKBitmap, int)> frames = [];
+            textures.AddRange(bodyTextures);
+        }
+        if (bodyLayout is null && grp is not null)
+        {
+            bodyLayout = grp.GetFileByIndex(LayoutIndex);
+        }
+        if (eyeTexture is null && grp is not null)
+        {
+            eyeTexture = grp.GetFileByIndex(EyeTextureIndex);
+            eyeAnimation = grp.GetFileByIndex(EyeAnimationIndex);
+        }
+        if (mouthTexture is null && grp is not null)
+        {
+            mouthTexture = grp.GetFileByIndex(MouthTextureIndex);
+            mouthAnimation = grp.GetFileByIndex(MouthAnimationIndex);
+        }
+        MessageInfo messageInfo = messageInfoFile.MessageInfos[(int)Character];
 
-            if (Unknown00 == 0)
+        (SKBitmap spriteBitmap, _) = bodyLayout.GetLayout(textures, 0, bodyLayout.LayoutEntries.Count, darkMode: false, preprocessedList: true);
+        SKBitmap[] eyeFrames = eyeAnimation.GetAnimationFrames(eyeTexture).Select(f => f.GetImage()).ToArray();
+        SKBitmap[] mouthFrames = mouthAnimation.GetAnimationFrames(mouthTexture).Select(f => f.GetImage()).ToArray();
+
+        int e = 0, m = 0;
+        int currentEyeTime = ((FrameAnimationEntry)eyeAnimation.AnimationEntries[e]).Time;
+        int currentMouthTime = messageInfo.TextTimer * 30;
+        for (int f = 0; f < Math.Max(eyeAnimation.AnimationEntries.Sum(a => ((FrameAnimationEntry)a).Time), 
+                 mouthAnimation.AnimationEntries.Sum(a => ((FrameAnimationEntry)a).Time));)
+        {
+            SKBitmap frame = new(spriteBitmap.Width, spriteBitmap.Height);
+            SKCanvas canvas = new(frame);
+            canvas.DrawBitmap(spriteBitmap, new SKPoint(0, 0));
+            canvas.DrawBitmap(eyeFrames[e], new SKPoint(eyeAnimation.AnimationX, eyeAnimation.AnimationY));
+            if (lipFlap)
             {
-                return frames;
-            }
-
-            List<GraphicsFile> textures = [];
-            if (grp is not null)
-            {
-                textures.AddRange([grp.GetFileByIndex(TextureIndex1), grp.GetFileByIndex(TextureIndex2), grp.GetFileByIndex(TextureIndex3)]);
+                canvas.DrawBitmap(mouthFrames[m], new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
             }
             else
             {
-                textures.AddRange(bodyTextures);
+                canvas.DrawBitmap(mouthFrames[0], new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
             }
-            if (bodyLayout is null && grp is not null)
+            int time;
+
+            if (currentEyeTime == currentMouthTime)
             {
-                bodyLayout = grp.GetFileByIndex(LayoutIndex);
+                f += currentEyeTime;
+                time = currentEyeTime;
+                e++;
+                m++;
+                if (e >= eyeAnimation.AnimationEntries.Count)
+                {
+                    e = 0;
+                }
+                if (m >= mouthAnimation.AnimationEntries.Count)
+                {
+                    m = 0;
+                }
+
+                currentEyeTime = ((FrameAnimationEntry)eyeAnimation.AnimationEntries[e]).Time;
+                currentMouthTime = messageInfo.TextTimer * 30;
             }
-            if (eyeTexture is null && grp is not null)
+            else if (currentEyeTime < currentMouthTime)
             {
-                eyeTexture = grp.GetFileByIndex(EyeTextureIndex);
-                eyeAnimation = grp.GetFileByIndex(EyeAnimationIndex);
+                f += currentEyeTime;
+                time = currentEyeTime;
+                currentMouthTime -= currentEyeTime;
+                e++;
+                if (e >= eyeAnimation.AnimationEntries.Count)
+                {
+                    e = 0;
+                }
+                currentEyeTime = ((FrameAnimationEntry)eyeAnimation.AnimationEntries[e]).Time;
             }
-            if (mouthTexture is null && grp is not null)
+            else
             {
-                mouthTexture = grp.GetFileByIndex(MouthTextureIndex);
-                mouthAnimation = grp.GetFileByIndex(MouthAnimationIndex);
-            }
-            MessageInfo messageInfo = messageInfoFile.MessageInfos[(int)Character];
-
-            (SKBitmap spriteBitmap, _) = bodyLayout.GetLayout(textures, 0, bodyLayout.LayoutEntries.Count, darkMode: false, preprocessedList: true);
-            SKBitmap[] eyeFrames = eyeAnimation.GetAnimationFrames(eyeTexture).Select(f => f.GetImage()).ToArray();
-            SKBitmap[] mouthFrames = mouthAnimation.GetAnimationFrames(mouthTexture).Select(f => f.GetImage()).ToArray();
-
-            int e = 0, m = 0;
-            int currentEyeTime = ((FrameAnimationEntry)eyeAnimation.AnimationEntries[e]).Time;
-            int currentMouthTime = messageInfo.TextTimer * 30;
-            for (int f = 0; f < Math.Max(eyeAnimation.AnimationEntries.Sum(a => ((FrameAnimationEntry)a).Time), 
-                mouthAnimation.AnimationEntries.Sum(a => ((FrameAnimationEntry)a).Time));)
-            {
-                SKBitmap frame = new(spriteBitmap.Width, spriteBitmap.Height);
-                SKCanvas canvas = new(frame);
-                canvas.DrawBitmap(spriteBitmap, new SKPoint(0, 0));
-                canvas.DrawBitmap(eyeFrames[e], new SKPoint(eyeAnimation.AnimationX, eyeAnimation.AnimationY));
-                if (lipFlap)
+                f += currentMouthTime;
+                time = currentMouthTime;
+                currentEyeTime -= currentMouthTime;
+                m++;
+                if (m >= mouthAnimation.AnimationEntries.Count)
                 {
-                    canvas.DrawBitmap(mouthFrames[m], new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
+                    m = 0;
                 }
-                else
-                {
-                    canvas.DrawBitmap(mouthFrames[0], new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
-                }
-                int time;
-
-                if (currentEyeTime == currentMouthTime)
-                {
-                    f += currentEyeTime;
-                    time = currentEyeTime;
-                    e++;
-                    m++;
-                    if (e >= eyeAnimation.AnimationEntries.Count)
-                    {
-                        e = 0;
-                    }
-                    if (m >= mouthAnimation.AnimationEntries.Count)
-                    {
-                        m = 0;
-                    }
-
-                    currentEyeTime = ((FrameAnimationEntry)eyeAnimation.AnimationEntries[e]).Time;
-                    currentMouthTime = messageInfo.TextTimer * 30;
-                }
-                else if (currentEyeTime < currentMouthTime)
-                {
-                    f += currentEyeTime;
-                    time = currentEyeTime;
-                    currentMouthTime -= currentEyeTime;
-                    e++;
-                    if (e >= eyeAnimation.AnimationEntries.Count)
-                    {
-                        e = 0;
-                    }
-                    currentEyeTime = ((FrameAnimationEntry)eyeAnimation.AnimationEntries[e]).Time;
-                }
-                else
-                {
-                    f += currentMouthTime;
-                    time = currentMouthTime;
-                    currentEyeTime -= currentMouthTime;
-                    m++;
-                    if (m >= mouthAnimation.AnimationEntries.Count)
-                    {
-                        m = 0;
-                    }
-                    currentMouthTime = messageInfo.TextTimer;
-                }
-
-                canvas.Flush();
-                frames.Add((frame, time));
+                currentMouthTime = messageInfo.TextTimer;
             }
 
-            return frames;
+            canvas.Flush();
+            frames.Add((frame, time));
         }
+
+        return frames;
     }
 }
