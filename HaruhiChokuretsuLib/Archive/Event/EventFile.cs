@@ -753,9 +753,9 @@ public partial class EventFile : FileInArchive, ISourceFile
                 DramatisPersonae.Add(SectionDefs[i].Pointer,
                     Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(SectionDefs[i].Pointer).TakeWhile(b => b != 0x00).ToArray()));
             }
-
-            InitializeDialogueAndEndPointers(decompressedData, offset);
         }
+        
+        InitializeDialogueAndEndPointers(decompressedData, offset);
     }
 
     internal void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset, bool @override = false)
