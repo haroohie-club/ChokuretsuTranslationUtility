@@ -119,7 +119,7 @@ public class SystemTextureFile : DataFile
 /// <summary>
 /// A representation of a system texture defined in SYSTEX.S
 /// </summary>
-public class SystemTexture(byte[] data)
+public class SystemTexture
 {
     /// <summary>
     /// The name of the system texture (defined for readability based on the textures)
@@ -128,79 +128,113 @@ public class SystemTexture(byte[] data)
     /// <summary>
     /// The screen for which the texture is optimized
     /// </summary>
-    public SysTexScreen Screen { get; set; } = (SysTexScreen)IO.ReadInt(data, 0x00);
+    public SysTexScreen Screen { get; set; }
     /// <summary>
     /// The grp.bin index of the graphics file to use as the texture
     /// </summary>
-    public short GrpIndex { get; set; } = IO.ReadShort(data, 0x04);
+    public short GrpIndex { get; set; }
     /// <summary>
     /// The name of this parameter is known through debug strings found in the binary, but exactly what it does is not quite understood at this point
     /// </summary>
-    public short Tpage { get; set; } = IO.ReadShort(data, 0x06);
+    public short Tpage { get; set; }
     /// <summary>
     /// The index of the palette to use in 4bpp/16-color images (0-15)
     /// </summary>
-    public short PaletteNumber { get; set; } = IO.ReadShort(data, 0x08);
+    public short PaletteNumber { get; set; }
     /// <summary>
     /// If false, the game will skip some of the validation routines while loading the texture
     /// </summary>
-    public short ValidateTex { get; set; } = IO.ReadShort(data, 0x0A);
+    public short ValidateTex { get; set; }
     /// <summary>
     /// The method by which the texture should be loaded (not well-understood at this point)
     /// </summary>
-    public short LoadMethod { get; set; } = IO.ReadShort(data, 0x0C);
+    public short LoadMethod { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown0E { get; set; } = IO.ReadShort(data, 0x0E);
+    public short Unknown0E { get; set; }
     /// <summary>
     /// The name of this parameter is known through debug strings found in the binary, but exactly what it does is not quite understood at this point
     /// </summary>
-    public ushort MaxVram { get; set; } = IO.ReadUShort(data, 0x10);
+    public ushort MaxVram { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown12 { get; set; } = IO.ReadShort(data, 0x12);
+    public short Unknown12 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public ushort Unknown14 { get; set; } = IO.ReadUShort(data, 0x14);
+    public ushort Unknown14 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown16 { get; set; } = IO.ReadShort(data, 0x16);
+    public short Unknown16 { get; set; }
     /// <summary>
     /// The index of the animation used by the system texture
     /// </summary>
-    public short AnimationIndex { get; set; } = IO.ReadShort(data, 0x18);
+    public short AnimationIndex { get; set; }
     /// <summary>
     /// If a texture optimized for the top screen, the width of the tiles (used by the OAM)
     /// </summary>
-    public short TileWidth { get; set; } = IO.ReadShort(data, 0x1A);
+    public short TileWidth { get; set; }
     /// <summary>
     /// If a texture optimized for the top screen, the height of the tiles (used by the OAM)
     /// </summary>
-    public short TileHeight { get; set; } = IO.ReadShort(data, 0x1C);
+    public short TileHeight { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown1E { get; set; } = IO.ReadShort(data, 0x1E);
+    public short Unknown1E { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown20 { get; set; } = IO.ReadShort(data, 0x20);
+    public short Unknown20 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public short Unknown22 { get; set; } = IO.ReadShort(data, 0x22);
+    public short Unknown22 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public int Unknown24 { get; set; } = IO.ReadInt(data, 0x24);
+    public int Unknown24 { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
-    public int Unknown28 { get; set; } = IO.ReadInt(data, 0x28);
+    public int Unknown28 { get; set; }
+
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public SystemTexture()
+    {
+    }
+    
+    /// <summary>
+    /// Constructs system texture from binary data
+    /// </summary>
+    /// <param name="data">The binary data representing a system texture</param>
+    public SystemTexture(byte[] data)
+    {
+        Screen = (SysTexScreen)IO.ReadInt(data, 0x00);
+        GrpIndex = IO.ReadShort(data, 0x04);
+        Tpage = IO.ReadShort(data, 0x06);
+        PaletteNumber = IO.ReadShort(data, 0x08);
+        ValidateTex = IO.ReadShort(data, 0x0A);
+        LoadMethod = IO.ReadShort(data, 0x0C);
+        Unknown0E = IO.ReadShort(data, 0x0E);
+        MaxVram = IO.ReadUShort(data, 0x10);
+        Unknown12 = IO.ReadShort(data, 0x12);
+        Unknown14 = IO.ReadUShort(data, 0x14);
+        Unknown16 = IO.ReadShort(data, 0x16);
+        AnimationIndex = IO.ReadShort(data, 0x18);
+        TileWidth = IO.ReadShort(data, 0x1A);
+        TileHeight = IO.ReadShort(data, 0x1C);
+        Unknown1E = IO.ReadShort(data, 0x1E);
+        Unknown20 = IO.ReadShort(data, 0x20);
+        Unknown22 = IO.ReadShort(data, 0x22);
+        Unknown24 = IO.ReadInt(data, 0x24);
+        Unknown28 = IO.ReadInt(data, 0x28);
+    }
 }
 
 /// <summary>
