@@ -18,7 +18,7 @@ namespace HaruhiChokuretsuLib.Archive.Event;
 /// </summary>
 public partial class EventFile : FileInArchive, ISourceFile
 {
-    private static readonly string[] sourceArray = new[] { "EVTTBLS", "SCENARIOS", "TOPICS", "TUTORIALS", "VOICEMAPS" };
+    private static readonly string[] s_specialFileNames = new[] { "CHESSS", "EVTTBLS", "SCENARIOS", "TOPICS", "TUTORIALS", "VOICEMAPS" };
 
     /// <summary>
     /// The number of sections in the event file
@@ -517,13 +517,13 @@ public partial class EventFile : FileInArchive, ISourceFile
             SectionDefs.Add(new(IO.ReadInt(decompressedData, 0x0C + 0x08 * i), IO.ReadInt(decompressedData, 0x10 + 0x08 * i)));
         }
 
-        SettingsSection = new();
-        SettingsSection.Initialize(decompressedData[SectionDefs[0].Pointer..(SectionDefs[0].Pointer + EventFileSettings.SETTINGS_LENGTH)], 1, "SETTINGS", log, SectionDefs[0].Pointer);
-        Settings = SettingsSection.Objects[0];
-        int dialogueSectionPointerIndex = SectionDefs.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
-
-        if (!sourceArray.Contains(Name))
+        if (!s_specialFileNames.Contains(Name))
         {
+            SettingsSection = new();
+            SettingsSection.Initialize(decompressedData[SectionDefs[0].Pointer..(SectionDefs[0].Pointer + EventFileSettings.SETTINGS_LENGTH)], 1, "SETTINGS", log, SectionDefs[0].Pointer);
+            Settings = SettingsSection.Objects[0];
+            int dialogueSectionPointerIndex = SectionDefs.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
+
             if (Settings.UnknownSection01Pointer > 0)
             {
                 string name = "UNKNOWNSECTION01";
@@ -747,15 +747,15 @@ public partial class EventFile : FileInArchive, ISourceFile
                 EventNameSection.Initialize(Encoding.ASCII.GetBytes(IO.ReadAsciiString(decompressedData, SectionDefs[eventNameSectionIndex].Pointer)),
                     SectionDefs[eventNameSectionIndex].ItemCount, name, log, SectionDefs[eventNameSectionIndex].Pointer);
             }
-        }
 
-        for (int i = SectionDefs.FindIndex(f => f.Pointer == Settings.LabelsSectionPointer) + 1; i < dialogueSectionPointerIndex; i++)
-        {
-            DramatisPersonae.Add(SectionDefs[i].Pointer,
-                Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(SectionDefs[i].Pointer).TakeWhile(b => b != 0x00).ToArray()));
-        }
+            for (int i = SectionDefs.FindIndex(f => f.Pointer == Settings.LabelsSectionPointer) + 1; i < dialogueSectionPointerIndex; i++)
+            {
+                DramatisPersonae.Add(SectionDefs[i].Pointer,
+                    Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(SectionDefs[i].Pointer).TakeWhile(b => b != 0x00).ToArray()));
+            }
 
-        InitializeDialogueAndEndPointers(decompressedData, offset);
+            InitializeDialogueAndEndPointers(decompressedData, offset);
+        }
     }
 
     internal void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset, bool @override = false)

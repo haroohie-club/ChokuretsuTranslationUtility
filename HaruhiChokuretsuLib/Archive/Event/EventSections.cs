@@ -638,7 +638,7 @@ public class ChoicesSection : IEventSection<ChoicesSectionEntry>
                 Id = IO.ReadInt(data, i * 20),
                 Padding1 = IO.ReadInt(data, i * 20 + 4),
                 Padding2 = IO.ReadInt(data, i * 20 + 8),
-                Text = textOffset == 0 ? string.Empty : IO.ReadShiftJisString(data, textOffset),
+                Text = textOffset <= 0 ? string.Empty : IO.ReadShiftJisString(data, textOffset),
                 Padding3 = IO.ReadInt(data, i * 20 + 16),
             });
         }
