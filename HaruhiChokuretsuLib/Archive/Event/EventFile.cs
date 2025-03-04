@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Resources.NetStandard;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using HunspellSharp;
 
@@ -499,6 +500,7 @@ public partial class EventFile : FileInArchive, ISourceFile
     /// <summary>
     /// The font replacement map to be used during dialogue replacement (this is specific to the translated ROMs)
     /// </summary>
+    [JsonIgnore]
     public FontReplacementDictionary FontReplacementMap { get; set; } = [];
 
     private const int DIALOGUE_LINE_LENGTH = 230;
