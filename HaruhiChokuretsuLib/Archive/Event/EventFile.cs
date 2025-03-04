@@ -1569,7 +1569,7 @@ public class DialogueLine
     /// <summary>
     /// The text of the line (Shift-JIS encoded)
     /// </summary>
-    public string Text { get => Encoding.GetEncoding("Shift-JIS").GetString(Data); set => Data = Encoding.GetEncoding("Shift-JIS").GetBytes(value); }
+    public string Text { get => Encoding.GetEncoding("Shift-JIS").GetString(Data); set => Data = Encoding.GetEncoding("Shift-JIS").GetBytes(value ?? string.Empty); }
     /// <summary>
     /// The length of the line (in Shift-JIS encoded bytes)
     /// </summary>
