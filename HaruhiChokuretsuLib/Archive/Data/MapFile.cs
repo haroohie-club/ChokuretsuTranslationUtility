@@ -77,7 +77,7 @@ public class MapFile : DataFile
         SectionOffsetsAndCounts[3].Name = "INTERACTABLEOBJECTS";
         for (int i = 0; i < SectionOffsetsAndCounts[3].ItemCount; i++)
         {
-            InteractableObjects.Add(new(Data, SectionOffsetsAndCounts[3].Offset + i * 0x10));
+            InteractableObjects.Add(new(decompressedData, SectionOffsetsAndCounts[3].Offset + i * 0x10));
         }
 
         int currentPathingByte = 0;
@@ -423,6 +423,13 @@ public class MapFileSettings
     internal int ObjectsSectionPointer { get; set; }
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public MapFileSettings()
+    {
+    }
+
+    /// <summary>
     /// Constructs map file settings
     /// </summary>
     /// <param name="data">The data from the map file</param>
@@ -580,25 +587,45 @@ public class ObjectMarker
 /// </summary>
 /// <param name="data">The interactable object entry data from the map file</param>
 /// <param name="offset">The starting offset of the interactable object data in the file</param>
-public class InteractableObject(IEnumerable<byte> data, int offset)
+public class InteractableObject
 {
     /// <summary>
     /// The X-position of the object (in terms of tiles) on the map
     /// </summary>
-    public short ObjectX { get; set; } = BitConverter.ToInt16(data.Skip(offset).Take(2).ToArray());
+    public short ObjectX { get; set; }
     /// <summary>
     /// The Y-position of the object (in terms of tiles) on the map
     /// </summary>
-    public short ObjectY { get; set; } = BitConverter.ToInt16(data.Skip(offset + 2).Take(2).ToArray());
+    public short ObjectY { get; set; }
     /// <summary>
     /// The ID of the object
     /// </summary>
-    public int ObjectId { get; set; } = BitConverter.ToInt32(data.Skip(offset + 4).Take(4).ToArray());
+    public int ObjectId { get; set; }
     /// <summary>
     /// The name of the object
     /// </summary>
-    public string ObjectName { get; set; } = Encoding.GetEncoding("Shift-JIS").GetString(data.Skip(BitConverter.ToInt32(data.Skip(offset + 8).Take(4).ToArray())).TakeWhile(b => b != 0x00).ToArray());
+    public string ObjectName { get; set; }
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public InteractableObject()
+    {
+    }
+    
+    /// <summary>
+    /// Constructs an interactable object from data
+    /// </summary>
+    /// <param name="data">The binary representation of the interactable object</param>
+    /// <param name="offset">The offset into the binary data at which the interactable object struct begins</param>
+    public InteractableObject(byte[] data, int offset)
+    {
+        ObjectX = IO.ReadShort(data, offset);
+        ObjectY = IO.ReadShort(data, offset + 2);
+        ObjectId = IO.ReadInt(data, offset + 4);
+        ObjectName = IO.ReadShiftJisString(data, IO.ReadInt(data, offset + 8));
+    }
+    
     internal string GetAsm(int indent, ref int currentPointer)
     {
         StringBuilder sb = new();
