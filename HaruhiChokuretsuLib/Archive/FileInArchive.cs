@@ -1,6 +1,7 @@
 ﻿using HaruhiChokuretsuLib.Util;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using LiteDB;
 
 namespace HaruhiChokuretsuLib.Archive;
 
@@ -17,6 +18,7 @@ public partial class FileInArchive
     /// The file's magic integer in the archive
     /// </summary>
     [JsonIgnore]
+    [BsonIgnore]
     public uint MagicInteger { get; set; }
     /// <summary>
     /// Index of the file in the archive
@@ -26,26 +28,31 @@ public partial class FileInArchive
     /// Offset of the file in the archive
     /// </summary>
     [JsonIgnore]
+    [BsonIgnore]
     public int Offset { get; set; }
     /// <summary>
     /// Decompressed length of the file
     /// </summary>
     [JsonIgnore]
+    [BsonIgnore]
     public int Length { get; set; }
     /// <summary>
     /// Decompressed binary file data
     /// </summary>
     [JsonIgnore]
+    [BsonIgnore]
     public List<byte> Data { get; set; }
     /// <summary>
     /// Compressed binary file data
     /// </summary>
     [JsonIgnore]
+    [BsonIgnore]
     public byte[] CompressedData { get; set; }
     /// <summary>
     /// If true, the file has been edited and will need to be replaced when saving the archive
     /// </summary>
     [JsonIgnore]
+    [BsonIgnore]
     public bool Edited { get; set; } = false;
     /// <summary>
     /// ILogger instance for logging

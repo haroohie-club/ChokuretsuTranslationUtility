@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
+using LiteDB;
 
 namespace HaruhiChokuretsuLib.Archive.Event;
 
@@ -1249,6 +1250,7 @@ public class ScriptSection : IEventSection<ScriptCommandInvocation>
     /// List of all commands available to the script section (just all the commands, here for ease of access)
     /// </summary>
     [JsonIgnore]
+    [BsonIgnore]
     public List<ScriptCommand> CommandsAvailable { get; set; }
 
     /// <inheritdoc/>
