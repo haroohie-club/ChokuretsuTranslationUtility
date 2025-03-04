@@ -34,6 +34,13 @@ public class ScenarioStruct
     public List<short> KyonlessTopicIds { get; set; } = [];
 
     /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public ScenarioStruct()
+    {
+    }
+    
+    /// <summary>
     /// Creates a scenario structure from SCENARIO.S data
     /// </summary>
     /// <param name="data">Binary SCENARIO.S data</param>
@@ -610,6 +617,13 @@ public class ScenarioRoute
     /// </summary>
     public List<Speaker> CharactersInvolved { get; set; } = [];
 
+    /// <summary>
+    /// Parameterless constructor for serialization
+    /// </summary>
+    public ScenarioRoute()
+    {
+    }
+    
     /// <summary>
     /// Creates a scenario route given data from SCENARIO.S
     /// </summary>
