@@ -17,7 +17,7 @@ public class PuzzleFile : DataFile
     /// <summary>
     /// The list of the puzzle's associated topics
     /// </summary>
-    public List<PuzzleTopicRecord> AssociatedTopics { get; set; } = [];
+    public List<AssociatedPuzzleTopic> AssociatedTopics { get; set; } = [];
     /// <summary>
     /// The list of the puzzle's Haruhi Routes
     /// </summary>
@@ -90,10 +90,10 @@ public class PuzzleFile : DataFile
         sb.AppendLine("FILE_START:");
         sb.AppendLine("MAIN_TOPICS:");
 
-        foreach (var (topic, unknown) in AssociatedTopics)
+        foreach (AssociatedPuzzleTopic associatedTopic in AssociatedTopics)
         {
-            sb.AppendLine($"   .word {topic}");
-            sb.AppendLine($"   .word {unknown}");
+            sb.AppendLine($"   .word {associatedTopic.Topic}");
+            sb.AppendLine($"   .word {associatedTopic.Unknown}");
         }
         sb.AppendLine();
 
@@ -360,11 +360,9 @@ public class PuzzleSettings
 }
 
 /// <summary>
-/// A simple record stored in puzzle items that relates to topics
+/// A simple struct stored in puzzle items that relates to topics
 /// </summary>
-/// <param name="Topic">The topic ID the puzzle uses</param>
-/// <param name="Unknown">Unknown</param>
-public record PuzzleTopicRecord(int Topic, int Unknown)
+public class AssociatedPuzzleTopic
 {
     /// <summary>
     /// The topic ID the puzzle uses
@@ -374,4 +372,22 @@ public record PuzzleTopicRecord(int Topic, int Unknown)
     /// Unknown
     /// </summary>
     public int Unknown { get; set; }
+
+    /// <summary>
+    /// Blank constructor for deserialization
+    /// </summary>
+    public AssociatedPuzzleTopic()
+    {
+    }
+    
+    /// <summary>
+    /// Constructs an associated puzzle topic from the topic ID and unknown value
+    /// </summary>
+    /// <param name="topic">The topic ID</param>
+    /// <param name="unknown">Unknown</param>
+    public AssociatedPuzzleTopic(int topic, int unknown)
+    {
+        Topic = topic;
+        Unknown = unknown;
+    }
 }
