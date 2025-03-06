@@ -188,15 +188,6 @@ namespace HaruhiChokuretsuEditor
                     eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumUnknown01)}: {selectedFile.Settings.NumUnknown01}" });
                     eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumUnknown01)}: {selectedFile.Settings.NumUnknown01}" });
                     eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{nameof(selectedFile.Settings.NumChoices)}: {selectedFile.Settings.NumChoices}" });
-                    
-                    foreach (EventFileSection section in selectedFile.EventFileSections)
-                    {
-                        if (section.Section is not null)
-                        {
-                            eventSettingsStackPanel.Children.Add(new TextBlock { Text = $"{section.Section.Name}: " +
-                                $"{string.Join(", ", section.Section.Objects.Where(o => o is not null).Select(o => ((dynamic)Convert.ChangeType(o, section.Section.ObjectType)).ToString()))}" });
-                        }
-                    }
                 }
             }
         }

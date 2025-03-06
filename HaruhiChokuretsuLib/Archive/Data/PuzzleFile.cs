@@ -17,7 +17,7 @@ public class PuzzleFile : DataFile
     /// <summary>
     /// The list of the puzzle's associated topics
     /// </summary>
-    public List<(int Topic, int Unknown)> AssociatedTopics { get; set; } = [];
+    public List<PuzzleTopicRecord> AssociatedTopics { get; set; } = [];
     /// <summary>
     /// The list of the puzzle's Haruhi Routes
     /// </summary>
@@ -53,7 +53,7 @@ public class PuzzleFile : DataFile
         }
         for (int i = 0; i < SectionOffsetsAndCounts[12].ItemCount; i++)
         {
-            AssociatedTopics.Add((IO.ReadInt(decompressedData, SectionOffsetsAndCounts[12].Offset + i * 8), IO.ReadInt(decompressedData, SectionOffsetsAndCounts[12].Offset + i * 8 + 4)));
+            AssociatedTopics.Add(new(IO.ReadInt(decompressedData, SectionOffsetsAndCounts[12].Offset + i * 8), IO.ReadInt(decompressedData, SectionOffsetsAndCounts[12].Offset + i * 8 + 4)));
         }
     }
 
@@ -357,4 +357,21 @@ public class PuzzleSettings
             qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + MapId * 8).Take(4).ToArray()))
                 .TakeWhile(b => b != 0).ToArray());
     }
+}
+
+/// <summary>
+/// A simple record stored in puzzle items that relates to topics
+/// </summary>
+/// <param name="Topic">The topic ID the puzzle uses</param>
+/// <param name="Unknown">Unknown</param>
+public record PuzzleTopicRecord(int Topic, int Unknown)
+{
+    /// <summary>
+    /// The topic ID the puzzle uses
+    /// </summary>
+    public int Topic { get; set; }
+    /// <summary>
+    /// Unknown
+    /// </summary>
+    public int Unknown { get; set; }
 }
