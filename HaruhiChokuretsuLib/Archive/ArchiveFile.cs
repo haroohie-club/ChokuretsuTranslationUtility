@@ -63,11 +63,12 @@ public class ArchiveFile<T>
     /// <param name="fileName">The file on disk</param>
     /// <param name="log">ILogger instance for logging</param>
     /// <param name="dontThrow">(Optional) If set to true, will not throw errors during archive decompression (but will log them)</param>
+    /// <param name="generic">(Optional) Indicates that this is a data archive being parsed as an event archive</param>
     /// <returns></returns>
-    public static ArchiveFile<T> FromFile(string fileName, ILogger log, bool dontThrow = true)
+    public static ArchiveFile<T> FromFile(string fileName, ILogger log, bool dontThrow = true, bool generic = false)
     {
         byte[] archiveBytes = File.ReadAllBytes(fileName);
-        return new(archiveBytes, log, dontThrow) { FileName = Path.GetFileName(fileName) };
+        return new(archiveBytes, log, dontThrow, generic) { FileName = Path.GetFileName(fileName) };
     }
 
     /// <summary>
@@ -83,8 +84,9 @@ public class ArchiveFile<T>
     /// <param name="archiveBytes">Binary data from a bin archive</param>
     /// <param name="log">ILogger instance for logging</param>
     /// <param name="dontThrow">(Optional) If set to true, will not throw errors during archive decompression (but will log them)</param>
+    /// <param name="generic">(Optional) Indicates that this is a data archive being parsed as an event archive</param>
     /// <exception cref="ArchiveLoadException"></exception>
-    public ArchiveFile(byte[] archiveBytes, ILogger log, bool dontThrow = true)
+    public ArchiveFile(byte[] archiveBytes, ILogger log, bool dontThrow = true, bool generic = false)
     {
         _log = log;
 
@@ -159,7 +161,7 @@ public class ArchiveFile<T>
                 T file = new();
                 try
                 {
-                    file = FileManager<T>.FromCompressedData(fileBytes, _log, offset, i >= filenames.Count ? $"FILE{i}" : filenames[i]);
+                    file = FileManager<T>.FromCompressedData(fileBytes, _log, offset, i >= filenames.Count ? $"FILE{i}" : filenames[i], generic: generic);
                 }
                 catch (Exception ex)
                 {

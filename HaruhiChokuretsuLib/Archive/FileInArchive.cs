@@ -58,6 +58,10 @@ public partial class FileInArchive
     /// ILogger instance for logging
     /// </summary>
     protected ILogger Log { get; set; }
+    /// <summary>
+    /// Boolean specifically used to indicate data files that are being parsed as event files
+    /// </summary>
+    public bool Generic { get; set; }
 
     /// <summary>
     /// Initializes a file in archive (when overridden in a base class, of a specific type)
@@ -111,7 +115,8 @@ public partial class FileInArchive
             Length = Length,
             Data = Data,
             CompressedData = CompressedData,
-            Edited = Edited
+            Edited = Edited,
+            Generic = Generic,
         };
         newFile.Initialize([.. Data], Offset, Log);
 
@@ -139,12 +144,14 @@ public static class FileManager<T>
     /// <param name="log">An ILogger instance </param>
     /// <param name="offset">(Optional) The offset of the file in the archive it comes from</param>
     /// <param name="name">(Optional) The name of the file in its archive</param>
+    /// <param name="generic">(Optional) Indicator that this is a data file being parsed as an event file</param>
     /// <returns>A file object of type T</returns>
-    public static T FromCompressedData(IEnumerable<byte> compressedData, ILogger log, int offset = 0, string name = null)
+    public static T FromCompressedData(IEnumerable<byte> compressedData, ILogger log, int offset = 0, string name = null, bool generic = false)
     {
         T created = new()
         {
-            Name = name
+            Name = name,
+            Generic = generic,
         };
         created.Initialize(Helpers.DecompressData([.. compressedData]), offset, log);
         return created;

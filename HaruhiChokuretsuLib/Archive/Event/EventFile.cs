@@ -521,7 +521,7 @@ public partial class EventFile : FileInArchive, ISourceFile
             SectionDefs.Add(new(IO.ReadInt(decompressedData, 0x0C + 0x08 * i), IO.ReadInt(decompressedData, 0x10 + 0x08 * i)));
         }
 
-        if (!s_specialFileNames.Contains(Name))
+        if (!s_specialFileNames.Contains(Name) && !Generic)
         {
             SettingsSection = new();
             SettingsSection.Initialize(decompressedData[SectionDefs[0].Pointer..(SectionDefs[0].Pointer + EventFileSettings.SETTINGS_LENGTH)], 1, "SETTINGS", log, SectionDefs[0].Pointer);
@@ -765,7 +765,7 @@ public partial class EventFile : FileInArchive, ISourceFile
     internal void InitializeDialogueAndEndPointers(byte[] decompressedData, int offset, bool @override = false)
     {
         if (Name != "CHESSS" && Name != "EVTTBLS" && Name != "TOPICS" && Name != "SCENARIOS" && Name != "TUTORIALS" && Name != "VOICEMAPS"
-            && Name != "MESSS"
+            && Name != "MESSS" && !Generic
             && Settings.DialogueSectionPointer < decompressedData.Length || @override)
         {
             for (int i = 0; i < Settings.NumDialogueEntries; i++)

@@ -85,9 +85,10 @@ public class ImportResxCommand : Command
             Directory.CreateDirectory(outputDirectory);
         }
 
-        var evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive, log);
+        bool isDat = Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase);
+        ArchiveFile<EventFile> evtArchive = ArchiveFile<EventFile>.FromFile(_inputArchive, log, generic: isDat);
 
-        if (Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase))
+        if (isDat)
         {
             evtArchive.Files.ForEach(f => f.InitializeDialogueForSpecialFiles());
         }
