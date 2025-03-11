@@ -1279,6 +1279,12 @@ public class ScriptSection : IEventSection<ScriptCommandInvocation>
 
         return sb.ToString();
     }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return Name;
+    }
 }
 
 /// <summary>

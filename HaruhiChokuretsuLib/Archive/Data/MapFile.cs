@@ -602,8 +602,6 @@ public class ObjectMarker
 /// <summary>
 /// Representation of an interactable object on a map
 /// </summary>
-/// <param name="data">The interactable object entry data from the map file</param>
-/// <param name="offset">The starting offset of the interactable object data in the file</param>
 public class InteractableObject
 {
     /// <summary>
