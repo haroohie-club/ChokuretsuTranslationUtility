@@ -79,9 +79,9 @@ public class QuickSaveSlotData(byte[] data) : SaveSlotData(data)
     /// </summary>
     public short Unknown412 { get; set; } = IO.ReadShort(data, 0x412);
     /// <summary>
-    /// Unknown
+    /// The SND_DS.S index of the BGM that was being played (-1 = none)
     /// </summary>
-    public int Unknown414 { get; set; } = IO.ReadInt(data, 0x414);
+    public int BgmIndex { get; set; } = IO.ReadInt(data, 0x414);
     /// <summary>
     /// Unknown
     /// </summary>
@@ -123,7 +123,7 @@ public class QuickSaveSlotData(byte[] data) : SaveSlotData(data)
         KbgIndex = 0;
         CgIndex = 0;
         Unknown412 = 0;
-        Unknown414 = 0;
+        BgmIndex = 0;
         Unknown418 = 0;
         Unknown41C = 0;
         CurrentScript = 0;
@@ -156,7 +156,7 @@ public class QuickSaveSlotData(byte[] data) : SaveSlotData(data)
         data.AddRange(BitConverter.GetBytes(KbgIndex));
         data.AddRange(BitConverter.GetBytes(CgIndex));
         data.AddRange(BitConverter.GetBytes(Unknown412));
-        data.AddRange(BitConverter.GetBytes(Unknown414));
+        data.AddRange(BitConverter.GetBytes(BgmIndex));
         data.AddRange(BitConverter.GetBytes(Unknown418));
         data.AddRange(BitConverter.GetBytes(Unknown41C));
         data.AddRange(BitConverter.GetBytes(CurrentScript));
