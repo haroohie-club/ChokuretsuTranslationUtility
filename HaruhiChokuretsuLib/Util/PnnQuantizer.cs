@@ -529,6 +529,7 @@ public class PnnQuantizer
         SKColor[] palette;
         if (replPal > 0)
         {
+            log.Log($"Using palette offset {replPal}...");
             for (int i = 0; i < dest.PixelData.Count; i++)
             {
                 dest.PixelData[i] += (byte)(16 * replPal + dest.PixelData[i]);
