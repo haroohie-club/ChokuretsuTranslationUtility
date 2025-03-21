@@ -299,8 +299,9 @@ public class ReplaceCommand : Command
             grpFile.SetPalette(sharedPalettes[int.Parse(sharedPaletteMatch.Groups["index"].Value)]);
         }
         bool newSize = filePath.Contains("newsize");
+        bool fourBpp = filePath.Contains("4bpp");
 
-        grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex, newSize: newSize);
+        grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex, newSize: newSize, fourBpp: fourBpp);
 
         archive.Files[archive.Files.IndexOf(file)] = grpFile;
     }

@@ -623,10 +623,11 @@ public partial class GraphicsFile : FileInArchive
     /// <param name="transparentIndex">(Optional) Sets the transparent index (if existing, usually 0)</param>
     /// <param name="newSize">(Optional) If true, resizes the image</param>
     /// <param name="associatedTiles">(Optional) If attempting to render a screen image, has these associated tiles</param>
+    /// <param name="fourBpp">(Optional) Overrides palette detection and forces 16-color palette/4-bits-per-pixel mode</param>
     /// <returns>Width of new bitmap image</returns>
-    public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
+    public int SetImage(string bitmapFile, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null, bool fourBpp = false)
     {
-        return SetImage(SKBitmap.Decode(bitmapFile), setPalette, transparentIndex, newSize, associatedTiles);
+        return SetImage(SKBitmap.Decode(bitmapFile), setPalette, transparentIndex, newSize, associatedTiles, fourBpp);
     }
 
     /// <summary>
@@ -637,8 +638,9 @@ public partial class GraphicsFile : FileInArchive
     /// <param name="transparentIndex">(Optional) Sets the transparent index (if existing, usually 0)</param>
     /// <param name="newSize">(Optional) If true, resizes the image</param>
     /// <param name="associatedTiles">(Optional) If attempting to render a screen image, has these associated tiles</param>
+    /// <param name="fourBpp">(Optional) Overrides palette detection and forces 16-color palette/4-bits-per-pixel mode</param>
     /// <returns>Width of new bitmap image</returns>
-    public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null)
+    public int SetImage(SKBitmap bitmap, bool setPalette = false, int transparentIndex = -1, bool newSize = false, GraphicsFile associatedTiles = null, bool fourBpp = false)
     {
         Edited = true;
         PnnQuantizer quantizer = new();
@@ -649,7 +651,7 @@ public partial class GraphicsFile : FileInArchive
         }
         else if (IsTexture())
         {
-            return SetTexture(bitmap, quantizer, newSize, transparentIndex == 0, setPalette);
+            return SetTexture(bitmap, quantizer, newSize, transparentIndex == 0, setPalette, fourBpp);
         }
         else
         {
@@ -657,7 +659,7 @@ public partial class GraphicsFile : FileInArchive
         }
     }
 
-    private int SetTexture(SKBitmap bitmap, PnnQuantizer quantizer, bool newSize, bool firstTransparent, bool setPalette)
+    private int SetTexture(SKBitmap bitmap, PnnQuantizer quantizer, bool newSize, bool firstTransparent, bool setPalette, bool fourBpp)
     {
         if (!VALID_WIDTHS.Contains(bitmap.Width))
         {
@@ -676,7 +678,7 @@ public partial class GraphicsFile : FileInArchive
             throw new ArgumentException($"Image height {bitmap.Height} does not match calculated height {calculatedHeight}.");
         }
 
-        quantizer.QuantizeImage(bitmap, this, 256, texture: true, dither: true, firstTransparent, setPalette, Log);
+        quantizer.QuantizeImage(bitmap, this, fourBpp ? 16 : 256, texture: true, dither: true, firstTransparent, setPalette, Log);
 
         return bitmap.Width;
     }
