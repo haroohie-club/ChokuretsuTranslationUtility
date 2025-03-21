@@ -573,7 +573,10 @@ public class PnnQuantizer
         _closestMap.Clear();
         _nearestMap.Clear();
 
-        dest.Palette = [.. palette];
+        if (replPal == 0)
+        {
+            dest.Palette = [.. palette];
+        }
         if (firstTransparent)
         {
             dest.Palette.Insert(0, _transparentColor);
