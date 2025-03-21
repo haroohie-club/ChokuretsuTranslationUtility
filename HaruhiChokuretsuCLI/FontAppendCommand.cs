@@ -114,6 +114,8 @@ public class FontAppendCommand : Command
                 ReplacedCharacter = @char,
                 CodePoint = BitConverter.ToUInt16(Encoding.GetEncoding("Shift-JIS").GetBytes($"{original}").Reverse().ToArray()),
                 Offset = (int)Math.Ceiling(font.GetGlyphWidths(visChar, new())[^1]) - 1,
+                CauseOffsetAdjust = false,
+                TakeOffsetAdjust = false,
             });
         }
         
@@ -123,9 +125,16 @@ public class FontAppendCommand : Command
         
         File.WriteAllText(_charsetPath, JsonSerializer.Serialize(replacementDict.Values.ToArray(), new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)}));
 
+        string[] adjustChars = replacementDict.Values.Where(r => r.CauseOffsetAdjust).Select(r => $"0x{r.CodePoint:X4}")
+            .ToArray();
+
         StringBuilder cFileBuilder = new(@"#define FONT_DEFAULT_OFFSET (14)
-int font_calculateOffset(unsigned short character)
+int font_calculateOffset(unsigned short character, unsigned short nextCharacter)
 {
+    int offsetAdjust = 0;
+    if (nextCharacter == " + string.Join("|| nextCharacter == ", adjustChars) + @") {
+        offsetAdjust = -1;
+    }
     // Auto-generated code
     switch (character)
     {
@@ -133,7 +142,7 @@ int font_calculateOffset(unsigned short character)
         foreach (FontReplacement replacement in replacementDict.Values)
         {
             cFileBuilder.AppendLine($"        case 0x{replacement.CodePoint:X4}:");
-            cFileBuilder.AppendLine($"            return {replacement.Offset};");
+            cFileBuilder.AppendLine($"            return {replacement.Offset}{(replacement.TakeOffsetAdjust ? " + offsetAdjust" : string.Empty)};");
         }
         cFileBuilder.AppendLine(@"        default:
             return FONT_DEFAULT_OFFSET;

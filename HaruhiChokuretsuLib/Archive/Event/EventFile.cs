@@ -1056,6 +1056,11 @@ public partial class EventFile : FileInArchive, ISourceFile
                         newCharacter = '”';
                     }
                     lineLength += FontReplacementMap[dialogueText[i]].Offset;
+                    if (i < dialogueText.Length - 1 && FontReplacementMap[dialogueText[i + 1]].CauseOffsetAdjust &&
+                        FontReplacementMap[dialogueText[i]].TakeOffsetAdjust)
+                    {
+                        lineLength--;
+                    }
                     dialogueText = dialogueText.Remove(i, 1);
                     dialogueText = dialogueText.Insert(i, $"{newCharacter}");
                 }

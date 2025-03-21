@@ -253,7 +253,22 @@ public class VoiceMapFile : EventFile
         for (int i = 0; i < csvData.Length; i++)
         {
             string[] fields = csvData[i].Split(',');
-            int lineLength = DialogueLines[i].Text.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
+            int lineLength = 0;
+            for (int j = 0; j < DialogueLines[i].Text.Length; j++)
+            {
+                FontReplacement replacement = FontReplacementMap.ReverseLookup(DialogueLines[i].Text[j]);
+                if (replacement is null)
+                {
+                    lineLength += 15;
+                    continue;
+                }
+                lineLength += replacement.Offset;
+                if (j < DialogueLines[i].Text.Length - 1 && (FontReplacementMap.ReverseLookup(DialogueLines[i].Text[j + 1])?.CauseOffsetAdjust ?? false) &&
+                    replacement.TakeOffsetAdjust)
+                {
+                    lineLength--;
+                }
+            }
 
             EndPointers.AddRange([Data.Count, Data.Count + 4]); // Add the next two pointers to end pointers
             EndPointerPointers.AddRange([filenamePointers[i] + filenameSectionStart, dialogueLinePointers[i] + DialogueLinesPointer]);
@@ -298,7 +313,22 @@ public class VoiceMapFile : EventFile
         }
 
         string actualText = newText;
-        int lineLength = actualText.Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 15);
+        int lineLength = 0;
+        for (int j = 0; j < actualText.Length; j++)
+        {
+            FontReplacement replacement = FontReplacementMap.ReverseLookup(actualText[j]);
+            if (replacement is null)
+            {
+                lineLength += 15;
+                continue;
+            }
+            lineLength += replacement.Offset;
+            if (j < actualText.Length - 1 && (FontReplacementMap.ReverseLookup(actualText[j + 1])?.CauseOffsetAdjust ?? false) &&
+                replacement.TakeOffsetAdjust)
+            {
+                lineLength--;
+            }
+        }
         VoiceMapEntries[index].X = CenterSubtitle(lineLength);
         Data.RemoveRange(VoiceMapEntriesSectionOffset + VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH * index + 8, 2); // Replace X in Data
         Data.InsertRange(VoiceMapEntriesSectionOffset + VoiceMapEntry.VOICE_MAP_ENTRY_LENGTH * index + 8, BitConverter.GetBytes(VoiceMapEntries[index].X));

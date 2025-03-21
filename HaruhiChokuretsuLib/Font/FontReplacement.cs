@@ -27,6 +27,14 @@ public class FontReplacement
     /// The width of the replacement character for use by the variable width font hack
     /// </summary>
     public int Offset { get; set; }
+    /// <summary>
+    /// If true, indicates that this character causes previous characters that take offset adjustments to decrement its offset by 1
+    /// </summary>
+    public bool CauseOffsetAdjust { get; set; }
+    /// <summary>
+    /// If true, indicates that this character will decrement its offset by 1 if the next character causes offset adjustments
+    /// </summary>
+    public bool TakeOffsetAdjust { get; set; }
 }
 
 /// <summary>
