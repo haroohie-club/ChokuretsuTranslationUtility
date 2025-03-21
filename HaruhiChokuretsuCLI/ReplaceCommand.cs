@@ -277,6 +277,7 @@ public class ReplaceCommand : Command
     /// <param name="archive"></param>
     /// <param name="filePath"></param>
     /// <param name="index"></param>
+    /// <param name="sharedPalettes"></param>
     private static void ReplaceSingleGraphicsFile(ArchiveFile<FileInArchive> archive, string filePath, int index, Dictionary<int, List<SKColor>> sharedPalettes)
     {
         FileInArchive file = archive.GetFileByIndex(index);
@@ -298,10 +299,15 @@ public class ReplaceCommand : Command
         {
             grpFile.SetPalette(sharedPalettes[int.Parse(sharedPaletteMatch.Groups["index"].Value)]);
         }
+        int replPal = 0;
+        Match replPaletteMatch = Regex.Match(filePath, @"replpal(?<index>\d+)", RegexOptions.IgnoreCase);
+        if (replPaletteMatch.Success)
+        {
+            replPal = int.Parse(replPaletteMatch.Groups["index"].Value);
+        }
         bool newSize = filePath.Contains("newsize");
-        bool fourBpp = filePath.Contains("4bpp");
 
-        grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex, newSize: newSize, fourBpp: fourBpp);
+        grpFile.SetImage(filePath, setPalette: Path.GetFileNameWithoutExtension(filePath).Contains("newpal", StringComparison.OrdinalIgnoreCase), transparentIndex: transparentIndex, newSize: newSize, replPal: replPal);
 
         archive.Files[archive.Files.IndexOf(file)] = grpFile;
     }

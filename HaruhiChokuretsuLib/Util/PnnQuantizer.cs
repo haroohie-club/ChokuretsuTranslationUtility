@@ -515,8 +515,9 @@ public class PnnQuantizer
     /// <param name="dither">Whether to dither the image</param>
     /// <param name="firstTransparent">Whether the first index should be transparent</param>
     /// <param name="replacePalette">Whether to replace the palette or simply match the current one</param>
+    /// <param name="replPal">For 4bpp images, the replacement palette index to use; default is 0</param>
     /// <param name="log">Logging instance</param>
-    public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, bool firstTransparent, bool replacePalette, ILogger log)
+    public void QuantizeImage(SKBitmap source, GraphicsFile dest, int nMaxColors, bool texture, bool dither, bool firstTransparent, bool replacePalette, int replPal, ILogger log)
     {
         var bitmapWidth = source.Width;
         var bitmapHeight = source.Height;
@@ -526,6 +527,13 @@ public class PnnQuantizer
 
         uint[] pixels = source.Pixels.Select(p => (uint)p).ToArray();
         SKColor[] palette;
+        if (replPal > 0)
+        {
+            for (int i = 0; i < dest.PixelData.Count; i++)
+            {
+                dest.PixelData[i] += (byte)(16 * replPal + dest.PixelData[i]);
+            }
+        }
         if (dest.Palette.Count < nMaxColors)
         {
             palette = [.. dest.Palette, .. new SKColor[nMaxColors - dest.Palette.Count]];
@@ -619,7 +627,7 @@ public class PnnQuantizer
                                 pixelData.Add((byte)qPixels[col * 8 + xpix + (row * 8 + ypix) * source.Width]);
                                 if (firstTransparent)
                                 {
-                                    pixelData[pixelData.Count - 1]++;
+                                    pixelData[^1]++;
                                 }
                             }
                         }
