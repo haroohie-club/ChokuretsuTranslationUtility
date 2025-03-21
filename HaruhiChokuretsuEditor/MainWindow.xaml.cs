@@ -550,7 +550,7 @@ namespace HaruhiChokuretsuEditor
                     {
                         tilesGrp = selectedFile.GetAssociatedScreenTiles(_grpFile);
                     }
-                    int width = selectedFile.SetImage(openFileDialog.FileName, associatedTiles: tilesGrp);
+                    int width = selectedFile.SetImage(openFileDialog.FileName, associatedTiles: tilesGrp, replPal: 3);
                     tilesEditStackPanel.Children.RemoveAt(tilesEditStackPanel.Children.Count - 1);
                     tilesEditStackPanel.Children.Add(new Image { Source = GuiHelpers.GetBitmapImageFromBitmap(selectedFile.GetImage(width, 0, tilesGrp: tilesGrp)), MaxWidth = 256 });
                     _currentImageWidth = width;

@@ -527,21 +527,21 @@ public class PnnQuantizer
 
         uint[] pixels = source.Pixels.Select(p => (uint)p).ToArray();
         SKColor[] palette;
-        if (replPal > 0)
-        {
-            log.Log($"Using palette offset {replPal}...");
-            for (int i = 0; i < dest.PixelData.Count; i++)
-            {
-                dest.PixelData[i] += (byte)(16 * replPal + dest.PixelData[i]);
-            }
-        }
         if (dest.Palette.Count < nMaxColors)
         {
             palette = [.. dest.Palette, .. new SKColor[nMaxColors - dest.Palette.Count]];
         }
         else
         {
-            palette = [.. dest.Palette];
+            if (replPal > 0)
+            {
+                log.Log($"Using palette offset {replPal}...");
+                palette = [.. dest.Palette[(16 * replPal)..(16 * (replPal + 1))]];
+            }
+            else
+            {
+                palette = [.. dest.Palette];
+            }
         }
         if (firstTransparent)
         {
