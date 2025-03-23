@@ -248,33 +248,7 @@ public class LayoutEntry
 
         SKBitmap texture = textures[RelativeShtxIndex];
         int tileWidth = (int)Math.Abs(boundingBox.Right - boundingBox.Left);
-        if (texture.Width - Math.Max(boundingBox.Right, boundingBox.Left) < tileWidth)
-        {
-            if (boundingBox.Right > boundingBox.Left)
-            {
-                boundingBox.Right = texture.Width;
-            }
-            else
-            {
-                boundingBox.Left = texture.Width;
-            }
-
-            tileWidth = (int)Math.Abs(boundingBox.Right - boundingBox.Left);
-        }
         int tileHeight = (int)Math.Abs(boundingBox.Bottom - boundingBox.Top);
-        if (texture.Height - Math.Max(boundingBox.Bottom, boundingBox.Top) < tileHeight)
-        {
-            if (boundingBox.Bottom > boundingBox.Top)
-            {
-                boundingBox.Bottom = texture.Height;
-            }
-            else
-            {
-                boundingBox.Top = texture.Height;
-            }
-
-            tileHeight = (int)Math.Abs(boundingBox.Bottom - boundingBox.Top);
-        }
         SKBitmap tile = new(tileWidth, tileHeight);
         SKCanvas transformCanvas = new(tile);
 
