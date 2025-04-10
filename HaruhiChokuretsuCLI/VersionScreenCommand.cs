@@ -38,7 +38,7 @@ public class VersionScreenCommand : Command
         SKBitmap splashScreenVersionless = SKBitmap.Decode(_splashScreenPath);
 
         using SKCanvas canvas = new(splashScreenVersionless);
-        int y = semVers.Length <= 3 ? 556 : 526;
+        int y = semVers.Length <= 3 ? 561 : 531;
         int height = semVers.Length <= 3 ? 9 : 27;
         SKRect bounds = new(0, y, 64, y + height);
 
