@@ -59,7 +59,7 @@ public class UnpackCommand : Command
                 (_decimal ? $"{x.Index:D3}" : $"{x.Index:X3}") + (_useNames ? $" - {x.Name}" : "") + ".bin"), 
             _compressed ? x.CompressedData : x.Data.ToArray()));
 
-        CommandSet.Out.WriteLine($"Successfully unpacked {archive.Files.Count} from archive {archive.FileName}.");
+        CommandSet.Out.WriteLine($"Successfully unpacked {archive.Files.Count} files from archive {archive.FileName}.");
 
         return 0;
     }
