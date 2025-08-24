@@ -31,6 +31,7 @@ public class Program
             new RecalculateSaveFileChecksumsCommand(),
             new CompareSavesCommand(),
             new ExportScriptToWikiTableCommand(),
+            new DumpGraphicsCommand(),
         };
 
         return commands.Run(args);

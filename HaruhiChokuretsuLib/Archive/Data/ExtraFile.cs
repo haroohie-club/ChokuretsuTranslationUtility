@@ -52,7 +52,7 @@ public class ExtraFile : DataFile
             Cgs.Add(new()
             {
                 BgId = IO.ReadShort(decompressedData, cgsOffset + i * 12),
-                Unknown02 = IO.ReadShort(decompressedData, cgsOffset + i * 12 + 2),
+                ThumbnailIndex = IO.ReadShort(decompressedData, cgsOffset + i * 12 + 2),
                 Unknown04 = decompressedData.ElementAt(cgsOffset + i * 12 + 4),
                 Flag = decompressedData.ElementAt(cgsOffset + i * 12 + 5) + 851,
                 Name = Encoding.GetEncoding("Shift-JIS").GetString(decompressedData.Skip(IO.ReadInt(decompressedData, cgsOffset + i * 12 + 8)).TakeWhile(b => b != 0).ToArray()),
@@ -97,7 +97,7 @@ public class ExtraFile : DataFile
         foreach (CgExtraData cg in Cgs)
         {
             sb.AppendLine($".short {cg.BgId}");
-            sb.AppendLine($"   .short {cg.Unknown02}");
+            sb.AppendLine($"   .short {cg.ThumbnailIndex}");
             sb.AppendLine($"   .byte {cg.Unknown04}");
             sb.AppendLine($"   .byte {cg.Flag - 851}");
             sb.AppendLine($"   .skip 2");
@@ -158,9 +158,9 @@ public class CgExtraData
     /// </summary>
     public short BgId { get; set; }
     /// <summary>
-    /// Unknown
+    /// The index of the extras mode thumbnail file in grp.bin
     /// </summary>
-    public short Unknown02 { get; set; }
+    public short ThumbnailIndex { get; set; }
     /// <summary>
     /// Unknown
     /// </summary>
