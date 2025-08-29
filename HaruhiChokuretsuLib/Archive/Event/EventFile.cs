@@ -505,7 +505,7 @@ public partial class EventFile : FileInArchive, ISourceFile
     [BsonIgnore]
     public FontReplacementDictionary FontReplacementMap { get; set; } = [];
 
-    private const int DIALOGUE_LINE_LENGTH = 230;
+    private const int DIALOGUE_LINE_LENGTH = 240;
 
     /// <inheritdoc/>
     public override void Initialize(byte[] decompressedData, int offset, ILogger log)
@@ -1046,6 +1046,12 @@ public partial class EventFile : FileInArchive, ISourceFile
                     continue;
                 }
 
+                if (dialogueText[i] == '\n')
+                {
+                    lineLength = 0;
+                    continue;
+                }
+
                 if (FontReplacementMap.ContainsKey(dialogueText[i]))
                 {
                     char newCharacter = FontReplacementMap[dialogueText[i]].OriginalCharacter;
@@ -1065,11 +1071,6 @@ public partial class EventFile : FileInArchive, ISourceFile
                     dialogueText = dialogueText.Insert(i, $"{newCharacter}");
                 }
 
-                if (dialogueText[i] == '\n')
-                {
-                    lineLength = 0;
-                }
-
                 if (!datFile && dialogueText[i] != '　' && lineLength > DIALOGUE_LINE_LENGTH)
                 {
                     int indexOfMostRecentSpace = dialogueText[..i].LastIndexOf(FontReplacementMap[' '].OriginalCharacter); // original space bc it's been replaced already
@@ -1083,11 +1084,12 @@ public partial class EventFile : FileInArchive, ISourceFile
                         dialogueText = dialogueText.Remove(indexOfMostRecentSpace, 1);
                         dialogueText = dialogueText.Insert(indexOfMostRecentSpace, "\n");
                     }
-                    lineLength = 0;
+                    lineLength = dialogueText[(indexOfMostRecentSpace + 1)..(i + 1)].Sum(c => FontReplacementMap.ReverseLookup(c)?.Offset ?? 0);
                 }
             }
-
-            if (!datFile && dialogueText.Count(c => c == '\n') > 1 || DialogueLines[dialogueIndex].SpeakerName == "CHOICE" && dialogueText.Length > 256)
+            
+            if (!datFile && (dialogueText.Count(c => c == '\n') > 1 || dialogueText.Count(c => c == '\n') == 1 && lineLength > DIALOGUE_LINE_LENGTH - 7) 
+                || DialogueLines[dialogueIndex].SpeakerName == "CHOICE" && dialogueText.Length > 256)
             {
                 string type = "dialogue line";
                 if (DialogueLines[dialogueIndex].SpeakerName == "CHOICE")
