@@ -505,7 +505,8 @@ public partial class EventFile : FileInArchive, ISourceFile
     [BsonIgnore]
     public FontReplacementDictionary FontReplacementMap { get; set; } = [];
 
-    private const int DIALOGUE_LINE_LENGTH = 240;
+    private const int DialogueLineLength = 240;
+    private const int ChoiceLineLength = 256;
 
     /// <inheritdoc/>
     public override void Initialize(byte[] decompressedData, int offset, ILogger log)
@@ -1071,7 +1072,7 @@ public partial class EventFile : FileInArchive, ISourceFile
                     dialogueText = dialogueText.Insert(i, $"{newCharacter}");
                 }
 
-                if (!datFile && dialogueText[i] != '　' && lineLength > DIALOGUE_LINE_LENGTH)
+                if (!datFile && dialogueText[i] != '　' && lineLength > DialogueLineLength)
                 {
                     int indexOfMostRecentSpace = dialogueText[..i].LastIndexOf(FontReplacementMap[' '].OriginalCharacter); // original space bc it's been replaced already
                     if (indexOfMostRecentSpace < 0)
@@ -1088,8 +1089,10 @@ public partial class EventFile : FileInArchive, ISourceFile
                 }
             }
             
-            if (!datFile && (dialogueText.Count(c => c == '\n') > 1 || dialogueText.Count(c => c == '\n') == 1 && lineLength > DIALOGUE_LINE_LENGTH - 7) 
-                || DialogueLines[dialogueIndex].SpeakerName == "CHOICE" && dialogueText.Length > 256)
+            if (!datFile && (dialogueText.Count(c => c == '\n') > 1 || dialogueText.Count(c => c == '\n') == 1
+                    && ((lineLength > DialogueLineLength - 7 && dialogueText[^1] != '。' && dialogueText[^1] != '…') ||
+                        lineLength > DialogueLineLength - 6))
+                || DialogueLines[dialogueIndex].SpeakerName == "CHOICE" && dialogueText.Length > ChoiceLineLength)
             {
                 string type = "dialogue line";
                 if (DialogueLines[dialogueIndex].SpeakerName == "CHOICE")

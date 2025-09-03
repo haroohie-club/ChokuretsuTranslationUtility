@@ -86,32 +86,27 @@ public class SaveSlotData : SaveSection
     /// <param name="data">Binary data of the save slot section</param>
     public SaveSlotData(byte[] data)
     {
-        Flags = data.Skip(0x08).Take(0x280).ToArray();
-        if (data.ElementAt(0x288) != 0)
-        {
-            SaveTime = new(data[0x288] + 2000, data[0x289], data[0x28A], data[0x28B], data[0x28C], data[0x28D], TimeSpan.Zero);
-        }
-        else
-        {
-            SaveTime = DateTimeOffset.MinValue;
-        }
+        Flags = data[0x08..0x288];
+        SaveTime = data[0x288] != 0
+            ? new(data[0x288] + 2000, data[0x289], data[0x28A], data[0x28B], data[0x28C], data[0x28D], TimeSpan.Zero)
+            : DateTimeOffset.MinValue;
         // Padding: 2 bytes
         ScenarioPosition = IO.ReadShort(data, 0x290);
         EpisodeNumber = IO.ReadShort(data, 0x292);
         HaruhiMeter = IO.ReadShort(data, 0x294);
         Global2D = IO.ReadShort(data, 0x296);
         KyonObjectiveIndex = IO.ReadInt(data, 0x298);
-        ObjectiveA = (CharacterMask)data.ElementAt(0x29C);
-        ObjectiveB = (CharacterMask)data.ElementAt(0x29D);
-        ObjectiveC = (CharacterMask)data.ElementAt(0x29E);
-        ObjectiveD = (CharacterMask)data.ElementAt(0x29F);
+        ObjectiveA = (CharacterMask)data[0x29C];
+        ObjectiveB = (CharacterMask)data[0x29D];
+        ObjectiveC = (CharacterMask)data[0x29E];
+        ObjectiveD = (CharacterMask)data[0x29F];
         // Padding: 2 bytes
-        HaruhiFriendshipLevel = data.ElementAt(0x2A2);
-        MikuruFriendshipLevel = data.ElementAt(0x2A3);
-        NagatoFriendshipLevel = data.ElementAt(0x2A4);
-        KoizumiFriendshipLevel = data.ElementAt(0x2A5);
-        UnknownFriendshipLevel = data.ElementAt(0x2A6);
-        TsuruyaFriendshipLevel = data.ElementAt(0x2A7);
+        HaruhiFriendshipLevel = data[0x2A2];
+        MikuruFriendshipLevel = data[0x2A3];
+        NagatoFriendshipLevel = data[0x2A4];
+        KoizumiFriendshipLevel = data[0x2A5];
+        UnknownFriendshipLevel = data[0x2A6];
+        TsuruyaFriendshipLevel = data[0x2A7];
         Footer = data.Skip(0x2A8).Take(0x144).ToArray();
     }
 
