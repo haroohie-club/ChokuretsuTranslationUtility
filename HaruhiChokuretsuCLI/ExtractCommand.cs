@@ -17,7 +17,7 @@ public class ExtractCommand : Command
 {
     private string _inputArchive, _outputFile, _fileName;
     private string[] _includes;
-    private int _fileIndex = -1, _imageWidth = -1, _palette = 0;
+    private int _fileIndex = -1, _imageWidth = -1, _palette;
     private bool _showHelp, _compressed;
 
     public ExtractCommand() : base("extract", "Extracts a file from an archive")
@@ -35,8 +35,8 @@ public class ExtractCommand : Command
             { "w|image-width=", "Width of an image to extract (defaults to the image's encoded width)", w => _imageWidth = int.Parse(w) },
             { "p|palette=", "The number of the palette to use in 4bpp graphics (0-15)", p => _palette = int.Parse(p) },
             { "includes=", "Comma-separated list of include files to use when producing a source file", include => _includes = include.Split(',') },
-            { "c|compressed", "Extract compressed file", c => _compressed = true },
-            { "h|help", "Shows this help screen", h => _showHelp = true },
+            { "c|compressed", "Extract compressed file", _ => _compressed = true },
+            { "h|help", "Shows this help screen", _ => _showHelp = true },
         };
     }
 
@@ -72,7 +72,7 @@ public class ExtractCommand : Command
         string directory = Path.GetDirectoryName(_outputFile);
         if (!Directory.Exists(directory))
         {
-            Directory.CreateDirectory(directory);
+            Directory.CreateDirectory(directory!);
         }
 
         if (Path.GetExtension(_outputFile).Equals(".png", StringComparison.OrdinalIgnoreCase))

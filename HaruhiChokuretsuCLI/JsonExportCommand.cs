@@ -25,9 +25,9 @@ public class JsonExportCommand : Command
             "",
             { "i|input-archive=", "Archive to extract file from", i => _inputArchive = i },
             { "o|output-folder=", "Folder path of extracted file", o => _outputFolder = o},
-            { "d|is-dat", "Whether input archive is dat.bin", d => _isDat = true },
+            { "d|is-dat", "Whether input archive is dat.bin", _ => _isDat = true },
             { "c|charmap=", "Charset mapping file", c => _charmapFile = c },
-            { "h|help", "Shows this help screen", h => _showHelp = true },
+            { "h|help", "Shows this help screen", _ => _showHelp = true },
         };
     }
 
@@ -56,8 +56,8 @@ public class JsonExportCommand : Command
         var shiftJis2Char = new Dictionary<char, char>();
         if (!string.IsNullOrEmpty(_charmapFile))
         {
-            var json_text = File.ReadAllText(_charmapFile);
-            var content = JsonSerializer.Deserialize<List<FontReplacement>>(json_text)!;
+            var jsonText = File.ReadAllText(_charmapFile);
+            var content = JsonSerializer.Deserialize<List<FontReplacement>>(jsonText)!;
             foreach (var obj in content)
             {
                 shiftJis2Char.Add(obj.OriginalCharacter, obj.ReplacedCharacter);
@@ -89,14 +89,7 @@ public class JsonExportCommand : Command
                 var text = "";
                 foreach (char c in line.Text)
                 {
-                    if (shiftJis2Char.TryGetValue(c, out char new_c))
-                    {
-                        text += new_c;
-                    }
-                    else
-                    {
-                        text += c;
-                    }
+                    text += shiftJis2Char.GetValueOrDefault(c, c);
                 }
                 output.Add([line.SpeakerName, text]);
             }

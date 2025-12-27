@@ -6,6 +6,7 @@
 // components are licensed under GPLv3, we can assume
 // it is also GPLv3 compatible
 using GotaSoundIO.IO;
+// ReSharper disable InconsistentNaming
 
 namespace HaruhiChokuretsuLib.Audio.SDAT.SoundArchiveComponents;
 
@@ -99,16 +100,16 @@ public class GroupEntry : IReadable, IWriteable
         switch (Type)
         {
             case GroupEntryType.Sequence:
-                w.Write((uint)(Entry as SequenceInfo).Index);
+                w.Write((uint)((SequenceInfo)Entry).Index);
                 break;
             case GroupEntryType.Bank:
-                w.Write((uint)(Entry as BankInfo).Index);
+                w.Write((uint)((BankInfo)Entry).Index);
                 break;
             case GroupEntryType.WaveArchive:
-                w.Write((uint)(Entry as WaveArchiveInfo).Index);
+                w.Write((uint)((WaveArchiveInfo)Entry).Index);
                 break;
             case GroupEntryType.SequenceArchive:
-                w.Write((uint)(Entry as SequenceArchiveInfo).Index);
+                w.Write((uint)((SequenceArchiveInfo)Entry).Index);
                 break;
         }
     }

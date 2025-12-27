@@ -535,7 +535,7 @@ public class VoiceMapFile : EventFile
             Subtitle = value;
             if (recenter)
             {
-                X = CenterSubtitle(value.Sum(c => fontReplacementMap.ReverseLookup(c)?.Offset ?? 15));
+                X = CenterSubtitle(value.Sum(c => fontReplacementMap?.ReverseLookup(c)?.Offset ?? 15));
             }
         }
 

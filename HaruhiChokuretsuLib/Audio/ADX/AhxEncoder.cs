@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+// ReSharper disable InconsistentNaming
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio.ADX;
@@ -233,7 +234,7 @@ public class AhxEncoder : IAdxEncoder
                         quantizedSamples[s] = formatted;
                     }
 
-                    GroupSpec? groupSpec = quant.GroupSpec;
+                    GroupSpec? groupSpec = quant.GroupSpecifier;
                     if (groupSpec.HasValue)
                     {
                         long grouped = quantizedSamples[0] + quantizedSamples[1] * groupSpec.Value.NLevels + quantizedSamples[2] * (long)Math.Pow(groupSpec.Value.NLevels, 2);
@@ -288,7 +289,7 @@ public class AhxEncoder : IAdxEncoder
         }
 
         BinaryWriter w = Writer.Inner();
-        w.Write("\x00\x80\x01\x00\x0000AHXE(c)CRI\x00\x00");
+        w.Write("\x00\x80\x01\x00\x00" + "AHXE(c)CRI" + "\x00\x00");
 
         AdxHeader header = new()
         {
@@ -544,40 +545,40 @@ public class AhxEncoder : IAdxEncoder
         public long A { get; set; }
         public long B { get; set; }
         public uint NumBits { get; set; }
-        public GroupSpec? GroupSpec { get; set; }
+        public GroupSpec? GroupSpecifier { get; set; }
     }
 
     private static readonly QuantSpec[] QUANT_TABLE =
     [
-        new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpec = null, },
-        new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpec = null, },
-        new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpec = null, },
-        new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpec = null, },
-        new() { A = 0x0F000000, B = -0x01000000, NumBits = 4, GroupSpec = null, },
-        new() { A = 0x0F000000, B = -0x01000000, NumBits = 4, GroupSpec = null, },
-        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpec = new() { NLevels =  9, GroupBits = 10, }, },
-        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpec = new() { NLevels =  9, GroupBits = 10, }, },
-        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpec = new() { NLevels =  9, GroupBits = 10, }, },
-        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpec = new() { NLevels =  9, GroupBits = 10, }, },
-        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpec = new() { NLevels =  9, GroupBits = 10, }, },
-        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpec = new() { NLevels =  9, GroupBits = 10, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
-        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpec = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpecifier = null, },
+        new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpecifier = null, },
+        new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpecifier = null, },
+        new() { A = 0x0F800000, B = -0x00800000, NumBits = 5, GroupSpecifier = null, },
+        new() { A = 0x0F000000, B = -0x01000000, NumBits = 4, GroupSpecifier = null, },
+        new() { A = 0x0F000000, B = -0x01000000, NumBits = 4, GroupSpecifier = null, },
+        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpecifier = new() { NLevels =  9, GroupBits = 10, }, },
+        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpecifier = new() { NLevels =  9, GroupBits = 10, }, },
+        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpecifier = new() { NLevels =  9, GroupBits = 10, }, },
+        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpecifier = new() { NLevels =  9, GroupBits = 10, }, },
+        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpecifier = new() { NLevels =  9, GroupBits = 10, }, },
+        new() { A = 0x09000000, B = -0x07000000, NumBits = 4, GroupSpecifier = new() { NLevels =  9, GroupBits = 10, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
+        new() { A = 0x0C000000, B = -0x04000000, NumBits = 2, GroupSpecifier = new() { NLevels =  3, GroupBits = 5, }, },
     ];
 }

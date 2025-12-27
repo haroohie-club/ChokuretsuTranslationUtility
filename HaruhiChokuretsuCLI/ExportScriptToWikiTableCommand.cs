@@ -129,7 +129,7 @@ public class ExportScriptToWikiTableCommand : Command
                             if (jaTopic is not null)
                             {
                                 Topic enTopic = enTopics.Topics.FirstOrDefault(t => t.Id == topicId);
-                                entries.Last().Notes += $" ({jaTopic.Title}, \"{enTopic.Title}\")";
+                                entries.Last().Notes += $" ({jaTopic.Title}, \"{enTopic?.Title}\")";
                             }
                             else
                             {

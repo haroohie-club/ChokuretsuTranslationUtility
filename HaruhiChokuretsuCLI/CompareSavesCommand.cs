@@ -23,7 +23,6 @@ public class CompareSavesCommand : Command
     public override int Invoke(IEnumerable<string> arguments)
     {
         Options.Parse(arguments);
-
         SaveFile firstSave = new(File.ReadAllBytes(_firstSave));
         SaveFile secondSave = new(File.ReadAllBytes(_secondSave));
 

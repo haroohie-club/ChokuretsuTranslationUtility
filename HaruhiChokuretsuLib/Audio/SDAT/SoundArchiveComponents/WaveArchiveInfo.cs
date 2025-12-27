@@ -38,7 +38,7 @@ public class WaveArchiveInfo : IReadable, IWriteable
     public WaveArchive File;
 
     /// <summary>
-    /// Reading file Id.
+    /// Reading file ID.
     /// </summary>
     public uint ReadingFileId;
 

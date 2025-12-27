@@ -58,11 +58,11 @@ public class LocalizeSourceFilesCommand : Command
         foreach (DictionaryEntry d in resxReader)
         {
             string final = string.Empty;
-            foreach (char c in (string)d.Value)
+            foreach (char c in ((string)d.Value)!)
             {
-                if (fontReplacementDictionary.ContainsKey(c))
+                if (fontReplacementDictionary.TryGetValue(c, out FontReplacement fontReplacement))
                 {
-                    char newCharacter = fontReplacementDictionary[c].OriginalCharacter;
+                    char newCharacter = fontReplacement.OriginalCharacter;
                     if (c == '"' && (c == ' ' || c == '!' || c == '?' || c == '.' || c == '…' || c == '\n' || c == '#'))
                     {
                         newCharacter = '”';

@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Instrument = HaruhiChokuretsuLib.Audio.SDAT.Instruments.Instrument;
+// ReSharper disable InconsistentNaming
 
 namespace HaruhiChokuretsuLib.Audio.SDAT;
 
@@ -43,7 +44,7 @@ public class Bank : IOFile, IPlayableBank
     /// <returns></returns>
     public static Instrument DuplicateInstrument(Instrument i)
     {
-        Instrument n = null;
+        Instrument n;
         switch (i.Type())
         {
             case SDAT.Instruments.InstrumentType.DrumSet:
@@ -110,25 +111,25 @@ public class Bank : IOFile, IPlayableBank
                 case SDAT.Instruments.InstrumentType.Null:
                     r.Jump(offs[i], true);
                     Instruments.Add(r.Read<DirectInstrument>());
-                    Instruments[Instruments.Count - 1].Index = i;
-                    Instruments[Instruments.Count - 1].NoteInfo[0].InstrumentType = records[i];
-                    Instruments[Instruments.Count - 1].Order = offs[i];
+                    Instruments[^1].Index = i;
+                    Instruments[^1].NoteInfo[0].InstrumentType = records[i];
+                    Instruments[^1].Order = offs[i];
                     break;
 
                 //Drum set.
                 case SDAT.Instruments.InstrumentType.DrumSet:
                     r.Jump(offs[i], true);
                     Instruments.Add(r.Read<DrumSetInstrument>());
-                    Instruments[Instruments.Count - 1].Index = i;
-                    Instruments[Instruments.Count - 1].Order = offs[i];
+                    Instruments[^1].Index = i;
+                    Instruments[^1].Order = offs[i];
                     break;
 
                 //Key split.
                 case SDAT.Instruments.InstrumentType.KeySplit:
                     r.Jump(offs[i], true);
                     Instruments.Add(r.Read<KeySplitInstrument>());
-                    Instruments[Instruments.Count - 1].Index = i;
-                    Instruments[Instruments.Count - 1].Order = offs[i];
+                    Instruments[^1].Index = i;
+                    Instruments[^1].Order = offs[i];
                     break;
 
             }
@@ -157,10 +158,10 @@ public class Bank : IOFile, IPlayableBank
             Dictionary<int, long> bakPos = new Dictionary<int, long>();
             for (int i = 0; i <= Instruments.Last().Index; i++)
             {
-                if (Instruments.Where(x => x.Index == i).Any())
+                if (Instruments.Any(x => x.Index == i))
                 {
-                    var inst = Instruments.Where(x => x.Index == i).FirstOrDefault();
-                    w.Write((byte)inst.Type());
+                    var inst = Instruments.FirstOrDefault(x => x.Index == i);
+                    w.Write((byte)inst!.Type());
                     bakPos.Add(i, w.Position);
                     w.Write((ushort)0);
                     w.Write((byte)0);
@@ -205,23 +206,9 @@ public class Bank : IOFile, IPlayableBank
     {
 
         //Has program.
-        var q = Instruments.Where(x => x.Index == program).FirstOrDefault();
-        if (q != null)
-        {
-            var e = q.GetNoteInfo(note);
-            if (e != null)
-            {
-                return e.ToNotePlayBackInfo();
-            }
-            else
-            {
-                return null;
-            }
-        }
-        else
-        {
-            return null;
-        }
+        var q = Instruments.FirstOrDefault(x => x.Index == program);
+        var e = q?.GetNoteInfo(note);
+        return e?.ToNotePlayBackInfo();
 
     }
 
@@ -262,24 +249,28 @@ public class Bank : IOFile, IPlayableBank
         {
 
             //New instrument.
-            GotaSoundBank.DLS.Instrument im = new GotaSoundBank.DLS.Instrument();
-            im.BankId = (uint)(inst.Index / 128);
-            im.InstrumentId = (uint)(inst.Index % 128);
+            GotaSoundBank.DLS.Instrument im = new GotaSoundBank.DLS.Instrument
+            {
+                BankId = (uint)(inst.Index / 128),
+                InstrumentId = (uint)(inst.Index % 128),
+            };
             im.Name = "Instrument " + im.InstrumentId;
 
             //Add regions.
-            byte lastNote = inst as DrumSetInstrument != null ? (inst as DrumSetInstrument).Min : (byte)0;
-            foreach (var n in inst.NoteInfo)
+            byte lastNote = inst is DrumSetInstrument instrument ? instrument.Min : (byte)0;
+            foreach (NoteInfo n in inst.NoteInfo)
             {
 
                 //New region.
-                Region r = new Region();
+                Region r = new()
+                {
+                    //Set note info.
+                    VelocityLow = 0,
+                    VelocityHigh = 127,
+                    NoteLow = lastNote,
+                    NoteHigh = (inst is DirectInstrument) ? (byte)127 : (byte)n.Key,
+                };
 
-                //Set note info.
-                r.VelocityLow = 0;
-                r.VelocityHigh = 127;
-                r.NoteLow = lastNote;
-                r.NoteHigh = (inst as DirectInstrument != null) ? (byte)127 : (byte)n.Key;
                 lastNote = (byte)(n.Key + 1);
                 r.ChannelFlags = 1;
                 r.DoublePlayback = true;

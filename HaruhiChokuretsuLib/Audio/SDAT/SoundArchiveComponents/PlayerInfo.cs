@@ -60,7 +60,7 @@ public class PlayerInfo : IReadable, IWriteable
     public void Write(FileWriter w)
     {
         w.Write(SequenceMax);
-        if (ChannelFlags.Where(x => x == true).Count() == 16)
+        if (ChannelFlags.Count(x => x) == 16)
         {
             w.Write((ushort)0);
         }

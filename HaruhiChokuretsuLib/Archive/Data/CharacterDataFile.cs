@@ -241,14 +241,9 @@ public class CharacterSprite
         }
 
         List<GraphicsFile> textures = [];
-        if (grp is not null)
-        {
-            textures.AddRange([grp.GetFileByIndex(TextureIndex1), grp.GetFileByIndex(TextureIndex2), grp.GetFileByIndex(TextureIndex3)]);
-        }
-        else
-        {
-            textures.AddRange(bodyTextures);
-        }
+        textures.AddRange(grp is not null
+            ? [grp.GetFileByIndex(TextureIndex1), grp.GetFileByIndex(TextureIndex2), grp.GetFileByIndex(TextureIndex3)]
+            : bodyTextures);
         if (bodyLayout is null && grp is not null)
         {
             bodyLayout = grp.GetFileByIndex(LayoutIndex);
@@ -265,7 +260,7 @@ public class CharacterSprite
         }
         MessageInfo messageInfo = messageInfoFile.MessageInfos[(int)Character];
 
-        (SKBitmap spriteBitmap, _) = bodyLayout.GetLayout(textures, 0, bodyLayout.LayoutEntries.Count, darkMode: false, preprocessedList: true);
+        (SKBitmap spriteBitmap, _) = bodyLayout!.GetLayout(textures, 0, bodyLayout.LayoutEntries.Count, darkMode: false, preprocessedList: true);
         SKBitmap[] eyeFrames = eyeAnimation.GetAnimationFrames(eyeTexture).Select(f => f.GetImage()).ToArray();
         SKBitmap[] mouthFrames = mouthAnimation.GetAnimationFrames(mouthTexture).Select(f => f.GetImage()).ToArray();
 
@@ -279,14 +274,8 @@ public class CharacterSprite
             SKCanvas canvas = new(frame);
             canvas.DrawBitmap(spriteBitmap, new SKPoint(0, 0));
             canvas.DrawBitmap(eyeFrames[e], new SKPoint(eyeAnimation.AnimationX, eyeAnimation.AnimationY));
-            if (lipFlap)
-            {
-                canvas.DrawBitmap(mouthFrames[m], new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
-            }
-            else
-            {
-                canvas.DrawBitmap(mouthFrames[0], new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
-            }
+            canvas.DrawBitmap(lipFlap ? mouthFrames[m] : mouthFrames[0],
+                new SKPoint(mouthAnimation.AnimationX, mouthAnimation.AnimationY));
             int time;
 
             if (currentEyeTime == currentMouthTime)

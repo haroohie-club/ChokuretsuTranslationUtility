@@ -94,10 +94,10 @@ public class SequenceArchive : SequenceFile
             int num = 0;
             for (int i = 0; i <= Sequences.Last().Index; i++)
             {
-                var e = Sequences.Where(x => x.Index == i).FirstOrDefault();
+                var e = Sequences.FirstOrDefault(x => x.Index == i);
                 if (e == null)
                 {
-                    w.Write((uint)0xFFFFFFFF);
+                    w.Write(0xFFFFFFFF);
                     w.Write((ulong)0);
                 }
                 else
@@ -188,11 +188,10 @@ public class SequenceArchive : SequenceFile
                     l.Add(" ");
                 }
                 l.Add("Command_" + i + ":");
-                labelAdded = true;
             }
 
             //Add command.
-            l.Add("\t" + Commands[i].ToString());
+            l.Add("\t" + Commands[i]);
 
         }
 
@@ -205,17 +204,8 @@ public class SequenceArchive : SequenceFile
     /// From text.
     /// </summary>
     /// <param name="text">The text to parse.</param>
-    public new void FromText(List<string> text)
-    {
-        FromText(text, null);
-    }
-
-    /// <summary>
-    /// From text.
-    /// </summary>
-    /// <param name="text">The text to parse.</param>
     /// <param name="a">Sound archive.</param>
-    public void FromText(List<string> text, SoundArchive a)
+    public void FromText(List<string> text, SoundArchive a = null)
     {
         //Success by default.
         WritingCommandSuccess = true;
@@ -235,7 +225,12 @@ public class SequenceArchive : SequenceFile
         for (int i = t.Count - 1; i >= 0; i--)
         {
             t[i] = t[i].Replace("\t", "").Replace("\r", "");
-            try { t[i] = t[i].Split(';')[0]; } catch { }
+            try { t[i] = t[i].Split(';')[0]; }
+            catch
+            {
+                // ignored
+            }
+
             if (t[i].Replace(" ", "").Length == 0) { t.RemoveAt(i); continue; }
             for (int j = 0; j < t[i].Length; j++)
             {
@@ -289,12 +284,12 @@ public class SequenceArchive : SequenceFile
                 s.ReadingBankId = ushort.Parse(bnk);
                 if (a != null)
                 {
-                    s.Bank = a.Banks.Where(x => x.Index == s.ReadingBankId).FirstOrDefault();
+                    s.Bank = a.Banks.FirstOrDefault(x => x.Index == s.ReadingBankId);
                 }
             }
             else if (a != null)
             {
-                var bnkReal = a.Banks.Where(x => x.Name.Equals(bnk)).FirstOrDefault();
+                var bnkReal = a.Banks.FirstOrDefault(x => x.Name.Equals(bnk));
                 if (bnkReal == null)
                 {
                     throw new("Bank " + bnk + " does not exist!");
@@ -319,12 +314,12 @@ public class SequenceArchive : SequenceFile
                 s.ReadingPlayerId = byte.Parse(ply);
                 if (a != null)
                 {
-                    s.Player = a.Players.Where(x => x.Index == s.ReadingPlayerId).FirstOrDefault();
+                    s.Player = a.Players.FirstOrDefault(x => x.Index == s.ReadingPlayerId);
                 }
             }
             else if (a != null)
             {
-                var plyReal = a.Players.Where(x => x.Name.Equals(ply)).FirstOrDefault();
+                var plyReal = a.Players.FirstOrDefault(x => x.Name.Equals(ply));
                 if (plyReal == null)
                 {
                     throw new("Player " + ply + " does not exist!");
@@ -436,12 +431,12 @@ public class SequenceArchiveSequence : IReadable, IWriteable
     public byte PlayerPriority = 0x40;
 
     /// <summary>
-    /// Reading bank Id.
+    /// Reading bank ID.
     /// </summary>
     public ushort ReadingBankId;
 
     /// <summary>
-    /// Reading player Id.
+    /// Reading player ID.
     /// </summary>
     public byte ReadingPlayerId;
 
@@ -470,11 +465,11 @@ public class SequenceArchiveSequence : IReadable, IWriteable
     /// <param name="w">The writer.</param>
     public void Write(FileWriter w)
     {
-        w.Write(Bank != null ? (ushort)Bank.Index : (ushort)ReadingBankId);
+        w.Write(Bank != null ? (ushort)Bank.Index : ReadingBankId);
         w.Write(Volume);
         w.Write(ChannelPriority);
         w.Write(PlayerPriority);
-        w.Write(Player != null ? (byte)Player.Index : (byte)ReadingPlayerId);
+        w.Write(Player != null ? (byte)Player.Index : ReadingPlayerId);
         w.Write((ushort)0);
     }
 }

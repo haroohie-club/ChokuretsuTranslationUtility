@@ -48,7 +48,7 @@ public struct AdxSpec
 public class Sample : List<short>
 {
     /// <inheritdoc/>
-    public Sample() : base()
+    public Sample()
     {
     }
 
@@ -173,7 +173,7 @@ public static class AdxUtil
         }
 
         byte[] bytes = new byte[wav.Length];
-        wav.Read(bytes);
+        wav.ReadExactly(bytes);
         List<Sample> samples = [];
         for (int i = 0; i < bytes.Length; i += 2)
         {
@@ -208,17 +208,13 @@ internal class Block
 {
     public Prev<short> Prev { get; set; } = new() { First = 0, Second = 0 };
     public Prev<short> OriginalPrev { get; set; } = new() { First = 0, Second = 0 };
-    public int Min { get; set; } = 0;
-    public int Max { get; set; } = 0;
+    public int Min { get; set; }
+    public int Max { get; set; }
     public short[] Samples { get; set; } = new short[32];
-    public int Size { get; set; } = 0;
+    public int Size { get; set; }
 
     public bool IsEmpty => Size == 0;
     public bool IsFull => Size == 32;
-
-    public Block()
-    {
-    }
 
     public static Block FromPrev(Block other)
     {
@@ -273,7 +269,7 @@ internal class Block
             byte upperNibble = GetNibble(Samples[i], scale, coefficients);
             byte lowerNibble = GetNibble(Samples[i + 1], scale, coefficients);
             byte @byte = (byte)(upperNibble << 4 | lowerNibble & 0xF);
-            writer.Write(new byte[] { @byte });
+            writer.Write(new[] { @byte });
         }
     }
 
@@ -345,8 +341,8 @@ internal class Frame
 internal class BitWriter(BinaryWriter writer)
 {
     public BinaryWriter Writer { get; set; } = writer;
-    public byte Byte { get; set; } = 0;
-    public int Bit { get; set; } = 0;
+    public byte Byte { get; set; }
+    public int Bit { get; set; }
 
     public void Reset()
     {

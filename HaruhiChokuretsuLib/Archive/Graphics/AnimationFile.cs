@@ -60,7 +60,7 @@ public partial class GraphicsFile
                 frame.PixelData = [];
                 for (int i = animationEntry.FrameOffset; i < (texture.PixelData?.Count ?? 0); i += AnimationEntries.DistinctBy(a => ((FrameAnimationEntry)a).FrameOffset).Count() * animationEntry.FrameWidth)
                 {
-                    frame.PixelData.AddRange(texture.PixelData.Skip(i).Take(animationEntry.FrameWidth));
+                    frame.PixelData.AddRange(texture.PixelData!.Skip(i).Take(animationEntry.FrameWidth));
                 }
                 graphicFrames.Add(frame);
             }

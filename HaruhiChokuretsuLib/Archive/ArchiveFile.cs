@@ -155,33 +155,35 @@ public class ArchiveFile<T>
         {
             int offset = GetFileOffset(MagicIntegers[i]);
             int compressedLength = GetFileLength(MagicIntegers[i]);
-            IEnumerable<byte> fileBytes = archiveBytes.Skip(offset).Take(compressedLength);
-            if (fileBytes.Any())
+            byte[] fileBytes = archiveBytes[offset..(offset + compressedLength)];
+            if (fileBytes.Length == 0)
             {
-                T file = new();
-                try
-                {
-                    file = FileManager<T>.FromCompressedData(fileBytes, _log, offset, i >= filenames.Count ? $"FILE{i}" : filenames[i], generic: generic);
-                }
-                catch (Exception ex)
-                {
-                    if (dontThrow)
-                    {
-                        _log.LogError($"Failed to parse file {filenames[i]} (0x{i + 1:X3}): {ex.Message}!");
-                        _log.LogWarning(ex.StackTrace);
-                    }
-                    else
-                    {
-                        throw new ArchiveLoadException(i, i >= filenames.Count ? $"FILE{i+1}" : filenames[i], ex);
-                    }
-                }
-                file.Offset = offset;
-                file.MagicInteger = MagicIntegers[i];
-                file.Index = i + 1;
-                file.Length = compressedLength;
-                file.CompressedData = fileBytes.ToArray();
-                Files.Add(file);
+                continue;
             }
+
+            T file = new();
+            try
+            {
+                file = FileManager<T>.FromCompressedData(fileBytes, _log, offset, i >= filenames.Count ? $"FILE{i}" : filenames[i], generic: generic);
+            }
+            catch (Exception ex)
+            {
+                if (dontThrow)
+                {
+                    _log.LogError($"Failed to parse file {filenames[i]} (0x{i + 1:X3}): {ex.Message}!");
+                    _log.LogWarning(ex.StackTrace);
+                }
+                else
+                {
+                    throw new ArchiveLoadException(i, i >= filenames.Count ? $"FILE{i+1}" : filenames[i], ex);
+                }
+            }
+            file.Offset = offset;
+            file.MagicInteger = MagicIntegers[i];
+            file.Index = i + 1;
+            file.Length = compressedLength;
+            file.CompressedData = fileBytes.ToArray();
+            Files.Add(file);
         }
     }
 
@@ -267,11 +269,13 @@ public class ArchiveFile<T>
             {
                 // ADCS
                 bool nextCarryFlag = Helpers.AddWillCauseCarry(standardLengthIncrement, (int)(salt << 1) + (carryFlag ? 1 : 0));
+                // ReSharper disable once IntVariableOverflowInUncheckedContext
                 salt = (uint)standardLengthIncrement + (salt << 1) + (uint)(carryFlag ? 1 : 0);
                 carryFlag = nextCarryFlag;
                 // SUBCC
                 if (!carryFlag)
                 {
+                    // ReSharper disable once IntVariableOverflowInUncheckedContext
                     salt -= (uint)standardLengthIncrement;
                 }
                 // ADCS

@@ -31,12 +31,12 @@ public class ExportLayoutCommand : Command
                     }
                 } 
             },
-            { "i|indices=", "List of comma-delimited file indices to build the layout with", i => _indices = i.Split(',').Select(ind => int.Parse(ind)).ToArray() },
+            { "i|indices=", "List of comma-delimited file indices to build the layout with", i => _indices = i.Split(',').Select(int.Parse).ToArray() },
             { "n|names=", "List of comma-delimited file names to build the layout with", n => _names = n.Split(",") },
             { "s|layout-start=", "Layout starting index", s => _layoutStart = int.Parse(s) },
             { "e|layout-end=", "Layout ending index", e => _layoutEnd = int.Parse(e) },
             { "o|output=", "Output PNG file location", o => _outputFile = o },
-            { "j|json", "If specified, will output JSON of the layout entries as well", j => _json = true },
+            { "j|json", "If specified, will output JSON of the layout entries as well", _ => _json = true },
         };
     }
 
@@ -47,15 +47,7 @@ public class ExportLayoutCommand : Command
 
         ArchiveFile<GraphicsFile> grp = ArchiveFile<GraphicsFile>.FromFile(_grp, log);
 
-        GraphicsFile layout;
-        if (_layoutIndex < 0)
-        {
-            layout = grp.GetFileByName(_layoutName);
-        }
-        else
-        {
-            layout = grp.GetFileByIndex(_layoutIndex);
-        }
+        GraphicsFile layout = _layoutIndex < 0 ? grp.GetFileByName(_layoutName) : grp.GetFileByIndex(_layoutIndex);
 
         List<GraphicsFile> layoutTextures;
         if (_indices is null || _indices.Length == 0)
@@ -79,7 +71,7 @@ public class ExportLayoutCommand : Command
 
         if (_json)
         {
-            File.WriteAllText(Path.Combine(Path.GetDirectoryName(_outputFile), $"{Path.GetFileNameWithoutExtension(_outputFile)}.json"), JsonSerializer.Serialize(layoutEntries, ReplaceCommand.SERIALIZER_OPTIONS));
+            File.WriteAllText(Path.Combine(Path.GetDirectoryName(_outputFile) ?? string.Empty, $"{Path.GetFileNameWithoutExtension(_outputFile)}.json"), JsonSerializer.Serialize(layoutEntries, ReplaceCommand.SerializerOptions));
         }
 
         return 0;

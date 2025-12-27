@@ -33,7 +33,7 @@ public class ImportResxCommand : Command
             { "f|font-map=", "Font offset mapping file", f => _fontOffsetMap = f },
             { "s|spell-check=", "Directory of spellcheck dictionaries to use for spellchecking (optional)", s => _spellcheckDir = s },
             { "w|warning-log=", "Log file to write warnings to (optional, if not specified will write to the console", w => _warningLogFile = w },
-            { "h|help", "Shows this help screen", h => _showHelp = true },
+            { "h|help", "Shows this help screen", _ => _showHelp = true },
         };
     }
 
@@ -82,7 +82,7 @@ public class ImportResxCommand : Command
         string outputDirectory = Path.GetDirectoryName(_outputArchive);
         if (!Directory.Exists(outputDirectory))
         {
-            Directory.CreateDirectory(outputDirectory);
+            Directory.CreateDirectory(outputDirectory!);
         }
 
         bool isDat = Path.GetFileName(_inputArchive).StartsWith("dat", StringComparison.OrdinalIgnoreCase);
@@ -98,7 +98,6 @@ public class ImportResxCommand : Command
             EventFile evtVmFile = evtArchive.GetFileByIndex(589);
             if (evtVmFile is not null)
             {
-                VoiceMapFile newVmFile = new();
                 evtArchive.Files[evtArchive.Files.IndexOf(evtVmFile)] = evtVmFile.CastTo<VoiceMapFile>();
             }
         }

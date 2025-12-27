@@ -26,7 +26,7 @@ public class ExportCharacterSpriteCommand : Command
             { "d|dat=", "Location of dat.bin", d => _dat = d },
             { "g|grp=", "Location of grp.bin", g => _grp = g },
             { "s|i|sprite|sprite-index=", "Index of character sprite to export", s => _spriteIndex = int.Parse(s) },
-            { "l|lip-flap", "If used, will include lip flap animation", l => _lipFlap = true },
+            { "l|lip-flap", "If used, will include lip flap animation", _ => _lipFlap = true },
             { "o|output|output-dir=", "Output directory for chibi animations", o => _outputFolder = o },
         };
     }
@@ -48,14 +48,7 @@ public class ExportCharacterSpriteCommand : Command
         CharacterSprite sprite = chrdata.Sprites[_spriteIndex];
 
         List<(SKBitmap frame, int timing)> animationFrames;
-        if (_lipFlap)
-        {
-            animationFrames = sprite.GetLipFlapAnimation(grp, dat.GetFileByName("MESSINFOS").CastTo<MessageInfoFile>());
-        }
-        else
-        {
-            animationFrames = sprite.GetClosedMouthAnimation(grp, dat.GetFileByName("MESSINFOS").CastTo<MessageInfoFile>());
-        }
+        animationFrames = _lipFlap ? sprite.GetLipFlapAnimation(grp, dat.GetFileByName("MESSINFOS").CastTo<MessageInfoFile>()) : sprite.GetClosedMouthAnimation(grp, dat.GetFileByName("MESSINFOS").CastTo<MessageInfoFile>());
         List<SKBitmap> frames = [];
         foreach (var frame in animationFrames)
         {
@@ -68,7 +61,7 @@ public class ExportCharacterSpriteCommand : Command
         using Image<Rgba32> gif = new(frames.Max(f => f.Width), frames.Max(f => f.Height));
         gif.Metadata.GetGifMetadata().RepeatCount = 0;
 
-        IEnumerable<Image<Rgba32>> gifFrames = frames.Select(f => Image.LoadPixelData<Rgba32>(f.Pixels.Select(c => new Rgba32(c.Red, c.Green, c.Blue, c.Alpha)).ToArray(), f.Width, f.Height));
+        IEnumerable<Image<Rgba32>> gifFrames = frames.Select(f => Image.LoadPixelData(f.Pixels.Select(c => new Rgba32(c.Red, c.Green, c.Blue, c.Alpha)).ToArray(), f.Width, f.Height));
         foreach (Image<Rgba32> gifFrame in gifFrames)
         {
             GifFrameMetadata metadata = gifFrame.Frames.RootFrame.Metadata.GetGifMetadata();

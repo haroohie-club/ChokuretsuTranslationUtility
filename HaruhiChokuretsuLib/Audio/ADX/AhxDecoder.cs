@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+// ReSharper disable InconsistentNaming
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 // But modified to work with more AHX files and to fix some bugs
@@ -40,8 +41,8 @@ public class AhxDecoder : IAdxDecoder
     /// </summary>
     public LoopInfo LoopInfo => null;
 
-    private int _currentOffset = 0;
-    private int _currentBit = 0;
+    private int _currentOffset;
+    private int _currentBit;
     private readonly ILogger _log;
 
     /// <summary>

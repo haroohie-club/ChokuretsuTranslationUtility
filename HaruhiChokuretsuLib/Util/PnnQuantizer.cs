@@ -17,7 +17,7 @@ namespace HaruhiChokuretsuLib.Util;
 public class PnnQuantizer
 {
     private byte _alphaThreshold = 0xF;
-    private bool _dither = true, _hasSemiTransparency = false;
+    private bool _dither = true, _hasSemiTransparency;
     private int _transparentPixelIndex = -1;
     private SKColor _transparentColor = SKColors.Transparent;
     private readonly Random _rand = new();

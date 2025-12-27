@@ -8,6 +8,7 @@
 using GotaSoundIO.IO;
 using GotaSoundIO.Sound;
 using System;
+// ReSharper disable InconsistentNaming
 
 namespace HaruhiChokuretsuLib.Audio.SDAT;
 
@@ -133,18 +134,18 @@ public class Wave : SoundFile
     public void WriteShortened(FileWriter w)
     {
         //Format.
-        PcmFormat pcmFormat = PcmFormat.Encoded;
-        if (Audio.EncodingType.Equals(typeof(PCM8Signed)))
+        PcmFormat pcmFormat;
+        if (Audio.EncodingType == typeof(PCM8Signed))
         {
             w.Write((byte)PcmFormat.SignedPCM8);
             pcmFormat = PcmFormat.SignedPCM8;
         }
-        else if (Audio.EncodingType.Equals(typeof(PCM16)))
+        else if (Audio.EncodingType == typeof(PCM16))
         {
             w.Write((byte)PcmFormat.PCM16);
             pcmFormat = PcmFormat.PCM16;
         }
-        else if (Audio.EncodingType.Equals(typeof(ImaAdpcm)))
+        else if (Audio.EncodingType == typeof(ImaAdpcm))
         {
             w.Write((byte)PcmFormat.Encoded);
             pcmFormat = PcmFormat.Encoded;
@@ -158,7 +159,7 @@ public class Wave : SoundFile
         w.Write(Loops);
         w.Write((ushort)SampleRate);
         ushort nTimeSampleRate = (ushort)(16756991 / SampleRate);
-        if (BackupNTime != 0) { w.Write(BackupNTime); } else { w.Write(nTimeSampleRate); }
+        w.Write(BackupNTime != 0 ? BackupNTime : nTimeSampleRate);
         if (Loops) { w.Write((ushort)(Sample2Offset(LoopStart, pcmFormat) / 4)); } else { w.Write((ushort)(pcmFormat == PcmFormat.Encoded ? 1 : 0)); }
         if (Loops) { w.Write((uint)((Audio.DataSize - Sample2Offset(LoopStart, pcmFormat)) / 4)); } else { w.Write((uint)((Audio.DataSize - Sample2Offset((uint)(pcmFormat == PcmFormat.Encoded ? 1 : 0), pcmFormat)) / 4)); }
         Audio.Write(w);

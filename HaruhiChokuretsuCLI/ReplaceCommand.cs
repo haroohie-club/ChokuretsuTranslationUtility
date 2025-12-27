@@ -22,11 +22,11 @@ namespace HaruhiChokuretsuCLI;
 
 public class ReplaceCommand : Command
 {
-    public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new() { Converters = { new SKColorJsonConverter() } };
+    public static readonly JsonSerializerOptions SerializerOptions = new() { Converters = { new SKColorJsonConverter() } };
         
     string _inputArchive, _outputArchive, _replacement, _devkitArm, _vceDir;
     private bool _showHelp;
-    private Dictionary<int, List<SKColor>> _palettes = new();
+    private readonly Dictionary<int, List<SKColor>> _palettes = new();
 
     public ReplaceCommand() : base("replace", "Replaces a file or set of files in an archive")
     {
@@ -53,7 +53,7 @@ public class ReplaceCommand : Command
                 r => _replacement = r },
             { "v|vce-dir=", "Location of the vce/ dir (used only for producing subtitles)", v => _vceDir = v },
             { "d|devkitARM=", "Location of devkitARM (for assembling .s files)", d => _devkitArm = d },
-            { "h|help", "Shows this help screen", h => _showHelp = true },
+            { "h|help", "Shows this help screen", _ => _showHelp = true },
         };
     }
     public override int Invoke(IEnumerable<string> arguments)
@@ -61,7 +61,7 @@ public class ReplaceCommand : Command
         return InvokeAsync(arguments).GetAwaiter().GetResult();
     }
 
-    public async Task<int> InvokeAsync(IEnumerable<string> arguments)
+    private async Task<int> InvokeAsync(IEnumerable<string> arguments)
     {
         Options.Parse(arguments);
         ConsoleLogger log = new();
@@ -71,17 +71,17 @@ public class ReplaceCommand : Command
             int returnValue = 0;
             if (string.IsNullOrEmpty(_inputArchive))
             {
-                CommandSet.Out.WriteLine("Input archive not provided, please supply -i or --input-archive");
+                await CommandSet.Out.WriteLineAsync("Input archive not provided, please supply -i or --input-archive");
                 returnValue = 1;
             }
             if (string.IsNullOrEmpty(_outputArchive))
             {
-                CommandSet.Out.WriteLine("Output archive not provided, please supply -o or --output-archive");
+                await CommandSet.Out.WriteLineAsync("Output archive not provided, please supply -o or --output-archive");
                 returnValue = 1;
             }
             if (string.IsNullOrEmpty(_replacement))
             {
-                CommandSet.Out.WriteLine("Replacement not provided, please supply -r or --replacement");
+                await CommandSet.Out.WriteLineAsync("Replacement not provided, please supply -r or --replacement");
                 returnValue = 1;
             }
             Options.WriteOptionDescriptions(CommandSet.Out);
@@ -91,7 +91,7 @@ public class ReplaceCommand : Command
         string outputDirectory = Path.GetDirectoryName(_outputArchive);
         if (!Directory.Exists(outputDirectory))
         {
-            Directory.CreateDirectory(outputDirectory);
+            Directory.CreateDirectory(outputDirectory!);
         }
 
         List<string> filePaths = [];
@@ -109,14 +109,14 @@ public class ReplaceCommand : Command
         if (Path.HasExtension(_inputArchive))
         {
             new ExportIncludeCommand().Invoke(["-c", "-o", "COMMANDS.INC"]);
-            new ExportIncludeCommand().Invoke(["-i", Path.Combine(Path.GetDirectoryName(_inputArchive), "grp.bin"), "-o", "GRPBIN.INC"]);
+            new ExportIncludeCommand().Invoke(["-i", Path.Combine(Path.GetDirectoryName(_inputArchive)!, "grp.bin"), "-o", "GRPBIN.INC"]);
         }
 
         ArchiveFile<FileInArchive> archive;
         if (Path.HasExtension(_inputArchive))
         {
             archive = ArchiveFile<FileInArchive>.FromFile(_inputArchive, log);
-            CommandSet.Out.WriteLine($"Beginning file replacement in {archive.FileName}...");
+            await CommandSet.Out.WriteLineAsync($"Beginning file replacement in {archive.FileName}...");
         }
         else
         {
@@ -127,7 +127,7 @@ public class ReplaceCommand : Command
             {
                 File.Copy(file, Path.Combine(_outputArchive, Path.GetFileName(file)), overwrite: true);
             }
-            CommandSet.Out.WriteLine($"Beginning file replacement in {Path.GetFileName(_outputArchive)}...");
+            await CommandSet.Out.WriteLineAsync($"Beginning file replacement in {Path.GetFileName(_outputArchive)}...");
         }
 
         Dictionary<int, List<string>> filesWithSharedPalettes = [];
@@ -150,8 +150,8 @@ public class ReplaceCommand : Command
 
         foreach (int key in filesWithSharedPalettes.Keys)
         {
-            CommandSet.Out.WriteLine($"Generating shared palette for set {key}...");
-            List<SKBitmap> images = filesWithSharedPalettes[key].Select(f => SKBitmap.Decode(f)).ToList();
+            await CommandSet.Out.WriteLineAsync($"Generating shared palette for set {key}...");
+            List<SKBitmap> images = filesWithSharedPalettes[key].Select(SKBitmap.Decode).ToList();
             _palettes.Add(key, Helpers.GetPaletteFromImages(images, 256, log));
         }
 
@@ -159,8 +159,8 @@ public class ReplaceCommand : Command
         {
             if (Path.GetExtension(filePath).Equals(".ogg", StringComparison.OrdinalIgnoreCase))
             {
-                CommandSet.Out.Write($"Replacing {Path.GetFileNameWithoutExtension(filePath)}... ");
-                ReplaceSingleAudioFile(_outputArchive, filePath, log);
+                await CommandSet.Out.WriteAsync($"Replacing {Path.GetFileNameWithoutExtension(filePath)}... ");
+                ReplaceSingleAudioFile(_outputArchive, filePath);
             }
             else
             {
@@ -169,11 +169,11 @@ public class ReplaceCommand : Command
                 {
                     if (index >= 0)
                     {
-                        CommandSet.Out.Write($"Replacing #{index:X3}... ");
+                        await CommandSet.Out.WriteAsync($"Replacing #{index:X3}... ");
                     }
                     else
                     {
-                        CommandSet.Out.Write($"Adding new file from {Path.GetFileName(filePath)}... ");
+                        await CommandSet.Out.WriteAsync($"Adding new file from {Path.GetFileName(filePath)}... ");
                     }
 
                     if (Path.GetFileName(filePath).StartsWith("new", StringComparison.OrdinalIgnoreCase))
@@ -188,7 +188,7 @@ public class ReplaceCommand : Command
                     {
                         if (string.IsNullOrEmpty(_devkitArm))
                         {
-                            CommandSet.Error.WriteLine("ERROR: DevkitARM must be supplied for replacing with source files");
+                            await CommandSet.Error.WriteLineAsync("ERROR: DevkitARM must be supplied for replacing with source files");
                             return 1;
                         }
                         await ReplaceSingleSourceFileAsync(archive, filePath, index.Value, _devkitArm);
@@ -206,19 +206,19 @@ public class ReplaceCommand : Command
                         throw new ArgumentException($"Unsure what to do with file '{Path.GetFileName(filePath)}'");
                     }
 
-                    CommandSet.Out.WriteLine("OK");
+                    await CommandSet.Out.WriteLineAsync("OK");
 
                 }
             }
         }
         if (archive is not null)
         {
-            File.WriteAllBytes(_outputArchive, archive.GetBytes());
+            await File.WriteAllBytesAsync(_outputArchive, archive.GetBytes());
         }
 
         File.Delete("COMMANDS.INC");
         File.Delete("GRPBIN.INC");
-        CommandSet.Out.WriteLine("Done.");
+        await CommandSet.Out.WriteLineAsync("Done.");
         return 0;
     }
 
@@ -317,7 +317,7 @@ public class ReplaceCommand : Command
         FileInArchive file = archive.GetFileByIndex(index);
         GraphicsFile layoutFile = file.CastTo<GraphicsFile>();
 
-        var layoutEntries = JsonSerializer.Deserialize<List<LayoutEntry>>(File.ReadAllText(filePath), SERIALIZER_OPTIONS);
+        var layoutEntries = JsonSerializer.Deserialize<List<LayoutEntry>>(File.ReadAllText(filePath), SerializerOptions);
         layoutFile.LayoutEntries = layoutEntries;
         layoutFile.Data = [.. layoutFile.GetBytes()];
         layoutFile.Edited = true;
@@ -327,21 +327,21 @@ public class ReplaceCommand : Command
 
     private static async Task ReplaceSingleSourceFileAsync(ArchiveFile<FileInArchive> archive, string filePath, int index, string devkitArm)
     {
-        string objFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.o";
-        string binFile = $"{Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath))}.bin";
+        string objFile = $"{Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath))}.o";
+        string binFile = $"{Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath))}.bin";
         string exe = OperatingSystem.IsWindows() ? ".exe" : "";
         ProcessStartInfo gcc = new(Path.Combine(devkitArm, $"bin/arm-none-eabi-gcc{exe}"), $"-c -nostdlib -static \"{filePath}\" -o \"{objFile}");
-        await Process.Start(gcc).WaitForExitAsync();
+        await Process.Start(gcc)!.WaitForExitAsync();
         await Task.Delay(50); // ensures process is actually complete
         ProcessStartInfo objcopy = new(Path.Combine(devkitArm, $"bin/arm-none-eabi-objcopy{exe}"), $"-O binary \"{objFile}\" \"{binFile}");
-        await Process.Start(objcopy).WaitForExitAsync();
+        await Process.Start(objcopy)!.WaitForExitAsync();
         await Task.Delay(50); // ensures process is actually complete
         ReplaceSingleFile(archive, binFile, index);
         File.Delete(objFile);
         File.Delete(binFile);
     }
 
-    private static void ReplaceSingleAudioFile(string audioDir, string filePath, ILogger log)
+    private static void ReplaceSingleAudioFile(string audioDir, string filePath)
     {
         string tempWav = $"{Path.GetFileNameWithoutExtension(filePath)}.wav";
         using VorbisWaveReader vorbisReader = new(filePath);
@@ -374,7 +374,7 @@ internal class SKColorJsonConverter : JsonConverter<SKColor>
 {
     public override SKColor Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        string html = reader.GetString();
+        string html = reader.GetString()!;
         return new(
             byte.Parse(html[2..4], NumberStyles.HexNumber),
             byte.Parse(html[4..6], NumberStyles.HexNumber),

@@ -15,20 +15,6 @@ public class ScriptCommandSearchCommand : Command
     private int _id = -1;
     private string[] _parameters;
 
-    private static readonly List<string> SECTIONS =
-    [
-        "Unknown01Section", // 0
-        nameof(InteractableObjectsSection), // 1
-        nameof(Unknown03Section), // 2
-        "Unknown06Section", // 3
-        nameof(Unknown07Section), // 4
-        nameof(Unknown08Section), // 5
-        nameof(Unknown09Section), // 6
-        nameof(Unknown10Section), // 7
-        nameof(StartingChibisSection), // 8
-        nameof(MapCharactersSection), // 9
-        nameof(ChoicesSection), // 10
-    ];
     public ScriptCommandSearchCommand() : base("command-search", "Search script commands throughout evt.bin")
     {
         Options = new()

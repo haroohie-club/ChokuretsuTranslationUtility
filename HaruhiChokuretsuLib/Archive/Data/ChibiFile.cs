@@ -14,7 +14,7 @@ public class ChibiFile : DataFile
     /// The list of chibis defined in the file
     /// </summary>
     public List<Chibi> Chibis { get; set; } = [];
-    private const int NUM_CHIBI_ENTRIES = 57;
+    private const int NumChibiEntries = 57;
 
     /// <inheritdoc/>
     public override void Initialize(byte[] decompressedData, int offset, ILogger log)
@@ -34,7 +34,7 @@ public class ChibiFile : DataFile
         for (int i = 1; i < numChibis + 1; i++)
         {
             int entryOffset = IO.ReadInt(decompressedData, chibiListOffset + i * 4);
-            Chibis.Add(new(decompressedData[entryOffset..(entryOffset + NUM_CHIBI_ENTRIES * 8)], NUM_CHIBI_ENTRIES));
+            Chibis.Add(new(decompressedData[entryOffset..(entryOffset + NumChibiEntries * 8)], NumChibiEntries));
         }
     }
 
@@ -59,10 +59,10 @@ public class ChibiFile : DataFile
         for (int i = 1; i < Chibis.Count; i++)
         {
             sb.AppendLine($".word CHIBI{i:D2}");
-            sb.AppendLine($".word {NUM_CHIBI_ENTRIES}");
+            sb.AppendLine($".word {NumChibiEntries}");
         }
         sb.AppendLine(".word CHIBI00");
-        sb.AppendLine($".word {NUM_CHIBI_ENTRIES}");
+        sb.AppendLine($".word {NumChibiEntries}");
         sb.AppendLine();
         sb.AppendLine("FILE_START:");
 
@@ -131,7 +131,7 @@ public class Chibi
     public ChibiEntry this[ChibiEntryName entryName]
     {
         get => ChibiEntries[(int)entryName];
-        set { ChibiEntries[(int)entryName] = value; }
+        set => ChibiEntries[(int)entryName] = value;
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public struct ChibiEntry
     public short Animation { get; set; }
 
     /// <inheritdoc/>
-    public override readonly string ToString()
+    public readonly override string ToString()
     {
         return $"{Texture}, {Animation}";
     }

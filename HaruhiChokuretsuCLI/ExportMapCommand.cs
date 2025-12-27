@@ -19,7 +19,7 @@ public class ExportMapCommand : Command
     private string _dat, _grp, _outputFolder;
     private string[] _mapNames;
     private int[] _mapIndices, _maxLayoutIndices;
-    private bool _allMaps = false, _listMaps = false, _animated = false;
+    private bool _allMaps, _listMaps, _animated;
     public ExportMapCommand() : base("export-map", "Export a map graphic from the game")
     {
         Options = new()
@@ -27,11 +27,11 @@ public class ExportMapCommand : Command
             { "d|dat=", "DAT archive", d => _dat = d },
             { "g|grp=", "GRP archive", g => _grp = g },
             { "n|names|map-names=", "Comma-delimited list of map names", n => _mapNames = n.Split(',') },
-            { "i|indices|map-indices=", "Comma-delimited list of map indices", i => _mapIndices = i.Split(',').Select(ind => int.Parse(ind)).ToArray() },
-            { "m|max-layout-indices=", "Comma-delimited list of max layout indices", m => _maxLayoutIndices = m.Split(',').Select(ind => int.Parse(ind)).ToArray() },
-            { "animated", "Indicates that maps with animation should be exported as WEBM (requires ffmpeg)", an => _animated = true },
-            { "a|all-maps", "Indicates all maps should be exported", a => _allMaps = true },
-            { "l|list-maps", "Lists maps available for export (still requires dat.bin)", l => _listMaps = true },
+            { "i|indices|map-indices=", "Comma-delimited list of map indices", i => _mapIndices = i.Split(',').Select(int.Parse).ToArray() },
+            { "m|max-layout-indices=", "Comma-delimited list of max layout indices", m => _maxLayoutIndices = m.Split(',').Select(int.Parse).ToArray() },
+            { "animated", "Indicates that maps with animation should be exported as WEBM (requires ffmpeg)", _ => _animated = true },
+            { "a|all-maps", "Indicates all maps should be exported", _ => _allMaps = true },
+            { "l|list-maps", "Lists maps available for export (still requires dat.bin)", _ => _listMaps = true },
             { "o|output|output-folder|output-directory=", "Output directory", o => _outputFolder = o },
         };
     }
@@ -131,16 +131,8 @@ public class ExportMapCommand : Command
 
             if (_animated && (map.Settings.PaletteAnimationFileIndex > 0 || map.Settings.ColorAnimationFileIndex > 0))
             {
-                GraphicsFile animation;
-                int replacementIndex = 1;
-                if (map.Settings.ColorAnimationFileIndex > 0)
-                {
-                    animation = grp.GetFileByIndex(map.Settings.ColorAnimationFileIndex);
-                }
-                else
-                {
-                    animation = grp.GetFileByIndex(map.Settings.PaletteAnimationFileIndex);
-                }
+                int replacementIndex;
+                GraphicsFile animation = grp.GetFileByIndex(map.Settings.ColorAnimationFileIndex > 0 ? map.Settings.ColorAnimationFileIndex : map.Settings.PaletteAnimationFileIndex);
                 if (animation.Name.Contains("_BG_"))
                 {
                     replacementIndex = 0;
@@ -176,7 +168,7 @@ public class ExportMapCommand : Command
                 using Image<Rgba32> gif = new(frames.Max(f => f.Width), frames.Max(f => f.Height));
                 gif.Metadata.GetGifMetadata().RepeatCount = 0;
 
-                IEnumerable<Image<Rgba32>> gifFrames = frames.Select(f => Image.LoadPixelData<Rgba32>(f.Pixels.Select(c => new Rgba32(c.Red, c.Green, c.Blue, c.Alpha)).ToArray(), f.Width, f.Height));
+                IEnumerable<Image<Rgba32>> gifFrames = frames.Select(f => Image.LoadPixelData(f.Pixels.Select(c => new Rgba32(c.Red, c.Green, c.Blue, c.Alpha)).ToArray(), f.Width, f.Height));
                 foreach (Image<Rgba32> gifFrame in gifFrames.Skip(1))
                 {
                     gifFrame.Frames.RootFrame.Metadata.GetGifMetadata().FrameDelay = 2;

@@ -50,7 +50,7 @@ public class StreamInfo : IReadable, IWriteable
     public byte Priority = 0x40;
 
     /// <summary>
-    /// Reading file Id.
+    /// Reading file ID.
     /// </summary>
     public uint ReadingFileId;
 

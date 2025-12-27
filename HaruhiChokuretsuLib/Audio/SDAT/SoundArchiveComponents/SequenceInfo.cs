@@ -60,17 +60,17 @@ public class SequenceInfo : IReadable, IWriteable
     public byte PlayerPriority = 0x40;
 
     /// <summary>
-    /// Reading file Id.
+    /// Reading file ID.
     /// </summary>
     public uint ReadingFileId;
 
     /// <summary>
-    /// Reading bank Id.
+    /// Reading bank ID.
     /// </summary>
     public ushort ReadingBankId;
 
     /// <summary>
-    /// Reading player Id.
+    /// Reading player ID.
     /// </summary>
     public byte ReadingPlayerId;
 

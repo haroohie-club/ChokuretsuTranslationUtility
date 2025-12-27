@@ -10,7 +10,7 @@ namespace HaruhiChokuretsuCLI;
 public class HexSearchCommand : Command
 {
     private string _archive;
-    private List<byte> _hexString = [];
+    private readonly List<byte> _hexString = [];
     private bool _showHelp;
 
     public HexSearchCommand() : base("hex-search", "Searches an archive for a hex string")
@@ -29,7 +29,7 @@ public class HexSearchCommand : Command
                     }
                 }
             },
-            { "h|help", "Shows this help screen", h => _showHelp = true },
+            { "h|help", "Shows this help screen", _ => _showHelp = true },
         };
     }
 

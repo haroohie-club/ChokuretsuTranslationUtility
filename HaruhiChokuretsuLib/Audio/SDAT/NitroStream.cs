@@ -122,17 +122,17 @@ public class Stream : SoundFile
         //PcmFormat pcmFormat = PcmFormat.Encoded;
         uint blockSamples = (uint)Audio.NumSamples;
         uint blockSize = (uint)Audio.DataSize;
-        if (Audio.EncodingType.Equals(typeof(PCM8Signed)))
+        if (Audio.EncodingType == typeof(PCM8Signed))
         {
             w.Write((byte)PcmFormat.SignedPCM8);
             //pcmFormat = PcmFormat.SignedPCM8;
         }
-        else if (Audio.EncodingType.Equals(typeof(PCM16)))
+        else if (Audio.EncodingType == typeof(PCM16))
         {
             w.Write((byte)PcmFormat.PCM16);
             //pcmFormat = PcmFormat.PCM16;
         }
-        else if (Audio.EncodingType.Equals(typeof(ImaAdpcm)))
+        else if (Audio.EncodingType == typeof(ImaAdpcm))
         {
             w.Write((byte)PcmFormat.Encoded);
             //pcmFormat = PcmFormat.Encoded;
@@ -147,7 +147,7 @@ public class Stream : SoundFile
         w.Write((byte)Audio.Channels.Count());
         w.Write((byte)0);
         w.Write((ushort)SampleRate);
-        w.Write((ushort)Math.Floor((decimal)523655.96875 * ((decimal)1 / (decimal)SampleRate)));
+        w.Write((ushort)Math.Floor((decimal)523655.96875 * (1 / (decimal)SampleRate)));
         w.Write(LoopStart);
         w.Write(Audio.NumSamples);
         w.Write((uint)0x68);

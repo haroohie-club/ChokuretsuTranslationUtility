@@ -87,8 +87,8 @@ public class DrumSetInstrument : Instrument
                     ind = j;
                 }
             }
-            w.Write((ushort)NoteInfo.Where(x => x.Key == indices[ind]).FirstOrDefault().InstrumentType);
-            w.Write(NoteInfo.Where(x => x.Key == indices[ind]).FirstOrDefault());
+            w.Write((ushort)NoteInfo.FirstOrDefault(x => x.Key == indices[ind])!.InstrumentType);
+            w.Write(NoteInfo.FirstOrDefault(x => x.Key == indices[ind]));
         }
     }
 

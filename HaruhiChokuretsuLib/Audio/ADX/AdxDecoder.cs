@@ -15,7 +15,7 @@ public class AdxDecoder : IAdxDecoder
     /// </summary>
     public AdxHeader Header { get; set; }
     internal byte[] Data { get; set; }
-    internal List<Sample> Samples { get; set; } = [];
+    internal List<Sample> Samples { get; set; }
     internal Sample PreviousSample { get; set; }
     internal Sample PrevPrevSample { get; set; }
     internal int Coeff1 { get; set; }
@@ -44,8 +44,8 @@ public class AdxDecoder : IAdxDecoder
         EndSample = Header.LoopInfo.EndSample - Header.LoopInfo.AlignmentSamples,
     } : null;
 
-    private int _currentOffset = 0;
-    private int _currentBit = 0;
+    private int _currentOffset;
+    private int _currentBit;
 
     /// <summary>
     /// Wraps an audio file with an ADX decoder
@@ -92,10 +92,7 @@ public class AdxDecoder : IAdxDecoder
             int scale = (int)rawScale;
             for (int sampleIndex = 0; sampleIndex < samplesPerBlock; sampleIndex++)
             {
-                if (samples[sampleIndex] is null)
-                {
-                    samples[sampleIndex] = [];
-                }
+                samples[sampleIndex] ??= [];
 
                 int predictionFixedPoint = Coeff1 * PreviousSample[channel] + Coeff2 * PrevPrevSample[channel];
 
@@ -134,7 +131,7 @@ public class AdxDecoder : IAdxDecoder
             if (CurrentSample == LoopReadInfo?.EndSample && DoLoop)
             {
                 _currentOffset = LoopReadInfo?.BeginByte ?? 0;
-                CurrentSample = (uint)LoopReadInfo?.BeginSample;
+                CurrentSample = (uint)(LoopReadInfo?.BeginSample ?? 0);
             }
         }
 

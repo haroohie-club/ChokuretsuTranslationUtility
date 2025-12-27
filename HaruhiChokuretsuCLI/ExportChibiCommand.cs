@@ -74,7 +74,7 @@ public class ExportChibiCommand : Command
             using Image<Rgba32> gif = new(frames.Max(f => f.Width), frames.Max(f => f.Height));
             gif.Metadata.GetGifMetadata().RepeatCount = 0;
 
-            IEnumerable<Image<Rgba32>> gifFrames = frames.Select(f => Image.LoadPixelData<Rgba32>(f.Pixels.Select(c => new Rgba32(c.Red, c.Green, c.Blue, c.Alpha)).ToArray(), f.Width, f.Height));
+            IEnumerable<Image<Rgba32>> gifFrames = frames.Select(f => Image.LoadPixelData(f.Pixels.Select(c => new Rgba32(c.Red, c.Green, c.Blue, c.Alpha)).ToArray(), f.Width, f.Height));
             foreach (Image<Rgba32> gifFrame in gifFrames)
             {
                 GifFrameMetadata metadata = gifFrame.Frames.RootFrame.Metadata.GetGifMetadata();

@@ -295,7 +295,7 @@ public class ChessPuzzleDefinition
     /// <summary>
     /// Gets an ASM source representation of this puzzle definition (not including the title string)
     /// </summary>
-    /// <param name="character"></param>
+    /// <param name="character">The character whose puzzle this is</param>
     /// <param name="currentDefinition">The current definition number while iterating through the file</param>
     /// <param name="currentEndPointer">The current end pointer while iterating through the file</param>
     /// <returns>An ASM source representation of this puzzle definition</returns>
@@ -306,7 +306,7 @@ public class ChessPuzzleDefinition
         sb.AppendLine($".short {CompletionFlag}");
         sb.AppendLine($".short {EventFileIndex}");
         sb.AppendLine($".word {(IsTimed ? 1 : 0)}");
-        sb.AppendLine($"ENDPOINTER{currentEndPointer++:D3}: .word {character.ToString()}PUZZLE{currentDefinition++:D2}");
+        sb.AppendLine($"ENDPOINTER{currentEndPointer++:D3}: .word {character.ToString()}PUZZLE{currentDefinition:D2}");
                 
         return sb.ToString();
     }

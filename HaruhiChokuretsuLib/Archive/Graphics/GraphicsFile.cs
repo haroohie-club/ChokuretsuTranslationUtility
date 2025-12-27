@@ -71,7 +71,7 @@ public partial class GraphicsFile : FileInArchive
     /// <summary>
     /// The valid widths of an image
     /// </summary>
-    private readonly static int[] VALID_WIDTHS = [8, 16, 32, 64, 128, 256, 512, 1024];
+    private static readonly int[] VALID_WIDTHS = [8, 16, 32, 64, 128, 256, 512, 1024];
 
     /// <summary>
     /// An enum representing the number of colors in a texture
@@ -122,7 +122,7 @@ public partial class GraphicsFile : FileInArchive
     public enum Form
     {
         /// <summary>
-        /// Unknown to be tile or texture
+        /// Unknown whether it is tile or texture
         /// </summary>
         UNKNOWN,
         /// <summary>
@@ -276,7 +276,6 @@ public partial class GraphicsFile : FileInArchive
         }
         Data.AddRange(Encoding.ASCII.GetBytes("SHTXDS"));
         Data.AddRange(BitConverter.GetBytes((short)ImageTileForm));
-        byte encodedWidth, encodedHeight;
         if (ImageForm == Form.TILE)
         {
             Width = 256;
@@ -287,8 +286,8 @@ public partial class GraphicsFile : FileInArchive
             Width = bitmap.Width;
             Height = bitmap.Height;
         }
-        encodedWidth = (byte)Math.Log2(Width);
-        encodedHeight = (byte)Math.Ceiling(Math.Log2(Height));
+        var encodedWidth = (byte)Math.Log2(Width);
+        var encodedHeight = (byte)Math.Ceiling(Math.Log2(Height));
         Data.AddRange([0x01, 0x00, 0x00, 0x01, 0xC0, 0x00, encodedWidth, encodedHeight, 0x00, 0xC0, 0x00, 0x00]);
         Data.AddRange(PaletteData);
         Data.AddRange(PixelData);
@@ -398,16 +397,14 @@ public partial class GraphicsFile : FileInArchive
 
             return [.. data];
         }
-        else if (FileFunction == Function.ANIMATION && AnimationEntries.FirstOrDefault().GetType() == typeof(FrameAnimationEntry))
+        else if (FileFunction == Function.ANIMATION && AnimationEntries.FirstOrDefault()?.GetType() == typeof(FrameAnimationEntry))
         {
             List<byte> data =
             [
                 .. BitConverter.GetBytes((short)0x10),
                 .. BitConverter.GetBytes(AnimationX),
-                .. BitConverter.GetBytes(AnimationY),
-                .. new byte[] { 0x00, 0x00 },
-                .. BitConverter.GetBytes(ChibiAnimationType),
-                .. new byte[] { 0x00, 0xFF, 0x00, 0x00, 0xFF, 0xFF },
+                .. BitConverter.GetBytes(AnimationY), 0x00, 0x00,
+                .. BitConverter.GetBytes(ChibiAnimationType), 0x00, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
             ];
             foreach (FrameAnimationEntry frame in AnimationEntries.Cast<FrameAnimationEntry>())
             {
@@ -549,7 +546,7 @@ public partial class GraphicsFile : FileInArchive
         SKBitmap bmp = new(width, height);
         for (int y = 0; y < height && i < (PixelData?.Count ?? 0); y++)
         {
-            for (int x = 0; x < width && i < PixelData.Count; x++)
+            for (int x = 0; x < width && i < PixelData!.Count; x++)
             {
                 SKColor color;
                 if (PixelData[i] == transparentIndex)

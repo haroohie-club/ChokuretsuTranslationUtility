@@ -70,7 +70,7 @@ public class AdxEncoder : IAdxEncoder
             {
                 samples.Add(new(new short[spec.Channels]));
             }
-            EncodeData(samples, new());
+            EncodeData(samples, CancellationToken.None);
         }
     }
 

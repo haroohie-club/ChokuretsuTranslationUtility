@@ -10,11 +10,10 @@ using System.Text.RegularExpressions;
 
 namespace HaruhiChokuretsuCLI;
 
-public class JsonImportCommand : Command
+public partial class JsonImportCommand : Command
 {
     private string _inputArchive, _inputFolder, _charmapFile, _outputArchive;
     private bool _showHelp, _isDat;
-    private static readonly Regex TRASH_PATTERN = new(@"^[0-9a-zA-Z_ \.,!\?<>=\""\'\/\+\|\{\}&]+$|[\x00-\x09\x0b-\x1f\x7fｬｿﾜ]|^(?:＿々ー―～…|‘’“”（）《》「」『』－＝％☆♪|―+)$");
 
     public JsonImportCommand() : base("json-import", "Import messages from json files")
     {
@@ -25,10 +24,10 @@ public class JsonImportCommand : Command
             "",
             { "i|input-archive=", "Archive to extract file from", i => _inputArchive = i },
             { "f|input-folder=", "Folder path of json files to replace", f => _inputFolder = f},
-            { "d|is-dat", "Whether input archive is dat.bin", d => _isDat = true },
+            { "d|is-dat", "Whether input archive is dat.bin", _ => _isDat = true },
             { "c|charmap=", "Charset mapping file", c => _charmapFile = c },
             { "o|output-archive=", "Output file to save modified archive to", o => _outputArchive = o },
-            { "h|help", "Shows this help screen", h => _showHelp = true },
+            { "h|help", "Shows this help screen", _ => _showHelp = true },
         };
     }
 
@@ -63,8 +62,8 @@ public class JsonImportCommand : Command
 
         if (!string.IsNullOrEmpty(_charmapFile))
         {
-            var json_text = File.ReadAllText(_charmapFile);
-            var content = JsonSerializer.Deserialize<List<FontReplacement>>(json_text)!;
+            var jsonText = File.ReadAllText(_charmapFile);
+            var content = JsonSerializer.Deserialize<List<FontReplacement>>(jsonText)!;
             foreach (var obj in content)
             {
                 char2ShiftJis.Add(obj.ReplacedCharacter, obj.OriginalCharacter);
@@ -88,23 +87,16 @@ public class JsonImportCommand : Command
             CommandSet.Out.Write($"Importing: {(_isDat ? "dat" : "evt")}_{file.Name}.json...");
             for (int i = 0; i < file.DialogueLines.Count; i++)
             {
-                var new_text_original = input[i][1];
-                if (string.IsNullOrEmpty(new_text_original) || TRASH_PATTERN.IsMatch(new_text_original)) { continue; }
-                var new_text = "";
+                var newTextOriginal = input[i][1];
+                if (string.IsNullOrEmpty(newTextOriginal) || TrashPattern().IsMatch(newTextOriginal)) { continue; }
+                var newText = "";
                 foreach (char c in input[i][1])
                 {
-                    if (char2ShiftJis.TryGetValue(c, out char new_c))
-                    {
-                        new_text += new_c;
-                    }
-                    else
-                    {
-                        new_text += c;
-                    }
+                    newText += char2ShiftJis.GetValueOrDefault(c, c);
                 }
-                if (file.DialogueLines[i].Text != new_text)
+                if (file.DialogueLines[i].Text != newText)
                 {
-                    file.EditDialogueLine(i, new_text);
+                    file.EditDialogueLine(i, newText);
                 }
             }
             CommandSet.Out.WriteLine(file.Edited ? "OK" : "No change");
@@ -114,4 +106,7 @@ public class JsonImportCommand : Command
 
         return 0;
     }
+
+    [GeneratedRegex(@"^[0-9a-zA-Z_ \.,!\?<>=\""\'\/\+\|\{\}&]+$|[\x00-\x09\x0b-\x1f\x7fｬｿﾜ]|^(?:＿々ー―～…|‘’“”（）《》「」『』－＝％☆♪|―+)$")]
+    private static partial Regex TrashPattern();
 }

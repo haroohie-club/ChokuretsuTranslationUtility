@@ -18,7 +18,7 @@ public class ExportIncludeCommand : Command
         {
             { "i|input=", "Input bin archive file", i => _inputArchive = i },
             { "o|output=", "Output source file", o => _outputSourceFile = o },
-            { "c|commands", "When used with evt.bin, exports the command list as an include file", c => _commands = true },
+            { "c|commands", "When used with evt.bin, exports the command list as an include file", _ => _commands = true },
         };
     }
 
@@ -34,14 +34,7 @@ public class ExportIncludeCommand : Command
         string outputSourceFile = _outputSourceFile;
         if (string.IsNullOrEmpty(outputSourceFile))
         {
-            if (_commands)
-            {
-                outputSourceFile = "COMMANDS.INC";
-            }
-            else
-            {
-                outputSourceFile = $"{Path.GetFileNameWithoutExtension(_inputArchive).ToUpper()}BIN.INC";
-            }
+            outputSourceFile = _commands ? "COMMANDS.INC" : $"{Path.GetFileNameWithoutExtension(_inputArchive)?.ToUpper()}BIN.INC";
         }
 
         if (_commands)

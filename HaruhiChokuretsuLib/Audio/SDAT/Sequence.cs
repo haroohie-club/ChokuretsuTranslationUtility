@@ -28,10 +28,9 @@ public class Sequence : SequenceFile
         r.OpenFile<NHeader>(out FileHeader header);
 
         //Data block.
-        uint dataSize;
         r.OpenBlock(0, out _, out _);
         uint off = r.ReadUInt32();
-        dataSize = (uint)(header.FileSize - off);
+        var dataSize = (uint)(header.FileSize - off);
         r.Jump(off, true);
         var data = r.ReadBytes((int)dataSize).ToList();
 
@@ -118,7 +117,6 @@ public class Sequence : SequenceFile
                 }
                 if (i != 0) { l.Add("_command_" + i + ":"); }
                 //else if (Commands[i - 1].CommandType == SequenceCommands.Fin) { l.Add("Command_" + i + ":"); }
-                labelAdded = true;
             }
             if (i == 0 && !label0Added)
             {
@@ -126,7 +124,7 @@ public class Sequence : SequenceFile
             }
 
             //Add command.
-            l.Add("\t" + Commands[i].ToString());
+            l.Add("\t" + Commands[i]);
 
         }
 

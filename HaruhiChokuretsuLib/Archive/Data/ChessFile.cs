@@ -3,6 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using HaruhiChokuretsuLib.Util;
+// ReSharper disable InconsistentNaming
 
 namespace HaruhiChokuretsuLib.Archive.Data;
 

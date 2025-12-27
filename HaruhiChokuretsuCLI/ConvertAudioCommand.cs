@@ -10,7 +10,7 @@ namespace HaruhiChokuretsuCLI;
 public class ConvertAudioCommand : Command
 {
     private string _directory, _encode;
-    private bool _ahx = false;
+    private bool _ahx;
 
     public ConvertAudioCommand() : base("convert-audio", "Converts all the audio files in a directory")
     {
@@ -21,7 +21,7 @@ public class ConvertAudioCommand : Command
             "",
             { "d|directory=", "The directory of audio files to convert", d => _directory = d },
             { "e|encode=", "WAV file to encode as ADX", e => _encode = e },
-            { "ahx", "Switch to indicate WAV should be encoded as AHX", a => _ahx = true },
+            { "ahx", "Switch to indicate WAV should be encoded as AHX", _ => _ahx = true },
         };
     }
 

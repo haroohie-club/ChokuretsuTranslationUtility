@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+// ReSharper disable InconsistentNaming
 
 // This code is ported from https://github.com/Isaac-Lozano/radx
 namespace HaruhiChokuretsuLib.Audio.ADX;
@@ -60,7 +61,7 @@ public class AdxHeader
     /// <summary>
     /// Loop info specific to ADX format
     /// </summary>
-    public AdxVersion3LoopInfo LoopInfo = new();
+    public AdxVersion3LoopInfo LoopInfo;
     /// <summary>
     /// The header size
     /// </summary>

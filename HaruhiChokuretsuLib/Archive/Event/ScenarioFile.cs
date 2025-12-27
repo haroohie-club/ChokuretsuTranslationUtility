@@ -55,7 +55,7 @@ public class ScenarioStruct
 
         for (int i = 0; i <= commandsCount; i++)
         {
-            Commands.Add(new(data.Skip(commandsOffset + i * 4).Take(4)));
+            Commands.Add(new(data[(commandsOffset + i * 4)..((commandsOffset + (i + 1) * 4))]));
         }
 
         for (int i = 0; i < selectionsCount; i++)
@@ -100,7 +100,7 @@ public class ScenarioStruct
         sb.AppendLine(ScenarioCommand.GetMacros());
 
         int numSections = Selects.Sum(s => s.Activities.Where(rs => rs is not null).Sum(rs => rs.Routes.Count)) // all route shorts headers
-                          + Selects.Sum(s => s.Activities.Where(rs => rs is not null).Count()) // all route selections
+                          + Selects.Sum(s => s.Activities.Count(rs => rs is not null)) // all route selections
                           + 3; // scenario holder + commands holder + settings
         sb.AppendLine($".word {numSections}");
         sb.AppendLine(".word END_POINTERS");
@@ -266,7 +266,7 @@ public class ScenarioCommand
     /// <summary>
     /// The parameter of the scenario command
     /// </summary>
-    public int Parameter { get; set; } = new();
+    public int Parameter { get; set; }
 
     /// <summary>
     /// Creates a scenario command from a verb and parameter
@@ -290,10 +290,10 @@ public class ScenarioCommand
     /// Creates a scenario command from data
     /// </summary>
     /// <param name="data">The scenario command data from SCENARIO.S</param>
-    public ScenarioCommand(IEnumerable<byte> data)
+    public ScenarioCommand(byte[] data)
     {
-        _verbIndex = BitConverter.ToInt16(data.Take(2).ToArray());
-        Parameter = BitConverter.ToInt16(data.Skip(2).Take(2).ToArray());
+        _verbIndex = IO.ReadShort(data, 0);
+        Parameter = IO.ReadShort(data, 2);
     }
 
     internal string GetAsm(int indentation, Dictionary<string, IncludeEntry[]> includes)
@@ -447,13 +447,11 @@ public class ScenarioActivity
     /// </summary>
     public string Title { get; set; }
 
-    private int _futureDescIndex;
     /// <summary>
     /// Future tense description of what the activity is
     /// </summary>
     public string FutureDesc { get; set; }
 
-    private int _pastDescIndex;
     /// <summary>
     /// Past tense description of what the activity is
     /// </summary>
@@ -492,11 +490,11 @@ public class ScenarioActivity
     public ScenarioActivity(int dataStartIndex, List<DialogueLine> lines, byte[] data)
     {
         TitleIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex)));
-        _futureDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x04)));
-        _pastDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x08)));
+        int futureDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x04)));
+        int pastDescIndex = lines.IndexOf(lines.First(l => l.Pointer == IO.ReadInt(data, dataStartIndex + 0x08)));
         Title = lines[TitleIndex].Text;
-        FutureDesc = lines[_futureDescIndex].Text;
-        PastDesc = lines[_pastDescIndex].Text;
+        FutureDesc = lines[futureDescIndex].Text;
+        PastDesc = lines[pastDescIndex].Text;
 
         OptimalGroup = [(BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x0C), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x10), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x14)];
         WorstGroup = [(BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x18), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x1C), (BrigadeMember)IO.ReadInt(data, dataStartIndex + 0x20)];

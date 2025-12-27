@@ -35,7 +35,7 @@ public class SequenceArchiveInfo : IReadable, IWriteable
     public SequenceArchive File;
 
     /// <summary>
-    /// Reading file Id.
+    /// Reading file ID.
     /// </summary>
     public uint ReadingFileId;
 

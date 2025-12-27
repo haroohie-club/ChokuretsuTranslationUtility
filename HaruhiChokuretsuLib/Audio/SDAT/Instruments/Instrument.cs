@@ -10,6 +10,7 @@ using GotaSoundIO.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+// ReSharper disable InconsistentNaming
 
 namespace HaruhiChokuretsuLib.Audio.SDAT.Instruments;
 
@@ -96,7 +97,7 @@ public abstract class Instrument : IReadable, IWriteable
                 return NoteInfo.Values.ElementAt(regionNum);*/
 
                 //New algorithm.
-                if ((Type() == InstrumentType.DrumSet && (byte)note < (this as DrumSetInstrument).Min) || (byte)note > NoteInfo.Select(x => (byte)x.Key).ElementAt(NoteInfo.Count - 1))
+                if ((Type() == InstrumentType.DrumSet && (byte)note < ((DrumSetInstrument)this).Min) || (byte)note > NoteInfo.Select(x => (byte)x.Key).ElementAt(NoteInfo.Count - 1))
                 {
                     return null;
                 }

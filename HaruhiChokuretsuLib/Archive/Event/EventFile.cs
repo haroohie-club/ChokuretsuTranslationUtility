@@ -20,7 +20,8 @@ namespace HaruhiChokuretsuLib.Archive.Event;
 /// </summary>
 public partial class EventFile : FileInArchive, ISourceFile
 {
-    private static readonly string[] s_specialFileNames = new[] { "CHESSS", "EVTTBLS", "SCENARIOS", "TOPICS", "TUTORIALS", "VOICEMAPS" };
+    private static readonly string[] SpecialFileNames = ["CHESSS", "EVTTBLS", "SCENARIOS", "TOPICS", "TUTORIALS", "VOICEMAPS",
+    ];
 
     /// <summary>
     /// The number of sections in the event file
@@ -522,10 +523,10 @@ public partial class EventFile : FileInArchive, ISourceFile
             SectionDefs.Add(new(IO.ReadInt(decompressedData, 0x0C + 0x08 * i), IO.ReadInt(decompressedData, 0x10 + 0x08 * i)));
         }
 
-        if (!s_specialFileNames.Contains(Name) && !Generic)
+        if (!SpecialFileNames.Contains(Name) && !Generic)
         {
             SettingsSection = new();
-            SettingsSection.Initialize(decompressedData[SectionDefs[0].Pointer..(SectionDefs[0].Pointer + EventFileSettings.SETTINGS_LENGTH)], 1, "SETTINGS", log, SectionDefs[0].Pointer);
+            SettingsSection.Initialize(decompressedData[SectionDefs[0].Pointer..(SectionDefs[0].Pointer + EventFileSettings.SettingsLength)], 1, "SETTINGS", log, SectionDefs[0].Pointer);
             Settings = SettingsSection.Objects[0];
             int dialogueSectionPointerIndex = SectionDefs.FindIndex(s => s.Pointer == Settings.DialogueSectionPointer);
 
@@ -611,7 +612,7 @@ public partial class EventFile : FileInArchive, ISourceFile
             {
                 string name = "UNKNOWNSECTION07";
 
-                (int pointerSectionIndex, PointerSection pointerSection) = PointerSection.ParseSection(SectionDefs, Settings.UnknownSection07Pointer, name, decompressedData, log);
+                (int _, PointerSection pointerSection) = PointerSection.ParseSection(SectionDefs, Settings.UnknownSection07Pointer, name, decompressedData, log);
 
                 int unknownSection07Index = SectionDefs.FindIndex(s => s.Pointer == pointerSection.Objects[0].Pointer);
                 UnknownSection07 = new();
@@ -792,7 +793,7 @@ public partial class EventFile : FileInArchive, ISourceFile
             EndPointers.Add(BitConverter.ToInt32(decompressedData.Skip(_pointerToEndPointerSection + 0x04 * (i + 1)).Take(4).ToArray()));
         }
 
-        EndPointerPointers = EndPointers.Select(p => { return BitConverter.ToInt32(decompressedData.Skip(p).Take(4).ToArray()); }).ToList();
+        EndPointerPointers = EndPointers.Select(p => BitConverter.ToInt32(decompressedData.Skip(p).Take(4).ToArray())).ToList();
 
         int titlePointer = BitConverter.ToInt32(decompressedData.Skip(0x08).Take(4).ToArray());
         Title = Encoding.ASCII.GetString(decompressedData.Skip(titlePointer).TakeWhile(b => b != 0x00).ToArray());
@@ -816,7 +817,7 @@ public partial class EventFile : FileInArchive, ISourceFile
         {
             foreach (ScriptCommandInvocation command in scriptSection.Objects)
             {
-                if (command.Command.Mnemonic == CommandVerb.TOPIC_GET.ToString())
+                if (command.Command.Mnemonic == nameof(CommandVerb.TOPIC_GET))
                 {
                     Topic topic = availableTopics.FirstOrDefault(t => t.Id == command.Parameters[0]);
                     if (topic is not null)
@@ -1124,7 +1125,7 @@ public partial class EventFile : FileInArchive, ISourceFile
                     InitializeChessFile();
                 }
 
-                return ChessFile.GetSource();
+                return ChessFile?.GetSource();
             }
             case "EVTTBLS":
             {
@@ -1132,7 +1133,7 @@ public partial class EventFile : FileInArchive, ISourceFile
                 {
                     InitializeEventTableFile();
                 }
-                return EvtTbl.GetSource(includes, Log);
+                return EvtTbl?.GetSource(includes, Log);
             }
             case "SCENARIOS":
             {
@@ -1140,7 +1141,7 @@ public partial class EventFile : FileInArchive, ISourceFile
                 {
                     InitializeScenarioFile();
                 }
-                return Scenario.GetSource(includes, Log);
+                return Scenario?.GetSource(includes, Log);
             }
             case "TOPICS":
             {
@@ -1432,7 +1433,7 @@ public partial class EventFile : FileInArchive, ISourceFile
 /// </summary>
 public class EventFileSettings
 {
-    internal const int SETTINGS_LENGTH = 0x128;
+    internal const int SettingsLength = 0x128;
 
     internal int EventNamePointer { get; set; }
     /// <summary>
@@ -1525,43 +1526,43 @@ public class EventFileSettings
     /// Creates an event file settings instance
     /// </summary>
     /// <param name="data">Data from the event file</param>
-    public EventFileSettings(IEnumerable<byte> data)
+    public EventFileSettings(byte[] data)
     {
-        if (data.Count() < 0x128)
+        if (data.Length < 0x128)
         {
             return;
         }
-        EventNamePointer = BitConverter.ToInt32(data.Take(4).ToArray());
-        NumUnknown01 = BitConverter.ToInt32(data.Skip(0x004).Take(4).ToArray());
-        UnknownSection01Pointer = BitConverter.ToInt32(data.Skip(0x008).Take(4).ToArray());
-        NumInteractableObjects = BitConverter.ToInt32(data.Skip(0x00C).Take(4).ToArray());
-        InteractableObjectsPointer = BitConverter.ToInt32(data.Skip(0x010).Take(4).ToArray());
-        NumUnknown03 = BitConverter.ToInt32(data.Skip(0x014).Take(4).ToArray());
-        UnknownSection03Pointer = BitConverter.ToInt32(data.Skip(0x018).Take(4).ToArray());
-        NumStartingChibisSections = BitConverter.ToInt32(data.Skip(0x01C).Take(4).ToArray());
-        StartingChibisSectionPointer = BitConverter.ToInt32(data.Skip(0x020).Take(4).ToArray());
-        NumMapCharacterSections = BitConverter.ToInt32(data.Skip(0x024).Take(4).ToArray());
-        MapCharactersSectionPointer = BitConverter.ToInt32(data.Skip(0x028).Take(4).ToArray());
-        NumUnknown06 = BitConverter.ToInt32(data.Skip(0x02C).Take(4).ToArray());
-        UnknownSection06Pointer = BitConverter.ToInt32(data.Skip(0x030).Take(4).ToArray());
-        NumUnknown07 = BitConverter.ToInt32(data.Skip(0x034).Take(4).ToArray());
-        UnknownSection07Pointer = BitConverter.ToInt32(data.Skip(0x038).Take(4).ToArray());
-        NumChoices = BitConverter.ToInt32(data.Skip(0x03C).Take(4).ToArray());
-        ChoicesSectionPointer = BitConverter.ToInt32(data.Skip(0x040).Take(4).ToArray());
-        Unused44 = BitConverter.ToInt32(data.Skip(0x044).Take(4).ToArray());
-        Unused48 = BitConverter.ToInt32(data.Skip(0x048).Take(4).ToArray());
-        NumUnknown09 = BitConverter.ToInt32(data.Skip(0x04C).Take(4).ToArray());
-        UnknownSection09Pointer = BitConverter.ToInt32(data.Skip(0x050).Take(4).ToArray());
-        NumUnknown10 = BitConverter.ToInt32(data.Skip(0x054).Take(4).ToArray());
-        UnknownSection10Pointer = BitConverter.ToInt32(data.Skip(0x058).Take(4).ToArray());
-        NumLabels = BitConverter.ToInt32(data.Skip(0x05C).Take(4).ToArray());
-        LabelsSectionPointer = BitConverter.ToInt32(data.Skip(0x060).Take(4).ToArray());
-        NumDialogueEntries = BitConverter.ToInt32(data.Skip(0x064).Take(4).ToArray());
-        DialogueSectionPointer = BitConverter.ToInt32(data.Skip(0x068).Take(4).ToArray());
-        NumConditionals = BitConverter.ToInt32(data.Skip(0x06C).Take(4).ToArray());
-        ConditionalsSectionPointer = BitConverter.ToInt32(data.Skip(0x070).Take(4).ToArray());
-        NumScriptSections = BitConverter.ToInt32(data.Skip(0x074).Take(4).ToArray());
-        ScriptSectionDefinitionsSectionPointer = BitConverter.ToInt32(data.Skip(0x078).Take(4).ToArray());
+        EventNamePointer = IO.ReadInt(data, 0x000);
+        NumUnknown01 = IO.ReadInt(data, 0x004);
+        UnknownSection01Pointer = IO.ReadInt(data, 0x008);
+        NumInteractableObjects = IO.ReadInt(data, 0x00C);
+        InteractableObjectsPointer = IO.ReadInt(data, 0x010);
+        NumUnknown03 = IO.ReadInt(data, 0x014);
+        UnknownSection03Pointer = IO.ReadInt(data, 0x018);
+        NumStartingChibisSections = IO.ReadInt(data, 0x01C);
+        StartingChibisSectionPointer = IO.ReadInt(data, 0x020);
+        NumMapCharacterSections = IO.ReadInt(data, 0x024);
+        MapCharactersSectionPointer = IO.ReadInt(data, 0x028);
+        NumUnknown06 = IO.ReadInt(data, 0x02C);
+        UnknownSection06Pointer = IO.ReadInt(data, 0x030);
+        NumUnknown07 = IO.ReadInt(data, 0x034);
+        UnknownSection07Pointer = IO.ReadInt(data, 0x038);
+        NumChoices = IO.ReadInt(data, 0x03C);
+        ChoicesSectionPointer = IO.ReadInt(data, 0x040);
+        Unused44 = IO.ReadInt(data, 0x044);
+        Unused48 = IO.ReadInt(data, 0x048);
+        NumUnknown09 = IO.ReadInt(data, 0x04C);
+        UnknownSection09Pointer = IO.ReadInt(data, 0x050);
+        NumUnknown10 = IO.ReadInt(data, 0x054);
+        UnknownSection10Pointer = IO.ReadInt(data, 0x058);
+        NumLabels = IO.ReadInt(data, 0x05C);
+        LabelsSectionPointer = IO.ReadInt(data, 0x060);
+        NumDialogueEntries = IO.ReadInt(data, 0x064);
+        DialogueSectionPointer = IO.ReadInt(data, 0x068);
+        NumConditionals = IO.ReadInt(data, 0x06C);
+        ConditionalsSectionPointer = IO.ReadInt(data, 0x070);
+        NumScriptSections = IO.ReadInt(data, 0x074);
+        ScriptSectionDefinitionsSectionPointer = IO.ReadInt(data, 0x078);
     }
 }
 
@@ -1618,14 +1619,7 @@ public class DialogueLine
         SpeakerName = speakerName;
         SpeakerPointer = speakerPointer;
         Pointer = pointer;
-        if (pointer > 0)
-        {
-            Data = file.Skip(pointer).TakeWhile(b => b != 0x00).ToArray();
-        }
-        else
-        {
-            Data = [];
-        }
+        Data = pointer > 0 ? file.Skip(pointer).TakeWhile(b => b != 0x00).ToArray() : [];
         NumPaddingZeroes = 4 - Length % 4;
     }
     /// <summary>
@@ -1642,7 +1636,7 @@ public class DialogueLine
         Pointer = 1;
         Text = line;
 
-        if (!script.DramatisPersonaeSections.Any(d => d.Objects[0] == SpeakerName))
+        if (script.DramatisPersonaeSections.All(d => d.Objects[0] != SpeakerName))
         {
             if (script.DramatisPersonaeSections.Count == 0)
             {

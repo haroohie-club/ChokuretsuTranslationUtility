@@ -1,5 +1,4 @@
 ﻿using HaruhiChokuretsuLib.Util;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -351,11 +350,9 @@ public class PuzzleSettings
     /// </summary>
     /// <param name="qmapData">QMap binary data</param>
     /// <returns>The name of the map this puzzle uses</returns>
-    public string GetMapName(IEnumerable<byte> qmapData)
+    public string GetMapName(byte[] qmapData)
     {
-        return Encoding.ASCII.GetString(
-            qmapData.Skip(BitConverter.ToInt32(qmapData.Skip(0x14 + MapId * 8).Take(4).ToArray()))
-                .TakeWhile(b => b != 0).ToArray());
+        return IO.ReadAsciiString(qmapData, IO.ReadInt(qmapData, 0x14 + MapId * 8));
     }
 }
 

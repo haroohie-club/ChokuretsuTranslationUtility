@@ -51,15 +51,15 @@ public class MapFile : DataFile
         Offset = offset;
         Data = [.. decompressedData];
 
-        NumSections = BitConverter.ToInt32(Data.Take(4).ToArray());
-        EndPointersOffset = BitConverter.ToInt32(Data.Skip(0x04).Take(4).ToArray());
-        HeaderEndPointer = BitConverter.ToInt32(Data.Skip(0x08).Take(4).ToArray());
+        NumSections = IO.ReadInt(decompressedData, 0x00);
+        EndPointersOffset = IO.ReadInt(decompressedData, 0x04);
+        HeaderEndPointer = IO.ReadInt(decompressedData, 0x08);
         for (int i = 0x0C; i < HeaderEndPointer; i += 0x08)
         {
             SectionOffsetsAndCounts.Add(new() { Offset = BitConverter.ToInt32(Data.Skip(i).Take(4).ToArray()), ItemCount = BitConverter.ToInt32(Data.Skip(i + 4).Take(4).ToArray()) });
         }
 
-        Settings = new(Data.Skip(SectionOffsetsAndCounts[0].Offset).Take(0xBC));
+        Settings = new([.. Data.Skip(SectionOffsetsAndCounts[0].Offset).Take(0xBC)]);
         SectionOffsetsAndCounts[0].Name = "SETTINGS";
 
         SectionOffsetsAndCounts[1].Name = "UNKNOWNSECTION2";
@@ -433,40 +433,40 @@ public class MapFileSettings
     /// Constructs map file settings
     /// </summary>
     /// <param name="data">The data from the map file</param>
-    public MapFileSettings(IEnumerable<byte> data)
+    public MapFileSettings(byte[] data)
     {
-        SlgMode = BitConverter.ToInt32(data.Take(4).ToArray()) > 0;
-        MapWidth = BitConverter.ToInt32(data.Skip(0x04).Take(4).ToArray());
-        MapHeight = BitConverter.ToInt32(data.Skip(0x08).Take(4).ToArray());
-        TextureFileIndices.Add(BitConverter.ToInt16(data.Skip(0x0C).Take(2).ToArray()));
-        TextureFileIndices.Add(BitConverter.ToInt16(data.Skip(0x10).Take(2).ToArray()));
-        TextureFileIndices.Add(BitConverter.ToInt16(data.Skip(0x0E).Take(2).ToArray()));
-        LayoutFileIndex = BitConverter.ToInt16(data.Skip(0x12).Take(2).ToArray());
-        LayoutBgLayerStartIndex = BitConverter.ToInt32(data.Skip(0x14).Take(4).ToArray());
-        NumBgLayerDefinitions = BitConverter.ToInt32(data.Skip(0x18).Take(4).ToArray());
-        LayoutBgLayerEndIndex = BitConverter.ToInt32(data.Skip(0x1C).Take(4).ToArray());
-        LayoutOcclusionLayerStartIndex = BitConverter.ToInt32(data.Skip(0x20).Take(4).ToArray());
-        LayoutOcclusionLayerEndIndex = BitConverter.ToInt32(data.Skip(0x24).Take(4).ToArray());
-        LayoutBoundsIndex = BitConverter.ToInt32(data.Skip(0x28).Take(4).ToArray());
-        ScrollingBgLayoutStartIndex = BitConverter.ToInt32(data.Skip(0x2C).Take(4).ToArray());
-        ScrollingBgLayoutEndIndex = BitConverter.ToInt32(data.Skip(0x30).Take(4).ToArray());
-        TransformMode = BitConverter.ToInt32(data.Skip(0x34).Take(4).ToArray());
-        TopGradient = new(data.ElementAt(0x3A), data.ElementAt(0x39), data.ElementAt(0x38));
-        BottomGradient = new(data.ElementAt(0x3E), data.ElementAt(0x3D), data.ElementAt(0x3C));
-        ScrollingBgDefinitionLayoutIndex = BitConverter.ToInt32(data.Skip(0x40).Take(4).ToArray());
-        IntroCameraTruckingDefsStartIndex = BitConverter.ToInt32(data.Skip(0x44).Take(4).ToArray());
-        IntroCameraTruckingDefsEndIndex = BitConverter.ToInt32(data.Skip(0x48).Take(4).ToArray());
-        StartingPosition = (BitConverter.ToInt32(data.Skip(0x4C).Take(4).ToArray()), BitConverter.ToInt32(data.Skip(0x50).Take(4).ToArray()));
-        ColorAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x54).Take(4).ToArray());
-        PaletteAnimationFileIndex = BitConverter.ToInt32(data.Skip(0x58).Take(4).ToArray());
-        Unknown5C = BitConverter.ToInt32(data.Skip(0x5C).Take(4).ToArray());
-        ObjectsCount = BitConverter.ToInt32(data.Skip(0x60).Take(4).ToArray());
-        ObjectsSectionPointer = BitConverter.ToInt32(data.Skip(0x64).Take(4).ToArray());
-        InteractableObjectsCount = BitConverter.ToInt32(data.Skip(0x68).Take(4).ToArray());
-        InteractableObjectsSectionPointer = BitConverter.ToInt32(data.Skip(0x6C).Take(4).ToArray());
-        WalkabilityMapPointer = BitConverter.ToInt32(data.Skip(0x70).Take(4).ToArray());
-        Unknown2Count = BitConverter.ToInt32(data.Skip(0x74).Take(4).ToArray());
-        Unknown2SectionPointer = BitConverter.ToInt32(data.Skip(0x78).Take(4).ToArray());
+        SlgMode = IO.ReadInt(data, 0x00) > 0;
+        MapWidth = IO.ReadInt(data, 0x04);
+        MapHeight = IO.ReadInt(data, 0x08);
+        TextureFileIndices.Add(IO.ReadShort(data, 0x0C));
+        TextureFileIndices.Add(IO.ReadShort(data, 0x10));
+        TextureFileIndices.Add(IO.ReadShort(data, 0x0E));
+        LayoutFileIndex = IO.ReadShort(data, 0x12);
+        LayoutBgLayerStartIndex = IO.ReadInt(data, 0x14);
+        NumBgLayerDefinitions = IO.ReadInt(data, 0x18);
+        LayoutBgLayerEndIndex = IO.ReadInt(data, 0x1C);
+        LayoutOcclusionLayerStartIndex = IO.ReadInt(data, 0x20);
+        LayoutOcclusionLayerEndIndex = IO.ReadInt(data, 0x24);
+        LayoutBoundsIndex = IO.ReadInt(data, 0x28);
+        ScrollingBgLayoutStartIndex = IO.ReadInt(data, 0x2C);
+        ScrollingBgLayoutEndIndex = IO.ReadInt(data, 0x30);
+        TransformMode = IO.ReadInt(data, 0x34);
+        TopGradient = new(data[0x3A], data[0x39], data[0x38]);
+        BottomGradient = new(data[0x3E], data[0x3D], data[0x3C]);
+        ScrollingBgDefinitionLayoutIndex = IO.ReadInt(data, 0x40);
+        IntroCameraTruckingDefsStartIndex = IO.ReadInt(data, 0x44);
+        IntroCameraTruckingDefsEndIndex = IO.ReadInt(data, 0x48);
+        StartingPosition = (IO.ReadInt(data, 0x4C), IO.ReadInt(data, 0x50));
+        ColorAnimationFileIndex = IO.ReadInt(data, 0x54);
+        PaletteAnimationFileIndex = IO.ReadInt(data, 0x58);
+        Unknown5C = IO.ReadInt(data, 0x5C);
+        ObjectsCount = IO.ReadInt(data, 0x60);
+        ObjectsSectionPointer = IO.ReadInt(data, 0x64);
+        InteractableObjectsCount = IO.ReadInt(data, 0x68);
+        InteractableObjectsSectionPointer = IO.ReadInt(data, 0x6C);
+        WalkabilityMapPointer = IO.ReadInt(data, 0x70);
+        Unknown2Count = IO.ReadInt(data, 0x74);
+        Unknown2SectionPointer = IO.ReadInt(data, 0x78);
     }
 
     internal string GetAsm(int indent, List<DataFileSection> sections, ref int currentPointer)

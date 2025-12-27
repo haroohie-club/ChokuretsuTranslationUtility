@@ -20,9 +20,9 @@ public class UnpackCommand : Command
             "",
             { "i|input-archive=", "The archive to unpack", i => _inputArchive = i },
             { "o|output-direcetory=", "The directory to unpack the archive files (will be created if does not exist)", o => _outputDirectory = o },
-            { "c|compressed", "Add this flag if you want files to remain compressed", c => _compressed = true },
-            { "d|decimal", "Switches the output from hexadecimal numbering to decimal", d => _decimal = true },
-            { "n|names", "Append internal filenames to the extracted files", n => _useNames = true }
+            { "c|compressed", "Add this flag if you want files to remain compressed", _ => _compressed = true },
+            { "d|decimal", "Switches the output from hexadecimal numbering to decimal", _ => _decimal = true },
+            { "n|names", "Append internal filenames to the extracted files", _ => _useNames = true }
         };
     }
 

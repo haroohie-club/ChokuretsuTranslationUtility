@@ -39,8 +39,6 @@ public class VersionScreenCommand : Command
 
         using SKCanvas canvas = new(splashScreenVersionless);
         int y = semVers.Length <= 3 ? 561 : 531;
-        int height = semVers.Length <= 3 ? 9 : 27;
-        SKRect bounds = new(0, y, 64, y + height);
 
         CustomFontMapper fontMapper = new();
         SKTypeface font = SKTypeface.FromFile(_fontFile);
@@ -58,16 +56,16 @@ public class VersionScreenCommand : Command
 
     private class CustomFontMapper : FontMapper
     {
-        private static Dictionary<string, SKTypeface> _fonts = new();
+        private static readonly Dictionary<string, SKTypeface> Fonts = new();
 
         public void AddFont(SKTypeface typeface)
         {
-            _fonts.Add(typeface.FamilyName, typeface);
+            Fonts.Add(typeface.FamilyName, typeface);
         }
 
         public override SKTypeface TypefaceFromStyle(IStyle style, bool ignoreFontVariants)
         {
-            return _fonts[style.FontFamily];
+            return Fonts[style.FontFamily];
         }
     }
 }

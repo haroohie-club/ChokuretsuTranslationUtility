@@ -307,7 +307,7 @@ public class SoundArchive : IOFile
                 WaveArchives.Last().Index = ind;
                 WaveArchives.Last().Name = ind > (warNames.Count - 1) ? "WAVE_ARCHIVE_" + ind : warNames[ind];
                 r.Jump(fileOffs[(int)WaveArchives.Last().ReadingFileId].Item1, true);
-                WaveArchives.Last().File = r.ReadFile<WaveArchive>() as WaveArchive;
+                WaveArchives.Last().File = r.ReadFile<WaveArchive>();
                 string md5 = WaveArchives.Last().File.Md5Sum;
                 if (!md5Ids.ContainsKey(md5))
                 {
@@ -337,11 +337,11 @@ public class SoundArchive : IOFile
                 Banks.Last().Index = ind;
                 Banks.Last().Name = ind > (bankNames.Count - 1) ? "BANK_" + ind : bankNames[ind];
                 r.Jump(fileOffs[(int)Banks.Last().ReadingFileId].Item1, true);
-                Banks.Last().File = r.ReadFile<Bank>() as Bank;
-                Banks.Last().WaveArchives[0] = Banks.Last().ReadingWave0Id == 0xFFFF ? null : WaveArchives.Where(x => x.Index == Banks.Last().ReadingWave0Id).FirstOrDefault();
-                Banks.Last().WaveArchives[1] = Banks.Last().ReadingWave1Id == 0xFFFF ? null : WaveArchives.Where(x => x.Index == Banks.Last().ReadingWave1Id).FirstOrDefault();
-                Banks.Last().WaveArchives[2] = Banks.Last().ReadingWave2Id == 0xFFFF ? null : WaveArchives.Where(x => x.Index == Banks.Last().ReadingWave2Id).FirstOrDefault();
-                Banks.Last().WaveArchives[3] = Banks.Last().ReadingWave3Id == 0xFFFF ? null : WaveArchives.Where(x => x.Index == Banks.Last().ReadingWave3Id).FirstOrDefault();
+                Banks.Last().File = r.ReadFile<Bank>();
+                Banks.Last().WaveArchives[0] = Banks.Last().ReadingWave0Id == 0xFFFF ? null : WaveArchives.FirstOrDefault(x => x.Index == Banks.Last().ReadingWave0Id);
+                Banks.Last().WaveArchives[1] = Banks.Last().ReadingWave1Id == 0xFFFF ? null : WaveArchives.FirstOrDefault(x => x.Index == Banks.Last().ReadingWave1Id);
+                Banks.Last().WaveArchives[2] = Banks.Last().ReadingWave2Id == 0xFFFF ? null : WaveArchives.FirstOrDefault(x => x.Index == Banks.Last().ReadingWave2Id);
+                Banks.Last().WaveArchives[3] = Banks.Last().ReadingWave3Id == 0xFFFF ? null : WaveArchives.FirstOrDefault(x => x.Index == Banks.Last().ReadingWave3Id);
                 string md5 = Banks.Last().File.Md5Sum;
                 if (!md5Ids.ContainsKey(md5))
                 {
@@ -371,9 +371,9 @@ public class SoundArchive : IOFile
                 Sequences.Last().Index = ind;
                 Sequences.Last().Name = ind > (seqNames.Count - 1) ? "SEQ_" + ind : seqNames[ind];
                 r.Jump(fileOffs[(int)Sequences.Last().ReadingFileId].Item1, true);
-                Sequences.Last().File = r.ReadFile<Sequence>() as Sequence;
-                Sequences.Last().Bank = Banks.Where(x => x.Index == Sequences.Last().ReadingBankId).FirstOrDefault();
-                Sequences.Last().Player = Players.Where(x => x.Index == Sequences.Last().ReadingPlayerId).FirstOrDefault();
+                Sequences.Last().File = r.ReadFile<Sequence>();
+                Sequences.Last().Bank = Banks.FirstOrDefault(x => x.Index == Sequences.Last().ReadingBankId);
+                Sequences.Last().Player = Players.FirstOrDefault(x => x.Index == Sequences.Last().ReadingPlayerId);
                 string md5 = Sequences.Last().File.Md5Sum;
                 if (!md5Ids.ContainsKey(md5))
                 {
@@ -403,8 +403,8 @@ public class SoundArchive : IOFile
                 Streams.Last().Index = ind;
                 Streams.Last().Name = ind > (streamNames.Count - 1) ? "STRM_" + ind : streamNames[ind];
                 r.Jump(fileOffs[(int)Streams.Last().ReadingFileId].Item1, true);
-                Streams.Last().File = r.ReadFile<Stream>() as Stream;
-                Streams.Last().Player = StreamPlayers.Where(x => x.Index == Streams.Last().ReadingPlayerId).FirstOrDefault();
+                Streams.Last().File = r.ReadFile<Stream>();
+                Streams.Last().Player = StreamPlayers.FirstOrDefault(x => x.Index == Streams.Last().ReadingPlayerId);
                 string md5 = Streams.Last().File.Md5Sum;
                 if (!md5Ids.ContainsKey(md5))
                 {
@@ -434,7 +434,7 @@ public class SoundArchive : IOFile
                 SequenceArchives.Last().Index = ind;
                 SequenceArchives.Last().Name = ind > (seqArcNames.Count - 1) ? "SEQARC_" + ind : seqArcNames[ind];
                 r.Jump(fileOffs[(int)SequenceArchives.Last().ReadingFileId].Item1, true);
-                SequenceArchives.Last().File = r.ReadFile<SequenceArchive>() as SequenceArchive;
+                SequenceArchives.Last().File = r.ReadFile<SequenceArchive>();
                 var labels = SequenceArchives.Last().File.Labels;
                 SequenceArchives.Last().File.Labels = new();
                 if (SequenceArchives.Last().File.Sequences.Count > 0)
@@ -443,13 +443,18 @@ public class SoundArchive : IOFile
                     for (int i = 0; i <= SequenceArchives.Last().File.Sequences.Last().Index; i++)
                     {
                         string defName = "Sequence_" + i;
-                        try { defName = seqArcSequenceNames[ind][i]; } catch { }
-                        var e = SequenceArchives.Last().File.Sequences.Where(x => x.Index == i).FirstOrDefault();
+                        try { defName = seqArcSequenceNames[ind][i]; }
+                        catch
+                        {
+                            // ignored
+                        }
+
+                        var e = SequenceArchives.Last().File.Sequences.FirstOrDefault(x => x.Index == i);
                         if (defName != null && e != null)
                         {
                             e.Name = defName;
-                            e.Bank = Banks.Where(x => x.Index == e.ReadingBankId).FirstOrDefault();
-                            e.Player = Players.Where(x => x.Index == e.ReadingPlayerId).FirstOrDefault();
+                            e.Bank = Banks.FirstOrDefault(x => x.Index == e.ReadingBankId);
+                            e.Player = Players.FirstOrDefault(x => x.Index == e.ReadingPlayerId);
                             if (!SequenceArchives.Last().File.Labels.ContainsKey(defName))
                             {
                                 SequenceArchives.Last().File.Labels.Add(defName, labels.Values.ElementAt(seqNum));
@@ -491,16 +496,16 @@ public class SoundArchive : IOFile
                     switch (Groups.Last().Entries[i].Type)
                     {
                         case GroupEntryType.Sequence:
-                            Groups.Last().Entries[i].Entry = Sequences.Where(x => x.Index == (int)Groups.Last().Entries[i].ReadingId).FirstOrDefault();
+                            Groups.Last().Entries[i].Entry = Sequences.FirstOrDefault(x => x.Index == (int)Groups.Last().Entries[i].ReadingId);
                             break;
                         case GroupEntryType.Bank:
-                            Groups.Last().Entries[i].Entry = Banks.Where(x => x.Index == (int)Groups.Last().Entries[i].ReadingId).FirstOrDefault();
+                            Groups.Last().Entries[i].Entry = Banks.FirstOrDefault(x => x.Index == (int)Groups.Last().Entries[i].ReadingId);
                             break;
                         case GroupEntryType.WaveArchive:
-                            Groups.Last().Entries[i].Entry = WaveArchives.Where(x => x.Index == (int)Groups.Last().Entries[i].ReadingId).FirstOrDefault();
+                            Groups.Last().Entries[i].Entry = WaveArchives.FirstOrDefault(x => x.Index == (int)Groups.Last().Entries[i].ReadingId);
                             break;
                         case GroupEntryType.SequenceArchive:
-                            Groups.Last().Entries[i].Entry = SequenceArchives.Where(x => x.Index == (int)Groups.Last().Entries[i].ReadingId).FirstOrDefault();
+                            Groups.Last().Entries[i].Entry = SequenceArchives.FirstOrDefault(x => x.Index == (int)Groups.Last().Entries[i].ReadingId);
                             break;
                     }
                 }
@@ -534,7 +539,7 @@ public class SoundArchive : IOFile
         {
 
             //Init block.
-            w.InitBlock("SYMB", false, true);
+            w.InitBlock("SYMB", false);
             w.Write("SYMB".ToCharArray());
             w.Write((uint)0);
             w.InitOffset("seqStrings");
@@ -582,10 +587,10 @@ public class SoundArchive : IOFile
                 for (int i = 0; i <= SequenceArchives.Last().Index; i++)
                 {
                     if (SequenceArchives.Where(x => x.Index == i).Count() < 1) { seqArcSeqSBak.Add(0); continue; }
-                    var e = SequenceArchives.Where(x => x.Index == i).FirstOrDefault();
+                    var e = SequenceArchives.FirstOrDefault(x => x.Index == i);
                     w.CloseOffset("seqArcSubS" + i);
                     seqArcSeqSBak.Add(w.Position);
-                    if (e.File.Sequences.Count > 0)
+                    if (e!.File.Sequences.Count > 0)
                     {
                         w.Write((uint)(e.File.Sequences.Last().Index + 1));
                         w.Write(new uint[e.File.Sequences.Last().Index + 1]);
@@ -748,7 +753,7 @@ public class SoundArchive : IOFile
             {
                 for (int i = 0; i <= SequenceArchives.Last().Index; i++)
                 {
-                    var e = SequenceArchives.Where(x => x.Index == i).FirstOrDefault();
+                    var e = SequenceArchives.FirstOrDefault(x => x.Index == i);
                     if (e != null)
                     {
 
@@ -761,7 +766,7 @@ public class SoundArchive : IOFile
                         {
                             for (int j = 0; j <= e.File.Sequences.Last().Index; j++)
                             {
-                                var f = e.File.Sequences.Where(x => x.Index == j).FirstOrDefault();
+                                var f = e.File.Sequences.FirstOrDefault(x => x.Index == j);
                                 if (f == null) { continue; }
                                 long currPos = w.Position;
                                 w.Position = seqArcSeqSBak[i] + 4 + 4 * f.Index;
@@ -788,7 +793,7 @@ public class SoundArchive : IOFile
             w.Pad(4);
             long afterPadPosS = w.Position;
             w.CloseBlock();
-            w.BlockSizes[w.BlockSizes.Count - 1] -= afterPadPosS - beforePadPosS;
+            w.BlockSizes[^1] -= afterPadPosS - beforePadPosS;
 
         }
 

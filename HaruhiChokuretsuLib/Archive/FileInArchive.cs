@@ -8,7 +8,7 @@ namespace HaruhiChokuretsuLib.Archive;
 /// <summary>
 /// Base class for representing a file in a bin archive
 /// </summary>
-public partial class FileInArchive
+public class FileInArchive
 {
     /// <summary>
     /// Name of the file in the archive
@@ -53,7 +53,7 @@ public partial class FileInArchive
     /// </summary>
     [JsonIgnore]
     [BsonIgnore]
-    public bool Edited { get; set; } = false;
+    public bool Edited { get; set; }
     /// <summary>
     /// ILogger instance for logging
     /// </summary>
