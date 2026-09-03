@@ -12,6 +12,7 @@ public partial class GraphicsFile
     /// Data for screen file
     /// </summary>
     public List<ScreenDataEntry> ScreenData { get; set; } = [];
+
     /// <summary>
     /// Gets a rendered screen image
     /// </summary>
@@ -25,6 +26,7 @@ public partial class GraphicsFile
         {
             tileImages.Add(tilesGrp.GetImage(paletteOffset: palette * 16));
         }
+
         using SKCanvas canvas = new(bitmap);
 
         List<List<SKBitmap>> tiles = [];
@@ -44,10 +46,11 @@ public partial class GraphicsFile
                 {
                     SKBitmap tile = new(8, 8);
                     using SKCanvas tileCanvas = new(tile);
-                    tileCanvas.DrawBitmap(tileImage, boundingBox, new SKRect(0, 0, 8, 8));
+                    tileCanvas.DrawBitmap(tileImage, boundingBox, new SKRect(0, 0, 8, 8), SKSamplingOptions.Default);
                     tileCanvas.Flush();
                     tileVariants.Add(tile);
                 }
+
                 tiles.Add(tileVariants);
             }
         }
@@ -63,15 +66,19 @@ public partial class GraphicsFile
                 {
                     transformCanvas.Scale(-1, 1, 4, 0);
                 }
+
                 if (ScreenData[i].Flip.HasFlag(ScreenTileFlip.VERTICAL))
                 {
                     transformCanvas.Scale(1, -1, 0, 4);
                 }
-                transformCanvas.DrawBitmap(tiles[ScreenData[i].Index - 1][ScreenData[i++].Palette], new SKPoint(0, 0));
+
+                transformCanvas.DrawBitmap(tiles[ScreenData[i].Index - 1][ScreenData[i++].Palette], new SKPoint(0, 0),
+                    SKSamplingOptions.Default);
                 transformCanvas.Flush();
-                canvas.DrawBitmap(tile, new SKRect(x, y, x + 8, y + 8));
+                canvas.DrawBitmap(tile, new SKRect(x, y, x + 8, y + 8), SKSamplingOptions.Default);
             }
         }
+
         canvas.Flush();
 
         return bitmap;
@@ -85,7 +92,8 @@ public partial class GraphicsFile
     /// <param name="associatedTiles">A graphics file to which the associated tiles will be set</param>
     /// <param name="suppressErrors">If true, error messages will not be logged</param>
     /// <returns>The width of the screen image or -1 if the replacement fails due to too complex a palette</returns>
-    public int SetScreenImage(SKBitmap bitmap, PnnQuantizer quantizer, GraphicsFile associatedTiles, bool suppressErrors = false)
+    public int SetScreenImage(SKBitmap bitmap, PnnQuantizer quantizer, GraphicsFile associatedTiles,
+        bool suppressErrors = false)
     {
         if (bitmap.Width != 256 || bitmap.Height != 192)
         {
@@ -93,6 +101,7 @@ public partial class GraphicsFile
             {
                 Log.LogError("Screen image size must be 256x192");
             }
+
             return -1;
         }
 
@@ -110,7 +119,7 @@ public partial class GraphicsFile
                     Right = x + 8,
                     Bottom = y + 8,
                 };
-                tileCanvas.DrawBitmap(bitmap, boundingBox, new SKRect(0, 0, 8, 8));
+                tileCanvas.DrawBitmap(bitmap, boundingBox, new SKRect(0, 0, 8, 8), SKSamplingOptions.Default);
                 tileCanvas.Flush();
                 tiles.Add(tile);
             }
@@ -130,6 +139,7 @@ public partial class GraphicsFile
             palette[15] = SKColors.Transparent;
             palette = [.. palette.Swap(0, 15)];
         }
+
         PnnQuantizer pnn = new();
         foreach (SKBitmap tile in tiles)
         {
@@ -155,8 +165,10 @@ public partial class GraphicsFile
         {
             if (!suppressErrors)
             {
-                Log.LogError($"Error attempting to replace screen image {Name} ({Index}): more than 256 tiles ({distinctTiles.Count}) generated from image; please use a less complex image");
+                Log.LogError(
+                    $"Error attempting to replace screen image {Name} ({Index}): more than 256 tiles ({distinctTiles.Count}) generated from image; please use a less complex image");
             }
+
             return -1;
         }
 
@@ -169,9 +181,10 @@ public partial class GraphicsFile
         {
             for (int x = 0; x < 256 && currentIndex < distinctTiles.Count; x += 8)
             {
-                newTileCanvas.DrawBitmap(distinctTiles[currentIndex++], new SKPoint(x, y));
+                newTileCanvas.DrawBitmap(distinctTiles[currentIndex++], new SKPoint(x, y), SKSamplingOptions.Default);
             }
         }
+
         newTileCanvas.Flush();
 
         palette.AddRange(new SKColor[48 - palette.Count]);
@@ -198,8 +211,10 @@ public partial class GraphicsFile
     /// <returns>A GraphicsFile of the screen image's tiles</returns>
     public GraphicsFile GetAssociatedScreenTiles(ArchiveFile<GraphicsFile> grp)
     {
-        GraphicsFile associatedTiles = grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[..^3]));
-        associatedTiles ??= grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[..^8]));
+        GraphicsFile associatedTiles =
+            grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[..^3]));
+        associatedTiles ??=
+            grp.Files.FirstOrDefault(f => f.FileFunction == Function.SHTX && f.Name.StartsWith(Name[..^8]));
         associatedTiles ??= grp.GetFileByName("BG_SLG_T00DNX");
 
         return associatedTiles;
@@ -214,10 +229,12 @@ public partial class GraphicsFile
         /// Index of tile in tile graphic
         /// </summary>
         public byte Index { get; set; }
+
         /// <summary>
         /// Palette to use for this tile
         /// </summary>
         public byte Palette { get; set; }
+
         /// <summary>
         /// Direction to flip this tile
         /// </summary>
@@ -234,6 +251,7 @@ public partial class GraphicsFile
         /// Flip horizontally
         /// </summary>
         HORIZONTAL = 0x04,
+
         /// <summary>
         /// Flip vertically
         /// </summary>

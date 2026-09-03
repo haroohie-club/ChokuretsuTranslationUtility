@@ -10,6 +10,7 @@ using SkiaSharp;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SixLabors.ImageSharp.Formats;
 
 namespace HaruhiChokuretsuCLI;
 
@@ -66,7 +67,7 @@ public class ExportCharacterSpriteCommand : Command
         {
             GifFrameMetadata metadata = gifFrame.Frames.RootFrame.Metadata.GetGifMetadata();
             metadata.FrameDelay = 2;
-            metadata.DisposalMethod = GifDisposalMethod.RestoreToBackground;
+            metadata.DisposalMode = FrameDisposalMode.RestoreToBackground;
             gif.Frames.AddFrame(gifFrame.Frames.RootFrame);
         }
         gif.Frames.RemoveFrame(0);

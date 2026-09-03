@@ -16,8 +16,6 @@ namespace HaruhiChokuretsuLib.Audio.ADX;
 /// <param name="loopEndSample">(Optional) Last sample to play before starting loop over</param>
 public class AdxWaveProvider(IAdxDecoder decoder, bool loopEnabled = false, uint loopStartSample = 0, uint loopEndSample = 0) : IWaveProvider
 {
-    private readonly IAdxDecoder _decoder = decoder;
-
     /// <summary>
     /// If enabled, will loop the audio
     /// </summary>
@@ -35,18 +33,18 @@ public class AdxWaveProvider(IAdxDecoder decoder, bool loopEnabled = false, uint
     public WaveFormat WaveFormat { get; } = new((int)decoder.SampleRate, (int)decoder.Channels);
 
     /// <inheritdoc/>
-    public int Read(byte[] buffer, int offset, int count)
+    public int Read(Span<byte> buffer)
     {
         int i = 0;
-        while (i < count)
+        while (i < buffer.Length)
         {
-            Sample nextSample = _decoder.NextSample();
+            Sample nextSample = decoder.NextSample();
             if (nextSample is null)
             {
                 return i;
             }
-            byte[] bytes = nextSample.SelectMany(BitConverter.GetBytes).ToArray();
-            Array.Copy(bytes, 0, buffer, offset + i, bytes.Length);
+            Span<byte> bytes = nextSample.SelectMany(BitConverter.GetBytes).ToArray();
+            bytes.CopyTo(buffer[i..]);
             i += bytes.Length;
         }
         return i;

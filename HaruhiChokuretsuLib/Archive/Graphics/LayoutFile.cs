@@ -22,9 +22,11 @@ public partial class GraphicsFile
     /// <param name="darkMode">If true, will render the background dark</param>
     /// <param name="preprocessedList">(Optional) If true, assumes the passed grp files are already in order; otherwise, assumes you're dropping all of grp.bin on it</param>
     /// <returns>A tuple containing a rendered SKBitmap of the layout and a list of the layout entries</returns>
-    public (SKBitmap bitmap, List<LayoutEntry> layoutEntries) GetLayout(List<GraphicsFile> grpFiles, int entryIndex, int numEntries, bool darkMode, bool preprocessedList = false)
+    public (SKBitmap bitmap, List<LayoutEntry> layoutEntries) GetLayout(List<GraphicsFile> grpFiles, int entryIndex,
+        int numEntries, bool darkMode, bool preprocessedList = false)
     {
-        return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList(), darkMode, preprocessedList);
+        return GetLayout(grpFiles, LayoutEntries.Skip(entryIndex).Take(numEntries).ToList(), darkMode,
+            preprocessedList);
     }
 
     /// <summary>
@@ -35,7 +37,8 @@ public partial class GraphicsFile
     /// <param name="darkMode">If true, will render the background dark</param>
     /// <param name="preprocessedList">(Optional) If true, assumes the passed grp files are already in order; otherwise, assumes you're dropping all of grp.bin on it</param>
     /// <returns>A tuple containing a rendered SKBitmap of the layout and a list of the layout entries</returns>
-    public (SKBitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles, List<LayoutEntry> layoutEntries, bool darkMode, bool preprocessedList = false)
+    public (SKBitmap bitmap, List<LayoutEntry> layouts) GetLayout(List<GraphicsFile> grpFiles,
+        List<LayoutEntry> layoutEntries, bool darkMode, bool preprocessedList = false)
     {
         LayoutEntry maxX = LayoutEntries.OrderByDescending(l => l.ScreenX).First();
         LayoutEntry maxY = LayoutEntries.OrderByDescending(l => l.ScreenY).First();
@@ -52,7 +55,9 @@ public partial class GraphicsFile
         Dictionary<int, SKBitmap> textures;
         if (preprocessedList)
         {
-            textures = grpFiles.Select((g, i) => (i, g.IsTexture() ? g.GetTexture(transparentIndex: 0) : g.GetTiles(transparentIndex: 0))).ToDictionary();
+            textures = grpFiles.Select((g, i) =>
+                    (i, g.IsTexture() ? g.GetTexture(transparentIndex: 0) : g.GetTiles(transparentIndex: 0)))
+                .ToDictionary();
         }
         else
         {
@@ -69,8 +74,10 @@ public partial class GraphicsFile
                         i++;
                     }
                 }
+
                 GraphicsFile curGrp = grpFiles.First(g => g.Index == grpIndex - 1);
-                textures.Add(index, curGrp.IsTexture() ? curGrp.GetTexture(transparentIndex: 0) : curGrp.GetTiles(transparentIndex: 0));
+                textures.Add(index,
+                    curGrp.IsTexture() ? curGrp.GetTexture(transparentIndex: 0) : curGrp.GetTiles(transparentIndex: 0));
             }
         }
 
@@ -81,7 +88,8 @@ public partial class GraphicsFile
                 continue;
             }
 
-            canvas.DrawBitmap(currentEntry.GetTileBitmap(textures), currentEntry.GetDestination());
+            canvas.DrawBitmap(currentEntry.GetTileBitmap(textures), currentEntry.GetDestination(),
+                SKSamplingOptions.Default);
         }
 
         return (layoutBitmap, layoutEntries);
@@ -97,50 +105,62 @@ public class LayoutEntry
     /// Unknown
     /// </summary>
     public short UnknownShort1 { get; set; }
+
     /// <summary>
     /// Index of the texture to use
     /// </summary>
     public short RelativeShtxIndex { get; set; }
+
     /// <summary>
     /// Unknown
     /// </summary>
     public short UnknownShort2 { get; set; }
+
     /// <summary>
     /// X position of the cropped texture on the screen
     /// </summary>
     public short ScreenX { get; set; }
+
     /// <summary>
     /// Y position of the cropped texture on the screen
     /// </summary>
     public short ScreenY { get; set; }
+
     /// <summary>
     /// Width of the cropped texture
     /// </summary>
     public short TextureW { get; set; }
+
     /// <summary>
     /// Height of the cropped texture
     /// </summary>
     public short TextureH { get; set; }
+
     /// <summary>
     /// X position of the crop on the texture
     /// </summary>
     public short TextureX { get; set; }
+
     /// <summary>
     /// Y position of the crop on the texture
     /// </summary>
     public short TextureY { get; set; }
+
     /// <summary>
     /// Width of the cropped texture on the screen
     /// </summary>
     public short ScreenW { get; set; }
+
     /// <summary>
     /// Height of the cropped texture on the screen
     /// </summary>
     public short ScreenH { get; set; }
+
     /// <summary>
     /// Unknown
     /// </summary>
     public short UnknownShort3 { get; set; }
+
     /// <summary>
     /// Color to tint the texture while rendering
     /// </summary>
@@ -152,7 +172,7 @@ public class LayoutEntry
     public LayoutEntry()
     {
     }
-        
+
     /// <summary>
     /// Create a layout entry from data
     /// </summary>
@@ -182,6 +202,7 @@ public class LayoutEntry
         {
             tint = 0xFFFFFFFF;
         }
+
         Tint = new(tint);
     }
 
@@ -198,7 +219,8 @@ public class LayoutEntry
     /// <param name="dstW">The width of the quad to draw to the screen</param>
     /// <param name="dstH">The height of the quad to draw to the screen</param>
     /// <param name="tint">the tint to apply to the texture on the screen</param>
-    public LayoutEntry(short shtxIndex, short srcX, short srcY, short srcW, short srcH, short dstX, short dstY, short dstW, short dstH, SKColor tint)
+    public LayoutEntry(short shtxIndex, short srcX, short srcY, short srcW, short srcH, short dstX, short dstY,
+        short dstW, short dstH, SKColor tint)
     {
         RelativeShtxIndex = shtxIndex;
         TextureX = srcX;
@@ -256,11 +278,14 @@ public class LayoutEntry
         {
             transformCanvas.Scale(-1, 1, tileWidth / 2.0f, 0);
         }
+
         if (ScreenH < 0)
         {
             transformCanvas.Scale(1, -1, 0, tileHeight / 2.0f);
         }
-        transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, Math.Abs(tileWidth), Math.Abs(tileHeight)));
+
+        transformCanvas.DrawBitmap(texture, boundingBox, new SKRect(0, 0, Math.Abs(tileWidth), Math.Abs(tileHeight)),
+            SKSamplingOptions.Default);
         transformCanvas.Flush();
 
         if (Tint != SKColors.White)
@@ -314,6 +339,7 @@ public class LayoutEntry
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"Index: {RelativeShtxIndex}; TX: {TextureX} {TextureY} {TextureX + TextureW} {TextureY + TextureH}, SC: {ScreenX} {ScreenY} {ScreenX + ScreenW} {ScreenY + ScreenH}";
+        return
+            $"Index: {RelativeShtxIndex}; TX: {TextureX} {TextureY} {TextureX + TextureW} {TextureY + TextureH}, SC: {ScreenX} {ScreenY} {ScreenX + ScreenW} {ScreenY + ScreenH}";
     }
 }
